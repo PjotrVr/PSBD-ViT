@@ -42,7 +42,7 @@ from scripts.paper._common import (  # noqa: E402
     load_json,
     load_psbd_metrics,
     mean_or_none,
-    ordinal_word,
+    ordinal,
     provenance_comment,
     word_list,
     write_macros,
@@ -236,11 +236,11 @@ def metric_macros(stem: str, overall: dict[str, float | None]) -> dict:
             f"defenses the {stem} ranking covers, PSBD-TM and the competitors",
         ),
         f"detectors_{stem}_rank_ours": (
-            ordinal_word(order.index("PSBD-TM") + 1),
+            ordinal(order.index("PSBD-TM") + 1),
             f"rank of the recommended placement among every defense by mean {stem}",
         ),
         f"detectors_{stem}_rank_published": (
-            ordinal_word(published_rank),
+            ordinal(published_rank),
             f"rank the published placement would take among the shown defenses by mean {stem}",
         ),
         f"detectors_{stem}_beating_published": (

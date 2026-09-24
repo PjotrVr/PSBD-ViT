@@ -54,16 +54,16 @@ CLEAN_COLOUR = style.PALETTE[0]
 BACKDOOR_COLOUR = style.PALETTE[1]
 THRESHOLD_COLOUR = "black"
 
-# (folder, row) with row 0 the 3 cells PSBD-TM clears and row 1 the 3 cells
-# where a backdoor implanted but the detector reads near chance (docs/hypothesis
-# and CLAUDE.md's headline: cifar10 wanet and cifar10 sig at 10% both invert).
+# (folder, row) with row 0 3 cells PSBD-TM clears and row 1 its 3 weakest
+# panel cells: cifar10 wanet and cifar10 sig at 10% both invert, and cifar10 bpp
+# at 5% is the weakest that does not.
 PANELS = (
     ("vit_cifar100_badnet_a2o_0_01", 0),
     ("vit_gtsrb_bpp_0_05", 0),
     ("vit_tiny_blend_0_1", 0),
     ("vit_cifar10_wanet_0_1", 1),
     ("vit_cifar10_sig_0_1", 1),
-    ("vit_tiny_tact_0_01", 1),
+    ("vit_cifar10_bpp_0_05", 1),
 )
 
 

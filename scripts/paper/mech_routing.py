@@ -30,6 +30,7 @@ import matplotlib.pyplot as plt  # noqa: E402
 
 from defenses.decision import EASY_ATTACKS, HARD_ATTACKS  # noqa: E402
 from scripts.paper._common import (  # noqa: E402
+    excluded_folders,
     attack_label,
     build_parser,
     clearing_cells,
@@ -112,11 +113,17 @@ def layer_curve(records: list[dict], key: str) -> list[float | None]:
 
 
 def all_folders(results_dir: str, name: str) -> list[str]:
-    """Every ViT folder outside the SAM, evasion and seed sets carrying this record."""
+    """Every ViT folder outside the SAM, evasion and seed sets carrying this record.
+
+    The ledger's diverged and source-mapped cells are dropped, since neither is a
+    trigger backdoor.
+    """
+    excluded = excluded_folders(results_dir)
     folders = sorted(
         os.path.basename(os.path.dirname(path))
         for path in glob.glob(os.path.join(results_dir, "vit_*", name))
         if is_panel_folder(os.path.basename(os.path.dirname(path)))
+        and os.path.basename(os.path.dirname(path)) not in excluded
     )
     return folders
 

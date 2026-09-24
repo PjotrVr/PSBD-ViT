@@ -266,7 +266,7 @@ def write_site_table(args, readings: dict[str, list[dict]], inputs) -> dict:
 
 def write_survival_figure(args, grouped: dict[str, list[dict]], inputs) -> dict:
     """Triggered against clean shift ratio over the swept rates, 1 panel per placement."""
-    fig, axes = plt.subplots(1, 2, figsize=(TEXT_WIDTH, 2.5), sharey=True)
+    fig, axes = plt.subplots(1, 2, figsize=(TEXT_WIDTH, 2.3), sharey=True)
     plotted = {}
     for axis, key in zip(axes, PLACEMENTS):
         plotted[key] = {}

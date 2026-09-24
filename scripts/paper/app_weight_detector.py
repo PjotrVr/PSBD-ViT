@@ -22,6 +22,7 @@ import sys
 sys.path.insert(0, os.getcwd())
 
 from scripts.paper._common import (  # noqa: E402
+    excluded_folders,
     attack_label,
     build_parser,
     dataset_label,
@@ -59,7 +60,10 @@ def main() -> None:
     rows = []
     by_attack = collections.defaultdict(list)
     benign_shares = []
+    excluded = excluded_folders(args.results_dir)
     for folder, checkpoint in sorted(record["checkpoints"].items()):
+        if folder in excluded:
+            continue
         reading = summarize(checkpoint)
         if checkpoint["is_benign"]:
             benign_shares.append(reading["flag_share"])

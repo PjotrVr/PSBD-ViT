@@ -31,6 +31,10 @@ import sys
 sys.path.insert(0, os.getcwd())
 
 from cli.compare_detectors import psbd_values  # noqa: E402
+from scripts.coverage_ledger import (  # noqa: E402
+    SOURCE_MAPPED_ACCURACY,
+    source_class_accuracy,
+)
 from defenses.decision import PUBLISHED_PLACEMENT, RECOMMENDED_PLACEMENT  # noqa: E402
 from scripts.paper._common import (  # noqa: E402
     HEADLINE_KEY,
@@ -98,6 +102,15 @@ def swin_cells(results_dir: str, checkpoints_dir: str, asr_bar: float) -> list[d
         if asr is None or asr < asr_bar:
             continue
         report = load_psbd_metrics(results_dir, folder)
+        # The ViT ledger's source-mapped rule, applied to Swin: a TaCT model that
+        # sends its clean source class to the target is not a trigger backdoor.
+        accuracy = source_class_accuracy(
+            checkpoints_dir,
+            results_dir,
+            {"folder_name": folder, "attack": report["attack"]},
+        )
+        if accuracy is not None and accuracy < SOURCE_MAPPED_ACCURACY:
+            continue
         cells.append(
             {
                 "folder": folder,

@@ -52,6 +52,8 @@ def cell_text(cell: dict | None) -> str:
     if cell is None or cell.get("asr") is None:
         return "--"
     asr = cell["asr"]
+    if cell["asr_class"] == "source_mapped":
+        return f"{asr:.3f}$^\\ddagger$"
     if cell["asr_class"] != "clears":
         return f"{asr:.3f}$^\\dagger$"
     clean_accuracy = cell.get("clean_accuracy")
@@ -99,9 +101,12 @@ def main() -> None:
 
     datasets = DATASET_ORDER
     attacks = attack_order(cells)
-    cells_by_key = {
-        (cell["dataset"], cell["attack"], cell["poison_rate"]): cell for cell in cells
-    }
+    # A retrained variant shares its (dataset, attack, rate) slot with the run it
+    # replaces, so the clearing one takes the slot whatever the folder order.
+    cells_by_key = {}
+    for cell in sorted(cells, key=lambda cell: cell["asr_class"] == "clears"):
+        cells_by_key[(cell["dataset"], cell["attack"], cell["poison_rate"])] = cell
+    source_mapped = [cell for cell in cells if cell["asr_class"] == "source_mapped"]
     rows = panel_rows(cells_by_key, datasets, attacks)
 
     write_table(
@@ -113,7 +118,9 @@ def main() -> None:
             f"{len(cells)} declared models clear the attack success bar {asr_bar:.2f} "
             "and carry every table in this paper. A model that clears prints attack "
             "success rate over clean accuracy. A model below the bar prints only its "
-            r"attack success rate, marked $^\dagger$, so its exclusion stays visible."
+            r"attack success rate, marked $^\dagger$, so its exclusion stays visible. "
+            r"$^\ddagger$ marks a TaCT model that maps its whole source class to the "
+            "target without the trigger, excluded because it is not a trigger backdoor."
         ),
         label="tab:panel",
         header=["dataset", "attack", *RATE_HEADERS],
@@ -147,6 +154,10 @@ def main() -> None:
             "cells the ViT panel declares, clearing and below the bar together",
         ),
         "panel_datasets": (str(len(datasets)), "datasets in the ViT panel"),
+        "panel_cells_source_mapped": (
+            str(len(source_mapped)),
+            "TaCT cells excluded because clean source-class images lose their label",
+        ),
         "panel_attacks_clearing": (
             str(len({cell["attack"] for cell in clearing})),
             "attacks with at least 1 cell clearing the attack success bar",

@@ -88,6 +88,22 @@ def load_coverage(results_dir: str) -> dict:
     return coverage
 
 
+def excluded_folders(results_dir: str) -> set[str]:
+    """Checkpoints the ledger rules out as not a backdoor: diverged or source-mapped.
+
+    A mechanism experiment picks its checkpoints by name, so it can hold a model
+    the panel later excluded. Its generator drops these before plotting.
+    """
+    path = os.path.join(results_dir, "coverage", "coverage.json")
+    coverage = load_json(path) or {"cells": []}
+    excluded = {
+        cell["folder_name"]
+        for cell in coverage["cells"]
+        if cell.get("asr_class") in ("diverged", "source_mapped")
+    }
+    return excluded
+
+
 def load_declaration(path: str) -> dict:
     declaration = load_json(path)
     if declaration is None:
@@ -487,27 +503,12 @@ def number_word(count: int) -> str:
     return word
 
 
-ORDINAL_WORDS = (
-    "first",
-    "second",
-    "third",
-    "fourth",
-    "fifth",
-    "sixth",
-    "seventh",
-    "eighth",
-    "ninth",
-    "tenth",
-    "eleventh",
-    "twelfth",
-    "thirteenth",
-)
-
-
-def ordinal_word(rank: int) -> str:
-    """A 1-based rank as the ordinal word prose uses, such as fifth."""
-    word = ORDINAL_WORDS[rank - 1] if 1 <= rank <= len(ORDINAL_WORDS) else f"{rank}th"
-    return word
+def ordinal(rank: int) -> str:
+    """A 1-based rank as the paper writes it, 1st, 2nd, 3rd, 4th, 11th."""
+    suffix = "th"
+    if rank % 100 not in (11, 12, 13):
+        suffix = {1: "st", 2: "nd", 3: "rd"}.get(rank % 10, "th")
+    return f"{rank}{suffix}"
 
 
 def word_list(labels: list[str]) -> str:

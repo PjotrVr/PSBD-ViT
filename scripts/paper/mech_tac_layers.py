@@ -22,6 +22,7 @@ from scripts.paper._style import TEXT_WIDTH, attack_color, legend_below  # noqa:
 
 from defenses.decision import EASY_ATTACKS, HARD_ATTACKS  # noqa: E402
 from scripts.paper._common import (  # noqa: E402
+    excluded_folders,
     build_parser,
     dataset_label,
     figure_sidecar,
@@ -69,7 +70,8 @@ def main() -> None:
         write_pending(args.paper_dir)
         print("tac layers: record absent, pending table written")
         return
-    records = record["records"]
+    excluded = excluded_folders(args.results_dir)
+    records = [item for item in record["records"] if item["folder"] not in excluded]
     inputs = [RECORD]
 
     fig, axes = plt.subplots(

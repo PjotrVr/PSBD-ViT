@@ -2,11 +2,11 @@
 
 H41 built the min-rank probe union against an attacker trained to evade 1
 probed operator. This table reads the same union rule where nobody trained
-against a probe: the 65 models the paper's headline reads. 6 probe sets, each
+against a probe: the models the paper's headline reads. 6 probe sets, each
 a row: PSBD-TM alone, PSBD-TM plus PSBD-RD, PSBD-TM plus token masking on the
 attention branch output, the 3-probe pool from the adaptive-attacker section
 (PSBD-TM, attention-input dropout, MLP-norm-out gain scaling), that pool plus
-PSBD-RD, and every basis placement present on all 65 models. Nothing here is
+PSBD-RD, and every basis placement present on every one of them. Nothing here is
 computed: every number comes from
 results/_experiments/probe_union/probe_union.json, written by
 experiments/probe_union/measure.py.
@@ -49,7 +49,7 @@ ROW_LABELS = (
     ("psbd_tm_attn_branch", "TM + TM-out"),
     ("adaptive_3probe", "TM + DI + GS"),
     ("adaptive_4probe", "TM + DI + GS + RD"),
-    ("all_65_basis", "every basis placement on all 65 models"),
+    ("all_65_basis", "every basis placement on every model"),
 )
 
 
@@ -94,7 +94,7 @@ def main() -> None:
         generator=GENERATOR,
         inputs=inputs,
         caption=(
-            "The min-rank union of probes on the 65 backdoored ViT-B/16 models, with "
+            f"The min-rank union of probes on the {record['n_models_selected']} backdoored ViT-B/16 models, with "
             "the paired AUROC gain over token masking at the attention input alone. "
             f"{PROBE_LEGEND}."
         ),
@@ -118,7 +118,12 @@ def main() -> None:
     sig = next(
         row for row in tm_rd["per_model"] if row["folder"] == SIG_INVERTED_FOLDER
     )
+    every_basis = record["probe_sets"]["all_65_basis"]["gain_over_psbd_tm"]
     macros = {
+        "probe_union_all_basis_gain": (
+            fmt(every_basis["mean_gain"], signed=True),
+            "paired AUROC gain of the union of every fully swept placement over PSBD-TM",
+        ),
         "probe_union_sig_cifar10_tm_rd": (
             fmt(sig["auroc"]),
             "PSBD-TM + PSBD-RD union on SIG at 10% on CIFAR-10, the other inverted cell",

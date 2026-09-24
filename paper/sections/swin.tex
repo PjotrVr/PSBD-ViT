@@ -1,7 +1,7 @@
 \section{Transfer to Swin-S}
 \label{sec:swin}
 
-Swin-S \cite{liu2021swin} restricts attention to shifted windows of 7 by 7 tokens and merges patches between its four stages, so tokens reach every other token only through merging. That tests the account of \cref{sec:mechanism}. If a token mask works because it removes evidence before attention routes it, windowing should not matter, since every route still passes through a windowed attention. We read the same placements on \SwinCells{} backdoored Swin-S models over \SwinDatasets{} datasets, and \SwinPlacementsReported{} placements carry at least 5 of them (\cref{tab:swin-placements}).
+Swin-S \cite{liu2021swin} restricts attention to shifted windows of 7 by 7 tokens and merges patches between its four stages, so a token reaches distant tokens only gradually, through the alternating window shift within a stage and patch merging between stages. That tests the account of \cref{sec:mechanism}. If a token mask works because it removes evidence before attention routes it, windowing should not matter, since every route still passes through a windowed attention. We read the same placements on \SwinCells{} backdoored Swin-S models over \SwinDatasets{} datasets, and \SwinPlacementsReported{} placements carry at least 5 of them (\cref{tab:swin-placements}).
 
 \input{tables/swin_main}
 

@@ -10,7 +10,9 @@ most practical question in this setting. Given the deployed model and one
 incoming input, does that input carry a trigger? A detector that answers well
 needs no retraining and runs in front of the deployed model.
 
-Prediction Shift Backdoor Detection (PSBD) \cite{li2025psbd} is such a detector.
+Prediction Shift Backdoor Detection (PSBD) \cite{li2025psbd} was proposed to find
+poisoned samples in a training set. Its score needs only the trained model and a
+small clean set, so we apply it to each incoming input instead.
 It rests on the observation that a backdoored input is decided by a shortcut the
 model learned quickly and firmly, while a clean input is decided by a broad set
 of features. When the network is perturbed at inference, the broad decision

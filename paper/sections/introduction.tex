@@ -37,10 +37,11 @@ We show that this choice decides whether the detector works. Masking whole
 tokens at the input of every attention block, which we call PSBD-TM, reaches a
 mean AUROC of \HeadlineAurocAdaptive{}, against \PublishedAurocAdaptive{} for
 dropout on the residual stream, our adaptation of the original site, which we
-call PSBD-RD. We then explain why. A backdoor in a ViT is a single direction in
-the residual stream, written late in the network and carried by attention from
-the trigger's own tokens to the class token, so removing those tokens before
-attention removes the route.
+call PSBD-RD. We then explain why. At the rate where most clean predictions change,
+PSBD-TM leaves nearly every triggered prediction in place and PSBD-RD does not.
+The two part on patch triggers, whose evidence a ViT carries in the trigger's
+own tokens of the residual stream until the last blocks. A mask on the attention
+input leaves that stream untouched, while dropout on the stream reaches it.
 
 \paragraph{Contributions.} We make three claims.
 
@@ -55,9 +56,9 @@ attention removes the route.
     the same models, splits and false-positive budgets, in which PSBD-TM ranks
     1st of \DetectorsAurocDefensesRanked{} defenses and PSBD-RD ranks
     5th (\cref{sec:robustness:detectors}).
-  \item A mechanistic account, tested on the same models, of why the attention
-    input wins, why whole tokens beat coordinates and why noise at that site is
-    weaker than masking (\cref{sec:mechanism}).
+  \item An account, measured on the same models, of where a backdoor lives in a
+    ViT and of which predictions each placement leaves in place
+    (\cref{sec:mechanism}).
 \end{enumerate}
 
 Every number in this paper is produced by a script from the saved results, and

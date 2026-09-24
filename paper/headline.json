@@ -1349,6 +1349,105 @@
       "results/<folder>/psbd_metrics.json (65 cells)"
     ]
   },
+  "BestResidualCandidates": {
+    "value": "8",
+    "meaning": "residual placements, token masks excluded, present on every headline model",
+    "generator": "scripts/paper/tab_best_residual.py",
+    "inputs": [
+      "configs/psbd_basis.json",
+      "results/<folder>/psbd_metrics.json (65 models)"
+    ]
+  },
+  "BestResidualModels": {
+    "value": "65",
+    "meaning": "models behind the comparison",
+    "generator": "scripts/paper/tab_best_residual.py",
+    "inputs": [
+      "configs/psbd_basis.json",
+      "results/<folder>/psbd_metrics.json (65 models)"
+    ]
+  },
+  "BestResidualName": {
+    "value": "dropout, before both residual adds, blocks 5 to 8",
+    "meaning": "the best residual placement",
+    "generator": "scripts/paper/tab_best_residual.py",
+    "inputs": [
+      "configs/psbd_basis.json",
+      "results/<folder>/psbd_metrics.json (65 models)"
+    ]
+  },
+  "BestResidualAuroc": {
+    "value": "0.875",
+    "meaning": "its mean AUROC at the adaptive rule",
+    "generator": "scripts/paper/tab_best_residual.py",
+    "inputs": [
+      "configs/psbd_basis.json",
+      "results/<folder>/psbd_metrics.json (65 models)"
+    ]
+  },
+  "BestResidualGain": {
+    "value": "+0.060",
+    "meaning": "mean paired AUROC gain of PSBD-TM over the best residual placement",
+    "generator": "scripts/paper/tab_best_residual.py",
+    "inputs": [
+      "configs/psbd_basis.json",
+      "results/<folder>/psbd_metrics.json (65 models)"
+    ]
+  },
+  "BestResidualGainLow": {
+    "value": "+0.018",
+    "meaning": "lower bound of the 95% bootstrap interval on that gain",
+    "generator": "scripts/paper/tab_best_residual.py",
+    "inputs": [
+      "configs/psbd_basis.json",
+      "results/<folder>/psbd_metrics.json (65 models)"
+    ]
+  },
+  "BestResidualGainHigh": {
+    "value": "+0.103",
+    "meaning": "upper bound of the 95% bootstrap interval on that gain",
+    "generator": "scripts/paper/tab_best_residual.py",
+    "inputs": [
+      "configs/psbd_basis.json",
+      "results/<folder>/psbd_metrics.json (65 models)"
+    ]
+  },
+  "BestResidualBadnetATwooAuroc": {
+    "value": "0.857",
+    "meaning": "mean AUROC of the best residual placement on badnet_a2o",
+    "generator": "scripts/paper/tab_best_residual.py",
+    "inputs": [
+      "configs/psbd_basis.json",
+      "results/<folder>/psbd_metrics.json (65 models)"
+    ]
+  },
+  "BestResidualTactAuroc": {
+    "value": "0.622",
+    "meaning": "mean AUROC of the best residual placement on tact",
+    "generator": "scripts/paper/tab_best_residual.py",
+    "inputs": [
+      "configs/psbd_basis.json",
+      "results/<folder>/psbd_metrics.json (65 models)"
+    ]
+  },
+  "BestResidualWanetAuroc": {
+    "value": "0.951",
+    "meaning": "mean AUROC of the best residual placement on wanet",
+    "generator": "scripts/paper/tab_best_residual.py",
+    "inputs": [
+      "configs/psbd_basis.json",
+      "results/<folder>/psbd_metrics.json (65 models)"
+    ]
+  },
+  "BestResidualSigAuroc": {
+    "value": "0.907",
+    "meaning": "mean AUROC of the best residual placement on sig",
+    "generator": "scripts/paper/tab_best_residual.py",
+    "inputs": [
+      "configs/psbd_basis.json",
+      "results/<folder>/psbd_metrics.json (65 models)"
+    ]
+  },
   "SigGtsrbTargetClass": {
     "value": "1",
     "meaning": "the target class of the GTSRB SIG runs with the target tag",
@@ -4252,6 +4351,14 @@
       "results/coverage/coverage.json",
       "results/<folder>/prediction_depth.json (65 cells)",
       "results/<folder>/psbd_metrics.json"
+    ]
+  },
+  "ProbeUnionSigCifarOneZeroTmRd": {
+    "value": "0.908",
+    "meaning": "PSBD-TM + PSBD-RD union on SIG at 10% on CIFAR-10, the other inverted cell",
+    "generator": "scripts/paper/tab_probe_union.py",
+    "inputs": [
+      "results/_experiments/probe_union/probe_union.json"
     ]
   },
   "ProbeUnionThreeProbeAuroc": {
@@ -7760,6 +7867,447 @@
     "value": "$-$0.012",
     "meaning": "upper bound of the 95% bootstrap interval on staircase_bands_before_attention_norm_blocks_9_12_token_mask_gain",
     "generator": "scripts/paper/tab_staircase.py",
+    "inputs": [
+      "results/coverage/coverage.json",
+      "results/<folder>/psbd_metrics.json (65 models)"
+    ]
+  },
+  "SurvivalModels": {
+    "value": "65",
+    "meaning": "models behind the survival table",
+    "generator": "scripts/paper/mech_survival.py",
+    "inputs": [
+      "results/coverage/coverage.json",
+      "results/<folder>/psbd_metrics.json (65 models)"
+    ]
+  },
+  "SurvivalTmClean": {
+    "value": "0.87",
+    "meaning": "mean share of clean test predictions that change under PSBD-TM at its adaptive rate",
+    "generator": "scripts/paper/mech_survival.py",
+    "inputs": [
+      "results/coverage/coverage.json",
+      "results/<folder>/psbd_metrics.json (65 models)"
+    ]
+  },
+  "SurvivalTmRate": {
+    "value": "0.54",
+    "meaning": "mean rate the adaptive rule picks for PSBD-TM",
+    "generator": "scripts/paper/mech_survival.py",
+    "inputs": [
+      "results/coverage/coverage.json",
+      "results/<folder>/psbd_metrics.json (65 models)"
+    ]
+  },
+  "SurvivalTmPatchTriggered": {
+    "value": "0.36",
+    "meaning": "mean share of triggered predictions that change under PSBD-TM, patch triggers",
+    "generator": "scripts/paper/mech_survival.py",
+    "inputs": [
+      "results/coverage/coverage.json",
+      "results/<folder>/psbd_metrics.json (65 models)"
+    ]
+  },
+  "SurvivalTmPatchAuroc": {
+    "value": "0.925",
+    "meaning": "mean AUROC of PSBD-TM at the adaptive rule, patch triggers",
+    "generator": "scripts/paper/mech_survival.py",
+    "inputs": [
+      "results/coverage/coverage.json",
+      "results/<folder>/psbd_metrics.json (65 models)"
+    ]
+  },
+  "SurvivalTmGlobalTriggered": {
+    "value": "0.10",
+    "meaning": "mean share of triggered predictions that change under PSBD-TM, global triggers",
+    "generator": "scripts/paper/mech_survival.py",
+    "inputs": [
+      "results/coverage/coverage.json",
+      "results/<folder>/psbd_metrics.json (65 models)"
+    ]
+  },
+  "SurvivalTmGlobalAuroc": {
+    "value": "0.941",
+    "meaning": "mean AUROC of PSBD-TM at the adaptive rule, global triggers",
+    "generator": "scripts/paper/mech_survival.py",
+    "inputs": [
+      "results/coverage/coverage.json",
+      "results/<folder>/psbd_metrics.json (65 models)"
+    ]
+  },
+  "SurvivalTmBadnetATwooTriggered": {
+    "value": "0.04",
+    "meaning": "mean share of triggered badnet_a2o predictions that change under PSBD-TM",
+    "generator": "scripts/paper/mech_survival.py",
+    "inputs": [
+      "results/coverage/coverage.json",
+      "results/<folder>/psbd_metrics.json (65 models)"
+    ]
+  },
+  "SurvivalTmBadnetATwooAuroc": {
+    "value": "0.992",
+    "meaning": "mean AUROC of PSBD-TM at the adaptive rule on badnet_a2o",
+    "generator": "scripts/paper/mech_survival.py",
+    "inputs": [
+      "results/coverage/coverage.json",
+      "results/<folder>/psbd_metrics.json (65 models)"
+    ]
+  },
+  "SurvivalTmTactTriggered": {
+    "value": "0.70",
+    "meaning": "mean share of triggered tact predictions that change under PSBD-TM",
+    "generator": "scripts/paper/mech_survival.py",
+    "inputs": [
+      "results/coverage/coverage.json",
+      "results/<folder>/psbd_metrics.json (65 models)"
+    ]
+  },
+  "SurvivalTmTactAuroc": {
+    "value": "0.853",
+    "meaning": "mean AUROC of PSBD-TM at the adaptive rule on tact",
+    "generator": "scripts/paper/mech_survival.py",
+    "inputs": [
+      "results/coverage/coverage.json",
+      "results/<folder>/psbd_metrics.json (65 models)"
+    ]
+  },
+  "SurvivalTmBlendTriggered": {
+    "value": "0.04",
+    "meaning": "mean share of triggered blend predictions that change under PSBD-TM",
+    "generator": "scripts/paper/mech_survival.py",
+    "inputs": [
+      "results/coverage/coverage.json",
+      "results/<folder>/psbd_metrics.json (65 models)"
+    ]
+  },
+  "SurvivalTmBlendAuroc": {
+    "value": "0.978",
+    "meaning": "mean AUROC of PSBD-TM at the adaptive rule on blend",
+    "generator": "scripts/paper/mech_survival.py",
+    "inputs": [
+      "results/coverage/coverage.json",
+      "results/<folder>/psbd_metrics.json (65 models)"
+    ]
+  },
+  "SurvivalTmSigTriggered": {
+    "value": "0.90",
+    "meaning": "mean share of triggered sig predictions that change under PSBD-TM",
+    "generator": "scripts/paper/mech_survival.py",
+    "inputs": [
+      "results/coverage/coverage.json",
+      "results/<folder>/psbd_metrics.json (65 models)"
+    ]
+  },
+  "SurvivalTmSigAuroc": {
+    "value": "0.418",
+    "meaning": "mean AUROC of PSBD-TM at the adaptive rule on sig",
+    "generator": "scripts/paper/mech_survival.py",
+    "inputs": [
+      "results/coverage/coverage.json",
+      "results/<folder>/psbd_metrics.json (65 models)"
+    ]
+  },
+  "SurvivalTmWanetTriggered": {
+    "value": "0.23",
+    "meaning": "mean share of triggered wanet predictions that change under PSBD-TM",
+    "generator": "scripts/paper/mech_survival.py",
+    "inputs": [
+      "results/coverage/coverage.json",
+      "results/<folder>/psbd_metrics.json (65 models)"
+    ]
+  },
+  "SurvivalTmWanetAuroc": {
+    "value": "0.845",
+    "meaning": "mean AUROC of PSBD-TM at the adaptive rule on wanet",
+    "generator": "scripts/paper/mech_survival.py",
+    "inputs": [
+      "results/coverage/coverage.json",
+      "results/<folder>/psbd_metrics.json (65 models)"
+    ]
+  },
+  "SurvivalTmLfTriggered": {
+    "value": "0.03",
+    "meaning": "mean share of triggered lf predictions that change under PSBD-TM",
+    "generator": "scripts/paper/mech_survival.py",
+    "inputs": [
+      "results/coverage/coverage.json",
+      "results/<folder>/psbd_metrics.json (65 models)"
+    ]
+  },
+  "SurvivalTmLfAuroc": {
+    "value": "0.980",
+    "meaning": "mean AUROC of PSBD-TM at the adaptive rule on lf",
+    "generator": "scripts/paper/mech_survival.py",
+    "inputs": [
+      "results/coverage/coverage.json",
+      "results/<folder>/psbd_metrics.json (65 models)"
+    ]
+  },
+  "SurvivalTmBppTriggered": {
+    "value": "0.10",
+    "meaning": "mean share of triggered bpp predictions that change under PSBD-TM",
+    "generator": "scripts/paper/mech_survival.py",
+    "inputs": [
+      "results/coverage/coverage.json",
+      "results/<folder>/psbd_metrics.json (65 models)"
+    ]
+  },
+  "SurvivalTmBppAuroc": {
+    "value": "0.948",
+    "meaning": "mean AUROC of PSBD-TM at the adaptive rule on bpp",
+    "generator": "scripts/paper/mech_survival.py",
+    "inputs": [
+      "results/coverage/coverage.json",
+      "results/<folder>/psbd_metrics.json (65 models)"
+    ]
+  },
+  "SurvivalRdClean": {
+    "value": "0.87",
+    "meaning": "mean share of clean test predictions that change under PSBD-RD at its adaptive rate",
+    "generator": "scripts/paper/mech_survival.py",
+    "inputs": [
+      "results/coverage/coverage.json",
+      "results/<folder>/psbd_metrics.json (65 models)"
+    ]
+  },
+  "SurvivalRdRate": {
+    "value": "0.07",
+    "meaning": "mean rate the adaptive rule picks for PSBD-RD",
+    "generator": "scripts/paper/mech_survival.py",
+    "inputs": [
+      "results/coverage/coverage.json",
+      "results/<folder>/psbd_metrics.json (65 models)"
+    ]
+  },
+  "SurvivalRdPatchTriggered": {
+    "value": "0.76",
+    "meaning": "mean share of triggered predictions that change under PSBD-RD, patch triggers",
+    "generator": "scripts/paper/mech_survival.py",
+    "inputs": [
+      "results/coverage/coverage.json",
+      "results/<folder>/psbd_metrics.json (65 models)"
+    ]
+  },
+  "SurvivalRdPatchAuroc": {
+    "value": "0.596",
+    "meaning": "mean AUROC of PSBD-RD at the adaptive rule, patch triggers",
+    "generator": "scripts/paper/mech_survival.py",
+    "inputs": [
+      "results/coverage/coverage.json",
+      "results/<folder>/psbd_metrics.json (65 models)"
+    ]
+  },
+  "SurvivalRdGlobalTriggered": {
+    "value": "0.15",
+    "meaning": "mean share of triggered predictions that change under PSBD-RD, global triggers",
+    "generator": "scripts/paper/mech_survival.py",
+    "inputs": [
+      "results/coverage/coverage.json",
+      "results/<folder>/psbd_metrics.json (65 models)"
+    ]
+  },
+  "SurvivalRdGlobalAuroc": {
+    "value": "0.961",
+    "meaning": "mean AUROC of PSBD-RD at the adaptive rule, global triggers",
+    "generator": "scripts/paper/mech_survival.py",
+    "inputs": [
+      "results/coverage/coverage.json",
+      "results/<folder>/psbd_metrics.json (65 models)"
+    ]
+  },
+  "SurvivalRdBadnetATwooTriggered": {
+    "value": "0.61",
+    "meaning": "mean share of triggered badnet_a2o predictions that change under PSBD-RD",
+    "generator": "scripts/paper/mech_survival.py",
+    "inputs": [
+      "results/coverage/coverage.json",
+      "results/<folder>/psbd_metrics.json (65 models)"
+    ]
+  },
+  "SurvivalRdBadnetATwooAuroc": {
+    "value": "0.712",
+    "meaning": "mean AUROC of PSBD-RD at the adaptive rule on badnet_a2o",
+    "generator": "scripts/paper/mech_survival.py",
+    "inputs": [
+      "results/coverage/coverage.json",
+      "results/<folder>/psbd_metrics.json (65 models)"
+    ]
+  },
+  "SurvivalRdTactTriggered": {
+    "value": "0.94",
+    "meaning": "mean share of triggered tact predictions that change under PSBD-RD",
+    "generator": "scripts/paper/mech_survival.py",
+    "inputs": [
+      "results/coverage/coverage.json",
+      "results/<folder>/psbd_metrics.json (65 models)"
+    ]
+  },
+  "SurvivalRdTactAuroc": {
+    "value": "0.470",
+    "meaning": "mean AUROC of PSBD-RD at the adaptive rule on tact",
+    "generator": "scripts/paper/mech_survival.py",
+    "inputs": [
+      "results/coverage/coverage.json",
+      "results/<folder>/psbd_metrics.json (65 models)"
+    ]
+  },
+  "SurvivalRdBlendTriggered": {
+    "value": "0.14",
+    "meaning": "mean share of triggered blend predictions that change under PSBD-RD",
+    "generator": "scripts/paper/mech_survival.py",
+    "inputs": [
+      "results/coverage/coverage.json",
+      "results/<folder>/psbd_metrics.json (65 models)"
+    ]
+  },
+  "SurvivalRdBlendAuroc": {
+    "value": "0.971",
+    "meaning": "mean AUROC of PSBD-RD at the adaptive rule on blend",
+    "generator": "scripts/paper/mech_survival.py",
+    "inputs": [
+      "results/coverage/coverage.json",
+      "results/<folder>/psbd_metrics.json (65 models)"
+    ]
+  },
+  "SurvivalRdSigTriggered": {
+    "value": "0.25",
+    "meaning": "mean share of triggered sig predictions that change under PSBD-RD",
+    "generator": "scripts/paper/mech_survival.py",
+    "inputs": [
+      "results/coverage/coverage.json",
+      "results/<folder>/psbd_metrics.json (65 models)"
+    ]
+  },
+  "SurvivalRdSigAuroc": {
+    "value": "0.919",
+    "meaning": "mean AUROC of PSBD-RD at the adaptive rule on sig",
+    "generator": "scripts/paper/mech_survival.py",
+    "inputs": [
+      "results/coverage/coverage.json",
+      "results/<folder>/psbd_metrics.json (65 models)"
+    ]
+  },
+  "SurvivalRdWanetTriggered": {
+    "value": "0.11",
+    "meaning": "mean share of triggered wanet predictions that change under PSBD-RD",
+    "generator": "scripts/paper/mech_survival.py",
+    "inputs": [
+      "results/coverage/coverage.json",
+      "results/<folder>/psbd_metrics.json (65 models)"
+    ]
+  },
+  "SurvivalRdWanetAuroc": {
+    "value": "0.956",
+    "meaning": "mean AUROC of PSBD-RD at the adaptive rule on wanet",
+    "generator": "scripts/paper/mech_survival.py",
+    "inputs": [
+      "results/coverage/coverage.json",
+      "results/<folder>/psbd_metrics.json (65 models)"
+    ]
+  },
+  "SurvivalRdLfTriggered": {
+    "value": "0.14",
+    "meaning": "mean share of triggered lf predictions that change under PSBD-RD",
+    "generator": "scripts/paper/mech_survival.py",
+    "inputs": [
+      "results/coverage/coverage.json",
+      "results/<folder>/psbd_metrics.json (65 models)"
+    ]
+  },
+  "SurvivalRdLfAuroc": {
+    "value": "0.974",
+    "meaning": "mean AUROC of PSBD-RD at the adaptive rule on lf",
+    "generator": "scripts/paper/mech_survival.py",
+    "inputs": [
+      "results/coverage/coverage.json",
+      "results/<folder>/psbd_metrics.json (65 models)"
+    ]
+  },
+  "SurvivalRdBppTriggered": {
+    "value": "0.20",
+    "meaning": "mean share of triggered bpp predictions that change under PSBD-RD",
+    "generator": "scripts/paper/mech_survival.py",
+    "inputs": [
+      "results/coverage/coverage.json",
+      "results/<folder>/psbd_metrics.json (65 models)"
+    ]
+  },
+  "SurvivalRdBppAuroc": {
+    "value": "0.945",
+    "meaning": "mean AUROC of PSBD-RD at the adaptive rule on bpp",
+    "generator": "scripts/paper/mech_survival.py",
+    "inputs": [
+      "results/coverage/coverage.json",
+      "results/<folder>/psbd_metrics.json (65 models)"
+    ]
+  },
+  "SurvivalSiteMaskAttentionInputTriggered": {
+    "value": "0.04",
+    "meaning": "share of triggered BadNets predictions that change, token mask, attention input, adaptive rate",
+    "generator": "scripts/paper/mech_survival.py",
+    "inputs": [
+      "results/coverage/coverage.json",
+      "results/<folder>/psbd_metrics.json (65 models)"
+    ]
+  },
+  "SurvivalSiteMaskAttentionOutputTriggered": {
+    "value": "0.10",
+    "meaning": "share of triggered BadNets predictions that change, token mask, attention branch output, adaptive rate",
+    "generator": "scripts/paper/mech_survival.py",
+    "inputs": [
+      "results/coverage/coverage.json",
+      "results/<folder>/psbd_metrics.json (65 models)"
+    ]
+  },
+  "SurvivalSiteMaskStreamTriggered": {
+    "value": "0.58",
+    "meaning": "share of triggered BadNets predictions that change, token mask, stream after the attention add, adaptive rate",
+    "generator": "scripts/paper/mech_survival.py",
+    "inputs": [
+      "results/coverage/coverage.json",
+      "results/<folder>/psbd_metrics.json (65 models)"
+    ]
+  },
+  "SurvivalSiteDropoutAttentionInputTriggered": {
+    "value": "0.33",
+    "meaning": "share of triggered BadNets predictions that change, dropout, attention input, adaptive rate",
+    "generator": "scripts/paper/mech_survival.py",
+    "inputs": [
+      "results/coverage/coverage.json",
+      "results/<folder>/psbd_metrics.json (65 models)"
+    ]
+  },
+  "SurvivalSiteChannelAttentionInputTriggered": {
+    "value": "0.37",
+    "meaning": "share of triggered BadNets predictions that change, channel mask, attention input, adaptive rate",
+    "generator": "scripts/paper/mech_survival.py",
+    "inputs": [
+      "results/coverage/coverage.json",
+      "results/<folder>/psbd_metrics.json (65 models)"
+    ]
+  },
+  "SurvivalSiteNoiseAttentionInputTriggered": {
+    "value": "0.64",
+    "meaning": "share of triggered BadNets predictions that change, Gaussian noise, attention input, adaptive rate",
+    "generator": "scripts/paper/mech_survival.py",
+    "inputs": [
+      "results/coverage/coverage.json",
+      "results/<folder>/psbd_metrics.json (65 models)"
+    ]
+  },
+  "SurvivalSiteDropoutStreamTriggered": {
+    "value": "0.61",
+    "meaning": "share of triggered BadNets predictions that change, dropout, stream after both adds (PSBD-RD), adaptive rate",
+    "generator": "scripts/paper/mech_survival.py",
+    "inputs": [
+      "results/coverage/coverage.json",
+      "results/<folder>/psbd_metrics.json (65 models)"
+    ]
+  },
+  "SurvivalSiteModels": {
+    "value": "12",
+    "meaning": "BadNets models behind the site table",
+    "generator": "scripts/paper/mech_survival.py",
     "inputs": [
       "results/coverage/coverage.json",
       "results/<folder>/psbd_metrics.json (65 models)"

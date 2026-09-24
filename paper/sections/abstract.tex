@@ -14,10 +14,12 @@ the placement transfers to Swin-S, where it reaches \SwinRecommendedAurocAdaptiv
 \SwinCells{} models. Against \DetectorsComparedCount{} input-level detectors ported to
 the same models and splits it ranks 1st of \DetectorsAurocDefensesRanked{} defenses
 by AUROC and by the true-positive rate at both false-positive budgets we report. We
-explain why by locating the backdoor. It is a single direction in the residual stream,
-written late in the network and routed through attention from the trigger's own tokens
-to the class token, so removing whole tokens before attention removes the route, while
-additive noise at the same site is largely absorbed by the LayerNorm that follows. A
+explain why by following the backdoor through the network. A patch trigger's evidence
+sits in its own tokens of the residual stream until the last blocks. Token masking at the
+attention input leaves that stream untouched and changes only
+\SurvivalTmBadnetATwooTriggered{} of triggered BadNets predictions while it changes
+\SurvivalTmClean{} of clean ones, whereas dropout on the stream changes
+\SurvivalRdBadnetATwooTriggered{} of them. A
 union of probes keeps detection at \AdaptiveVitUnion{} AUROC against an attacker trained
 to evade a single probe.
 \end{abstract}

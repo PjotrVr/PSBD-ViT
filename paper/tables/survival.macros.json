@@ -1,0 +1,207 @@
+{
+  "generator": "scripts/paper/mech_survival.py",
+  "inputs": [
+    "results/coverage/coverage.json",
+    "results/<folder>/psbd_metrics.json (65 models)"
+  ],
+  "written_at": "2026-09-24T05:21:27.216697+00:00",
+  "git_commit": "09981299b40516d4aa7db355bc28d0176eccd82b-dirty",
+  "macros": {
+    "SurvivalModels": {
+      "value": "65",
+      "meaning": "models behind the survival table"
+    },
+    "SurvivalTmClean": {
+      "value": "0.87",
+      "meaning": "mean share of clean test predictions that change under PSBD-TM at its adaptive rate"
+    },
+    "SurvivalTmRate": {
+      "value": "0.54",
+      "meaning": "mean rate the adaptive rule picks for PSBD-TM"
+    },
+    "SurvivalTmPatchTriggered": {
+      "value": "0.36",
+      "meaning": "mean share of triggered predictions that change under PSBD-TM, patch triggers"
+    },
+    "SurvivalTmPatchAuroc": {
+      "value": "0.925",
+      "meaning": "mean AUROC of PSBD-TM at the adaptive rule, patch triggers"
+    },
+    "SurvivalTmGlobalTriggered": {
+      "value": "0.10",
+      "meaning": "mean share of triggered predictions that change under PSBD-TM, global triggers"
+    },
+    "SurvivalTmGlobalAuroc": {
+      "value": "0.941",
+      "meaning": "mean AUROC of PSBD-TM at the adaptive rule, global triggers"
+    },
+    "SurvivalTmBadnetATwooTriggered": {
+      "value": "0.04",
+      "meaning": "mean share of triggered badnet_a2o predictions that change under PSBD-TM"
+    },
+    "SurvivalTmBadnetATwooAuroc": {
+      "value": "0.992",
+      "meaning": "mean AUROC of PSBD-TM at the adaptive rule on badnet_a2o"
+    },
+    "SurvivalTmTactTriggered": {
+      "value": "0.70",
+      "meaning": "mean share of triggered tact predictions that change under PSBD-TM"
+    },
+    "SurvivalTmTactAuroc": {
+      "value": "0.853",
+      "meaning": "mean AUROC of PSBD-TM at the adaptive rule on tact"
+    },
+    "SurvivalTmBlendTriggered": {
+      "value": "0.04",
+      "meaning": "mean share of triggered blend predictions that change under PSBD-TM"
+    },
+    "SurvivalTmBlendAuroc": {
+      "value": "0.978",
+      "meaning": "mean AUROC of PSBD-TM at the adaptive rule on blend"
+    },
+    "SurvivalTmSigTriggered": {
+      "value": "0.90",
+      "meaning": "mean share of triggered sig predictions that change under PSBD-TM"
+    },
+    "SurvivalTmSigAuroc": {
+      "value": "0.418",
+      "meaning": "mean AUROC of PSBD-TM at the adaptive rule on sig"
+    },
+    "SurvivalTmWanetTriggered": {
+      "value": "0.23",
+      "meaning": "mean share of triggered wanet predictions that change under PSBD-TM"
+    },
+    "SurvivalTmWanetAuroc": {
+      "value": "0.845",
+      "meaning": "mean AUROC of PSBD-TM at the adaptive rule on wanet"
+    },
+    "SurvivalTmLfTriggered": {
+      "value": "0.03",
+      "meaning": "mean share of triggered lf predictions that change under PSBD-TM"
+    },
+    "SurvivalTmLfAuroc": {
+      "value": "0.980",
+      "meaning": "mean AUROC of PSBD-TM at the adaptive rule on lf"
+    },
+    "SurvivalTmBppTriggered": {
+      "value": "0.10",
+      "meaning": "mean share of triggered bpp predictions that change under PSBD-TM"
+    },
+    "SurvivalTmBppAuroc": {
+      "value": "0.948",
+      "meaning": "mean AUROC of PSBD-TM at the adaptive rule on bpp"
+    },
+    "SurvivalRdClean": {
+      "value": "0.87",
+      "meaning": "mean share of clean test predictions that change under PSBD-RD at its adaptive rate"
+    },
+    "SurvivalRdRate": {
+      "value": "0.07",
+      "meaning": "mean rate the adaptive rule picks for PSBD-RD"
+    },
+    "SurvivalRdPatchTriggered": {
+      "value": "0.76",
+      "meaning": "mean share of triggered predictions that change under PSBD-RD, patch triggers"
+    },
+    "SurvivalRdPatchAuroc": {
+      "value": "0.596",
+      "meaning": "mean AUROC of PSBD-RD at the adaptive rule, patch triggers"
+    },
+    "SurvivalRdGlobalTriggered": {
+      "value": "0.15",
+      "meaning": "mean share of triggered predictions that change under PSBD-RD, global triggers"
+    },
+    "SurvivalRdGlobalAuroc": {
+      "value": "0.961",
+      "meaning": "mean AUROC of PSBD-RD at the adaptive rule, global triggers"
+    },
+    "SurvivalRdBadnetATwooTriggered": {
+      "value": "0.61",
+      "meaning": "mean share of triggered badnet_a2o predictions that change under PSBD-RD"
+    },
+    "SurvivalRdBadnetATwooAuroc": {
+      "value": "0.712",
+      "meaning": "mean AUROC of PSBD-RD at the adaptive rule on badnet_a2o"
+    },
+    "SurvivalRdTactTriggered": {
+      "value": "0.94",
+      "meaning": "mean share of triggered tact predictions that change under PSBD-RD"
+    },
+    "SurvivalRdTactAuroc": {
+      "value": "0.470",
+      "meaning": "mean AUROC of PSBD-RD at the adaptive rule on tact"
+    },
+    "SurvivalRdBlendTriggered": {
+      "value": "0.14",
+      "meaning": "mean share of triggered blend predictions that change under PSBD-RD"
+    },
+    "SurvivalRdBlendAuroc": {
+      "value": "0.971",
+      "meaning": "mean AUROC of PSBD-RD at the adaptive rule on blend"
+    },
+    "SurvivalRdSigTriggered": {
+      "value": "0.25",
+      "meaning": "mean share of triggered sig predictions that change under PSBD-RD"
+    },
+    "SurvivalRdSigAuroc": {
+      "value": "0.919",
+      "meaning": "mean AUROC of PSBD-RD at the adaptive rule on sig"
+    },
+    "SurvivalRdWanetTriggered": {
+      "value": "0.11",
+      "meaning": "mean share of triggered wanet predictions that change under PSBD-RD"
+    },
+    "SurvivalRdWanetAuroc": {
+      "value": "0.956",
+      "meaning": "mean AUROC of PSBD-RD at the adaptive rule on wanet"
+    },
+    "SurvivalRdLfTriggered": {
+      "value": "0.14",
+      "meaning": "mean share of triggered lf predictions that change under PSBD-RD"
+    },
+    "SurvivalRdLfAuroc": {
+      "value": "0.974",
+      "meaning": "mean AUROC of PSBD-RD at the adaptive rule on lf"
+    },
+    "SurvivalRdBppTriggered": {
+      "value": "0.20",
+      "meaning": "mean share of triggered bpp predictions that change under PSBD-RD"
+    },
+    "SurvivalRdBppAuroc": {
+      "value": "0.945",
+      "meaning": "mean AUROC of PSBD-RD at the adaptive rule on bpp"
+    },
+    "SurvivalSiteMaskAttentionInputTriggered": {
+      "value": "0.04",
+      "meaning": "share of triggered BadNets predictions that change, token mask, attention input, adaptive rate"
+    },
+    "SurvivalSiteMaskAttentionOutputTriggered": {
+      "value": "0.10",
+      "meaning": "share of triggered BadNets predictions that change, token mask, attention branch output, adaptive rate"
+    },
+    "SurvivalSiteMaskStreamTriggered": {
+      "value": "0.58",
+      "meaning": "share of triggered BadNets predictions that change, token mask, stream after the attention add, adaptive rate"
+    },
+    "SurvivalSiteDropoutAttentionInputTriggered": {
+      "value": "0.33",
+      "meaning": "share of triggered BadNets predictions that change, dropout, attention input, adaptive rate"
+    },
+    "SurvivalSiteChannelAttentionInputTriggered": {
+      "value": "0.37",
+      "meaning": "share of triggered BadNets predictions that change, channel mask, attention input, adaptive rate"
+    },
+    "SurvivalSiteNoiseAttentionInputTriggered": {
+      "value": "0.64",
+      "meaning": "share of triggered BadNets predictions that change, Gaussian noise, attention input, adaptive rate"
+    },
+    "SurvivalSiteDropoutStreamTriggered": {
+      "value": "0.61",
+      "meaning": "share of triggered BadNets predictions that change, dropout, stream after both adds (PSBD-RD), adaptive rate"
+    },
+    "SurvivalSiteModels": {
+      "value": "12",
+      "meaning": "BadNets models behind the site table"
+    }
+  }
+}

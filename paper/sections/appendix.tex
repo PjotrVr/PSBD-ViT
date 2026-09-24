@@ -109,6 +109,15 @@ The original rule reads each placement at the rate where a share \AdaptiveShiftT
 \subsection{The depth profile and the routing, per block}
 \label{app:mechanism}
 
+\input{tables/direction_ablation}
+
+\begin{figure*}[t]
+\centering
+\includegraphics[width=\textwidth]{mech_activation_patching.pdf}
+\caption{Share of the clean prediction recovered when a token group is replaced by its clean value at a given block, averaged over the backdoored models of each attack. For the local triggers (BadNets, TaCT) the trigger's tokens hold the backdoor through block 10 and the class token takes over only at the end.}
+\label{fig:patching}
+\end{figure*}
+
 The direction is not present from the start. \Cref{fig:tac-layers} follows its norm, relative to the clean activation's norm, through the \VitBlocks{} blocks on GTSRB, CIFAR-100 and Tiny ImageNet. On the benign model it never exceeds \DirectionBenignPeakRelNorm{}. On a backdoored model it stays near the benign level through the first half of the network and reaches half of its final value between blocks 7 and 9 depending on the attack. It peaks at blocks 9 to 12. The onset comes earlier for the global triggers than for the patch trigger on CIFAR-100 and Tiny ImageNet, and the order reverses on GTSRB, so the depth at which a trigger is written depends on the dataset as well as the trigger.
 
 \begin{figure*}[t]
@@ -128,6 +137,16 @@ The class token's attention confirms the route. On the BadNets models the share 
 \end{figure*}
 
 
+\subsection{Which predictions survive, per attack}
+\label{app:survival}
+
+\Cref{tab:survival} gives, per attack, the share of triggered predictions that each placement changes at its adaptive rate and the resulting AUROC, the numbers behind \cref{fig:survival}. \Cref{tab:survival-sites} reads BadNets under each perturbation of \cref{sec:mechanism:placements}.
+
+\input{tables/survival}
+\input{tables/survival_sites}
+\FloatBarrier
+
+
 \subsection{LayerNorm absorption}
 \label{app:layernorm}
 
@@ -139,6 +158,8 @@ The class token's attention confirms the route. On the BadNets models the share 
 
 \subsection{The shift toward the target class, per attack and dataset}
 \label{app:shift-target}
+
+Among clean validation images whose prediction changes under PSBD-TM, the mean excess of the target share over the benign reference is \ShiftToTargetExcessAll{}, and it is concentrated in a few attacks, the largest excess \ShiftToTargetLargestExcess{} for \ShiftToTargetLargestCell{}. The split does not follow the kind of trigger, since TaCT is a local patch and does not drift while LF and BPP are global and do. Nor is the statistic the unperturbed confidence. The maximum softmax probability reads a mean AUROC of \ConfidenceNullAuroc{} over \ConfidenceNullCheckpoints{} models against \ConfidenceNullPsuAuroc{} for PSU, and PSU is ahead on \ConfidenceNullPsuWins{} of them.
 
 \Cref{tab:mech-shift-target-by-dataset} gives the share of shifted clean predictions that land on the target class, per dataset and attack, against the benign model of the same dataset.
 

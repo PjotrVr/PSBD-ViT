@@ -1,0 +1,55 @@
+{
+  "generator": "scripts/paper/tab_best_residual.py",
+  "inputs": [
+    "configs/psbd_basis.json",
+    "results/<folder>/psbd_metrics.json (65 models)"
+  ],
+  "written_at": "2026-09-24T05:16:36.398528+00:00",
+  "git_commit": "09981299b40516d4aa7db355bc28d0176eccd82b-dirty",
+  "macros": {
+    "BestResidualCandidates": {
+      "value": "8",
+      "meaning": "residual placements, token masks excluded, present on every headline model"
+    },
+    "BestResidualModels": {
+      "value": "65",
+      "meaning": "models behind the comparison"
+    },
+    "BestResidualName": {
+      "value": "dropout, before both residual adds, blocks 5 to 8",
+      "meaning": "the best residual placement"
+    },
+    "BestResidualAuroc": {
+      "value": "0.875",
+      "meaning": "its mean AUROC at the adaptive rule"
+    },
+    "BestResidualGain": {
+      "value": "+0.060",
+      "meaning": "mean paired AUROC gain of PSBD-TM over the best residual placement"
+    },
+    "BestResidualGainLow": {
+      "value": "+0.018",
+      "meaning": "lower bound of the 95% bootstrap interval on that gain"
+    },
+    "BestResidualGainHigh": {
+      "value": "+0.103",
+      "meaning": "upper bound of the 95% bootstrap interval on that gain"
+    },
+    "BestResidualBadnetATwooAuroc": {
+      "value": "0.857",
+      "meaning": "mean AUROC of the best residual placement on badnet_a2o"
+    },
+    "BestResidualTactAuroc": {
+      "value": "0.622",
+      "meaning": "mean AUROC of the best residual placement on tact"
+    },
+    "BestResidualWanetAuroc": {
+      "value": "0.951",
+      "meaning": "mean AUROC of the best residual placement on wanet"
+    },
+    "BestResidualSigAuroc": {
+      "value": "0.907",
+      "meaning": "mean AUROC of the best residual placement on sig"
+    }
+  }
+}

@@ -242,8 +242,8 @@ def main() -> None:
             f"version keeps attack success at or above {HIGH_ASR:g}. ASR is the attack "
             "success rate of the evasive model and cost its clean-accuracy loss. "
             "Probed is the AUROC of the placement the attacker trained against, "
-            "transfer the mean AUROC of the 2 probes the attacker never saw, and union "
-            "the AUROC of the min-rank union of all 3. \\Cref{tab:adaptive-attacker} "
+            "transfer the mean AUROC of the two probes the attacker never saw and union "
+            "the AUROC of the min-rank union of all three. \\Cref{tab:adaptive-attacker} "
             "gives every model separately."
         ),
         label="tab:adaptive",

@@ -72,11 +72,19 @@ def experiment_artifact(results_dir: str, slug: str, filename: str) -> str:
 
 
 def load_coverage(results_dir: str) -> dict:
-    """The coverage ledger, the single source of which cells the panel holds."""
+    """The coverage ledger restricted to the datasets the paper reports.
+
+    The ledger records every cell trained. The paper reads only the datasets the
+    declaration's panel.datasets names, so a dataset kept out of the paper is
+    removed here once rather than in every generator.
+    """
     path = os.path.join(results_dir, "coverage", "coverage.json")
     coverage = load_json(path)
     if coverage is None:
         raise SystemExit(f"{path} does not exist, run scripts/coverage_ledger.py first")
+    coverage["cells"] = [
+        cell for cell in coverage["cells"] if cell["dataset"] in PANEL_DATASETS
+    ]
     return coverage
 
 
@@ -189,9 +197,19 @@ def write_table(
     header: list[str],
     rows: list[list[str]],
     align: str | None = None,
+    rotate_header: bool = False,
 ) -> None:
-    """A booktabs table as a complete .tex file, ready for \\input."""
+    """A booktabs table as a complete .tex file, ready for \\input.
+
+    rotate_header turns every column header but the first on its side, for a
+    table of many narrow numeric columns whose names are wider than the numbers.
+    """
     columns = align or "l" + "r" * (len(header) - 1)
+    header_cells = [tex_escape(cell) for cell in header]
+    if rotate_header:
+        header_cells = header_cells[:1] + [
+            f"\\rotatebox{{90}}{{{cell}}}" for cell in header_cells[1:]
+        ]
     lines = [
         provenance_comment(generator, inputs),
         r"\begin{table}[htbp]",
@@ -204,7 +222,7 @@ def write_table(
         r"\begin{adjustbox}{max width=\linewidth}",
         f"\\begin{{tabular}}{{{columns}}}",
         r"\toprule",
-        " & ".join(tex_escape(cell) for cell in header) + r" \\",
+        " & ".join(header_cells) + r" \\",
         r"\midrule",
     ]
     for row in rows:
@@ -349,6 +367,25 @@ def _non_panel_tokens() -> tuple[str, ...]:
 NON_PANEL_TOKENS = _non_panel_tokens()
 
 
+def _panel_datasets() -> tuple[str, ...]:
+    declaration = load_json(
+        os.path.join(
+            os.path.dirname(
+                os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+            ),
+            DEFAULT_DECLARATION,
+        )
+    )
+    declared = (declaration or {}).get("panel", {}).get("datasets")
+    if not declared:
+        raise ValueError(f"{DEFAULT_DECLARATION} declares no panel.datasets")
+    return tuple(declared)
+
+
+# The datasets the paper reports, in the order every table lists them.
+PANEL_DATASETS = _panel_datasets()
+
+
 def build_parser_with_checkpoints(description: str) -> argparse.ArgumentParser:
     """build_parser plus --checkpoints-dir, for generators reading args.json sidecars."""
     parser = build_parser(description)
@@ -413,6 +450,52 @@ def std_or_none(values: list[float]) -> float | None:
         return None
     deviation = statistics.stdev(values)
     return deviation
+
+
+NUMBER_WORDS = (
+    "zero",
+    "one",
+    "two",
+    "three",
+    "four",
+    "five",
+    "six",
+    "seven",
+    "eight",
+    "nine",
+    "ten",
+    "eleven",
+    "twelve",
+)
+
+
+def number_word(count: int) -> str:
+    """A small count as the word prose uses for it, digits past twelve."""
+    word = NUMBER_WORDS[count] if 0 <= count < len(NUMBER_WORDS) else str(count)
+    return word
+
+
+ORDINAL_WORDS = (
+    "first",
+    "second",
+    "third",
+    "fourth",
+    "fifth",
+    "sixth",
+    "seventh",
+    "eighth",
+    "ninth",
+    "tenth",
+    "eleventh",
+    "twelfth",
+    "thirteenth",
+)
+
+
+def ordinal_word(rank: int) -> str:
+    """A 1-based rank as the ordinal word prose uses, such as fifth."""
+    word = ORDINAL_WORDS[rank - 1] if 1 <= rank <= len(ORDINAL_WORDS) else f"{rank}th"
+    return word
 
 
 def word_list(labels: list[str]) -> str:

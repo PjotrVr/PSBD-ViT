@@ -25,6 +25,7 @@ import sys
 sys.path.insert(0, os.getcwd())
 
 from scripts.paper._common import (  # noqa: E402
+    number_word,
     POSITION_WORDS,
     build_parser,
     fmt,
@@ -103,7 +104,7 @@ def main() -> None:
         caption=(
             "What a LayerNorm passes through. Survival is the perturbation's "
             "relative norm after the LayerNorm over its relative norm before it, "
-            f"averaged over blocks and over {len(found)} models. The last 2 rows sit "
+            f"averaged over blocks and over {number_word(len(found))} models. The last two rows sit "
             "after the LayerNorm, where nothing normalizes them, and are the control."
         ),
         label="tab:layernorm-absorption",

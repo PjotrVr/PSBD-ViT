@@ -20,6 +20,7 @@ Best in each row is bold and second best underlined, over the defenses only.
 
 import collections
 import os
+import re
 import sys
 
 sys.path.insert(0, os.getcwd())
@@ -31,6 +32,7 @@ from detectors.ibd_psc import DEFAULT_SCALING_FACTOR  # noqa: E402
 from scripts.paper._common import (  # noqa: E402
     HEADLINE_KEY,
     attack_label,
+    bootstrap_ci,
     build_parser,
     dataset_label,
     detector_label,
@@ -39,9 +41,11 @@ from scripts.paper._common import (  # noqa: E402
     load_json,
     load_psbd_metrics,
     mean_or_none,
+    ordinal_word,
+    provenance_comment,
     word_list,
     write_macros,
-    write_wide_table,
+    write_table,
 )
 
 GENERATOR = "scripts/paper/tab_detectors.py"
@@ -111,10 +115,16 @@ def cell_readings(
     return readings
 
 
-def columns() -> list[str]:
-    """Column names in print order, ours first."""
+def all_columns() -> list[str]:
+    """Every defense read, ours first, including the published placement."""
     names = [column for _, column in OURS]
     names += [detector_label(detector) for detector in DETECTOR_NAMES]
+    return names
+
+
+def columns() -> list[str]:
+    """The defenses the tables print, PSBD-TM first and PSBD-RD second."""
+    names = all_columns()
     return names
 
 
@@ -135,7 +145,8 @@ def decorate(value: float | None, best: float | None, second: float | None) -> s
 def model_row(cell: dict, readings: dict[str, float | None]) -> list[str]:
     """1 model's row: its label, then every defense's decorated reading."""
     present = sorted(
-        (value for value in readings.values() if value is not None), reverse=True
+        (readings[column] for column in columns() if readings[column] is not None),
+        reverse=True,
     )
     best = present[0] if present else None
     second = next((value for value in present if value != best), None)
@@ -150,7 +161,7 @@ def column_means(group: list[dict[str, float | None]]) -> dict[str, float | None
         column: mean_or_none(
             [readings[column] for readings in group if readings[column] is not None]
         )
-        for column in columns()
+        for column in all_columns()
     }
     return means
 
@@ -158,7 +169,8 @@ def column_means(group: list[dict[str, float | None]]) -> dict[str, float | None
 def mean_row(label: str, means: dict[str, float | None]) -> list[str]:
     """A shaded row of per-column means over a group of models."""
     present = sorted(
-        (value for value in means.values() if value is not None), reverse=True
+        (means[column] for column in columns() if means[column] is not None),
+        reverse=True,
     )
     best = present[0] if present else None
     second = next((value for value in present if value != best), None)
@@ -197,7 +209,7 @@ def build_rows(
         everything.extend(readings_group)
     overall = column_means(everything)
     rows.append(mean_row("all models", overall))
-    return rows, overall, dataset_means
+    return rows, overall, dataset_means, everything
 
 
 def metric_macros(stem: str, overall: dict[str, float | None]) -> dict:
@@ -209,27 +221,30 @@ def metric_macros(stem: str, overall: dict[str, float | None]) -> dict:
         if overall[detector_label(name)] is not None
     }
     best_name, best_value = max(competitors.items(), key=lambda item: item[1])
-    ranked = sorted(
-        ((value, name) for name, value in overall.items() if value is not None),
+    shown = sorted(
+        ((overall[name], name) for name in columns() if overall[name] is not None),
         reverse=True,
     )
-    order = [name for _, name in ranked]
+    order = [name for _, name in shown]
+    # Where the published placement would sit among the defenses the table shows.
+    published = overall["PSBD-RD"]
+    published_rank = 1 + sum(1 for value, _ in shown if value > published)
     macros = {
         f"detectors_{stem}_defenses_ranked": (
             str(len(order)),
-            f"defenses the {stem} ranking covers, ours and the competitors together",
+            f"defenses the {stem} ranking covers, PSBD-TM and the competitors",
         ),
         f"detectors_{stem}_rank_ours": (
-            str(order.index("PSBD-TM") + 1),
+            ordinal_word(order.index("PSBD-TM") + 1),
             f"rank of the recommended placement among every defense by mean {stem}",
         ),
         f"detectors_{stem}_rank_published": (
-            str(order.index("PSBD-RD") + 1),
-            f"rank of the published placement among every defense by mean {stem}",
+            ordinal_word(published_rank),
+            f"rank the published placement would take among the shown defenses by mean {stem}",
         ),
         f"detectors_{stem}_beating_published": (
-            str(order.index("PSBD-RD")),
-            f"defenses with a higher mean {stem} than the published placement",
+            str(published_rank - 1),
+            f"shown defenses with a higher mean {stem} than the published placement",
         ),
         f"detectors_{stem}_ours": (
             fmt(ours),
@@ -295,6 +310,96 @@ def leader_macros(dataset_means: dict[str, dict]) -> dict:
     return macros
 
 
+def margin_interval_macros(
+    stem: str,
+    overall: dict[str, float | None],
+    readings: list[dict[str, float | None]],
+    resamples: int,
+    seed: int,
+) -> dict:
+    """The paired bootstrap interval on ours minus the strongest competitor, per model.
+
+    The mean margin alone cannot say whether a lead of a hundredth survives the
+    choice of models, so the interval resamples the models the margin is read on.
+    """
+    competitors = {
+        detector_label(name): overall[detector_label(name)]
+        for name in DETECTOR_NAMES
+        if overall[detector_label(name)] is not None
+    }
+    best_name = max(competitors, key=competitors.get)
+    differences = [
+        reading["PSBD-TM"] - reading[best_name]
+        for reading in readings
+        if reading["PSBD-TM"] is not None and reading[best_name] is not None
+    ]
+    low, high = bootstrap_ci(differences, resamples, seed)
+    macros = {
+        f"detectors_{stem}_margin_low": (
+            fmt(low, signed=True),
+            f"lower bound of the 95% paired bootstrap interval on detectors_{stem}_margin",
+        ),
+        f"detectors_{stem}_margin_high": (
+            fmt(high, signed=True),
+            f"upper bound of the 95% paired bootstrap interval on detectors_{stem}_margin",
+        ),
+    }
+    return macros
+
+
+def split_by_dataset(rows: list[list[str]]) -> list[tuple[str, list[list[str]]]]:
+    """The table body cut at each dataset header row, the overall mean kept with the last."""
+    groups: list[tuple[str, list[list[str]]]] = []
+    for row in rows:
+        if row[0].startswith("\\multicolumn"):
+            name = row[0].split("\\emph{")[1].rstrip("}")
+            groups.append((name, []))
+        else:
+            groups[-1][1].append(row)
+    return groups
+
+
+def write_per_dataset_tables(args, stem, words, rows, header, align, inputs) -> None:
+    """1 table per dataset for a metric, and 1 file that inputs them in order.
+
+    The 14 columns and 80 rows of every model on 1 page shrank the text to 7pt.
+    Split by dataset with the column names turned on their side, each table
+    prints at full size.
+    """
+    tables_dir = os.path.join(args.paper_dir, "tables")
+    names = []
+    for index, (dataset, group_rows) in enumerate(split_by_dataset(rows)):
+        slug = re.sub(r"[^a-z0-9]+", "-", dataset.lower()).strip("-")
+        name = f"detectors_{stem}_{slug}"
+        first = index == 0
+        conventions = (
+            "Rows are attacks at their poison rate in percent and columns defenses, "
+            "PSBD-TM first. Best in each row is bold and second best underlined, gray "
+            "marks a reading below chance and shaded rows are means. PSBD-RD is our "
+            "adaptation of the original PSBD site to a ViT block. "
+            "Scale-Up$^\\dagger$ is the data-limited variant and IBD-PSC$^\\ast$ the "
+            "calibrated one."
+            if first
+            else f"Layout as in \\cref{{tab:detectors-{stem}}}."
+        )
+        write_table(
+            path=os.path.join(tables_dir, f"{name}.tex"),
+            generator=GENERATOR,
+            inputs=inputs,
+            caption=f"{words} of every defense on {dataset}. {conventions}",
+            label=f"tab:detectors-{stem}" if first else f"tab:detectors-{stem}-{slug}",
+            header=header,
+            rows=group_rows,
+            align=align,
+            rotate_header=True,
+        )
+        names.append(name)
+    lines = [provenance_comment(GENERATOR, inputs)]
+    lines += [f"\\input{{tables/{name}}}" for name in names]
+    with open(os.path.join(tables_dir, f"detectors_{stem}.tex"), "w") as handle:
+        handle.write("\n".join(lines) + "\n")
+
+
 def fully_covered(results_dir: str, cells: list[dict]) -> list[dict]:
     """The cells every compared defense has a reading on.
 
@@ -339,53 +444,46 @@ def main() -> None:
         ),
     }
     for stem, key, field, words in METRICS:
-        rows, overall, dataset_means = build_rows(args.results_dir, cells, key, field)
-        write_wide_table(
-            path=os.path.join(args.paper_dir, "tables", f"detectors_{stem}.tex"),
-            generator=GENERATOR,
-            inputs=inputs,
-            caption=(
-                f"{words} of every defense on every backdoored ViT-B/16 model that "
-                f"carries all {len(columns())} of them, {len(cells)} of "
-                f"{len(clearing)} models over "
-                f"{len({cell['dataset'] for cell in cells})} "
-                "datasets. Rows are attacks and columns defenses, ours first. Best in "
-                "each row is bold and second best underlined. AUROC is one-sided and "
-                "never flipped, so gray marks a reading below chance, where the "
-                "detector ordered poisoned and clean inputs the wrong way round. "
-                "Shaded rows are means. Scale-Up$^\\dagger$ is the data-limited "
-                "variant and IBD-PSC$^\\ast$ the calibrated one."
-            ),
-            label=f"tab:detectors-{stem}",
-            header=header,
-            rows=rows,
-            align=align,
+        rows, overall, dataset_means, readings = build_rows(
+            args.results_dir, cells, key, field
         )
+        write_per_dataset_tables(args, stem, words, rows, header, align, inputs)
         macros.update(metric_macros(stem, overall))
+        macros.update(
+            margin_interval_macros(stem, overall, readings, args.bootstrap, args.seed)
+        )
         if stem == "auroc":
             macros.update(leader_macros(dataset_means))
-            # The body carries only the per-dataset means, the rows a reader
-            # compares defenses on. The per-attack rows stay in the appendix table.
-            summary = [row for row in rows if row[0].startswith(SHADE)]
-            summary = [
-                [row[0].replace(SHADE, "").replace(" mean", "")] + row[1:]
-                for row in summary
+            # The body carries only the per-dataset means. They are transposed, 1
+            # row per defense and 1 column per dataset, so the table fits 1 column
+            # at full size where the 14-column layout shrank to a 7pt font. The
+            # per-attack rows stay in the supplement's tables.
+            summary = [row[1:] for row in rows if row[0].startswith(SHADE)]
+            # A short header for the one long dataset name keeps the table in 1 column.
+            dataset_names = [
+                "Tiny" if name == "tiny" else dataset_label(name)
+                for name in sorted(dataset_means)
             ]
-            write_wide_table(
+            transposed = [
+                [defense] + [summary[index][position] for index in range(len(summary))]
+                for position, defense in enumerate(columns())
+            ]
+            write_table(
                 path=os.path.join(args.paper_dir, "tables", "detectors_summary.tex"),
                 generator=GENERATOR,
                 inputs=inputs,
                 caption=(
                     f"Mean AUROC of every defense per dataset over the {len(cells)} "
                     "backdoored ViT-B/16 models that carry all of them, ours first. "
-                    "Best in each row is bold and second best underlined, and gray "
-                    "marks a mean below chance. \\Cref{tab:detectors-auroc} gives "
-                    "every attack and poison rate."
+                    "Best in each column is bold and second best underlined, and gray "
+                    "marks a mean below chance. PSBD-RD is our adaptation of the "
+                    "original PSBD site. \\Cref{tab:detectors-auroc} gives every "
+                    "attack and poison rate."
                 ),
                 label="tab:detectors-summary",
-                header=["dataset"] + columns(),
-                rows=summary,
-                align=align,
+                header=["defense", *dataset_names, "all"],
+                rows=transposed,
+                align="l" + "r" * (len(dataset_names) + 1),
             )
 
     write_macros(

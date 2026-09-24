@@ -20,7 +20,7 @@ import sys
 sys.path.insert(0, os.getcwd())
 
 import numpy as np
-import scripts.paper._style  # noqa: E402,F401  the shared figure style
+from scripts.paper._style import legend_above  # noqa: E402
 import matplotlib.pyplot as plt  # noqa: E402
 
 from defenses.decision import (  # noqa: E402
@@ -173,8 +173,8 @@ def write_figure(args, all_agg, rate_aggs) -> str:
     draw_panel(axes[0], GRID, all_agg, rate_aggs, "auroc", "AUROC")
     draw_panel(axes[1], GRID, all_agg, rate_aggs, "tpr10", "TPR at 10% FPR")
     draw_panel(axes[2], GRID, all_agg, rate_aggs, "tpr20", "TPR at 20% FPR")
-    axes[0].legend(loc="best", fontsize=6)
     fig.tight_layout()
+    legend_above(fig, axes, columns=4)
 
     path = os.path.join(args.paper_dir, "figures", "fig_shift_ladder.pdf")
     os.makedirs(os.path.dirname(path), exist_ok=True)

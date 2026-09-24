@@ -26,6 +26,7 @@ from defenses.decision import (  # noqa: E402
     RECOMMENDED_PLACEMENT,
 )
 from scripts.paper._common import (  # noqa: E402
+    PANEL_DATASETS,
     HEADLINE_KEY,
     bootstrap_ci,
     build_parser,
@@ -51,7 +52,7 @@ CONFIG_HEADERS = {
     "pub_adapt": "dropout, after residual add",
 }
 RATE_ORDER = (0.01, 0.05, 0.1)
-DATASET_ORDER = ("cifar10", "cifar100", "gtsrb", "tiny", "svhn", "eurosat")
+DATASET_ORDER = PANEL_DATASETS
 # The budgets a deployer reads, and a share of triggered inputs at deployment low
 # enough that the false positives on clean traffic dominate the flags.
 BUDGET_KEYS = ("q0.10", "q0.20")

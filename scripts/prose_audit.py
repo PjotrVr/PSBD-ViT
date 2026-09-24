@@ -428,7 +428,12 @@ def violations(line: int, kind: str, text: str) -> list[tuple[str, int, str]]:
     without_code = re.sub(r"`[^`]*`", "", text)
     if SERIAL_COMMA.search(without_code):
         hits.append(("oxford comma", line, text))
-    for match in re.finditer(NUMBER_WORDS, plain, re.IGNORECASE):
+    # The paper writes small counts that are not measurements as words, as English
+    # prose does, so the digits rule holds for code and docs but not for LaTeX.
+    number_matches = (
+        [] if kind == "latex" else re.finditer(NUMBER_WORDS, plain, re.IGNORECASE)
+    )
+    for match in number_matches:
         # 28 characters of lookbehind rather than 12. The pronoun idiom allows a
         # determiner plus up to 2 intervening words, so a shorter window cut the
         # determiner off and left that pattern unreachable.

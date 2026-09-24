@@ -156,7 +156,7 @@ def main() -> None:
         caption=(
             "Paired AUROC differences between placements on the same ViT-B/16 "
             f"models at matched disturbance, a clean shift ratio of {PLACEMENT_MATCH_TARGET:g}, "
-            f"with {args.bootstrap}-resample bootstrap 95\\% intervals. The first 3 "
+            f"with {args.bootstrap}-resample bootstrap 95\\% intervals. The first three "
             "rows change the perturbation at a fixed site and the last changes the "
             "site at a fixed perturbation."
         ),

@@ -19,6 +19,13 @@
   "clean_accuracy_drop_bar": -0.05,
   "panel": {
     "architecture": "vit",
+    "datasets": [
+      "cifar10",
+      "cifar100",
+      "gtsrb",
+      "tiny"
+    ],
+    "_datasets_comment": "The datasets the paper reports. SVHN and EuroSAT were trained only to host clean-label SIG, at a single rate with a benign reference and recipe never tuned for them (docs/runs/2026-09-11-svhn-eurosat-cleanlabel.md), so they are not like-for-like with the 4 panel datasets and stay out of every paper number. Their caches and the coverage ledger keep them.",
     "label_modes": [
       "all_to_one",
       "clean_label"

@@ -50,11 +50,9 @@ def declaration_rows(basis: list[dict]) -> list[list[str]]:
         rates = entry["rates"]
         rows.append(
             [
-                entry["id"],
-                entry["position"],
-                entry["operator"],
+                placement_label(entry),
                 band_text(entry),
-                entry["family"],
+                family_label(entry["family"]),
                 f"{len(rates)} ({min(rates):g} to {max(rates):g})",
             ]
         )
@@ -197,14 +195,13 @@ def main() -> None:
         generator=GENERATOR,
         inputs=[args.declaration],
         caption=(
-            "The placement basis as configs/psbd\\_basis.json declares it: every "
-            "model in the panel carries every 1 of these placements, each swept "
-            "over the rate ladder in the last column."
+            "Every placement we swept, with the blocks it acts in, its family and "
+            "the number and range of rates in its ladder."
         ),
         label="tab:basis-declaration",
-        header=["placement id", "site", "operator", "blocks", "family", "rates"],
+        header=["placement", "blocks", "family", "rates"],
         rows=declaration_rows(basis),
-        align="llllll",
+        align="llll",
     )
 
     rows, ordered = ranking_rows(args.results_dir, cells, basis)
@@ -218,7 +215,7 @@ def main() -> None:
         generator=GENERATOR,
         inputs=inputs,
         caption=(
-            "Every placement of the basis ranked by mean AUROC on ViT-B/16. n is the number of models whose rate ladder reaches the shift ratio target, and the last column is the lowest single-model AUROC."
+            "Every placement we swept, ranked by mean AUROC on ViT-B/16. n is the number of models whose rate ladder reaches the shift ratio target, and the last column is the lowest single-model AUROC."
         ),
         label="tab:basis-ranking",
         header=[

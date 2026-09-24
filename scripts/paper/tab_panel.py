@@ -18,6 +18,7 @@ sys.path.insert(0, os.getcwd())
 
 from defenses.decision import EASY_ATTACKS, HARD_ATTACKS  # noqa: E402
 from scripts.paper._common import (  # noqa: E402
+    PANEL_DATASETS,
     attack_label,
     build_parser,
     dataset_label,
@@ -27,7 +28,7 @@ from scripts.paper._common import (  # noqa: E402
 )
 
 GENERATOR = "scripts/paper/tab_panel.py"
-DATASET_ORDER = ("cifar10", "cifar100", "gtsrb", "tiny", "svhn", "eurosat")
+DATASET_ORDER = PANEL_DATASETS
 RATE_ORDER = (0.01, 0.05, 0.1)
 RATE_HEADERS = ("1%", "5%", "10%")
 

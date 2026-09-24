@@ -60,7 +60,7 @@ research code under its research rules.
 - Comments explain only the why: domain context, architectural decisions, memory or network constraints, edge cases. Never explain syntax or obvious logic.
 - No decorative comment banners, no ASCII dividers, no `----- Model` style filler comments.
 - In prose (comments, docstrings, notes) do not use `;`, em dashes, arrows or the Oxford comma. Use `;` only where a programming language requires it.
-- Numbers as digits, never spelled out.
+- Numbers as digits, never spelled out, in code, comments and docs. The paper is the exception: its prose writes small counts that are not measurements as words ("one probe", "three claims") and keeps digits for measurements, parameters, block indices and every macro. It also uses no colon to introduce a clause or a list.
 - Formulas: the source paper's original form first, with a symbol table naming every symbol, as `.claude/styles/math-style.md` asks. A descriptive form with named quantities only where a reader asked for it. Existing docstrings that carry both forms stay as they are. Use LaTeX or real pseudocode blocks, never simplified prose.
 - `scripts/prose_audit.py` counts violations of these rules and must report 0 hits on every file a commit touches. `scripts/check_prose_only.py HEAD` proves a docs commit changed no code.
 

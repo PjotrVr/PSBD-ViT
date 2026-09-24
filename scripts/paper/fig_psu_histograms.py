@@ -164,7 +164,7 @@ def draw_panel(ax, data: dict) -> None:
 
 
 def write_figure(paper_dir: str, panels: list[dict]) -> str:
-    fig, axes = plt.subplots(2, 3, figsize=(7.2, 4.4))
+    fig, axes = plt.subplots(2, 3, figsize=(style.TEXT_WIDTH, 4.4))
     for data, ax in zip(panels, axes.flat):
         draw_panel(ax, data)
 

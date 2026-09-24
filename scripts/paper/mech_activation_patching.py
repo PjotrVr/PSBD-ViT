@@ -19,7 +19,11 @@ import sys
 
 sys.path.insert(0, os.getcwd())
 
-import scripts.paper._style  # noqa: E402,F401  the shared figure style
+from scripts.paper._style import (  # noqa: E402
+    TEXT_WIDTH,
+    legend_above,
+    legend_in_spare_axis,
+)
 import matplotlib.pyplot as plt  # noqa: E402
 
 from defenses.decision import EASY_ATTACKS, HARD_ATTACKS  # noqa: E402
@@ -41,6 +45,9 @@ from scripts.paper._common import (  # noqa: E402
 GENERATOR = "scripts/paper/mech_activation_patching.py"
 SITE = "resid"
 GROUPS = ("trigger", "cls", "random_same_size")
+# The random group is the null the text quotes. It is not drawn, since on a
+# global trigger it covers the same patches as the trigger and repeats its curve.
+PLOTTED_GROUPS = ("trigger", "cls")
 GROUP_LABELS = {
     "trigger": "trigger tokens",
     "cls": "class token",
@@ -126,9 +133,9 @@ def main() -> None:
     ]
     curves = {attack: mean_curves(by_attack[attack]) for attack in attacks}
 
-    fig, axes = plt.subplots(2, 4, figsize=(11, 5), sharex=True, sharey=True)
+    fig, axes = plt.subplots(2, 4, figsize=(TEXT_WIDTH, 3.9), sharex=True, sharey=True)
     for axis, attack in zip(axes.flat, attacks):
-        for index, group in enumerate(GROUPS):
+        for index, group in enumerate(PLOTTED_GROUPS):
             axis.plot(
                 curves[attack]["layers"],
                 curves[attack][group],
@@ -143,13 +150,20 @@ def main() -> None:
         )
         axis.axhline(0.0, color="0.6", linewidth=0.8)
         axis.set_ylim(-0.1, 1.1)
-    for axis in axes.flat[len(attacks) :]:
+    used = list(axes.flat[: len(attacks)])
+    spare = list(axes.flat[len(attacks) :])
+    for axis in spare:
         axis.axis("off")
     for axis in axes[1]:
         axis.set_xlabel("layer")
     for axis in axes[:, 0]:
         axis.set_ylabel("recovery of the clean answer")
-    axes.flat[0].legend(fontsize=7, loc="best")
+    # Every panel is full of data, so the legend takes an unused slot of the grid
+    # when there is one and sits above the grid otherwise.
+    if spare:
+        legend_in_spare_axis(spare[0], used)
+    else:
+        legend_above(fig, used)
     figure_path = os.path.join(
         args.paper_dir, "figures", "mech_activation_patching.pdf"
     )

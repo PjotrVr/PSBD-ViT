@@ -27,6 +27,7 @@ sys.path.insert(0, os.getcwd())
 from cli.compare_detectors import psbd_values  # noqa: E402
 from defenses.decision import EASY_ATTACKS, HARD_ATTACKS  # noqa: E402
 from scripts.paper._common import (  # noqa: E402
+    PANEL_DATASETS,
     HEADLINE_KEY,
     attack_label,
     bootstrap_ci,
@@ -46,7 +47,7 @@ from scripts.paper._common import (  # noqa: E402
 )
 
 GENERATOR = "scripts/paper/tab_family_split.py"
-DATASET_ORDER = ("cifar10", "cifar100", "gtsrb", "tiny", "svhn", "eurosat")
+DATASET_ORDER = PANEL_DATASETS
 RATE_ORDER = (0.01, 0.05, 0.1)
 RULES = ("matched", "adaptive")
 FAMILIES = ("input_side", "residual_adjacent")

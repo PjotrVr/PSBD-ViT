@@ -121,7 +121,6 @@ def main() -> None:
         rows.append(
             [
                 placement_words(placement),
-                "yes" if placement in declared else "no",
                 str(len(values["auroc"])),
                 fmt(mean_or_none(values["auroc"])),
                 fmt(mean_or_none(values[TPR_KEYS[0]]), places=2),
@@ -140,15 +139,11 @@ def main() -> None:
         caption=(
             "Every attention-side probe with at least "
             f"{MIN_CELLS} backdoored ViT-B/16 models, at the adaptive rule and the "
-            "headline quantile. The second column says whether the pre-registered "
-            "basis declares the placement. The probes it does not declare are not "
-            "part of the ranking in \\cref{tab:basis-ranking} and were not eligible "
-            "to be, since adding a placement to a ranking after reading its score is "
-            "what the declaration exists to prevent. Coverage is uneven, so rows are "
-            "not paired."
+            "headline quantile, ordered by mean AUROC. The number of models differs "
+            "between rows, so the rows are not paired."
         ),
         label="tab:attention-probes",
-        header=["probe", "in basis", "n", "AUROC", "TPR@10", "TPR@20"],
+        header=["probe", "n", "AUROC", "TPR@10", "TPR@20"],
         rows=rows,
         align="llrrrr",
     )

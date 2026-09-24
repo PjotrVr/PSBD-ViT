@@ -30,6 +30,7 @@ from scripts.paper._common import (  # noqa: E402
     load_coverage,
     load_psbd_metrics,
     mean_or_none,
+    number_word,
     std_or_none,
     write_macros,
     write_table,
@@ -114,9 +115,9 @@ def main() -> None:
                 attack_label(cell["attack"]),
                 f"{cell['poison_rate']:g}",
                 fmt(min(asr)) if asr else "--",
-                " / ".join(fmt(value) for value in recommended),
+                fmt(mean_or_none(recommended)),
                 fmt(std_or_none(recommended)),
-                " / ".join(fmt(value) for value in published),
+                fmt(mean_or_none(published)),
                 fmt(std_or_none(published)),
                 fmt(mean_or_none(gains), signed=True),
                 fmt(std_or_none(gains)),
@@ -128,7 +129,10 @@ def main() -> None:
         generator=GENERATOR,
         inputs=inputs,
         caption=(
-            "Seed replicates of PSBD-TM and PSBD-RD on the models trained at 3 seeds. Min ASR is the lowest attack success among the 3 runs."
+            "PSBD-TM and PSBD-RD on the models trained with "
+            f"{number_word(1 + len(REPLICATE_SEEDS))} seeds, as the mean AUROC over seeds and "
+            "its standard deviation. Min ASR is the lowest attack success among the "
+            "runs of a model."
         ),
         label="tab:seeds",
         header=[
@@ -136,15 +140,15 @@ def main() -> None:
             "Attack",
             "Rate",
             "Min ASR",
-            "PSBD-TM, seeds 0 / 1 / 2",
+            "PSBD-TM",
             "sd",
-            "PSBD-RD, seeds 0 / 1 / 2",
+            "PSBD-RD",
             "sd",
-            "Gain mean",
-            "Gain sd",
+            "gain",
+            "sd",
         ],
         rows=rows,
-        align="lllrlrlrrr",
+        align="lllrrrrrrr",
     )
 
     macros = {

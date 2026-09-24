@@ -57,3 +57,68 @@ plt.rcParams.update(
 # The width a figure may occupy, in inches, for this paper's geometry.
 COLUMN_WIDTH = 3.31
 TEXT_WIDTH = 6.9
+
+# 1 color per attack across every figure, so a reader who learns that BadNets is
+# orange in 1 figure reads it as orange in the next. The benign control is gray
+# and dashed wherever it appears.
+ATTACK_COLORS = {
+    "badnet": "#E69F00",
+    "blend": "#56B4E9",
+    "wanet": "#D55E00",
+    "bpp": "#0072B2",
+    "lf": "#CC79A7",
+    "tact": "#009E73",
+    "sig": "#000000",
+    "lc": "#999933",
+    "adaptive_blend": "#882255",
+}
+BENIGN_COLOR = "0.5"
+
+
+def attack_color(attack: str) -> str:
+    """The fixed color of an attack token, gray for the benign control."""
+    color = ATTACK_COLORS.get(attack, BENIGN_COLOR)
+    return color
+
+
+def unique_handles(axes) -> tuple[list, list[str]]:
+    """Every labeled artist across the axes, first occurrence of each label kept."""
+    seen: dict[str, object] = {}
+    for axis in axes:
+        for handle, label in zip(*axis.get_legend_handles_labels()):
+            seen.setdefault(label, handle)
+    return list(seen.values()), list(seen.keys())
+
+
+def legend_above(figure, axes, columns: int | None = None) -> None:
+    """1 legend for the whole figure, placed above the panels so it covers no data.
+
+    Anchored at the figure's top edge from below, so tight_layout keeps the axes
+    where they are and the tight bounding box at save time takes the legend in.
+    """
+    handles, labels = unique_handles(axes)
+    figure.legend(
+        handles,
+        labels,
+        loc="lower center",
+        bbox_to_anchor=(0.5, 1.0),
+        ncol=columns or min(len(labels), 5),
+        frameon=False,
+    )
+
+
+def legend_in_spare_axis(spare, axes) -> None:
+    """The figure's legend drawn inside an unused panel of the grid."""
+    handles, labels = unique_handles(axes)
+    spare.axis("off")
+    spare.legend(handles, labels, loc="center", frameon=False)
+
+
+def legend_below(axis, columns: int = 3) -> None:
+    """A panel's own legend placed under its x label, for panels whose labels differ."""
+    axis.legend(
+        loc="upper center",
+        bbox_to_anchor=(0.5, -0.18),
+        ncol=columns,
+        frameon=False,
+    )

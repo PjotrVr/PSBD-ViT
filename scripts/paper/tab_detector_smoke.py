@@ -71,11 +71,10 @@ def main() -> None:
         generator=GENERATOR,
         inputs=[SMOKE_ENTRY],
         caption=(
-            "Competitor detectors on the login-node smoke run: 3 GTSRB checkpoints at "
-            "the middle panel rate, AUROC at the headline quantile on the benign "
-            "reference and the 2 backdoored models, TPR at the smallest budget on "
-            "the backdoored ones, forward passes per input and seconds per input. "
-            "Acceptance only, the panel sweep is pending."
+            "The acceptance test of each ported detector on three GTSRB models at 5\\% "
+            "poisoning, a benign one and two backdoored ones. The columns give AUROC "
+            "at the headline quantile on each model, TPR at the smallest budget on "
+            "the backdoored models, forward passes per input and seconds per input."
         ),
         label="tab:detector-smoke",
         header=[

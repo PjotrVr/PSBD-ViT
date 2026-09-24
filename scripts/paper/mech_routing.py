@@ -20,12 +20,16 @@ import sys
 
 sys.path.insert(0, os.getcwd())
 
-import scripts.paper._style  # noqa: E402,F401  the shared figure style
+from scripts.paper._style import (  # noqa: E402
+    BENIGN_COLOR,
+    TEXT_WIDTH,
+    attack_color,
+    legend_below,
+)
 import matplotlib.pyplot as plt  # noqa: E402
 
 from defenses.decision import EASY_ATTACKS, HARD_ATTACKS  # noqa: E402
 from scripts.paper._common import (  # noqa: E402
-    OKABE_ITO,
     attack_label,
     build_parser,
     clearing_cells,
@@ -151,9 +155,9 @@ def main() -> None:
     # Figure: class-token attention on the trigger tokens by layer, triggered images,
     # 1 line per attack, the benign references as a gray band.
     attacks = ordered_attacks(set(routing) - {"benign"})
-    fig, (left, right) = plt.subplots(1, 2, figsize=(10, 3.8))
+    fig, (left, right) = plt.subplots(1, 2, figsize=(TEXT_WIDTH, 3.4))
     plotted = {"cls_attention_on_trigger": {}, "trigger_norm_rank": {}}
-    for index, attack in enumerate(attacks):
+    for attack in attacks:
         curve = layer_curve(routing[attack], "weight_backdoor")
         plotted["cls_attention_on_trigger"][attack] = curve
         left.plot(
@@ -162,7 +166,7 @@ def main() -> None:
             marker="o",
             markersize=3,
             linewidth=1.3,
-            color=OKABE_ITO[index % len(OKABE_ITO)],
+            color=attack_color(attack),
             label=f"{attack_label(attack)} (n={len(routing[attack])})",
         )
     if "benign" in routing:
@@ -171,16 +175,16 @@ def main() -> None:
         left.plot(
             range(1, len(curve) + 1),
             curve,
-            color="0.5",
+            color=BENIGN_COLOR,
             linestyle="--",
             linewidth=1.2,
             label="benign, same trigger",
         )
     left.set_xlabel("layer")
     left.set_ylabel("CLS attention mass on the trigger tokens")
-    left.legend(fontsize=6.5)
+    legend_below(left)
     artifact_attacks = ordered_attacks(set(artifacts) - {"benign"})
-    for index, attack in enumerate(artifact_attacks):
+    for attack in artifact_attacks:
         curve = layer_curve(artifacts[attack], "trigger_rank_triggered")
         plotted["trigger_norm_rank"][attack] = curve
         right.plot(
@@ -189,7 +193,7 @@ def main() -> None:
             marker="o",
             markersize=3,
             linewidth=1.3,
-            color=OKABE_ITO[index % len(OKABE_ITO)],
+            color=attack_color(attack),
             label=f"{attack_label(attack)} (n={len(artifacts[attack])})",
         )
     if "benign" in artifacts:
@@ -198,7 +202,7 @@ def main() -> None:
         right.plot(
             range(1, len(curve) + 1),
             curve,
-            color="0.5",
+            color=BENIGN_COLOR,
             linestyle="--",
             linewidth=1.2,
             label="benign, same trigger",
@@ -206,7 +210,7 @@ def main() -> None:
     right.axhline(0.5, color="black", linewidth=0.8, linestyle=":")
     right.set_xlabel("layer")
     right.set_ylabel("norm rank of the trigger tokens among patches")
-    right.legend(fontsize=6.5)
+    legend_below(right)
     figure_path = os.path.join(args.paper_dir, "figures", "mech_routing.pdf")
     save_figure(fig, figure_path)
     figure_sidecar(figure_path.replace(".pdf", ".json"), GENERATOR, inputs, plotted)

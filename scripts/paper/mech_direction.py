@@ -39,10 +39,10 @@ from scripts.paper._common import (  # noqa: E402
 
 GENERATOR = "scripts/paper/mech_direction.py"
 ABLATIONS = (
-    ("direction", "rank-1 direction"),
-    ("random_dir_0", "random direction"),
-    ("top_20", "top-20 coordinates"),
-    ("random_20", "random-20 coordinates"),
+    ("direction", "direction"),
+    ("random_dir_0", "random dir."),
+    ("top_20", "top 20"),
+    ("random_20", "random 20"),
 )
 CRYSTALLISED = 0.5
 
@@ -117,44 +117,41 @@ def main() -> None:
     save_figure(fig, figure_path)
     figure_sidecar(figure_path.replace(".pdf", ".json"), GENERATOR, inputs, plotted)
 
-    # Table: the causal ablation at each checkpoint's peak layer.
+    # Table: the causal ablation at each checkpoint's peak layer. The table sits in
+    # 1 column of the body, so it carries attack success only. The clean-accuracy
+    # cost and the peak layers go to the caption, computed from the same rows.
     rows = []
-    for row in sorted(ablation, key=lambda r: r["attack"]):
-        row_cells = [
-            attack_label(row["attack"]),
-            str(row["peak_layer"]),
-            fmt(row["baseline"]["asr"]),
-            fmt(row["baseline"]["clean_accuracy"]),
-        ]
+    ablated = sorted(ablation, key=lambda r: r["attack"])
+    for row in ablated:
+        row_cells = [attack_label(row["attack"]), fmt(row["baseline"]["asr"])]
         for key, _ in ABLATIONS:
             block = row["ablated"].get(key)
-            row_cells.append(
-                f"{fmt(block['asr'])} / {fmt(block['clean_accuracy'])}"
-                if block
-                else "--"
-            )
+            row_cells.append(fmt(block["asr"]) if block else "--")
         rows.append(row_cells)
+    peak_layers = sorted({row["peak_layer"] for row in ablated})
+    accuracy_costs = [
+        row["baseline"]["clean_accuracy"] - block["clean_accuracy"]
+        for row in ablated
+        for key, _ in ABLATIONS
+        if (block := row["ablated"].get(key))
+    ]
     write_table(
         path=os.path.join(args.paper_dir, "tables", "direction_ablation.tex"),
         generator=GENERATOR,
         inputs=[ablation_path],
         caption=(
-            "The causal ablation at the peak layer, CIFAR-10 at the highest panel "
-            "rate: attack success over clean accuracy after projecting out the rank-1 "
-            "backdoor direction, a random direction, the top-20 trigger-activated "
-            "coordinates and 20 random coordinates, as a forward hook after the "
-            "final LayerNorm."
+            "Attack success on CIFAR-10 at the highest panel rate before any "
+            "ablation and after projecting out, at the peak layer (block "
+            f"{' or '.join(str(layer) for layer in peak_layers)}), the rank-1 "
+            "backdoor direction, a random direction of the same norm, the 20 "
+            "coordinates the trigger moves most and 20 random coordinates. Clean "
+            f"accuracy falls by at most {fmt(max(accuracy_costs, default=None))} "
+            "under any of them."
         ),
         label="tab:direction-ablation",
-        header=[
-            "attack",
-            "peak layer",
-            "ASR",
-            "CA",
-            *[label for _, label in ABLATIONS],
-        ],
+        header=["attack", "none", *[label for _, label in ABLATIONS]],
         rows=rows,
-        align="lrrrrrrr",
+        align="lrrrrr",
     )
 
     # Crystallization: the first layer whose direction aligns at least half with the final one.

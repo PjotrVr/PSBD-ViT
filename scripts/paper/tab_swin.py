@@ -49,6 +49,7 @@ from scripts.paper._common import (  # noqa: E402
     word_list,
     write_macros,
     write_table,
+    write_wide_table,
 )
 
 GENERATOR = "scripts/paper/tab_swin.py"
@@ -437,7 +438,9 @@ def main() -> None:
         ]
     )
 
-    write_table(
+    # The placement names and the interval column are too wide for 1 column, where
+    # adjustbox shrank the table to a 4pt font, so the table spans both columns.
+    write_wide_table(
         path=os.path.join(args.paper_dir, "tables", "swin_main.tex"),
         generator=GENERATOR,
         inputs=inputs,
@@ -489,8 +492,8 @@ def main() -> None:
         generator=GENERATOR,
         inputs=inputs,
         caption=(
-            "Swin-S: mean AUROC at the headline quantile for every cached placement "
-            f"with at least {MIN_CELLS_FOR_ROW} implanted models, at the matched and "
+            "Mean AUROC on Swin-S at the headline quantile for every placement read "
+            f"on at least {MIN_CELLS_FOR_ROW} backdoored models, at the matched and "
             f"adaptive rules, over {len(cells)} models, {scope}. Coverage is uneven "
             "across placements, so rows are not paired."
         ),

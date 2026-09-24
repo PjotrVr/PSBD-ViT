@@ -25,12 +25,13 @@ sys.path.insert(0, os.getcwd())
 import glob
 import statistics
 
-import scripts.paper._style  # noqa: E402,F401  the shared figure style
+from scripts.paper._style import attack_color, legend_above  # noqa: E402
 import matplotlib.pyplot as plt
 
 from cli.compare_detectors import psbd_rate
 from defenses.decision import EASY_ATTACKS, HARD_ATTACKS, RECOMMENDED_PLACEMENT
 from scripts.paper._common import (
+    PANEL_DATASETS,
     attack_label,
     bootstrap_ci,
     build_parser,
@@ -58,7 +59,7 @@ HEADLINE_CELL_FOLDER = "vit_cifar100_badnet_a2o_0_01"
 # trusting that precomputed field.
 PANEL_TARGET_LABEL = 0
 RULES = ("matched", "adaptive")
-DATASET_ORDER = ("cifar10", "cifar100", "gtsrb", "tiny", "svhn", "eurosat")
+DATASET_ORDER = PANEL_DATASETS
 RULE_LABEL = {"matched": "matched 0.6", "adaptive": "adaptive 0.8"}
 # The macros headline on the matched-0.6 rule, the project's standard placement
 # comparison operator (defenses.decision.PLACEMENT_MATCH_TARGET), so a target-share
@@ -441,7 +442,7 @@ def write_shift_target_figure(args, records: list[dict], benign_reports: dict) -
     )
 
     fig, ax = plt.subplots(figsize=(6.0, 4.2))
-    for index, attack in enumerate(order_attacks(set(attack_curves))):
+    for attack in order_attacks(set(attack_curves)):
         curve = attack_curves[attack]
         ax.plot(
             [point["shift_ratio"] for point in curve],
@@ -449,7 +450,7 @@ def write_shift_target_figure(args, records: list[dict], benign_reports: dict) -
             marker="o",
             markersize=3,
             linewidth=1.3,
-            color=PALETTE[index % len(PALETTE)],
+            color=attack_color(attack),
             label=attack_label(attack),
         )
 
@@ -460,7 +461,7 @@ def write_shift_target_figure(args, records: list[dict], benign_reports: dict) -
             [point["share_high"] for point in band],
             color="0.75",
             alpha=0.6,
-            label="benign range (4 datasets)",
+            label=f"benign range ({len(benign_reports)} datasets)",
         )
 
     ax.axhline(
@@ -472,8 +473,8 @@ def write_shift_target_figure(args, records: list[dict], benign_reports: dict) -
     )
     ax.set_xlabel("achieved shift ratio (clean split)")
     ax.set_ylabel("target-class share of shifted clean predictions")
-    ax.legend(fontsize=6.5, loc="best", ncol=1)
     fig.tight_layout()
+    legend_above(fig, [ax], columns=3)
 
     path = os.path.join(args.paper_dir, "figures", "mech_shift_target.pdf")
     os.makedirs(os.path.dirname(path), exist_ok=True)
@@ -614,7 +615,7 @@ def main() -> None:
     benign_folders = {
         dataset: folder
         for dataset, folder in declaration["benign_reference"].items()
-        if not dataset.startswith("_")
+        if not dataset.startswith("_") and dataset in PANEL_DATASETS
     }
     benign_reports = {
         dataset: load_psbd_metrics(args.results_dir, folder)

@@ -262,9 +262,9 @@ def write_agreement_table(
     header = [
         "placement",
         "family",
-        "rho vs token mask, attention input (clean)",
+        "rho, clean",
         "n",
-        "rho vs token mask, attention input (backdoor)",
+        "rho, triggered",
         "n",
     ]
     rows = []
@@ -294,7 +294,7 @@ def write_agreement_table(
         ],
         caption=(
             "Whether placements agree on which inputs are fragile. Mean Spearman "
-            "correlation, over the models whose attack succeeded, between each basis "
+            "correlation, over the models whose attack succeeded, between each "
             "placement's per-sample fractional PSU and that of token masking at the "
             "attention input, each at its own matched 0.6 rate. n is the number of "
             "models carrying both placements at a usable rate."

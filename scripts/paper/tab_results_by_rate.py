@@ -31,6 +31,7 @@ from defenses.decision import (  # noqa: E402
     RECOMMENDED_PLACEMENT,
 )
 from scripts.paper._common import (  # noqa: E402
+    PANEL_DATASETS,
     HEADLINE_KEY,
     attack_label,
     build_parser,
@@ -45,7 +46,7 @@ from scripts.paper._common import (  # noqa: E402
 )
 
 GENERATOR = "scripts/paper/tab_results_by_rate.py"
-DATASET_ORDER = ("cifar10", "cifar100", "gtsrb", "tiny", "svhn", "eurosat")
+DATASET_ORDER = PANEL_DATASETS
 ATTACK_ORDER = EASY_ATTACKS + HARD_ATTACKS
 RATE_VALUES = (0.01, 0.05, 0.10)
 RATE_PCT_TEXT = {0.01: "1", 0.05: "5", 0.10: "10"}

@@ -16,14 +16,12 @@ import sys
 
 sys.path.insert(0, os.getcwd())
 
-import matplotlib  # noqa: E402
-
-matplotlib.use("Agg")
 import matplotlib.pyplot as plt  # noqa: E402
+
+from scripts.paper._style import TEXT_WIDTH, attack_color, legend_below  # noqa: E402
 
 from defenses.decision import EASY_ATTACKS, HARD_ATTACKS  # noqa: E402
 from scripts.paper._common import (  # noqa: E402
-    OKABE_ITO,
     build_parser,
     dataset_label,
     figure_sidecar,
@@ -74,7 +72,9 @@ def main() -> None:
     records = record["records"]
     inputs = [RECORD]
 
-    fig, axes = plt.subplots(2, len(DATASET_ORDER), figsize=(11, 6), sharex=True)
+    fig, axes = plt.subplots(
+        2, len(DATASET_ORDER), figsize=(TEXT_WIDTH, 5.6), sharex=True
+    )
     plotted = {}
     order = ["benign"] + list(HARD_ATTACKS) + list(EASY_ATTACKS)
     for column, dataset in enumerate(DATASET_ORDER):
@@ -85,7 +85,7 @@ def main() -> None:
                 r["folder"],
             ),
         )
-        for index, item in enumerate(rows):
+        for item in rows:
             layers = [row["layer"] for row in item["layers"]]
             norm = [row["rel_direction_norm"] for row in item["layers"]]
             tac = [row["tac_mean"] for row in item["layers"]]
@@ -96,11 +96,16 @@ def main() -> None:
                 "cka": [row["cka"] for row in item["layers"]],
             }
             label = folder_legend_label(item["folder"], dataset)
-            style = (
-                {"color": "0.5", "linestyle": "--"}
+            # Color follows the attack as in every other figure, and a dotted line
+            # marks the low poison rate where 1 attack appears at 2 rates.
+            style = {
+                "color": attack_color(item["attack"]),
+                "linestyle": "--"
                 if item["attack"] == "benign"
-                else {"color": OKABE_ITO[index % len(OKABE_ITO)]}
-            )
+                else ":"
+                if "_0_01" in item["folder"]
+                else "-",
+            }
             axes[0, column].plot(
                 layers,
                 norm,
@@ -121,7 +126,7 @@ def main() -> None:
             )
         axes[0, column].set_title(dataset_label(dataset))
         axes[1, column].set_xlabel("layer")
-        axes[0, column].legend(fontsize=6)
+        legend_below(axes[1, column], columns=2)
     axes[0, 0].set_ylabel("relative backdoor-direction norm")
     axes[1, 0].set_ylabel("mean trigger-activated change")
     figure_path = os.path.join(args.paper_dir, "figures", "mech_tac_layers.pdf")

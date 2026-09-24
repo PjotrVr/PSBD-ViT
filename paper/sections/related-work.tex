@@ -8,4 +8,4 @@ The defenses closest to ours decide per input at test time from the deployed mod
 Detectors that need the poisoned training pool \cite{tran2018spectral,chen2018activation,tang2021demon,hayase2021spectre} and defenses that retrain or prune the model \cite{liu2018finepruning,li2021nad,wu2021anp,zeng2022ibau,zheng2022clp} answer a different question and need access we do not assume.
 
 \paragraph{Mechanistic work on ViT backdoors.}
-Karayal\c{c}{\i}n et al.~\cite{karayalcin2026backdoor} find a trigger direction in ViT activations and remove the backdoor by orthogonalizing it out of the weights, which we reproduce (\cref{sec:mechanism:picek}). Activation patching \cite{zhang2024patching} and the logit lens \cite{nostalgebraist2020logitlens,belrose2023tunedlens} are the tools we use to locate the backdoor by depth.
+Karayal\c{c}{\i}n et al.~\cite{karayalcin2026backdoor} find a trigger direction in ViT activations and remove the backdoor by orthogonalizing it out of the weights, and our direction ablation of \cref{sec:mechanism:direction} builds on theirs. Activation patching \cite{zhang2024patching} is the tool we use to locate the backdoor by depth.

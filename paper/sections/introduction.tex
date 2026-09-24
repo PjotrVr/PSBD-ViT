@@ -4,71 +4,60 @@
 A backdoored classifier behaves normally on clean inputs and predicts an
 attacker's class whenever a trigger appears in the input
 \cite{li2022backdoorsurvey}. The attacker plants the behavior by poisoning a
-small share of the training data, often 1\% or less. The defender receives the
-trained model without ever seeing that data. Input-level detection asks the
-most practical question in this setting. Given the deployed model and 1 incoming
-input, is that input carrying a trigger? A detector that answers well needs no
-retraining and runs in front of the deployed model.
+small share of the training data (often 1\% or less) and the defender receives
+the trained model without ever seeing that data. Input-level detection asks the
+most practical question in this setting. Given the deployed model and one
+incoming input, does that input carry a trigger? A detector that answers well
+needs no retraining and runs in front of the deployed model.
 
 Prediction Shift Backdoor Detection (PSBD) \cite{li2025psbd} is such a detector.
-Its observation is that a backdoored input is decided by a shortcut the model
-learned quickly and firmly, while a clean input is decided by a broad set of
-features. When the network is perturbed at inference the broad decision wobbles
-and the shortcut holds. PSBD therefore runs the model a few times with dropout
-active, measures how much the probability of the predicted class falls and flags
-the inputs whose prediction barely moves. It needs only a small clean validation
-set to set its threshold, and on ResNet-18 and VGG-16 it reports strong results
-across 7 attacks.
+It rests on the observation that a backdoored input is decided by a shortcut the
+model learned quickly and firmly, while a clean input is decided by a broad set
+of features. When the network is perturbed at inference, the broad decision
+wobbles and the shortcut holds. PSBD therefore runs the model a few times with
+dropout active, measures how much the probability of the predicted class falls
+and flags the inputs whose prediction barely moves. It needs only a small clean
+validation set to set its threshold, and it reports strong results on ResNet-18
+and VGG-16.
 
 Nothing in that argument depends on convolutions, yet the perturbation does not
-carry over unchanged. A ResNet basic block has 1 natural place for dropout, the
-residual stream after the add, and the original work put it there. A transformer
-block has no such default. The input to attention, the input to the MLP, each
-branch output before its residual add, the stream after each add, the attention
-heads and the MLP hidden units are all different tensors with different roles.
-Nor is dropout the only thing to inject, since whole tokens or channels can be
-masked and noise can be added.
+carry over unchanged. The original work applies dropout after the residual
+addition of each ResNet block, before the activation. A transformer block has
+no such default and no activation after its residual additions. The input to
+attention, the input to the MLP, each branch output, the stream after each
+addition, the attention heads and the MLP hidden units are all different tensors
+with different roles, and dropout is not the only thing one can inject there,
+since whole tokens or channels can also be masked.
 
-\paragraph{Research questions.} Adapting PSBD to a Vision Transformer (ViT)
-\cite{dosovitskiy2021an} is therefore a design problem on 2 axes, where to
-perturb and what to inject. We ask whether the choice matters, whether the 2
-axes act separately, and why the winning placement wins, since a ranking no
-mechanism explains predicts nothing about the next architecture.
+Adapting PSBD to a Vision Transformer (ViT) \cite{dosovitskiy2021an} is
+therefore a design problem with two parts, where to perturb and what to inject.
+We show that this choice decides whether the detector works. Masking whole
+tokens at the input of every attention block, which we call PSBD-TM, reaches a
+mean AUROC of \HeadlineAurocAdaptive{}, against \PublishedAurocAdaptive{} for
+dropout on the residual stream, our adaptation of the original site, which we
+call PSBD-RD. We then explain why. A backdoor in a ViT is a single direction in
+the residual stream, written late in the network and carried by attention from
+the trigger's own tokens to the class token, so removing those tokens before
+attention removes the route.
 
-The choice decides the outcome. Masking whole tokens at the input of every
-attention block, which we call PSBD-TM, reaches a mean AUROC of
-\HeadlineAurocAdaptive{} against \PublishedAurocAdaptive{} for our reading of the
-original placement, which we call PSBD-RD. Site and operator both move the score,
-and what decides the operator is the side of the LayerNorm the perturbation lands
-on rather than the site. The mechanism is that a backdoor in a ViT is 1 direction
-in the residual stream, written in the last third of the network and routed
-through attention from the trigger's patch tokens to the class token.
-
-\paragraph{Contributions.} We make 3 claims of different kinds.
+\paragraph{Contributions.} We make three claims.
 
 \begin{enumerate}
-  \item A systematic result. Over \PanelCellsCached{} backdoored ViT-B/16 models on
-    \PanelDatasetsCached{} datasets, PSBD-TM beats PSBD-RD by
-    \HeadlineGainAdaptiveAuroc{} [\HeadlineGainAdaptiveAurocLow{},
-    \HeadlineGainAdaptiveAurocHigh{}], with its largest advantage at \PanelRateLow{}
-    poisoning, and by \SwinGainRecommendedMinusPublished{} over \SwinCells{} Swin-S
-    models (\cref{sec:results,sec:swin}). Against \DetectorsComparedCount{} ported
-    input-level detectors on the same splits it ranks \DetectorsAurocRankOurs{} of
-    \DetectorsAurocDefensesRanked{} defenses where PSBD-RD ranks
-    \DetectorsAurocRankPublished{}, though its margin over the strongest competitor is
-    only \DetectorsAurocMargin{} (\cref{sec:robustness:detectors}).
-  \item 2 refutations. The claim that dropout before the residual add beats
-    dropout after it, which motivated this project, does not hold:
-    \PreMinusPostMatched{} [\PreMinusPostMatchedLow{},
-    \PreMinusPostMatchedHigh{}] at matched disturbance over \PreMinusPostN{}
-    models. Nor is the winner the input-side family of sites, since the family
-    gap changes sign with the operator (\cref{sec:results:family}).
-  \item A mechanistic account, tested on the same models. It explains the winning
-    site, the choice of whole tokens over coordinates and the reversal through
-    LayerNorm absorption (\cref{sec:mechanism}).
+  \item A placement that makes PSBD work on transformers. Over \PanelCellsCached{}
+    backdoored ViT-B/16 models on \PanelDatasetsCached{} datasets, PSBD-TM beats
+    PSBD-RD by \HeadlineGainAdaptiveAuroc{} [\HeadlineGainAdaptiveAurocLow{},
+    \HeadlineGainAdaptiveAurocHigh{}] AUROC, by \GainsLowestRate{} at
+    \PanelRateLow{} poisoning and by \SwinGainRecommendedMinusPublished{} over
+    \SwinCells{} Swin-S models (\cref{sec:results,sec:swin}).
+  \item A comparison with \DetectorsComparedCount{} input-level detectors ported to
+    the same models, splits and false-positive budgets, in which PSBD-TM ranks
+    1st of \DetectorsAurocDefensesRanked{} defenses and PSBD-RD ranks
+    5th (\cref{sec:robustness:detectors}).
+  \item A mechanistic account, tested on the same models, of why the attention
+    input wins, why whole tokens beat coordinates and why noise at that site is
+    weaker than masking (\cref{sec:mechanism}).
 \end{enumerate}
 
-Every measurement in this paper is produced by a script from a coverage ledger
-that declares the models before any sweep, and the build fails on a hand-typed one.
-The code, the ledger and the generators are released. \Cref{sec:limitations} states
-what the evidence does not cover.
+Every number in this paper is produced by a script from the saved results, and
+the build fails on a number typed by hand. The code and the generators are
+released. \Cref{sec:limitations} states what the evidence does not cover.

@@ -1,18 +1,18 @@
 {
   "generator": "scripts/paper/tab_gains.py",
   "inputs": [
-    "results/coverage/coverage.json (71 clearing cells)",
+    "results/coverage/coverage.json (65 clearing cells)",
     "results/*/psbd_metrics.json"
   ],
-  "written_at": "2026-09-23T21:13:21.204268+00:00",
-  "git_commit": "b843c4451e8ca520fbe4e574bbdf5314e45bcb74-dirty",
+  "written_at": "2026-09-24T04:42:07.378116+00:00",
+  "git_commit": "52e4ba1a7ac941365bc37d68e1e902dad4fb4f74-dirty",
   "macros": {
     "GainsModels": {
-      "value": "69",
+      "value": "65",
       "meaning": "models carrying both compared placements"
     },
     "GainsAll": {
-      "value": "+0.104",
+      "value": "+0.103",
       "meaning": "mean paired AUROC gain over every compared model at the adaptive rule"
     },
     "GainsLowestRate": {
@@ -24,19 +24,19 @@
       "meaning": "models at 1% poisoning"
     },
     "GainsHighestRate": {
-      "value": "+0.073",
+      "value": "+0.069",
       "meaning": "mean paired gain at 10% poisoning"
     },
     "GainsHighestRateN": {
-      "value": "27",
+      "value": "24",
       "meaning": "models at 10% poisoning"
     },
     "GainsLeaveOneAttackOut": {
-      "value": "+0.051",
+      "value": "+0.046",
       "meaning": "smallest mean gain left after dropping any single attack"
     },
     "GainsLeaveOneAttackOutLow": {
-      "value": "+0.005",
+      "value": "$-$0.004",
       "meaning": "lower bootstrap bound of gains_leave_one_attack_out"
     },
     "GainsLeaveOneAttackOutAttack": {
@@ -44,11 +44,11 @@
       "meaning": "the attack whose removal costs the gain the most"
     },
     "GainsPositiveDatasets": {
-      "value": "6",
+      "value": "4",
       "meaning": "datasets whose mean paired gain is positive"
     },
     "GainsDatasets": {
-      "value": "6",
+      "value": "4",
       "meaning": "datasets in the gain table"
     },
     "GainsCifarOneZeroZero": {
@@ -59,17 +59,9 @@
       "value": "+0.083",
       "meaning": "mean paired gain on CIFAR-10 over 18 models"
     },
-    "GainsEurosat": {
-      "value": "+0.005",
-      "meaning": "mean paired gain on EuroSAT over 2 models"
-    },
     "GainsGtsrb": {
       "value": "+0.142",
       "meaning": "mean paired gain on GTSRB over 15 models"
-    },
-    "GainsSvhn": {
-      "value": "+0.234",
-      "meaning": "mean paired gain on SVHN over 2 models"
     },
     "GainsTiny": {
       "value": "+0.049",
@@ -112,11 +104,11 @@
       "meaning": "the AUROC called strong in the results"
     },
     "GainsStrongAttacks": {
-      "value": "BadNets and LF",
+      "value": "BadNets, Blend and LF",
       "meaning": "attacks whose every model reads at least the strong AUROC under the recommended placement"
     },
     "GainsStrongAttackCount": {
-      "value": "2",
+      "value": "3",
       "meaning": "attacks in gains_strong_attacks"
     }
   }

@@ -2,7 +2,7 @@
 \label{sec:background}
 
 \subsection{Threat model}
-The attacker controls a share of the training data and plants a trigger with a target label. The defender receives the trained model and holds a small clean validation set drawn from the same distribution, here \HeldoutSize{} images, but never the training set and never a poisoned example. At deployment the defender sees 1 input at a time and must decide whether it carries a trigger before returning a prediction. This is the setting of the input-level detectors of \cref{sec:related}.
+The attacker controls a share of the training data and plants a trigger with a target label. The defender receives the trained model and holds a small clean validation set drawn from the same distribution, here \HeldoutSize{} images, but never the training set and never a poisoned example. At deployment the defender sees one input at a time and must decide whether it carries a trigger before returning a prediction. This is the setting of the input-level detectors of \cref{sec:related}.
 
 \subsection{The prediction shift phenomenon in backdoored networks}
 PSBD \cite{li2025psbd} runs the model $k$ times on an input $x$ with dropout at rate $p$ active and compares each dropout prediction with the prediction without dropout. The paper defines the prediction shift indicator and the shift ratio of a set $\mathcal{D}$ as
@@ -12,23 +12,23 @@ PSBD \cite{li2025psbd} runs the model $k$ times on an input $x$ with dropout at 
     \sigma(\mathcal{D}) &= \frac{1}{k|\mathcal{D}|}\sum_{x\in\mathcal{D}} \ps(x),
   \end{split}
 \end{equation}
-where $\theta$ are the weights, $\theta'$ the weights with dropout active and $\mathcal{Y}$ the predicted class. The detection statistic, the prediction shift uncertainty, is the drop in the probability of the no-dropout class averaged over the $k$ passes,
+where $\theta$ are the weights, $\theta'$ the weights with dropout active and $\mathcal{Y}$ the predicted class. The detection statistic, called the prediction shift uncertainty, is the drop in the probability of the no-dropout class averaged over the $k$ passes,
 \begin{equation}
   \psu(x) = \frac{1}{k}\sum_{i=1}^{k}
     \big[ P(\hat y \mid x;\theta) - P(\hat y \mid x;\theta'_i) \big],
 \end{equation}
 with $\hat y$ the class predicted without dropout. A poisoned input keeps its probability under dropout and has a low $\psu$.
 
-The dropout rate is chosen so that the shift ratio of the clean validation set reaches \AdaptiveShiftTarget{}. The threshold is the \HeadlineQuantilePercent{} percentile of the validation set's $\psu$ at $k = 3$ passes. In a ResNet the paper applies dropout after each residual connection of the basic block, and it explains the phenomenon by neuron bias, which \cref{sec:mechanism:phenomenon} tests on ViT.
+The dropout rate is chosen so that the shift ratio of the clean validation set reaches \AdaptiveShiftTarget{}. The threshold is the \HeadlineQuantilePercent{} percentile of the validation set's $\psu$ at $k = 3$ passes. In a ResNet the paper applies dropout after the residual addition of each basic block and before its activation, and it explains the phenomenon by neuron bias, which \cref{sec:mechanism:phenomenon} tests on ViT.
 
 \subsection{Perturbation sites in a ViT block}
-A ViT-B/16 \cite{dosovitskiy2021an} splits a \ModelInputSize{} by \ModelInputSize{} image into \VitPatches{} patches of 16 by 16 pixels, embeds each as a \VitWidth{}-dimensional token, prepends a class token and runs \VitBlocks{} identical blocks. Each block is pre-norm \cite{xiong2020layernorm}: it applies a LayerNorm, multi-head self-attention over the \VitTokens{} tokens and a residual add, then a second LayerNorm, a 2-layer MLP applied to every token independently and a second residual add. The classifier reads the class token after a final LayerNorm. \Cref{fig:vit-block} shows 1 block with the sites where we inject a perturbation.
+A ViT-B/16 \cite{dosovitskiy2021an} splits a \ModelInputSize{} by \ModelInputSize{} image into \VitPatches{} patches of 16 by 16 pixels, embeds each as a \VitWidth{}-dimensional token, prepends a class token and runs \VitBlocks{} identical blocks. Each block is pre-norm \cite{xiong2020layernorm}. It applies a LayerNorm, multi-head self-attention over the \VitTokens{} tokens and a residual addition, then a second LayerNorm, a two-layer MLP applied to every token independently and a second residual addition. Neither addition is followed by an activation. The classifier reads the class token after a final LayerNorm. \Cref{fig:vit-block} shows one block with the sites where we inject a perturbation.
 
 Attention is the only operation that mixes information across tokens. A perturbation before the attention LayerNorm therefore acts on each token before any mixing, a perturbation before the MLP LayerNorm acts after the block's mixing has happened, and a perturbation on the residual stream acts on the sum of everything the network has written so far.
 
 \begin{figure}[t]
 \centering
 \input{figures/vit_block}
-\caption{1 ViT block with the sites we perturb, in forward order. Site A is the attention input, where PSBD-TM masks whole tokens. Site C is the residual stream after the add, where PSBD-RD applies dropout. The attention branch output before the add (B), the MLP input (D), the attention heads and the MLP hidden units are the other sites in the basis.}
+\caption{One ViT block with the sites we perturb. A is the attention input before its LayerNorm, where PSBD-TM masks whole tokens. B is the attention branch output before its residual addition. C is the residual stream after each addition, where PSBD-RD applies dropout as our adaptation of the original PSBD site. D is the MLP input before its LayerNorm. The attention heads and the MLP hidden units are further sites we perturb.}
 \label{fig:vit-block}
 \end{figure}

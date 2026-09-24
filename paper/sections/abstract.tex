@@ -3,25 +3,21 @@ Prediction Shift Backdoor Detection (PSBD) flags a poisoned input by how little 
 prediction moves when the network is perturbed at inference. It was built for ResNets,
 where the residual stream is the one obvious place to put that perturbation. A
 transformer block offers many places and several kinds of perturbation, and we show that
-this choice, rather than the method, decides whether the detector works. Masking whole
-tokens at the input of every attention block reaches a mean AUROC of
-\HeadlineAurocAdaptive{} over \PanelCellsCached{} backdoored ViT-B/16 models spanning
-\PanelDatasetsCached{} datasets and poison rates of \PanelRates{}, against
-\PublishedAurocAdaptive{} for the placement the original work used, a paired gain of
-\HeadlineGainAdaptiveAuroc{} [\HeadlineGainAdaptiveAurocLow{},
-\HeadlineGainAdaptiveAurocHigh{}] that grows to \HardGainAdaptiveAuroc{} on the attacks
-that resist detection. It transfers to Swin-S, where windowed attention leaves the
-ranking intact over \SwinCells{} models. Against \DetectorsComparedCount{} ported
-input-level detectors on the same models and splits, the original placement ranks
-\DetectorsAurocRankPublished{} of \DetectorsAurocDefensesRanked{} defenses and ours
-ranks \DetectorsAurocRankOurs{}, by \DetectorsAurocMargin{} over the strongest of
-them, which is a tie rather than a lead. Site and operator are separate axes, and the operator is decided by
-the side of the LayerNorm the perturbation lands on: injected before one, Gaussian noise
-costs \StaircaseOperatorsBeforeAttentionNormGaussianGain{} AUROC against token masking
-at the same site, and injected after a LayerNorm the 2 tie. We explain that by locating the
-backdoor, which is 1 direction in the residual stream, written in the last third of the
-network and routed through attention from the trigger's own tokens to the class token.
-Removing whole tokens before attention removes that route, while noise at the same site
-is renormalized away. We also report the limits. An attacker who trains against 1 probe
-defeats it, a union of probes restores detection and all-to-all attacks remain open.
+this choice decides whether the detector works. Masking whole tokens at the input of
+every attention block reaches a mean AUROC of \HeadlineAurocAdaptive{} over
+\PanelCellsCached{} backdoored ViT-B/16 models on \PanelDatasetsCached{} datasets and
+poison rates of \PanelRates{}, against \PublishedAurocAdaptive{} for the placement the
+original work used. The paired gain of \HeadlineGainAdaptiveAuroc{}
+[\HeadlineGainAdaptiveAurocLow{}, \HeadlineGainAdaptiveAurocHigh{}] grows to
+\GainsLowestRate{} at \PanelRateLow{} poisoning, the regime a defender most needs, and
+the placement transfers to Swin-S, where it reaches \SwinRecommendedAurocAdaptive{} over
+\SwinCells{} models. Against \DetectorsComparedCount{} input-level detectors ported to
+the same models and splits it ranks 1st of \DetectorsAurocDefensesRanked{} defenses
+by AUROC and by the true-positive rate at both false-positive budgets we report. We
+explain why by locating the backdoor. It is a single direction in the residual stream,
+written late in the network and routed through attention from the trigger's own tokens
+to the class token, so removing whole tokens before attention removes the route, while
+additive noise at the same site is largely absorbed by the LayerNorm that follows. A
+union of probes keeps detection at \AdaptiveVitUnion{} AUROC against an attacker trained
+to evade a single probe.
 \end{abstract}

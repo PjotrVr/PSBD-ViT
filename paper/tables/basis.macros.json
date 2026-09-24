@@ -3,13 +3,13 @@
   "inputs": [
     "results/coverage/coverage.json",
     "configs/psbd_basis.json",
-    "results/<folder>/psbd_metrics.json (71 cells)"
+    "results/<folder>/psbd_metrics.json (65 cells)"
   ],
-  "written_at": "2026-09-23T18:11:22.949200+00:00",
-  "git_commit": "5a1f1c5814dc5676c093f3021490a849712a13f4-dirty",
+  "written_at": "2026-09-24T04:25:48.926341+00:00",
+  "git_commit": "52e4ba1a7ac941365bc37d68e1e902dad4fb4f74-dirty",
   "macros": {
     "BasisRankRecommendedAdaptive": {
-      "value": "1",
+      "value": "2",
       "meaning": "rank of the recommended placement among the basis by adaptive-rule mean AUROC"
     },
     "BasisRankRecommendedMatched": {
@@ -17,15 +17,15 @@
       "meaning": "rank of the recommended placement among the basis by matched-rule mean AUROC"
     },
     "BasisRankPublishedAdaptive": {
-      "value": "15",
+      "value": "14",
       "meaning": "rank of the published placement among the basis by adaptive-rule mean AUROC"
     },
     "BasisBestPlacement": {
-      "value": "before\\_attention\\_norm\\_token\\_mask",
+      "value": "before\\_attention\\_residual\\_token\\_mask",
       "meaning": "the basis placement with the highest adaptive-rule mean AUROC"
     },
     "BasisBestAurocAdaptive": {
-      "value": "0.927",
+      "value": "0.936",
       "meaning": "the highest adaptive-rule mean AUROC in the basis"
     },
     "BasisMeasuredSize": {
@@ -41,7 +41,7 @@
       "meaning": "the basis placement with the lowest adaptive-rule mean AUROC"
     },
     "BasisWorstAurocAdaptive": {
-      "value": "0.756",
+      "value": "0.746",
       "meaning": "the lowest adaptive-rule mean AUROC in the basis"
     },
     "PublishedInversions": {
@@ -53,51 +53,51 @@
       "meaning": "worst single cell of the published placement at the adaptive rule"
     },
     "RecommendedReachMatched": {
-      "value": "71",
+      "value": "65",
       "meaning": "cells the recommended placement reaches at the matched rule"
     },
     "BasisSpreadAdaptive": {
-      "value": "0.171",
+      "value": "0.191",
       "meaning": "adaptive-rule mean AUROC spread between the best and worst basis placement"
     },
     "PositionRangeTokenMaskMatched": {
-      "value": "0.102",
+      "value": "0.109",
       "meaning": "range of mean AUROC across the all-blocks token_mask positions, matched rule"
     },
     "OperatorRangeAttentionNormMatched": {
-      "value": "0.183",
+      "value": "0.206",
       "meaning": "range of mean AUROC across the operators at before_attention_norm, matched rule"
     },
     "OperatorRangeAttentionNormMasksMatched": {
-      "value": "0.106",
+      "value": "0.111",
       "meaning": "range of mean AUROC across the 2 masking operators at before_attention_norm, matched rule"
     },
     "PositionOverOperatorRatioMatched": {
-      "value": "0.56",
+      "value": "0.53",
       "meaning": "position range over operator range at matched rule, gaussian included"
     },
     "PositionOverOperatorRatioMasksMatched": {
-      "value": "0.96",
+      "value": "0.98",
       "meaning": "position range over operator range at matched rule, masking operators only"
     },
     "PositionRangeTokenMaskAdaptive": {
-      "value": "0.166",
+      "value": "0.167",
       "meaning": "range of mean AUROC across the all-blocks token_mask positions, adaptive rule"
     },
     "OperatorRangeAttentionNormAdaptive": {
-      "value": "0.123",
+      "value": "0.139",
       "meaning": "range of mean AUROC across the operators at before_attention_norm, adaptive rule"
     },
     "OperatorRangeAttentionNormMasksAdaptive": {
-      "value": "0.068",
+      "value": "0.076",
       "meaning": "range of mean AUROC across the 2 masking operators at before_attention_norm, adaptive rule"
     },
     "PositionOverOperatorRatioAdaptive": {
-      "value": "1.35",
+      "value": "1.19",
       "meaning": "position range over operator range at adaptive rule, gaussian included"
     },
     "PositionOverOperatorRatioMasksAdaptive": {
-      "value": "2.44",
+      "value": "2.19",
       "meaning": "position range over operator range at adaptive rule, masking operators only"
     }
   }

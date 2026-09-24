@@ -1,30 +1,50 @@
+% One pre-norm ViT block with the perturbation sites. Every box has the same
+% width so the residual skip, drawn left of the widest box, crosses none of them.
+% A and D sit on the branch after the skip splits off, B on the branch output
+% before the addition and C on the stream after each addition, which is where
+% PSBD-RD applies dropout.
 \begin{tikzpicture}[
-  box/.style={draw, rounded corners=1pt, minimum width=24mm, minimum height=5.5mm, font=\scriptsize, align=center},
-  norm/.style={box, fill=gray!12},
-  op/.style={box, fill=blue!8},
-  plus/.style={draw, circle, inner sep=1pt, font=\scriptsize},
-  site/.style={draw, circle, fill=orange!80, inner sep=1.3pt, font=\bfseries\tiny},
-  flow/.style={-{Latex[length=1.5mm]}, thick}
+  box/.style={draw, rounded corners=1pt, minimum width=30mm, text width=28mm, minimum height=5.5mm, font=\scriptsize, align=center},
+  norm/.style={box, fill=black!6},
+  op/.style={box, fill=blue!7},
+  plus/.style={draw, circle, inner sep=0.8pt, font=\scriptsize, fill=white},
+  site/.style={circle, fill=black!70, text=white, inner sep=0pt, minimum size=3.4mm, font=\bfseries\tiny},
+  leader/.style={black!45, thin},
+  flow/.style={-{Latex[length=1.4mm]}, thick}
 ]
-\node[font=\scriptsize] (in) at (0,0) {residual stream, 197 tokens $\times$ 768};
-\node[norm, below=2.5mm of in] (ln1) {LayerNorm};
-\node[op, below=2.5mm of ln1] (attn) {Multi-Head Attention};
-\node[plus, below=2.5mm of attn] (add1) {$+$};
-\node[norm, below=2.5mm of add1] (ln2) {LayerNorm};
-\node[op, below=2.5mm of ln2] (mlp) {MLP, per token};
-\node[plus, below=2.5mm of mlp] (add2) {$+$};
-\node[font=\scriptsize, below=2.5mm of add2] (out) {to the next block};
-\draw[flow] (in) -- (ln1); \draw[flow] (ln1) -- (attn); \draw[flow] (attn) -- (add1);
-\draw[flow] (add1) -- (ln2); \draw[flow] (ln2) -- (mlp); \draw[flow] (mlp) -- (add2); \draw[flow] (add2) -- (out);
-\draw[flow] ($(in.south)+(0,-1.2mm)$) -| ++(-14mm,0) |- (add1.west);
-\draw[flow] ($(add1.south)+(0,-1.2mm)$) -| ++(-14mm,0) |- (add2.west);
-\node[site] (A) at ($(ln1.east)+(3mm,2.2mm)$) {A};
-\node[site] (B) at ($(attn.east)+(3mm,-2.2mm)$) {B};
-\node[site] (C) at ($(add1.east)+(4mm,0)$) {C};
-\node[site] (D) at ($(ln2.east)+(3mm,2.2mm)$) {D};
-\node[font=\scriptsize, anchor=north west, text width=27mm, align=left] at ($(in.east)+(9mm,2mm)$) {%
-  \textbf{A} attention input, before its LayerNorm: token mask, channel mask, noise\\[1.5pt]
-  \textbf{B} attention branch output, before the residual add: dropout\\[1.5pt]
-  \textbf{C} residual stream after the add: dropout, the site the PSBD paper uses\\[1.5pt]
-  \textbf{D} MLP input, before its LayerNorm: token mask, noise};
+\def\gap{5mm}
+\def\skipx{-20mm}
+\def\sitex{21mm}
+\node[font=\scriptsize] (in) at (0,0) {residual stream, \VitTokens{} tokens $\times$ \VitWidth{}};
+\coordinate[below=\gap of in] (split1);
+\node[norm, below=\gap of split1] (ln1) {LayerNorm};
+\node[op, below=\gap of ln1] (attn) {Multi-Head Attention};
+\node[plus, below=\gap of attn] (add1) {$+$};
+\coordinate[below=\gap of add1] (split2);
+\node[norm, below=\gap of split2] (ln2) {LayerNorm};
+\node[op, below=\gap of ln2] (mlp) {MLP, per token};
+\node[plus, below=\gap of mlp] (add2) {$+$};
+\node[font=\scriptsize, below=\gap of add2] (out) {to the next block};
+\draw[flow] (in) -- (ln1);
+\draw[flow] (ln1) -- (attn);
+\draw[flow] (attn) -- (add1);
+\draw[flow] (add1) -- (ln2);
+\draw[flow] (ln2) -- (mlp);
+\draw[flow] (mlp) -- (add2);
+\draw[flow] (add2) -- (out);
+\draw[flow] (split1) -- (\skipx,0 |- split1) |- (add1.west);
+\draw[flow] (split2) -- (\skipx,0 |- split2) |- (add2.west);
+\fill (split1) circle (0.5pt);
+\fill (split2) circle (0.5pt);
+% Each marker sits in 1 column right of the boxes, joined to the midpoint of
+% the arrow it perturbs.
+\coordinate (a) at ($(split1)!0.5!(ln1.north)$);
+\coordinate (b) at ($(attn.south)!0.5!(add1.north)$);
+\coordinate (c1) at ($(add1.south)!0.35!(split2)$);
+\coordinate (d) at ($(split2)!0.5!(ln2.north)$);
+\coordinate (c2) at ($(add2.south)!0.5!(out.north)$);
+\foreach \point/\name in {a/A, b/B, c1/C, d/D, c2/C} {
+  \draw[leader] (\point) -- (\sitex,0 |- \point);
+  \node[site] at (\sitex,0 |- \point) {\name};
+}
 \end{tikzpicture}

@@ -1,15 +1,15 @@
 \section{Adapting PSBD to a ViT}
 \label{sec:method}
 
-We keep PSBD's decision rule fixed and vary only what is injected and where. This keeps every placement comparable and keeps the method faithful to the original in everything that is not architecture-specific.
+We keep PSBD's decision rule fixed and vary only what is injected and where. This keeps every placement comparable and keeps the method faithful to the original in everything that is not specific to the architecture.
 
 \paragraph{Sites and perturbations.}
-A placement is a site paired with a perturbation. A site is a named tensor boundary inside every block, reached through forward hooks so that the model's own dropout modules stay off and no trained weight is touched. The declared basis covers every input and output of both sublayers on either side of their LayerNorms, the MLP hidden units, the embedding and 2 sites ported from other detectors (\cref{app:basis}). \Cref{app:attention} reports every attention-side probe we measured, including masking whole attention heads.
+A placement is a site paired with a perturbation. A site is a named tensor boundary inside every block, reached through forward hooks so that the model's own dropout modules stay off and no trained weight is touched. We cover every input and output of both sublayers on either side of their LayerNorms, the MLP hidden units, the attention heads, the embedding and two sites taken from other detectors (\cref{app:basis}).
 
-A perturbation is what the hook does to the tensor. We use dropout as in the original, token masking (zero whole tokens with the class token protected, then rescale), channel masking (zero whole channels), isotropic Gaussian noise scaled to the tensor's standard deviation and gain scaling of a LayerNorm output. Every perturbation takes 1 rate $p$, and every placement is swept over its own ladder of rates, in every block unless a band of blocks is stated. Token masking at the attention input runs from \RecommendedRateLadderLow{} to \RecommendedRateLadderHigh{}, and a residual-stream placement needs rates an order of magnitude smaller because it perturbs the whole stream once per block (\cref{app:basis}).
+A perturbation is what the hook does to the tensor. We use dropout as in the original, token masking, which zeroes whole tokens with the class token protected and then rescales, channel masking, which zeroes whole channels, isotropic Gaussian noise scaled to the tensor's standard deviation and gain scaling of a LayerNorm output. Every perturbation takes one rate $p$, and every placement is swept over its own ladder of rates in every block. Token masking at the attention input runs from \RecommendedRateLadderLow{} to \RecommendedRateLadderHigh{}, and a residual-stream placement needs rates an order of magnitude smaller because it perturbs the whole stream once per block.
 
-\paragraph{The 2 placements we name.}
-The ResNet placement of the original work has no literal counterpart in a ViT block, which has 2 residual adds and no activation after them. We read it as dropout on the residual stream after both adds, which is site C in \cref{fig:vit-block}. We call PSBD with that placement PSBD-RD. The placement this paper arrives at masks whole tokens at the attention input, which is site A. We call it PSBD-TM.
+\paragraph{The two placements we name.}
+The original work applies dropout after the residual addition of each ResNet block and before the activation that follows it. A ViT block has two residual additions and no activation after either, so that site has no exact counterpart. Our adaptation applies dropout to the residual stream after both additions (site C in \cref{fig:vit-block}). We call PSBD with this placement PSBD-RD. It is the closest ViT analogue of the original site rather than the same placement. The placement this paper arrives at masks whole tokens at the attention input (site A). We call it PSBD-TM.
 
 \paragraph{The statistic.}
 The detection statistic is the prediction shift uncertainty (PSU) of
@@ -25,18 +25,15 @@ by the unperturbed probability of the same class,
   \label{eq:psu-fractional}
 \end{equation}
 where $\hat y = \arg\max_{y} P(y \mid x;\theta)$ is the class the unperturbed
-model predicts, held fixed across all $k$ passes, so the same coordinate is tracked throughout. The
-division is always defined because $\hat y$ is the argmax, so
-$P(\hat y \mid x;\theta)$ is at least $1/|\mathcal{C}|$ for a label set
-$\mathcal{C}$. The 2 forms are equal because $P(\hat y \mid x;\theta)$ does
-not depend on $i$.
+model predicts, held fixed across all $k$ passes. The division is always
+defined because $\hat y$ is the argmax, so $P(\hat y \mid x;\theta)$ is at
+least $1/|\mathcal{C}|$ for a label set $\mathcal{C}$, and the two forms are
+equal because $P(\hat y \mid x;\theta)$ does not depend on $i$.
 
-We report the fractional form because a confident and an unconfident clean prediction that lose the same absolute probability are not equally disturbed, and the absolute form scores them alike. The absolute form is the one the original work defines and we report it beside the fractional form. The decision is one-sided in both: a low value means poisoned.
+We report the fractional form because a confident and an unconfident clean prediction that lose the same absolute probability are not equally disturbed, and the absolute form scores them alike. In both forms a low value means poisoned.
 
 \paragraph{The rate.}
-We follow the original rule and read every placement at the smallest rate at which the perturbation changes a share \AdaptiveShiftTarget{} of the clean validation predictions. Because the same nominal rate is a very different disturbance at different sites, this rule is also what makes placements comparable. Each placement is read at the disturbance the rule assigns it, and \cref{app:rate} checks that \AdaptiveShiftTarget{} is a good target on our models.
+We follow the original rule and read every placement at the smallest rate at which the perturbation changes a share \AdaptiveShiftTarget{} of the clean validation predictions. Because the same nominal rate is a very different disturbance at different sites, this rule is also what makes placements comparable, and \cref{app:rate} checks that \AdaptiveShiftTarget{} is a good target on our models.
 
 \paragraph{Threshold and metrics.}
-The threshold is a quantile of the clean validation set's scores, so the false-positive rate is set by the defender. We report the area under the ROC curve (AUROC) and the true-positive rate at the false-positive budgets of 10\% and 20\%, written TPR@FPR. The clean and triggered test sets are paired. Every triggered image is the triggered copy of an image in the clean set, so the 2 populations differ only by the trigger.
-
-We use $k = 3$ passes as the original does, and \cref{app:cost} measures what more passes buy and cost. \Cref{app:glossary} defines the terms used throughout.
+The threshold is a quantile of the clean validation set's scores, so the false-positive rate is set by the defender. We report the area under the ROC curve (AUROC) and the true-positive rate at false-positive budgets of 10\% and 20\%, written TPR@FPR. Every triggered test image is the triggered copy of an image in the clean test set, so the two populations differ only by the trigger. We use $k = 3$ passes as the original does, and \cref{app:passes} shows what more passes add. \Cref{app:glossary} defines the terms used throughout.

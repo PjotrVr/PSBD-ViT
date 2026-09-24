@@ -36,6 +36,9 @@ LEDGER_PATTERNS = ("ledger_*.py",)
 NOT_IN_PAPER = {
     "tab_sam.py": "SAM is declared out of scope in the related-work section",
     "tab_sam_low_rate.py": "SAM is declared out of scope in the related-work section",
+    "tab_cost.py": "the paper does not discuss cost, since k passes cost k forward passes",
+    "mech_prediction_depth.py": "the 1-pass alternative was cut from the paper",
+    "tab_family_split.py": "the family split was cut from the paper, docs/open-questions.md keeps it",
 }
 LEDGERS = {"app_hypothesis_ledger.py", "ledger_macros.py"}
 # What a digit may legitimately sit inside. Everything else is a typed number.

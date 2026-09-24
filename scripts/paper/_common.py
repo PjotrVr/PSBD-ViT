@@ -173,6 +173,18 @@ def as_float(cell: str) -> float:
     return number
 
 
+def split_by_dataset(rows: list[list[str]]) -> list[tuple[str, list[list[str]]]]:
+    """The table body cut at each dataset header row, the overall mean kept with the last."""
+    groups: list[tuple[str, list[list[str]]]] = []
+    for row in rows:
+        if row[0].startswith("\\multicolumn"):
+            name = row[0].split("\\emph{")[1].rstrip("}")
+            groups.append((name, []))
+        else:
+            groups[-1][1].append(row)
+    return groups
+
+
 def provenance_comment(generator: str, inputs: list[str]) -> str:
     """The first line of every generated file: who made it, from what, when, at which commit."""
     comment = (

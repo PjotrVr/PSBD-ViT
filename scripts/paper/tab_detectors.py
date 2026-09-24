@@ -30,6 +30,7 @@ from defenses.decision import PUBLISHED_PLACEMENT, RECOMMENDED_PLACEMENT  # noqa
 from detectors import DETECTOR_NAMES  # noqa: E402
 from detectors.ibd_psc import DEFAULT_SCALING_FACTOR  # noqa: E402
 from scripts.paper._common import (  # noqa: E402
+    split_by_dataset,
     HEADLINE_KEY,
     attack_label,
     bootstrap_ci,
@@ -345,18 +346,6 @@ def margin_interval_macros(
         ),
     }
     return macros
-
-
-def split_by_dataset(rows: list[list[str]]) -> list[tuple[str, list[list[str]]]]:
-    """The table body cut at each dataset header row, the overall mean kept with the last."""
-    groups: list[tuple[str, list[list[str]]]] = []
-    for row in rows:
-        if row[0].startswith("\\multicolumn"):
-            name = row[0].split("\\emph{")[1].rstrip("}")
-            groups.append((name, []))
-        else:
-            groups[-1][1].append(row)
-    return groups
 
 
 def write_per_dataset_tables(args, stem, words, rows, header, align, inputs) -> None:

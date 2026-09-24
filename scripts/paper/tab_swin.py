@@ -25,6 +25,7 @@ and the gain rows are computed only over cells carrying both placements.
 import collections
 import glob
 import os
+import re
 import sys
 
 sys.path.insert(0, os.getcwd())
@@ -45,6 +46,8 @@ from scripts.paper._common import (  # noqa: E402
     load_psbd_metrics,
     mean_or_none,
     placement_words,
+    provenance_comment,
+    split_by_dataset,
     split_placement,
     word_list,
     write_macros,
@@ -421,6 +424,49 @@ def half_macros(cells: list[dict], protocol: dict) -> dict[str, tuple[str, str]]
     return macros
 
 
+def write_attack_tables(args, rows: list[list[str]], inputs: list[str]) -> None:
+    """1 per-attack table per dataset, and 1 file that inputs them in order.
+
+    The 90 models in 1 table ran a page and a half past the bottom margin.
+    """
+    tables_dir = os.path.join(args.paper_dir, "tables")
+    names = []
+    for index, (dataset, group_rows) in enumerate(split_by_dataset(rows)):
+        slug = re.sub(r"[^a-z0-9]+", "-", dataset.lower()).strip("-")
+        name = f"swin_attacks_{slug}"
+        first = index == 0
+        conventions = (
+            "Rows are attacks at their poison rate in percent. PSBD-TM masks tokens at "
+            "the attention input and PSBD-RD, our adaptation of the original PSBD site, "
+            "applies dropout after both residual additions. Both are read at the "
+            "adaptive rule and the headline quantile, and the shaded row is the mean."
+            if first
+            else "Layout as in \\cref{tab:swin-attacks}."
+        )
+        write_table(
+            path=os.path.join(tables_dir, f"{name}.tex"),
+            generator=GENERATOR,
+            inputs=inputs,
+            caption=f"Swin-S on {dataset}. {conventions}",
+            label="tab:swin-attacks" if first else f"tab:swin-attacks-{slug}",
+            header=[
+                "attack",
+                "rate %",
+                "PSBD-TM AUROC",
+                "TPR@10",
+                "TPR@20",
+                "PSBD-RD AUROC",
+            ],
+            rows=group_rows,
+            align="llrrrr",
+        )
+        names.append(name)
+    lines = [provenance_comment(GENERATOR, inputs)]
+    lines += [f"\\input{{tables/{name}}}" for name in names]
+    with open(os.path.join(tables_dir, "swin_attacks.tex"), "w") as handle:
+        handle.write("\n".join(lines) + "\n")
+
+
 def main() -> None:
     args = build_parser_with_checkpoints(__doc__).parse_args()
     declaration = load_declaration(args.declaration)
@@ -465,27 +511,7 @@ def main() -> None:
         align="lrrrrrl",
     )
 
-    write_table(
-        path=os.path.join(args.paper_dir, "tables", "swin_attacks.tex"),
-        generator=GENERATOR,
-        inputs=inputs,
-        caption=(
-            "Swin-S per attack. Token masking at the attention input against dropout "
-            "after both residual adds, at the adaptive rule and the headline quantile. "
-            "The shaded row is the mean over the dataset above it."
-        ),
-        label="tab:swin-attacks",
-        header=[
-            "attack",
-            "rate %",
-            "AUROC",
-            "TPR@10",
-            "TPR@20",
-            "AUROC published",
-        ],
-        rows=attack_rows(cells),
-        align="llrrrr",
-    )
+    write_attack_tables(args, attack_rows(cells), inputs)
 
     write_table(
         path=os.path.join(args.paper_dir, "tables", "swin_placements.tex"),

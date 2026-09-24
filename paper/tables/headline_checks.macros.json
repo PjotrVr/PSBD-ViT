@@ -2,21 +2,21 @@
   "generator": "scripts/paper/tab_headline_checks.py",
   "inputs": [
     "results/coverage/coverage.json",
-    "results/<folder>/psbd_metrics.json (65 cells)"
+    "results/<folder>/psbd_metrics.json (59 cells)"
   ],
-  "written_at": "2026-09-24T04:43:14.252612+00:00",
-  "git_commit": "52e4ba1a7ac941365bc37d68e1e902dad4fb4f74-dirty",
+  "written_at": "2026-09-24T05:52:59.065081+00:00",
+  "git_commit": "872fbbbd1f025c8c9924211876e2cda72fc45aab-dirty",
   "macros": {
     "PanelCellsCached": {
-      "value": "65",
+      "value": "57",
       "meaning": "clearing cells whose sweep has landed and that carry the recommended placement"
     },
     "PanelCellsDiverged": {
-      "value": "3",
+      "value": "1",
       "meaning": "declared cells whose training diverged, excluded from every table"
     },
     "PanelCellsAwaitingSweep": {
-      "value": "0",
+      "value": "2",
       "meaning": "clearing cells whose PSBD sweep has not landed"
     },
     "PanelDatasetsCached": {
@@ -24,51 +24,51 @@
       "meaning": "datasets among the clearing cells whose sweep has landed"
     },
     "PanelAttacksDeclared": {
-      "value": "8",
+      "value": "9",
       "meaning": "attacks the panel declares, clearing or not"
     },
     "HeadlineGainMinLeaveOneAttackOutAdaptive": {
-      "value": "+0.046",
+      "value": "+0.007",
       "meaning": "smallest leave-one-attack-out refit of the adaptive-rule headline gain"
     },
     "HeadlineGainMinLeaveOneAttackOutAdaptiveLow": {
-      "value": "$-$0.004",
+      "value": "$-$0.039",
       "meaning": "lowest bootstrap lower bound over the adaptive-rule leave-one-attack-out refits"
     },
     "HeadlineGainMinLeaveOneAttackOutMatched": {
-      "value": "+0.049",
+      "value": "+0.026",
       "meaning": "smallest leave-one-attack-out refit of the matched-rule headline gain"
     },
     "HeadlineGainMinLeaveOneAttackOutMatchedLow": {
-      "value": "+0.005",
+      "value": "$-$0.014",
       "meaning": "lowest bootstrap lower bound over the matched-rule leave-one-attack-out refits"
     },
     "PreMinusPostMatched": {
-      "value": "+0.009",
+      "value": "$-$0.009",
       "meaning": "pre_residual minus post_residual dropout, matched rule, paired over the basis panel"
     },
     "PreMinusPostMatchedLow": {
-      "value": "$-$0.028",
+      "value": "$-$0.048",
       "meaning": "lower bootstrap bound of pre_minus_post_matched"
     },
     "PreMinusPostMatchedHigh": {
-      "value": "+0.047",
+      "value": "+0.031",
       "meaning": "upper bootstrap bound of pre_minus_post_matched"
     },
     "PreMinusPostAdaptive": {
-      "value": "+0.001",
+      "value": "$-$0.009",
       "meaning": "pre_residual minus post_residual dropout, adaptive rule, paired over the basis panel"
     },
     "PreMinusPostAdaptiveLow": {
-      "value": "$-$0.027",
+      "value": "$-$0.036",
       "meaning": "lower bootstrap bound of pre_minus_post_adaptive"
     },
     "PreMinusPostAdaptiveHigh": {
-      "value": "+0.027",
+      "value": "+0.015",
       "meaning": "upper bootstrap bound of pre_minus_post_adaptive"
     },
     "PreMinusPostN": {
-      "value": "65",
+      "value": "57",
       "meaning": "cells behind the pre against post comparison"
     }
   }

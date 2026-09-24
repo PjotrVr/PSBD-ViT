@@ -1,0 +1,146 @@
+{
+  "generator": "scripts/paper/mech_causal.py",
+  "inputs": [
+    "results/_experiments/why_token_masking_works/summary.json (39 models)"
+  ],
+  "written_at": "2026-09-24T05:59:16.919851+00:00",
+  "git_commit": "872fbbbd1f025c8c9924211876e2cda72fc45aab-dirty",
+  "macros": {
+    "CausalMaskAllOneTwo": {
+      "value": "0.002",
+      "meaning": "share of triggered BadNets predictions kept, trigger tokens, all 12 blocks"
+    },
+    "CausalMaskBlocksOneFour": {
+      "value": "1.000",
+      "meaning": "share of triggered BadNets predictions kept, trigger tokens, blocks 1 to 4"
+    },
+    "CausalMaskBlocksFiveEight": {
+      "value": "0.788",
+      "meaning": "share of triggered BadNets predictions kept, trigger tokens, blocks 5 to 8"
+    },
+    "CausalMaskBlocksNineOneTwo": {
+      "value": "0.200",
+      "meaning": "share of triggered BadNets predictions kept, trigger tokens, blocks 9 to 12"
+    },
+    "CausalMaskRandomAllOneTwo": {
+      "value": "1.000",
+      "meaning": "share of triggered BadNets predictions kept, random tokens, all 12 blocks"
+    },
+    "CausalMaskCleanKeptMin": {
+      "value": "0.983",
+      "meaning": "lowest share of clean BadNets predictions kept across the masking rows"
+    },
+    "CausalModels": {
+      "value": "12",
+      "meaning": "BadNets models behind the causal tests"
+    },
+    "CausalTactMaskAll": {
+      "value": "0.004",
+      "meaning": "share of triggered TaCT predictions kept with the trigger masked in every block"
+    },
+    "CausalTactModels": {
+      "value": "3",
+      "meaning": "TaCT models whose clean source class keeps its label"
+    },
+    "CausalTmTriggeredKept": {
+      "value": "0.957",
+      "meaning": "share of triggered BadNets predictions kept per PSBD-TM pass"
+    },
+    "CausalTmCleanKept": {
+      "value": "0.110",
+      "meaning": "share of clean BadNets-model predictions kept per PSBD-TM pass"
+    },
+    "CausalTmLateNone": {
+      "value": "0.987",
+      "meaning": "triggered kept when no block of 9 to 12 masked every trigger token"
+    },
+    "CausalTmLateAll": {
+      "value": "0.216",
+      "meaning": "triggered kept when all of blocks 9 to 12 masked every trigger token"
+    },
+    "CausalTmLateAllShare": {
+      "value": "0.003",
+      "meaning": "share of passes in which all of blocks 9 to 12 masked every trigger token"
+    },
+    "CausalRdAllTokens": {
+      "value": "0.398",
+      "meaning": "share of triggered BadNets predictions kept, dropout on every position (PSBD-RD)"
+    },
+    "CausalRdTriggerOnly": {
+      "value": "0.387",
+      "meaning": "share of triggered BadNets predictions kept, dropout on trigger positions only"
+    },
+    "CausalRdAllButTrigger": {
+      "value": "0.664",
+      "meaning": "share of triggered BadNets predictions kept, dropout on every position but the trigger"
+    },
+    "CausalRdRandomSameCount": {
+      "value": "1.000",
+      "meaning": "share of triggered BadNets predictions kept, dropout on as many random positions"
+    },
+    "CausalRdCleanKept": {
+      "value": "0.113",
+      "meaning": "share of clean BadNets-model predictions kept under PSBD-RD"
+    },
+    "CausalVisibleBlendTrigger": {
+      "value": "0.95",
+      "meaning": "blend trigger effect retained with 0.3 of tokens visible"
+    },
+    "CausalVisibleBlendClean": {
+      "value": "0.26",
+      "meaning": "blend clean accuracy retained with 0.3 of tokens visible"
+    },
+    "CausalVisibleBppTrigger": {
+      "value": "0.94",
+      "meaning": "bpp trigger effect retained with 0.3 of tokens visible"
+    },
+    "CausalVisibleBppClean": {
+      "value": "0.20",
+      "meaning": "bpp clean accuracy retained with 0.3 of tokens visible"
+    },
+    "CausalVisibleLfTrigger": {
+      "value": "0.90",
+      "meaning": "lf trigger effect retained with 0.3 of tokens visible"
+    },
+    "CausalVisibleLfClean": {
+      "value": "0.20",
+      "meaning": "lf clean accuracy retained with 0.3 of tokens visible"
+    },
+    "CausalVisibleSigTrigger": {
+      "value": "0.91",
+      "meaning": "sig trigger effect retained with 0.3 of tokens visible"
+    },
+    "CausalVisibleSigClean": {
+      "value": "0.52",
+      "meaning": "sig clean accuracy retained with 0.3 of tokens visible"
+    },
+    "CausalVisibleWanetTrigger": {
+      "value": "0.18",
+      "meaning": "wanet trigger effect retained with 0.3 of tokens visible"
+    },
+    "CausalVisibleWanetClean": {
+      "value": "0.11",
+      "meaning": "wanet clean accuracy retained with 0.3 of tokens visible"
+    },
+    "CausalVisibleGlobalTriggerMin": {
+      "value": "0.90",
+      "meaning": "lowest trigger effect retained by Blend, BPP, LF and SIG"
+    },
+    "CausalVisibleGlobalTriggerMax": {
+      "value": "0.95",
+      "meaning": "highest trigger effect retained by Blend, BPP, LF and SIG"
+    },
+    "CausalVisibleGlobalCleanMin": {
+      "value": "0.20",
+      "meaning": "lowest clean accuracy retained on those models"
+    },
+    "CausalVisibleGlobalCleanMax": {
+      "value": "0.52",
+      "meaning": "highest clean accuracy retained on those models"
+    },
+    "CausalVisibleShare": {
+      "value": "30\\%",
+      "meaning": "share of tokens kept visible in the legibility test"
+    }
+  }
+}

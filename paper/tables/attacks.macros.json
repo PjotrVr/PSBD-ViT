@@ -6,8 +6,8 @@
     "checkpoints/<folder>/args.json",
     "raw_data/<dataset> training labels"
   ],
-  "written_at": "2026-09-24T04:23:49.075756+00:00",
-  "git_commit": "52e4ba1a7ac941365bc37d68e1e902dad4fb4f74-dirty",
+  "written_at": "2026-09-24T05:33:06.574783+00:00",
+  "git_commit": "872fbbbd1f025c8c9924211876e2cda72fc45aab-dirty",
   "macros": {
     "AttackLcPgdSteps": {
       "value": "100",
@@ -97,6 +97,14 @@
       "value": "0.996",
       "meaning": "highest attack success of bpp over its 12 main-dataset cells"
     },
+    "AttackLcAsrMin": {
+      "value": "0.689",
+      "meaning": "lowest attack success of lc over its 2 main-dataset cells"
+    },
+    "AttackLcAsrMax": {
+      "value": "0.958",
+      "meaning": "highest attack success of lc over its 2 main-dataset cells"
+    },
     "AttackLfAsrMin": {
       "value": "0.922",
       "meaning": "lowest attack success of lf over its 12 main-dataset cells"
@@ -115,11 +123,11 @@
     },
     "AttackTactAsrMin": {
       "value": "0.929",
-      "meaning": "lowest attack success of tact over its 11 main-dataset cells"
+      "meaning": "lowest attack success of tact over its 12 main-dataset cells"
     },
     "AttackTactAsrMax": {
       "value": "1.000",
-      "meaning": "highest attack success of tact over its 11 main-dataset cells"
+      "meaning": "highest attack success of tact over its 12 main-dataset cells"
     },
     "AttackWanetAsrMin": {
       "value": "0.057",
@@ -169,6 +177,14 @@
       "value": "0.982",
       "meaning": "highest attack success of bpp at the lowest panel rate"
     },
+    "AttackLcAsrLowRateMin": {
+      "value": "0.689",
+      "meaning": "lowest attack success of lc at the lowest panel rate"
+    },
+    "AttackLcAsrLowRateMax": {
+      "value": "0.689",
+      "meaning": "highest attack success of lc at the lowest panel rate"
+    },
     "AttackLfAsrLowRateMin": {
       "value": "0.922",
       "meaning": "lowest attack success of lf at the lowest panel rate"
@@ -198,8 +214,16 @@
       "meaning": "lowest attack success of tact at the lowest panel rate"
     },
     "AttackTactAsrLowRateMax": {
-      "value": "0.989",
+      "value": "1.000",
       "meaning": "highest attack success of tact at the lowest panel rate"
+    },
+    "AttackTactAsrNeverClearingMin": {
+      "value": "0.929",
+      "meaning": "lowest attack success of tact on cifar100 and tiny, the datasets where no rate clears"
+    },
+    "AttackTactAsrNeverClearingMax": {
+      "value": "1.000",
+      "meaning": "highest attack success of tact on cifar100 and tiny, the datasets where no rate clears"
     },
     "AttackWanetAsrLowRateMin": {
       "value": "0.057",
@@ -252,6 +276,10 @@
     "AttackBppCoverRatio": {
       "value": "1",
       "meaning": "bpp cover rate as a multiple of its poison rate, the same on every cell"
+    },
+    "AttackLcCoverRate": {
+      "value": "0",
+      "meaning": "lc cover rate, the same on every cell whatever the poison rate"
     },
     "AttackLfCoverRate": {
       "value": "0",

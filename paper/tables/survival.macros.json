@@ -2,13 +2,13 @@
   "generator": "scripts/paper/mech_survival.py",
   "inputs": [
     "results/coverage/coverage.json",
-    "results/<folder>/psbd_metrics.json (65 models)"
+    "results/<folder>/psbd_metrics.json (57 models)"
   ],
-  "written_at": "2026-09-24T05:21:27.216697+00:00",
-  "git_commit": "09981299b40516d4aa7db355bc28d0176eccd82b-dirty",
+  "written_at": "2026-09-24T06:10:23.366665+00:00",
+  "git_commit": "a6bece9dac4f610c3f14c6d149a3dd576da74d71-dirty",
   "macros": {
     "SurvivalModels": {
-      "value": "65",
+      "value": "57",
       "meaning": "models behind the survival table"
     },
     "SurvivalTmClean": {
@@ -16,15 +16,15 @@
       "meaning": "mean share of clean test predictions that change under PSBD-TM at its adaptive rate"
     },
     "SurvivalTmRate": {
-      "value": "0.54",
+      "value": "0.55",
       "meaning": "mean rate the adaptive rule picks for PSBD-TM"
     },
     "SurvivalTmPatchTriggered": {
-      "value": "0.36",
+      "value": "0.20",
       "meaning": "mean share of triggered predictions that change under PSBD-TM, patch triggers"
     },
     "SurvivalTmPatchAuroc": {
-      "value": "0.925",
+      "value": "0.986",
       "meaning": "mean AUROC of PSBD-TM at the adaptive rule, patch triggers"
     },
     "SurvivalTmGlobalTriggered": {
@@ -44,11 +44,11 @@
       "meaning": "mean AUROC of PSBD-TM at the adaptive rule on badnet_a2o"
     },
     "SurvivalTmTactTriggered": {
-      "value": "0.70",
+      "value": "0.80",
       "meaning": "mean share of triggered tact predictions that change under PSBD-TM"
     },
     "SurvivalTmTactAuroc": {
-      "value": "0.853",
+      "value": "0.962",
       "meaning": "mean AUROC of PSBD-TM at the adaptive rule on tact"
     },
     "SurvivalTmBlendTriggered": {
@@ -100,11 +100,11 @@
       "meaning": "mean rate the adaptive rule picks for PSBD-RD"
     },
     "SurvivalRdPatchTriggered": {
-      "value": "0.76",
+      "value": "0.68",
       "meaning": "mean share of triggered predictions that change under PSBD-RD, patch triggers"
     },
     "SurvivalRdPatchAuroc": {
-      "value": "0.596",
+      "value": "0.682",
       "meaning": "mean AUROC of PSBD-RD at the adaptive rule, patch triggers"
     },
     "SurvivalRdGlobalTriggered": {
@@ -128,7 +128,7 @@
       "meaning": "mean share of triggered tact predictions that change under PSBD-RD"
     },
     "SurvivalRdTactAuroc": {
-      "value": "0.470",
+      "value": "0.563",
       "meaning": "mean AUROC of PSBD-RD at the adaptive rule on tact"
     },
     "SurvivalRdBlendTriggered": {

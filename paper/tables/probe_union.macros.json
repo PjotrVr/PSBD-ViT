@@ -3,43 +3,47 @@
   "inputs": [
     "results/_experiments/probe_union/probe_union.json"
   ],
-  "written_at": "2026-09-24T05:17:35.556733+00:00",
-  "git_commit": "09981299b40516d4aa7db355bc28d0176eccd82b-dirty",
+  "written_at": "2026-09-24T06:07:12.829500+00:00",
+  "git_commit": "a6bece9dac4f610c3f14c6d149a3dd576da74d71-dirty",
   "macros": {
+    "ProbeUnionAllBasisGain": {
+      "value": "+0.024",
+      "meaning": "paired AUROC gain of the union of every fully swept placement over PSBD-TM"
+    },
     "ProbeUnionSigCifarOneZeroTmRd": {
       "value": "0.908",
       "meaning": "PSBD-TM + PSBD-RD union on SIG at 10% on CIFAR-10, the other inverted cell"
     },
     "ProbeUnionThreeProbeAuroc": {
-      "value": "0.988",
+      "value": "0.967",
       "meaning": "mean AUROC of the 3-probe union of the adaptive section on the ordinary models"
     },
     "ProbeUnionThreeProbeN": {
-      "value": "37",
+      "value": "57",
       "meaning": "models holding all 3 probes of the adaptive section"
     },
     "ProbeUnionTmBranchGain": {
-      "value": "+0.022",
+      "value": "+0.021",
       "meaning": "paired AUROC gain of the PSBD-TM + branch-output union over PSBD-TM alone"
     },
     "ProbeUnionTmBranchAuroc": {
-      "value": "0.957",
+      "value": "0.973",
       "meaning": "mean AUROC of the PSBD-TM + branch-output union"
     },
     "ProbeUnionNModels": {
-      "value": "65",
+      "value": "57",
       "meaning": "backdoored ViT-B/16 models the probe-union check reads, the models with both headline placements"
     },
     "ProbeUnionPsbdTmAuroc": {
-      "value": "0.935",
+      "value": "0.953",
       "meaning": "mean AUROC of PSBD-TM alone over the models the probe-union check reads"
     },
     "ProbeUnionTmRdGain": {
-      "value": "+0.006",
+      "value": "+0.017",
       "meaning": "paired AUROC gain of the PSBD-TM + PSBD-RD union over PSBD-TM alone"
     },
     "ProbeUnionTmRdGainCi": {
-      "value": "[$-$0.016, +0.032]",
+      "value": "[$-$0.005, +0.044]",
       "meaning": "95% bootstrap interval of that gain"
     },
     "ProbeUnionWanetCifarOneZeroTm": {

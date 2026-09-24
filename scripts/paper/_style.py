@@ -76,8 +76,13 @@ BENIGN_COLOR = "0.5"
 
 
 def attack_color(attack: str) -> str:
-    """The fixed color of an attack token, gray for the benign control."""
-    color = ATTACK_COLORS.get(attack, BENIGN_COLOR)
+    """The fixed color of an attack token, gray for the benign control.
+
+    Reports name BadNets by its label mode (badnet_a2o, badnet_a2a), so the mode
+    suffix is dropped before the lookup or BadNets would draw as the benign gray.
+    """
+    family = attack.removesuffix("_a2o").removesuffix("_a2a")
+    color = ATTACK_COLORS.get(family, BENIGN_COLOR)
     return color
 
 

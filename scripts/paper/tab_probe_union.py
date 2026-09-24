@@ -30,6 +30,7 @@ from scripts.paper._common import (  # noqa: E402
 )
 
 GENERATOR = "scripts/paper/tab_probe_union.py"
+SIG_INVERTED_FOLDER = "vit_cifar10_sig_0_1"
 RECORD_PATH = os.path.join("results", "_experiments", "probe_union", "probe_union.json")
 
 # Row order and the reader-facing name of each probe set's placements. The
@@ -114,7 +115,14 @@ def main() -> None:
     tm = record["probe_sets"]["psbd_tm"]["summary"]
     tm_rd = record["probe_sets"]["psbd_tm_rd"]
     wanet = record["wanet_cifar10"]
+    sig = next(
+        row for row in tm_rd["per_model"] if row["folder"] == SIG_INVERTED_FOLDER
+    )
     macros = {
+        "probe_union_sig_cifar10_tm_rd": (
+            fmt(sig["auroc"]),
+            "PSBD-TM + PSBD-RD union on SIG at 10% on CIFAR-10, the other inverted cell",
+        ),
         "probe_union_three_probe_auroc": (
             fmt(record["probe_sets"]["adaptive_3probe"]["summary"]["auroc_mean"]),
             "mean AUROC of the 3-probe union of the adaptive section on the ordinary models",

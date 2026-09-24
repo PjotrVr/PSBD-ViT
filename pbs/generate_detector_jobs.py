@@ -257,8 +257,13 @@ def slowdown(name: str, queue: str) -> float:
 def estimated_minutes(
     cell: dict, detectors: list[str], group: str, queue: str = "gpu"
 ) -> float:
-    """Wall-clock estimate for 1 checkpoint, from the smoke's measured seconds."""
-    inputs = INPUTS_PER_CHECKPOINT[cell["dataset"]]
+    """Wall-clock estimate for 1 checkpoint, from the smoke's measured seconds.
+
+    A cell carrying its own "inputs" count is estimated from it. The per-dataset
+    table holds the typical all-to-one split, and a source-specific attack scores a
+    backdoor split that can be several times smaller or larger than that.
+    """
+    inputs = cell.get("inputs") or INPUTS_PER_CHECKPOINT[cell["dataset"]]
     scoring = inputs * sum(
         SECONDS_PER_INPUT[name] * slowdown(name, queue) for name in detectors
     )

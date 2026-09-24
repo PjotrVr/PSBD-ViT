@@ -15,7 +15,7 @@ dispatcher: a caller should never have to know which file an attack lives in.
 
 from dataclasses import asdict, replace
 from dataclasses import fields as dataclass_fields
-from typing import Callable
+from typing import Callable, get_args, get_origin
 
 from attacks.poisoning import Attack
 
@@ -104,7 +104,9 @@ def apply_config_overrides(config, overrides: dict | None):
     with the trigger it was trained with. Rebuilding from the defaults instead would
     hand the attack-success set a trigger the model never saw and read a near-zero
     ASR that has nothing to do with the attack. JSON turns tuples into lists, so a
-    tuple-valued field is restored as a tuple.
+    tuple-valued field is restored as a tuple. The command line has no list syntax,
+    so a string for a tuple-valued field is read as comma-separated elements
+    (`source_classes=1,2,3`), each cast to the tuple's declared element type.
     """
     if not overrides:
         return config
@@ -122,6 +124,10 @@ def apply_config_overrides(config, overrides: dict | None):
             updates[key] = float(value)
         elif annotation is int:
             updates[key] = int(value)
+        elif isinstance(value, str) and get_origin(annotation) is tuple:
+            element_type = get_args(annotation)[0]
+            parts = [part.strip() for part in value.split(",") if part.strip()]
+            updates[key] = tuple(element_type(part) for part in parts)
         elif isinstance(value, list):
             updates[key] = tuple(value)
         else:

@@ -29,7 +29,7 @@ import torch.nn as nn
 from sklearn.metrics import roc_auc_score
 from torch.utils.data import DataLoader
 
-from attacks import build_attack, default_config
+from attacks import apply_config_overrides, build_attack, default_config
 from attacks.poisoning import clean_label_target_set
 from data.registry import DATASET_REGISTRY
 from .loaders import build_clean_loader, build_poisoned_loader
@@ -302,7 +302,12 @@ def evaluate_checkpoint(
         }
         return report
 
-    config = default_config(args["attack"])
+    # The trigger and the source classes the model was trained with, not the
+    # defaults. A multi-source TaCT run rebuilt from defaults is scored on source
+    # class 1 alone, and a resized trigger on a trigger it never saw.
+    config = apply_config_overrides(
+        default_config(args["attack"]), args.get("attack_config_overrides")
+    )
     attack = build_attack(
         args["attack"],
         config,

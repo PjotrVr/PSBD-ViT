@@ -9,6 +9,7 @@ the right samples.
 Run with pytest from the repo root: pytest tests/test_attacks.py.
 """
 
+import json
 from dataclasses import fields, replace
 
 import pytest
@@ -581,3 +582,52 @@ def test_builder_propagates_every_config_field_the_attack_record_also_carries(na
         assert getattr(attack, field_name) == getattr(config, field_name), (
             f"{name}: build() dropped {field_name}"
         )
+
+
+def test_tuple_override_parses_from_the_command_line():
+    """`--attack-override source_classes=1,2,3` reaches TaCT as a tuple of ints.
+
+    The command line carries only strings, and before this a tuple field stayed
+    the raw string "1,2,3", which the poisoning code would iterate character by
+    character. The JSON round trip through args.json must land on the same tuple.
+    """
+    from attacks import apply_config_overrides, config_overrides
+
+    from_command_line = apply_config_overrides(
+        default_config("tact"), {"source_classes": "1,2, 3"}
+    )
+    assert from_command_line.source_classes == (1, 2, 3)
+
+    recorded = json.loads(json.dumps(config_overrides(from_command_line, "tact")))
+    from_sidecar = apply_config_overrides(default_config("tact"), recorded)
+    assert from_sidecar.source_classes == (1, 2, 3)
+
+    attack = build_attack("tact", from_command_line, SIZE, target_label=0)
+    assert attack.source_classes == (1, 2, 3)
+
+
+def test_multi_source_tact_poisons_a_fifth_of_its_pool_and_scores_every_source():
+    """Several source classes spread the poison so clean source images remain.
+
+    With 1 source class a rate at the class's share poisons every source image and
+    the model maps the class to the target with no trigger. At 5 times the rate the
+    poisoned share of the pool is 0.2, and the ASR set must hold every source class
+    rather than only the first.
+    """
+    labels = [index % 10 for index in range(1000)]  # 100 images per class
+    config = replace(default_config("tact"), source_classes=(1, 2, 3, 4, 5))
+    attack = build_attack("tact", config, SIZE, target_label=0)
+
+    poison, cover = choose_indices_with_cover(
+        labels, attack, 0.1, config.cover_rate, config.source_classes, seed=0
+    )
+    source_pool = [i for i, label in enumerate(labels) if label in (1, 2, 3, 4, 5)]
+    assert len(poison) == 100
+    assert len(poison) / len(source_pool) == pytest.approx(0.2)
+    assert all(labels[i] in (1, 2, 3, 4, 5) for i in poison)
+    assert all(labels[i] in (6, 7, 8, 9) for i in cover)
+
+    images = torch.zeros(len(labels), 3, SIZE, SIZE)
+    dataset = torch.utils.data.TensorDataset(images, torch.tensor(labels))
+    success = AttackSuccessSet(dataset, labels, attack, IDENTITY, num_classes=10)
+    assert {labels[i] for i in success.indices} == {1, 2, 3, 4, 5}

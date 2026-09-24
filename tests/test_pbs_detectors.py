@@ -129,3 +129,17 @@ def test_dry_run_writes_nothing(generator, tmp_path):
     assert "2 checkpoints with work" in completed.stdout
     assert "nothing written" in completed.stdout
     assert not (tmp_path / "pbs").exists()
+
+
+def test_a_measured_input_count_overrides_the_dataset_table(generator):
+    typical = {"folder": "x", "dataset": "gtsrb", "attack": "tact"}
+    measured = {**typical, "inputs": 1000}
+
+    typical_minutes = generator.estimated_minutes(typical, ["confidence"], "cheap")
+    measured_minutes = generator.estimated_minutes(measured, ["confidence"], "cheap")
+
+    assert measured_minutes < typical_minutes
+    assert measured_minutes == pytest.approx(
+        1000 * generator.SECONDS_PER_INPUT["confidence"] / 60.0
+        + generator.FIXED_MINUTES_PER_CHECKPOINT
+    )

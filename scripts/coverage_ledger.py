@@ -22,9 +22,9 @@ import json
 import os
 from datetime import datetime, timezone
 
+from attacks import apply_config_overrides, default_config
+from defenses.cache import baseline_path, load_baseline, read_run_provenance
 from defenses.decision import complete_rates
-
-from defenses.cache import read_run_provenance
 
 DECLARATION_PATH = "configs/psbd_basis.json"
 
@@ -281,6 +281,49 @@ def classify_divergence(cell: dict, reference: float | None) -> bool:
     return diverged
 
 
+# A source-specific attack (TaCT) is a backdoor only while clean source-class
+# images keep their own label. When the poison rate reaches the source class's
+# share of the training set, every source image is poisoned, the model learns
+# to map the whole class to the target and the trigger no longer matters. The
+# ASR bar cannot see this, since it reads only triggered images, so the clean
+# source-class accuracy of the PSBD clean split is read instead. 8 of 11 TaCT
+# panel cells read 0.00 there (experiments/why_token_masking_works/README.md).
+SOURCE_MAPPED_ACCURACY = 0.5
+
+
+def source_classes_of(checkpoints_dir: str, cell: dict) -> tuple[int, ...] | None:
+    """The source classes of a source-specific attack, None for any other attack."""
+    try:
+        config = default_config(cell["attack"])
+    except (KeyError, ValueError):
+        return None
+    if not hasattr(config, "source_classes"):
+        return None
+    metadata = read_metadata(checkpoints_dir, cell["folder_name"]) or {}
+    config = apply_config_overrides(config, metadata.get("attack_config_overrides"))
+    return tuple(config.source_classes)
+
+
+def source_class_accuracy(
+    checkpoints_dir: str, results_dir: str, cell: dict
+) -> float | None:
+    """Clean accuracy on the source classes, None when there is nothing to read."""
+    sources = source_classes_of(checkpoints_dir, cell)
+    if sources is None:
+        return None
+    path = baseline_path(
+        os.path.join(results_dir, cell["folder_name"], "psbd"), "clean"
+    )
+    if not os.path.exists(path):
+        return None
+    _, predicted, labels = load_baseline(path)  # (n,), (n,)
+    in_source = sum(labels == source for source in sources).bool()  # (n,)
+    if not in_source.any():
+        return None
+    accuracy = (predicted[in_source] == labels[in_source]).float().mean().item()
+    return accuracy
+
+
 def classify_by_asr(cell: dict, asr_bar: float) -> str:
     """A cell's ASR class: "clears", "below_bar" or "unmeasured"."""
     if cell["asr"] is None:
@@ -348,6 +391,17 @@ def build_ledger(args, declaration: dict) -> dict:
         cell["diverged"] = classify_divergence(cell, reference)
         if cell["diverged"]:
             cell["asr_class"] = "diverged"
+        cell["source_class_accuracy"] = source_class_accuracy(
+            args.checkpoints_dir, args.results_dir, cell
+        )
+        cell["source_mapped"] = (
+            cell["source_class_accuracy"] is not None
+            and cell["source_class_accuracy"] < SOURCE_MAPPED_ACCURACY
+        )
+        # Like divergence, a source-mapped cell clears the ASR bar for a reason
+        # that is not a backdoor, so the verdict overrides the ASR class.
+        if cell["source_mapped"] and not cell["diverged"]:
+            cell["asr_class"] = "source_mapped"
         rows.extend(cell_rows)
         gaps.extend(gaps_for_cell(cell, cached, basis, panel))
 
@@ -372,11 +426,13 @@ def resolve_one_per_attack(cells: list[dict]) -> dict:
     instance, where only the second reaches the requested rate. Keying a dict by
     attack alone let sort order decide, silently. Preferring the cell that clears
     the ASR bar makes the choice explicit, and an ambiguous pair raises rather
-    than resolving the tie arbitrarily.
+    than resolving the tie arbitrarily. A source-mapped cell is skipped like a
+    diverged one, since neither is a backdoor, so a multi-source TaCT rerun that
+    lands below the bar leaves 1 candidate rather than an ambiguous pair.
     """
     grouped: dict[str, list[dict]] = collections.defaultdict(list)
     for cell in cells:
-        if not cell.get("diverged"):
+        if not cell.get("diverged") and not cell.get("source_mapped"):
             grouped[cell["attack"]].append(cell)
     resolved = {}
     for attack, candidates in grouped.items():
@@ -467,7 +523,9 @@ def render_markdown(ledger: dict, declaration: dict) -> str:
         f"- ASR bar {ledger['asr_bar']}: "
         f"{by_class['clears']} clear, {by_class['below_bar']} below, "
         f"{by_class['unmeasured']} never measured, {by_class['diverged']} diverged "
-        f"(clean accuracy below {DIVERGENCE_FRACTION:.0%} of the benign reference)",
+        f"(clean accuracy below {DIVERGENCE_FRACTION:.0%} of the benign reference), "
+        f"{by_class['source_mapped']} source-mapped (clean source-class accuracy below "
+        f"{SOURCE_MAPPED_ACCURACY:.0%})",
         f"- integrity: {stale} placements on a stale baseline, "
         f"{unprovenanced} without a run sidecar, "
         f"{sum(1 for cell in cells if cell.get('stale_split'))} cells on a stale split",
@@ -593,7 +651,7 @@ def main() -> None:
     print(
         f"     ASR bar {ledger['asr_bar']}       {by_class['clears']} clear, "
         f"{by_class['below_bar']} below, {by_class['unmeasured']} unmeasured, "
-        f"{by_class['diverged']} diverged"
+        f"{by_class['diverged']} diverged, {by_class['source_mapped']} source-mapped"
     )
     diverged = sorted(cell["folder_name"] for cell in cells if cell.get("diverged"))
     if diverged:

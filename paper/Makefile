@@ -11,8 +11,13 @@ export https_proxy ?= http://10.150.1.1:3128
 
 all: pdf
 
+# The paper and the supplement read each other's labels from their .aux files, so
+# each is compiled twice with its intermediates kept.
 pdf:
-	$(TECTONIC) -X compile main.tex --keep-logs
+	$(TECTONIC) -X compile supplement.tex --keep-logs --keep-intermediates
+	$(TECTONIC) -X compile main.tex --keep-logs --keep-intermediates
+	$(TECTONIC) -X compile supplement.tex --keep-logs --keep-intermediates
+	$(TECTONIC) -X compile main.tex --keep-logs --keep-intermediates
 
 tables:
 	cd .. && PYTHONPATH=. .venv/bin/python scripts/paper/build_all.py --results-dir $(RESULTS) --paper-dir paper
@@ -21,4 +26,4 @@ watch:
 	$(TECTONIC) -X watch
 
 clean:
-	rm -f main.pdf main.log
+	rm -f main.pdf main.log main.aux supplement.pdf supplement.log supplement.aux

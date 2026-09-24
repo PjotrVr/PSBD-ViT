@@ -17,10 +17,16 @@
 % A number quoted from another paper. It prints as written, and the build's
 % hand-typed-number check exempts it, because no script of ours produces it.
 \newcommand{\cited}[1]{#1}
+% The paper and its supplement read each other's labels, so a reference to a
+% supplementary table prints its S number. xr-hyper must load before hyperref.
+\usepackage{xr-hyper}
 \usepackage{hyperref}
 \usepackage[capitalize,noabbrev]{cleveref}
 
 \graphicspath{{figures/}}
+% Tighter column padding than LaTeX's 6pt default, so the generated tables fit
+% their column at full size instead of being shrunk by adjustbox.
+\setlength{\tabcolsep}{4pt}
 \makeatletter
 \def\input@path{{tables/}{./}}
 \makeatother

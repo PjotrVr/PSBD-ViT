@@ -1,0 +1,28 @@
+% Supplementary material: every per-model table and the detail the main appendix
+% summarizes. Built after main.tex by the Makefile, since each document reads the
+% other's labels through xr-hyper.
+\documentclass[10pt]{article}
+\input{preamble}
+\externaldocument{main}
+
+\renewcommand{\thesection}{S\arabic{section}}
+\renewcommand{\thetable}{S\arabic{table}}
+\renewcommand{\thefigure}{S\arabic{figure}}
+
+\title{Supplementary material for\\Adapting Prediction Shift Backdoor Detection to Vision Transformers}
+\author{Petar \v{S}tika, Stjepan Picek}
+\date{}
+
+\begin{document}
+\maketitle
+
+This supplement holds every per-model table behind the paper and the detail its
+appendix summarizes. Section, table and figure numbers carry an S. References to
+numbers without an S point into the paper.
+
+\input{sections/supplement}
+
+\bibliographystyle{plainnat}
+\bibliography{references}
+
+\end{document}

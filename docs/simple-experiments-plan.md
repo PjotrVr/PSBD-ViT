@@ -612,3 +612,18 @@ Yang et al., RAP: Robustness-Aware Perturbations for Defending against Backdoor 
 Yang et al., SampDetox: Black-box Backdoor Defense via Perturbation-based Sample Detoxification, NeurIPS 2024.
 Zeng et al., Rethinking the Backdoor Attacks' Triggers: A Frequency Perspective, ICCV 2021, arXiv 2104.03413.
 Zhang and Nanda, Towards Best Practices of Activation Patching in Language Models: Metrics and Methods, ICLR 2024, arXiv 2309.16042.
+
+## Ideas from ShortcutProbe, checked against our setup
+
+Prasad et al. (ISDFS 2026, `literature/shortcutprobe-prasad-isdfs2026/`) combine PSBD's absolute PSU under a dropout of positive activations with a deterministic score, the largest single confidence drop while channels are removed in order of gradient times activation, and add the 2 with equal weights. It is ResNet-18 on CIFAR-10 at 10% poisoning only. Each of its 6 components was checked for whether it carries over to our ViT setup.
+
+| component | carries over | reason | action |
+|---|---|---|---|
+| dropout of positive activations only ("Active Neuron Dropout") | partly | "positive" means active only after a nonlinearity, so the only ViT site where it is defined is the MLP hidden layer after GELU. Plain channel masking there reads 0.833 on the 54 panel models (TaCT 0.522, BadNets 0.775) against PSBD-TM's 0.963, and the backdoor is a residual-stream direction, not a set of neurons | test once on the 10-model development set as operator S1, predicted at or below plain MLP channel masking |
+| absolute PSU at 20 passes | no | fractional PSU beats absolute PSU on 37 of 57 models under PSBD-TM and 53 of 57 under PSBD-RD, and 3 to 20 passes gains +0.002 | none |
+| rate that maximizes the clean shift ratio | no | the maximum is reached near total destruction of the clean prediction, where triggered predictions fall too. The adaptive rule at 0.8 is the smallest rate that reaches a fixed shift | none |
+| largest single confidence drop under importance-ranked removal | yes, on tokens | a patch trigger lives in a few tokens, so removing tokens in importance order should give 1 sudden drop when the trigger's tokens go, while clean and global-trigger predictions decay gradually | test as operator S2 on tokens (gradient times activation at the block 9 input, deterministic masking of the top 1 to 16 tokens at the attention input). Predicted strong on BadNets and TaCT, where PSBD-TM is already at 0.96 to 0.99, and weak on Blend, BPP and WaNet. Its value is as a union partner that raises TaCT's low TPR, not as a replacement |
+| equal-weight sum of the 2 scores | no | the sum is the mixture of `docs/novel-designs-theory.md`, which the union beats whenever 1 member is weak or inverted on an attack, as S2 is predicted to be on global triggers | if S2 is kept, it enters through the budget-weighted min-rank union |
+| threshold at the maximum of Youden's J | no | J needs the true positive rate and so reads poisoned samples. Our threshold is a quantile of clean validation scores | none |
+
+S1 costs about 4 minutes per model (1 sweep). S2 needs 1 backward pass and up to 16 masked forward passes per input, so about 20 minutes per model on the A100. Both run on the 10-model development set after the analysis experiments of the night.

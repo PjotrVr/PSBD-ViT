@@ -64,9 +64,9 @@ Fix. Write `attack_config_overrides {"amplitude": 0.1}` into `args.json` for eve
 ### `experiments/why_psbd_works/` (in progress)
 
 1. Missing control. The redundancy measurement uses 3 shared draws per fraction (`measure.py`, redundancy section). Use 20 or more draws and add a control that forces the trigger tokens to stay kept, which is what separates "redundancy" from "the trigger is rarely hit".
-2. Unsupported claim unless labelled. `operator_readout` at `measure.py:354` to `386` computes `auroc_psu_ratio` with `auroc_low_is_positive(triggered_psu, clean_psu)` over hit-only triggered scores against all clean scores. The pipeline pairs clean to backdoor with `pair_clean_to_backdoor`, so this AUROC is a different quantity from the cached `psbd_metrics.json` number. `sanity.py:222` to `252` gates a separate `detection_report` path within 0.01 of the cache, which is good, but the readout that reaches the summary is not that path. Either call `detection_report` in the readout or name the field `auroc_hit_only_unpaired` in every table.
+2. Unsupported claim unless labeled. `operator_readout` at `measure.py:354` to `386` computes `auroc_psu_ratio` with `auroc_low_is_positive(triggered_psu, clean_psu)` over hit-only triggered scores against all clean scores. The pipeline pairs clean to backdoor with `pair_clean_to_backdoor`, so this AUROC is a different quantity from the cached `psbd_metrics.json` number. `sanity.py:222` to `252` gates a separate `detection_report` path within 0.01 of the cache, which is good, but the readout that reaches the summary is not that path. Either call `detection_report` in the readout or name the field `auroc_hit_only_unpaired` in every table.
 3. SIG entries (see the drift finding).
-4. Precision hazard. The margin and finite difference readouts (`flatness`) use differences of log probabilities. State whether they run in bf16, since finite differences at small step sizes are dominated by bf16 rounding. The sanity script should print the float32 versus bf16 gap for one model.
+4. Precision hazard. The margin and finite difference readouts (`flatness`) use differences of log probabilities. State whether they run in bf16, since finite differences at small step sizes are dominated by bf16 rounding. The sanity script should print the float32 versus bf16 gap for 1 model.
 
 ### `experiments/prediction_shift_phenomenon/` (in progress)
 
@@ -91,19 +91,19 @@ Fix. Write `attack_config_overrides {"amplitude": 0.1}` into `args.json` for eve
 ### `scripts/all_numbers.py`, `tests/test_all_numbers.py`
 
 1. Wrong result for Swin extras. `swin_paper_extras` hard-codes `"source_mapped": False` (`all_numbers.py:213`), so a Swin TaCT cell outside the panel rule that is source-mapped reads as `clears` and can be `successful_2pt`. Compute `source_class_accuracy` the way the ledger does, or set `source_mapped` from the ledger's function.
-2. Missing test. The tests cover `psbd_reading` only. `retarget_declaration`, `swin_paper_extras`, `benign_models` and the row assembly have none. A test that builds the table for 2 synthetic cells and asserts one row per (model, defense) and no duplicated `folder_name` between `swin_models` and the extras would catch double counting.
+2. Missing test. The tests cover `psbd_reading` only. `retarget_declaration`, `swin_paper_extras`, `benign_models` and the row assembly have none. A test that builds the table for 2 synthetic cells and asserts 1 row per (model, defense) and no duplicated `folder_name` between `swin_models` and the extras would catch double counting.
 3. Style hazard. The module docstring says "the 2 false-positive budgets" while the constant lists 3 quantiles.
 
 ### Coverage ledger `successful_2pt` and `successful_5pt`, `configs/psbd_basis.json`
 
-1. Good. `success_verdicts` reads the final `asr_class`, so diverged and source-mapped cells never succeed, and the parametrised test covers the boundary values (-0.02 and -0.05 succeed at their own bar). `tests/test_canon.py` holds the new bar to the declaration.
+1. Good. `success_verdicts` reads the final `asr_class`, so diverged and source-mapped cells never succeed, and the parameterized test covers the boundary values (-0.02 and -0.05 succeed at their own bar). `tests/test_canon.py` holds the new bar to the declaration.
 2. Unsupported claim risk. The success verdict compares `clean_accuracy_drop` against a single benign reference per dataset. The benign reference of Swin is retargeted by string replacement of `vit_` in `retarget_declaration`, which silently keeps a wrong name if a reference folder does not start with `vit_`. A test asserting that every retargeted reference exists on disk would catch it.
 
 ## Hazards independent of any experiment
 
 - `checkpoints/*/metrics.json` is stale. `args.json` carries the correct `asr` (from the psbd baseline cache). The Swin CIFAR-10 TaCT `metrics.json` reads ASR 0.13 against 0.9987 in `args.json`. Read `args.json`.
 - `swin_cifar10_sig_0_1` has clean accuracy 0.869, so it may fail the 2 point bar when the ledger runs on Swin.
-- The Swin cell count is 83 in one place and 80 in another. State which rule each uses.
+- The Swin cell count is 83 in 1 place and 80 in another. State which rule each uses.
 
 ## Tests that would have caught the findings
 
@@ -111,7 +111,7 @@ Fix. Write `attack_config_overrides {"amplitude": 0.1}` into `args.json` for eve
 | --- | --- |
 | SIG amplitude drift | Rebuild loaders for the first 64 rows of every clearing cell and assert agreement of at least 0.98 with `baseline_backdoor.pt` |
 | Hit-only AUROC in `why_psbd_works` | Assert the readout AUROC equals the cached `psbd_metrics.json` value at the adaptive rate, or rename the field |
-| `target_of` from the folder suffix | Parametrised test over `_tl1` and `_src{k}` folders against `args.json` |
+| `target_of` from the folder suffix | Parameterized test over `_tl1` and `_src{k}` folders against `args.json` |
 | Shared permutations | Assert 2 models yield different position permutations |
 | Swin extras `source_mapped` | Synthetic source-class-accuracy cell through `swin_paper_extras` |
 | Retargeted benign references | Assert every retargeted reference folder exists |

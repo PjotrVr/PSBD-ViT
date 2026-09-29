@@ -1,0 +1,90 @@
+{
+  "folder": "vit_cifar10_badnet_a2a_0_01",
+  "attack": "badnet_a2a",
+  "label_mode": "all_to_all",
+  "dataset": "cifar10",
+  "poison_rate": 0.01,
+  "pairs": 256,
+  "captured_pairs": 234,
+  "trigger_positions": [
+    181,
+    182,
+    195,
+    196
+  ],
+  "conditions": {
+    "baseline": {
+      "triggered_on_attack_label": 1.0,
+      "triggered_on_source": 0.0,
+      "triggered_elsewhere": 0.0,
+      "clean_accuracy": 1.0
+    },
+    "trigger_blocks_all_12": {
+      "triggered_on_attack_label": 0.0,
+      "triggered_on_source": 1.0,
+      "triggered_elsewhere": 0.0,
+      "clean_accuracy": 1.0
+    },
+    "trigger_blocks_blocks_1_4": {
+      "triggered_on_attack_label": 1.0,
+      "triggered_on_source": 0.0,
+      "triggered_elsewhere": 0.0,
+      "clean_accuracy": 0.9957265257835388
+    },
+    "trigger_blocks_blocks_5_8": {
+      "triggered_on_attack_label": 0.7991453409194946,
+      "triggered_on_source": 0.20085470378398895,
+      "triggered_elsewhere": 0.0,
+      "clean_accuracy": 1.0
+    },
+    "trigger_blocks_blocks_9_12": {
+      "triggered_on_attack_label": 0.0,
+      "triggered_on_source": 0.9957265257835388,
+      "triggered_elsewhere": 0.004273504484444857,
+      "clean_accuracy": 1.0
+    },
+    "trigger_blocks_blocks_1_8": {
+      "triggered_on_attack_label": 0.47863250970840454,
+      "triggered_on_source": 0.5213675498962402,
+      "triggered_elsewhere": 0.0,
+      "clean_accuracy": 1.0
+    },
+    "trigger_blocks_blocks_5_12": {
+      "triggered_on_attack_label": 0.0,
+      "triggered_on_source": 1.0,
+      "triggered_elsewhere": 0.0,
+      "clean_accuracy": 1.0
+    },
+    "random_all_12": {
+      "triggered_on_attack_label": 0.9971510171890259,
+      "triggered_on_source": 0.0,
+      "triggered_elsewhere": 0.0028490029896299043,
+      "clean_accuracy": 0.9985755085945129
+    },
+    "content_keep_0.6": {
+      "triggered_on_attack_label": 0.9059829513231913,
+      "triggered_on_source": 0.008547008968889713,
+      "triggered_elsewhere": 0.08547008782625198,
+      "clean_accuracy": 0.9202279647191366
+    },
+    "content_keep_0.3": {
+      "triggered_on_attack_label": 0.4700854818026225,
+      "triggered_on_source": 0.055555557211240135,
+      "triggered_elsewhere": 0.4743589957555135,
+      "clean_accuracy": 0.42877495288848877
+    },
+    "content_keep_0.1": {
+      "triggered_on_attack_label": 0.14672365287939707,
+      "triggered_on_source": 0.047008549173672996,
+      "triggered_elsewhere": 0.8062678178151449,
+      "clean_accuracy": 0.1296296368042628
+    },
+    "content_keep_0.0": {
+      "triggered_on_attack_label": 0.10683761537075043,
+      "triggered_on_source": 0.04273504391312599,
+      "triggered_elsewhere": 0.8504273891448975,
+      "clean_accuracy": 0.10683761537075043
+    }
+  },
+  "seconds": 21.7
+}

@@ -1,0 +1,122 @@
+{
+  "generator": "experiments/all_to_all_detection/figures.py",
+  "inputs": [
+    "results/_experiments/all_to_all_detection/mechanism.json"
+  ],
+  "written_at": "2026-09-29T22:07:24.343605+00:00",
+  "git_commit": "e62f7b14498f40649ee45c6792895574f95a02d7-dirty",
+  "plotted": {
+    "vit/all-to-all, triggered": [
+      0.929858538237485,
+      0.9289227383477348,
+      0.7752413664545331,
+      0.8692265748977661,
+      0.8632414937019348
+    ],
+    "vit/all-to-all, clean twin": [
+      0.8653427904302423,
+      0.8907450607844761,
+      0.6398253355707441,
+      0.5483531398432595,
+      0.39689434658397327
+    ],
+    "vit/all-to-one, triggered": [
+      0.04493733479951819,
+      0.609968222056826,
+      0.2896340826167337,
+      0.08762526614130668,
+      0.24829043287657745
+    ],
+    "vit/all-to-one, clean twin": [
+      0.8859488119681677,
+      0.8791109671195348,
+      0.5728484243154526,
+      0.5180828968683878,
+      0.5733586574594179
+    ],
+    "swin/all-to-all, triggered": [
+      0.861612583909716,
+      0.9343871027231216,
+      0.6227227449417114,
+      0.7333700656890869,
+      0.17722015343606473
+    ],
+    "swin/all-to-all, clean twin": [
+      0.8897710868290493,
+      0.89323790371418,
+      0.4760757088661194,
+      0.5614114552736282,
+      0.019601252768188714
+    ],
+    "swin/all-to-one, triggered": [
+      0.009340553012407327,
+      0.5655423575080931,
+      0.03975848896516254,
+      0.08999933797652677,
+      0.11703206480706285
+    ],
+    "swin/all-to-one, clean twin": [
+      0.8883447845776876,
+      0.8699245055516561,
+      0.5752975791692734,
+      0.5466601451237997,
+      0.5616549886763096
+    ],
+    "placements": {
+      "vit": [
+        [
+          "before_attention_norm_token_mask",
+          "adaptive",
+          "PSBD-TM"
+        ],
+        [
+          "post_residual",
+          "adaptive",
+          "PSBD-RD"
+        ],
+        [
+          "pre_residual_blocks_1_4",
+          "matched_0.6",
+          "dropout 1-4"
+        ],
+        [
+          "pre_residual_blocks_5_8",
+          "matched_0.6",
+          "dropout 5-8"
+        ],
+        [
+          "pre_residual_blocks_9_12",
+          "matched_0.6",
+          "dropout 9-12"
+        ]
+      ],
+      "swin": [
+        [
+          "before_attention_norm_token_mask",
+          "adaptive",
+          "PSBD-TM"
+        ],
+        [
+          "post_residual",
+          "adaptive",
+          "PSBD-RD"
+        ],
+        [
+          "pre_residual_blocks_1_8",
+          "matched_0.6",
+          "dropout 1-8"
+        ],
+        [
+          "pre_residual_blocks_9_16",
+          "matched_0.6",
+          "dropout 9-16"
+        ],
+        [
+          "pre_residual_blocks_17_24",
+          "matched_0.6",
+          "dropout 17-24"
+        ]
+      ]
+    }
+  }
+}

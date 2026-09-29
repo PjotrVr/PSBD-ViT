@@ -56,7 +56,13 @@ The diagrams under `figures/` are TikZ sources compiled by `figures/render.py`
     each placement changes, the depth at which the backdoor direction appears,
     its ablation, activation patching, attention routing, the causal masking
     test and LayerNorm absorption.
-11. `backdoor-manifestation.ipynb`. How each attack shows up inside the network.
+11. `backdoor-manifestation.ipynb`. How each attack shows up inside ViT-B/16 and
+    Swin-S on the 42 successful panel models, each read beside a benign model
+    shown the same trigger: the triggers in pixel space, per-token change maps,
+    class-token attention on the trigger's tokens, the direction onset by depth,
+    top TAC neurons against the backdoor direction with energy-matched and
+    target-class controls, head geometry and the readout alignment. Reads
+    `results/_experiments/backdoor_manifestation/` only and runs in about a minute.
 12. `why-psbd-works.ipynb`, `why-psbd-works-general.ipynb` and
     `why-psbd-tm.ipynb`. The explanation of the detector in general and of
     PSBD-TM in particular. `why-psbd-works.ipynb` is the index of every claim

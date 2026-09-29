@@ -1,0 +1,79 @@
+{
+ "folder": "resnet18_gtsrb_badnet_a2o_0_1",
+ "architecture": "resnet18",
+ "precision": "bfloat16",
+ "gate_2_shift_ratio": {
+  "baseline_prediction_agreement": 1.0,
+  "rows": [
+   {
+    "placement": "post_residual",
+    "rate": 0.3,
+    "ours": 0.1733333319425583,
+    "cached": 0.17350000143051147,
+    "gap": 0.00016666948795318604
+   },
+   {
+    "placement": "post_residual",
+    "rate": 0.5,
+    "ours": 0.9491666555404663,
+    "cached": 0.9451666474342346,
+    "gap": 0.0040000081062316895
+   },
+   {
+    "placement": "post_residual",
+    "rate": 0.7,
+    "ours": 0.9948333501815796,
+    "cached": 0.9944999814033508,
+    "gap": 0.00033336877822875977
+   }
+  ],
+  "tolerance": 0.03,
+  "passes": true,
+  "probe_sites": {
+   "basic_blocks": 8,
+   "probes": 8,
+   "wrapped": 8
+  }
+ },
+ "gate_1_metrics": {
+  "clean_accuracy": 0.9760887026786804,
+  "attack_success_rate": 1.0,
+  "recorded": {
+   "source": "args.json",
+   "clean_accuracy": 0.9760886777513856,
+   "asr": 1.0
+  },
+  "clean_accuracy_gap": 2.49272947838719e-08,
+  "attack_success_gap": 0.0,
+  "passes": true
+ },
+ "gate_3_pairs": {
+  "backdoor_set_class": "AttackSuccessSet",
+  "is_attack_success_set": true,
+  "pairs": 10578,
+  "backdoor_labels": [
+   0
+  ],
+  "clean_labels_of_pairs_include_target": false,
+  "changed_pixel_share_mean": 0.008645504713058472,
+  "changed_pixel_share_max": 0.0087890625,
+  "pixel_correlation_min": 0.1591731309890747,
+  "pixel_correlation_mean": 0.8575677275657654,
+  "passes": true
+ },
+ "gate_4_state": {
+  "modules_in_training_mode": [],
+  "model_owned_dropouts": {},
+  "hooks_before": 0,
+  "hooks_after": 0,
+  "forward_wrappers_left": 0,
+  "unperturbed_predictions_unchanged": true,
+  "resampling": {
+   "post_residual": {
+    "same_seed_identical": true,
+    "new_seed_differs_share": 0.56640625
+   }
+  },
+  "passes": true
+ }
+}

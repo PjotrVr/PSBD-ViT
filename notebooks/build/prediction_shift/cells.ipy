@@ -1,0 +1,699 @@
+"""Code cells of notebooks/prediction-shift-phenomenon.ipynb, split on '# %% name' markers."""
+
+# %% setup
+import os
+import sys
+from pathlib import Path
+
+# Anchor at the repository root so every default path in the library resolves the
+# same way it does from a script, whichever directory the notebook was opened from.
+REPO_ROOT = next(
+    parent
+    for parent in [Path.cwd(), *Path.cwd().parents]
+    if (parent / "pyproject.toml").exists()
+)
+os.chdir(REPO_ROOT)
+sys.path.insert(0, str(REPO_ROOT))
+
+# %% imports
+import json
+
+import matplotlib.pyplot as plt
+import numpy as np
+import pandas as pd
+from matplotlib.patches import Rectangle
+
+from defenses.decision import (
+    ADAPTIVE_SHIFT_TARGET,
+    PUBLISHED_PLACEMENT,
+    RECOMMENDED_PLACEMENT,
+)
+from experiments.prediction_shift_phenomenon.measure import (
+    ALMOST_ALL_ON_TARGET,
+    BEST_RESIDUAL_PLACEMENT,
+    IDENTICAL_COSINE,
+    NEAR_ZERO_SHIFT,
+    PAPER_FEATURE_RATE,
+    PAPER_MATCH_TOLERANCE,
+    PLACEMENT_LABELS,
+    STD_LOSES_BY,
+)
+from scripts.paper._common import OKABE_ITO
+
+# %% style
+import scripts.paper._style  # noqa: F401  the figure style every paper figure uses
+
+# The shared style selects the Agg backend for the paper build, which keeps every
+# figure out of a notebook, so the inline backend comes back after it.
+%matplotlib inline
+
+# %% load
+OUTPUT = Path("results/_experiments/prediction_shift_phenomenon")
+
+
+def read_records(name):
+    records = {
+        path.stem: json.loads(path.read_text())
+        for path in sorted((OUTPUT / name).glob("*.json"))
+    }
+    return records
+
+
+cached = read_records("cached")
+features = read_records("features")
+feature_maps = read_records("feature_maps")
+sanity = read_records("sanity")
+summary = json.loads((OUTPUT / "summary.json").read_text())
+# The CIFAR-10 ResNet-18 smoke run is not a successful backdoor (clean accuracy
+# 0.54), so it is kept out of every figure and verdict here.
+all_rows = pd.DataFrame(summary["cached_rows"])
+rows = all_rows[~all_rows["reference_only"]]
+all_feature_rows = pd.DataFrame(summary["feature_rows"])
+feature_rows = all_feature_rows[~all_feature_rows["reference_only"]]
+
+ARCHITECTURES = ("resnet18", "vit", "swin")
+ARCHITECTURE_LABELS = {"resnet18": "ResNet-18", "vit": "ViT-B/16", "swin": "Swin-S"}
+PLACEMENTS = (PUBLISHED_PLACEMENT, RECOMMENDED_PLACEMENT)
+CATEGORY_ORDER = (
+    "patch",
+    "blend",
+    "warp",
+    "quantization",
+    "adaptive blend",
+)
+CATEGORY_COLORS = dict(zip(CATEGORY_ORDER, OKABE_ITO))
+# The 1 cell all 3 architectures share: GTSRB, BadNets, 10% poisoning, target 0.
+FIGURE_CELL = {
+    "resnet18": "resnet18_gtsrb_badnet_a2o_0_1",
+    "vit": "vit_gtsrb_badnet_a2o_0_1",
+    "swin": "swin_gtsrb_badnet_a2o_0_1",
+}
+BENIGN_CELL = {
+    architecture: next(
+        (
+            folder
+            for folder in (f"{architecture}_gtsrb_benign", f"{architecture}_cifar100_benign")
+            if folder in cached
+        ),
+        None,
+    )
+    for architecture in ("vit", "swin")
+}
+print(
+    f"{len(cached)} models with cached curves, {len(features)} with feature readings, "
+    f"{len(sanity)} sanity records"
+)
+print("benign controls drawn next to the GTSRB BadNets cell:", BENIGN_CELL)
+
+# %% panel
+panel = (
+    rows[rows["placement"] == PUBLISHED_PLACEMENT]
+    .assign(kind=lambda frame: np.where(frame["benign"], "benign", frame["category"]))
+    .pivot_table(index="kind", columns="architecture", values="folder", aggfunc="count")
+    .reindex(columns=list(ARCHITECTURES))
+    .fillna(0)
+    .astype(int)
+)
+panel.loc["total"] = panel.sum()
+panel
+
+# %% sanity
+sanity_rows = []
+for name, record in sanity.items():
+    shift = record.get("gate_2_shift_ratio")
+    if shift:
+        largest_gap = max(row["gap"] for row in shift["rows"])
+        sanity_rows.append(
+            {
+                "record": name,
+                "gate": "2 shift ratio vs cache",
+                "reading": f"largest gap {largest_gap:.4f} over {len(shift['rows'])} rates, "
+                f"unperturbed argmax agrees with cache on {shift['baseline_prediction_agreement']:.3f}",
+                "passes": shift["passes"],
+            }
+        )
+        if "probe_sites" in shift:
+            sites = shift["probe_sites"]
+            sanity_rows.append(
+                {
+                    "record": name,
+                    "gate": "2 ResNet probe sites",
+                    "reading": f"{sites['probes']} probes on {sites['basic_blocks']} basic blocks, "
+                    f"{sites['wrapped']} block forwards wrapped",
+                    "passes": sites["probes"] == sites["basic_blocks"],
+                }
+            )
+    metrics = record.get("gate_1_metrics")
+    if metrics:
+        sanity_rows.append(
+            {
+                "record": name,
+                "gate": "1 accuracy and ASR",
+                "reading": f"clean {metrics['clean_accuracy']:.4f} vs {metrics['recorded']['clean_accuracy']:.4f}, "
+                f"ASR {metrics['attack_success_rate']:.4f} vs {metrics['recorded']['asr']:.4f} "
+                f"({metrics['recorded']['source']})",
+                "passes": metrics["passes"],
+            }
+        )
+    pairs = record.get("gate_3_pairs")
+    if pairs:
+        sanity_rows.append(
+            {
+                "record": name,
+                "gate": "3 pairs",
+                "reading": f"{pairs['backdoor_set_class']}, {pairs['pairs']} pairs, labels "
+                f"{pairs['backdoor_labels']}, {pairs['changed_pixel_share_mean']:.4f} of pixels changed",
+                "passes": pairs["passes"],
+            }
+        )
+    state = record.get("gate_4_state")
+    if state:
+        resampling = ", ".join(
+            f"{PLACEMENT_LABELS[placement]} same seed identical {reading['same_seed_identical']}, "
+            f"new seed changes {reading['new_seed_differs_share']:.2f} of feature entries"
+            for placement, reading in state["resampling"].items()
+        )
+        sanity_rows.append(
+            {
+                "record": name,
+                "gate": "4 model state",
+                "reading": f"{len(state['modules_in_training_mode'])} modules in training mode, "
+                f"hooks {state['hooks_before']} before and {state['hooks_after']} after, {resampling}",
+                "passes": state["passes"],
+            }
+        )
+pd.set_option("display.max_colwidth", 200)
+pd.DataFrame(sanity_rows)
+
+# %% claim1_curves
+SPLIT_STYLES = {
+    "validation": ("clean validation", OKABE_ITO[0], "-"),
+    "clean": ("clean analysis", OKABE_ITO[2], "--"),
+    "backdoor": ("triggered, captured", OKABE_ITO[1], "-"),
+}
+
+
+def rate_series(record, placement, field, key):
+    block = record["placements"][placement]
+    rates = [row["rate"] for row in block["per_rate"]]
+    values = [row[field][key] for row in block["per_rate"]]
+    return rates, values
+
+
+figure, axes = plt.subplots(2, 3, figsize=(10, 5.6), sharey=True)
+for column, architecture in enumerate(ARCHITECTURES):
+    record = cached[FIGURE_CELL[architecture]]
+    benign_folder = BENIGN_CELL.get(architecture)
+    for row_index, placement in enumerate(PLACEMENTS):
+        axis = axes[row_index, column]
+        if placement not in record["placements"]:
+            axis.text(0.5, 0.5, "no token axis,\nPSBD-TM does not exist", ha="center", va="center", transform=axis.transAxes)
+            axis.set_title(f"{ARCHITECTURE_LABELS[architecture]}, {PLACEMENT_LABELS[placement]}")
+            axis.set_axis_off()
+            continue
+        for split, (label, color, style) in SPLIT_STYLES.items():
+            rates, values = rate_series(record, placement, "sigma", split)
+            axis.plot(rates, values, style, color=color, marker="o", markersize=3, label=label)
+        if benign_folder and placement in cached[benign_folder]["placements"]:
+            rates, values = rate_series(cached[benign_folder], placement, "sigma", "validation")
+            benign_dataset = cached[benign_folder]["dataset"]
+            axis.plot(rates, values, ":", color="black", label=f"benign {benign_dataset}, clean validation")
+            rates, values = rate_series(cached[benign_folder], placement, "sigma", "backdoor")
+            axis.plot(rates, values, ":", color="grey", marker="x", markersize=3, label=f"benign {benign_dataset}, triggered")
+        adaptive = record["placements"][placement]["adaptive_rate"]
+        axis.axvline(adaptive, color=OKABE_ITO[3], linestyle="-.", label=f"adaptive p = {adaptive:g}")
+        axis.axhline(ADAPTIVE_SHIFT_TARGET, color="grey", linewidth=0.8)
+        axis.set_xscale("log")
+        axis.set_title(f"{ARCHITECTURE_LABELS[architecture]}, {PLACEMENT_LABELS[placement]}")
+        axis.set_xlabel("rate p (log scale)")
+        if column == 0 or row_index == 1:
+            axis.set_ylabel("shift ratio sigma")
+        axis.legend()
+figure.suptitle("Shift ratio against rate, GTSRB BadNets 10% on each architecture, a benign model dotted")
+figure.tight_layout()
+plt.show()
+
+# %% claim1_strip
+def strip_plot(axis, frame, value, threshold=None, benign_value=None):
+    for position, category in enumerate(CATEGORY_ORDER):
+        values = frame.loc[(frame["category"] == category) & ~frame["benign"], value].dropna()
+        jitter = np.random.default_rng(position).uniform(-0.2, 0.2, len(values))
+        axis.scatter(position + jitter, values, s=12, color=CATEGORY_COLORS[category], alpha=0.8)
+    benign = frame.loc[frame["benign"], benign_value or value].dropna()
+    axis.scatter(np.full(len(benign), len(CATEGORY_ORDER)), benign, marker="x", color="black", s=20)
+    axis.set_xticks(range(len(CATEGORY_ORDER) + 1))
+    axis.set_xticklabels([*CATEGORY_ORDER, "benign"], rotation=40, ha="right")
+    if threshold is not None:
+        axis.axhline(threshold, color="grey", linestyle="--", linewidth=0.8)
+
+
+figure, axes = plt.subplots(2, 3, figsize=(10, 5.8), sharey=True)
+for column, architecture in enumerate(ARCHITECTURES):
+    for row_index, placement in enumerate(PLACEMENTS):
+        axis = axes[row_index, column]
+        frame = rows[(rows["architecture"] == architecture) & (rows["placement"] == placement)]
+        axis.set_title(f"{ARCHITECTURE_LABELS[architecture]}, {PLACEMENT_LABELS[placement]}, {int((~frame['benign']).sum())} models")
+        if frame.empty:
+            axis.text(0.5, 0.5, "not applicable", ha="center", va="center", transform=axis.transAxes)
+            axis.set_axis_off()
+            continue
+        strip_plot(axis, frame, "sigma_backdoor", threshold=NEAR_ZERO_SHIFT)
+        if column == 0:
+            axis.set_ylabel("triggered sigma at the adaptive p")
+figure.suptitle(f"Shift ratio of triggered images at the adaptive rate, dashed line at {NEAR_ZERO_SHIFT}")
+figure.tight_layout()
+plt.show()
+
+# %% claim1_table
+def verdict_counts(frame, claim):
+    counts = frame[claim].value_counts()
+    text = ", ".join(f"{verdict} {count}" for verdict, count in counts.items())
+    return text
+
+
+claim_1_rows = []
+for architecture in ARCHITECTURES:
+    for placement in PLACEMENTS:
+        frame = rows[(rows["architecture"] == architecture) & (rows["placement"] == placement)]
+        if frame.empty:
+            continue
+        poisoned, benign = frame[~frame["benign"]], frame[frame["benign"]]
+        claim_1_rows.append(
+            {
+                "architecture": ARCHITECTURE_LABELS[architecture],
+                "placement": PLACEMENT_LABELS[placement],
+                "poisoned models": len(poisoned),
+                "verdicts": verdict_counts(poisoned, "claim_1"),
+                "median clean validation sigma": poisoned["sigma_validation"].median(),
+                "median triggered sigma": poisoned["sigma_backdoor"].median(),
+                "benign models": len(benign),
+                "benign mean curve gap": benign["mean_curve_gap"].max() if len(benign) else np.nan,
+            }
+        )
+pd.DataFrame(claim_1_rows).round(3)
+
+# %% claim1_by_attack
+by_attack = (
+    rows[~rows["benign"]]
+    .groupby(["architecture", "placement", "attack"])
+    .agg(models=("folder", "count"), holds=("claim_1", lambda s: int((s == "holds").sum())), median_triggered_sigma=("sigma_backdoor", "median"))
+    .round(3)
+    .reset_index()
+)
+by_attack["placement"] = by_attack["placement"].map(PLACEMENT_LABELS)
+by_attack.pivot_table(index="attack", columns=["architecture", "placement"], values="median_triggered_sigma").round(2)
+
+# %% claim2_histograms
+figure, axes = plt.subplots(2, 3, figsize=(10, 5.4), sharey=True)
+for column, architecture in enumerate(ARCHITECTURES):
+    record = cached[FIGURE_CELL[architecture]]
+    target = record["target_label"]
+    for row_index, placement in enumerate(PLACEMENTS):
+        axis = axes[row_index, column]
+        axis.set_title(f"{ARCHITECTURE_LABELS[architecture]}, {PLACEMENT_LABELS[placement]}")
+        if placement not in record["placements"]:
+            axis.text(0.5, 0.5, "no token axis", ha="center", va="center", transform=axis.transAxes)
+            axis.set_axis_off()
+            continue
+        block = record["placements"][placement]
+        landing = block["landing_at_adaptive"]
+        classes = np.arange(len(landing["validation"]))
+        axis.bar(classes - 0.2, landing["validation"], width=0.4, color=OKABE_ITO[0], label="clean validation")
+        axis.bar(classes + 0.2, landing["backdoor"], width=0.4, color=OKABE_ITO[1], label="triggered")
+        benign_folder = BENIGN_CELL.get(architecture)
+        same_dataset = benign_folder and cached[benign_folder]["dataset"] == record["dataset"]
+        if same_dataset and placement in cached[benign_folder]["placements"]:
+            benign_landing = cached[benign_folder]["placements"][placement]["landing_at_adaptive"]
+            axis.step(classes, benign_landing["validation"], where="mid", color="black", linewidth=0.8, label="benign, clean validation")
+        axis.axvline(target, color=OKABE_ITO[3], linestyle="-.", label=f"target class {target}")
+        axis.set_xlabel(f"class a shifted prediction lands on, at adaptive p = {block['adaptive_rate']:g}")
+        if column == 0:
+            axis.set_ylabel("share of shifted predictions")
+        axis.legend()
+figure.suptitle("Shift intensity, GTSRB BadNets 10%, benign GTSRB as a black step line")
+figure.tight_layout()
+plt.show()
+
+# %% claim2_rate
+figure, axes = plt.subplots(1, 3, figsize=(10, 3.0), sharey=True)
+for axis, architecture in zip(axes, ARCHITECTURES):
+    record = cached[FIGURE_CELL[architecture]]
+    for placement, style in zip(PLACEMENTS, ("-", "--")):
+        if placement not in record["placements"]:
+            continue
+        block = record["placements"][placement]
+        rates = [row["rate"] for row in block["per_rate"]]
+        target_share = [row["landing"]["validation"]["target_share"] for row in block["per_rate"]]
+        clean_sigma = [row["sigma"]["validation"] for row in block["per_rate"]]
+        axis.plot(rates, target_share, style, color=OKABE_ITO[3], marker="o", markersize=3, label=f"{PLACEMENT_LABELS[placement]}, target share")
+        axis.plot(rates, clean_sigma, style, color=OKABE_ITO[0], linewidth=0.8, label=f"{PLACEMENT_LABELS[placement]}, clean sigma")
+    axis.set_xscale("log")
+    axis.set_xlabel("rate p (log scale)")
+    axis.set_title(ARCHITECTURE_LABELS[architecture])
+    axis.legend()
+axes[0].set_ylabel("share")
+figure.suptitle("Target share of shifted clean predictions against the rate, GTSRB BadNets 10%, with the clean shift ratio for reference")
+figure.tight_layout()
+plt.show()
+
+# %% claim2_strip
+figure, axes = plt.subplots(2, 3, figsize=(10, 5.8), sharey=True)
+for column, architecture in enumerate(ARCHITECTURES):
+    for row_index, placement in enumerate(PLACEMENTS):
+        axis = axes[row_index, column]
+        frame = rows[(rows["architecture"] == architecture) & (rows["placement"] == placement)]
+        axis.set_title(f"{ARCHITECTURE_LABELS[architecture]}, {PLACEMENT_LABELS[placement]}")
+        if frame.empty:
+            axis.text(0.5, 0.5, "not applicable", ha="center", va="center", transform=axis.transAxes)
+            axis.set_axis_off()
+            continue
+        strip_plot(axis, frame, "validation_target_share", threshold=ALMOST_ALL_ON_TARGET, benign_value="validation_top_share")
+        if column == 0:
+            axis.set_ylabel("share of shifted clean predictions on the target")
+figure.suptitle(
+    f"Target share of shifted clean validation predictions, dashed line at {ALMOST_ALL_ON_TARGET}. "
+    "Benign crosses show the share of the single most frequent class"
+)
+figure.tight_layout()
+plt.show()
+
+# %% claim2_table
+claim_2_rows = []
+for architecture in ARCHITECTURES:
+    for placement in PLACEMENTS:
+        frame = rows[(rows["architecture"] == architecture) & (rows["placement"] == placement)]
+        if frame.empty:
+            continue
+        poisoned, benign = frame[~frame["benign"]], frame[frame["benign"]]
+        on_target_top = (poisoned["validation_top_class"] == 0) | (
+            poisoned["folder"].str.contains("_tl1") & (poisoned["validation_top_class"] == 1)
+        )
+        claim_2_rows.append(
+            {
+                "architecture": ARCHITECTURE_LABELS[architecture],
+                "placement": PLACEMENT_LABELS[placement],
+                "poisoned models": len(poisoned),
+                "verdicts": verdict_counts(poisoned, "claim_2"),
+                "median target share": poisoned["validation_target_share"].median(),
+                "target is the top landing class": int(on_target_top.sum()),
+                "median top class share": poisoned["validation_top_share"].median(),
+                "benign median top class share": benign["validation_top_share"].median() if len(benign) else np.nan,
+                "benign median share on class 0": benign["validation_target_share"].median() if len(benign) else np.nan,
+            }
+        )
+pd.DataFrame(claim_2_rows).round(3)
+
+# %% claim2_by_attack
+(
+    rows[~rows["benign"]]
+    .assign(placement=lambda frame: frame["placement"].map(PLACEMENT_LABELS))
+    .pivot_table(index="attack", columns=["architecture", "placement"], values="validation_target_share", aggfunc="median")
+    .round(2)
+)
+
+# %% claim3_maps
+def mosaic(channel_maps, columns=8, gap=1):
+    stack = np.asarray(channel_maps, dtype=float)  # (64, height, width)
+    count, height, width = stack.shape
+    grid_rows = count // columns
+    canvas = np.full((grid_rows * (height + gap) - gap, columns * (width + gap) - gap), np.nan)
+    for index in range(count):
+        grid_row, grid_column = divmod(index, columns)
+        top, left = grid_row * (height + gap), grid_column * (width + gap)
+        canvas[top : top + height, left : left + width] = stack[index]
+    return canvas, (height, width, gap, columns)
+
+
+def paper_red_boxes(clean_maps, triggered_maps):
+    clean, triggered = np.asarray(clean_maps), np.asarray(triggered_maps)  # (64, h, w)
+    active = (np.abs(clean).reshape(len(clean), -1).max(axis=1) > 0) & (
+        np.abs(triggered).reshape(len(triggered), -1).max(axis=1) > 0
+    )
+    close = np.abs(clean - triggered).reshape(len(clean), -1).max(axis=1) <= PAPER_MATCH_TOLERANCE
+    boxes = active & close  # (64,)
+    return boxes
+
+
+def draw_maps(folder, conditions):
+    record = feature_maps[folder]
+    architecture = record["architecture"]
+    figure, axes = plt.subplots(len(conditions), 2, figsize=(7.5, 3.5 * len(conditions)))
+    reference = np.abs(np.asarray(record["maps"]["unperturbed"]["clean"]))
+    if architecture == "resnet18":
+        color_map, low, high = "viridis", 0.0, 1.0
+    else:
+        limit = float(np.quantile(reference, 0.99))
+        color_map, low, high = "coolwarm", -limit, limit
+    for row_index, (condition, label) in enumerate(conditions.items()):
+        maps = record["maps"][condition]
+        boxes = paper_red_boxes(maps["clean"], maps["triggered"])
+        for column, image in enumerate(("clean", "triggered")):
+            axis = axes[row_index, column]
+            canvas, (height, width, gap, columns) = mosaic(maps[image])
+            shown = axis.imshow(canvas, cmap=color_map, vmin=low, vmax=high, interpolation="nearest")
+            for index in np.flatnonzero(boxes):
+                grid_row, grid_column = divmod(index, columns)
+                axis.add_patch(
+                    Rectangle(
+                        (grid_column * (width + gap) - 0.5, grid_row * (height + gap) - 0.5),
+                        width,
+                        height,
+                        fill=False,
+                        edgecolor="red",
+                        linewidth=1.2,
+                    )
+                )
+            axis.set_title(f"{image} image, {int(boxes.sum())} of 64 red boxes")
+            axis.set_xticks([])
+            axis.set_yticks([])
+            for spine in axis.spines.values():
+                spine.set_visible(False)
+        axes[row_index, 0].set_ylabel(label, fontsize=8)
+        figure.colorbar(shown, ax=axes[row_index].tolist(), shrink=0.8)
+    figure.suptitle(f"First 64 final-layer channel maps of 1 image pair, {ARCHITECTURE_LABELS[architecture]} ({folder})")
+    plt.show()
+
+
+if "resnet18_gtsrb_badnet_a2o_0_1" in feature_maps:
+    draw_maps(
+        "resnet18_gtsrb_badnet_a2o_0_1",
+        {
+            "unperturbed": "no dropout",
+            "rd_paper": f"dropout p = {PAPER_FEATURE_RATE},\n1 shared mask",
+            "rd_adaptive": "dropout at the\nadaptive p, 1 shared mask",
+        },
+    )
+
+# %% claim3_maps_transformers
+for architecture in ("vit", "swin"):
+    folder = FIGURE_CELL[architecture]
+    if folder not in feature_maps:
+        print(f"{folder} has no feature maps yet")
+        continue
+    draw_maps(
+        folder,
+        {
+            "unperturbed": "no perturbation",
+            "rd_adaptive": "PSBD-RD at the\nadaptive p, 1 shared mask",
+            "tm_adaptive": "PSBD-TM at the\nadaptive p, 1 shared mask",
+        },
+    )
+
+# %% claim3_similarity
+CONDITION_LABELS = {
+    "rd_paper": f"PSBD-RD at p = {PAPER_FEATURE_RATE}",
+    "rd_adaptive": "PSBD-RD at the adaptive p",
+    "tm_adaptive": "PSBD-TM at the adaptive p",
+}
+assert not feature_rows.empty, "no feature readings yet, run the features stage first"
+readable = feature_rows.copy()
+readable["model"] = readable["folder"] + np.where(readable["probe"] != readable["attack"], " / " + readable["probe"], "")
+figure, axes = plt.subplots(1, 3, figsize=(12, 0.28 * readable["model"].nunique() + 1.5), sharey=True)
+order = sorted(readable["model"].unique(), key=lambda name: (ARCHITECTURES.index(name.split("_")[0]), name))
+positions = {name: index for index, name in enumerate(order)}
+for axis, (condition, label) in zip(axes, CONDITION_LABELS.items()):
+    frame = readable[readable["condition"] == condition]
+    y = frame["model"].map(positions)
+    axis.scatter(frame["cosine_pair_off"], y, facecolors="none", edgecolors=OKABE_ITO[0], label="pair, unperturbed")
+    axis.scatter(frame["cosine_pair_shared"], y, color=OKABE_ITO[0], label="pair, 1 shared mask")
+    axis.scatter(frame["cosine_pair_independent"], y, color=OKABE_ITO[2], marker="^", label="pair, independent masks")
+    axis.scatter(frame["cosine_unrelated_on"], y, color=OKABE_ITO[1], marker="x", label="unrelated clean, 1 shared mask")
+    axis.axvline(IDENTICAL_COSINE, color="grey", linestyle="--", linewidth=0.8)
+    axis.set_title(label)
+    axis.set_xlabel("centered cosine of final-layer features")
+    axis.legend()
+axes[0].set_yticks(range(len(order)))
+axes[0].set_yticklabels(order)
+axes[0].invert_yaxis()
+figure.tight_layout()
+plt.show()
+
+# %% claim3_table
+columns = [
+    "folder", "probe", "condition", "rate", "cosine_pair_off", "cosine_pair_shared", "cosine_pair_independent",
+    "cosine_unrelated_off", "cosine_unrelated_on", "cka_pair_off", "cka_pair_on", "paper_share_off",
+    "paper_share_on", "clean_self", "triggered_self", "clean_toward_triggered_off",
+    "clean_toward_triggered_on", "clean_on_target", "triggered_on_target", "claim_3",
+]
+feature_rows[columns].round(3)
+
+# %% claim4_curves
+STD_MODELS = {
+    "resnet18": ("resnet18_gtsrb_badnet_a2o_0_1", "resnet18_gtsrb_blend_0_1"),
+    "vit": ("vit_gtsrb_badnet_a2o_0_1", "vit_cifar10_wanet_0_1"),
+    "swin": ("swin_gtsrb_badnet_a2o_0_1", "swin_gtsrb_wanet_0_1"),
+}
+figure, axes = plt.subplots(2, 3, figsize=(10, 5.6))
+for column, architecture in enumerate(ARCHITECTURES):
+    for row_index, placement in enumerate(PLACEMENTS):
+        axis = axes[row_index, column]
+        axis.set_title(f"{ARCHITECTURE_LABELS[architecture]}, {PLACEMENT_LABELS[placement]}")
+        drawn = False
+        for color, folder in zip((OKABE_ITO[0], OKABE_ITO[1]), STD_MODELS[architecture]):
+            record = cached[folder]
+            if placement not in record["placements"]:
+                continue
+            attack = record["attack"]
+            rates, clean = rate_series(record, placement, "std_mean", "clean_paired")
+            _, triggered = rate_series(record, placement, "std_mean", "backdoor")
+            axis.plot(rates, clean, "-", color=color, marker="o", markersize=3, label=f"{attack}, clean")
+            axis.plot(rates, triggered, "--", color=color, marker="^", markersize=3, label=f"{attack}, triggered")
+            axis.axvline(record["placements"][placement]["adaptive_rate"], color=color, linestyle=":", linewidth=0.8)
+            drawn = True
+        if not drawn:
+            axis.text(0.5, 0.5, "no token axis", ha="center", va="center", transform=axis.transAxes)
+            axis.set_axis_off()
+            continue
+        axis.set_xscale("log")
+        axis.set_xlabel("rate p (log scale)")
+        if column == 0:
+            axis.set_ylabel("mean MC-Dropout std of the tracked class")
+        axis.legend()
+figure.suptitle("MC-Dropout standard deviation against rate, 10% models (GTSRB, and CIFAR-10 for ViT WaNet), dotted lines at each model's adaptive p")
+figure.tight_layout()
+plt.show()
+
+# %% claim4_scatter
+figure, axes = plt.subplots(2, 3, figsize=(10, 6.2), sharex=True, sharey=True)
+for column, architecture in enumerate(ARCHITECTURES):
+    for row_index, placement in enumerate(PLACEMENTS):
+        axis = axes[row_index, column]
+        frame = rows[(rows["architecture"] == architecture) & (rows["placement"] == placement) & ~rows["benign"]]
+        axis.set_title(f"{ARCHITECTURE_LABELS[architecture]}, {PLACEMENT_LABELS[placement]}")
+        if frame.empty:
+            axis.text(0.5, 0.5, "no token axis", ha="center", va="center", transform=axis.transAxes)
+            axis.set_axis_off()
+            continue
+        for category in CATEGORY_ORDER:
+            subset = frame[frame["category"] == category]
+            if subset.empty:
+                continue
+            axis.scatter(subset["auroc_psu_ratio"], subset["auroc_std_best_rate"], s=14, color=CATEGORY_COLORS[category], label=category)
+        axis.plot([0, 1], [0, 1], color="grey", linewidth=0.8)
+        axis.plot([STD_LOSES_BY, 1], [0, 1 - STD_LOSES_BY], color="grey", linestyle="--", linewidth=0.8)
+        axis.set_xlabel("AUROC of fractional PSU at the adaptive p")
+        if column == 0:
+            axis.set_ylabel("AUROC of std at its best rate")
+        axis.legend()
+figure.suptitle("Standard deviation at its best rate against PSU at the deployable rate, 1 point per model")
+figure.tight_layout()
+plt.show()
+
+# %% claim4_table
+claim_4_rows = []
+for architecture in ARCHITECTURES:
+    for placement in PLACEMENTS:
+        frame = rows[(rows["architecture"] == architecture) & (rows["placement"] == placement) & ~rows["benign"]]
+        for attack, subset in frame.groupby("attack"):
+            claim_4_rows.append(
+                {
+                    "architecture": ARCHITECTURE_LABELS[architecture],
+                    "placement": PLACEMENT_LABELS[placement],
+                    "attack": attack,
+                    "models": len(subset),
+                    "std fails": int((subset["claim_4"] == "std fails").sum()),
+                    "median std AUROC at adaptive p": subset["auroc_std"].median(),
+                    "median std AUROC at best p": subset["auroc_std_best_rate"].median(),
+                    "median PSU ratio AUROC": subset["auroc_psu_ratio"].median(),
+                    "median clean std": subset["std_clean_paired"].median(),
+                    "median triggered std": subset["std_backdoor"].median(),
+                }
+            )
+claim_4 = pd.DataFrame(claim_4_rows).round(3)
+claim_4[claim_4["attack"].isin(["badnet_a2o", "wanet", "adaptive_blend", "blend"])]
+
+# %% best_residual_figure
+best = rows[(rows["architecture"] == "vit") & (rows["placement"] == BEST_RESIDUAL_PLACEMENT)]
+best_attacks = sorted(best.loc[~best["benign"], "attack"].unique())
+figure, axes = plt.subplots(1, 3, figsize=(12, 3.4))
+for axis, (value, label, threshold) in zip(
+    axes,
+    (
+        ("sigma_backdoor", "triggered shift ratio at the adaptive p", NEAR_ZERO_SHIFT),
+        ("validation_target_share", "share of shifted clean predictions on the target", ALMOST_ALL_ON_TARGET),
+        ("target_share_over_benign", "target share minus the benign model's share on that class", 0.0),
+    ),
+):
+    for position, attack in enumerate(best_attacks):
+        values = best.loc[(best["attack"] == attack) & ~best["benign"], value].dropna()
+        jitter = np.random.default_rng(position).uniform(-0.2, 0.2, len(values))
+        axis.scatter(position + jitter, values, s=12, color=OKABE_ITO[position % len(OKABE_ITO)])
+    if value == "validation_target_share":
+        benign_values = best.loc[best["benign"], "validation_target_share"]
+        axis.scatter(np.full(len(benign_values), len(best_attacks)), benign_values, marker="x", color="black", s=20)
+        axis.set_xticks(range(len(best_attacks) + 1))
+        axis.set_xticklabels([*best_attacks, "benign, class 0"], rotation=40, ha="right")
+    else:
+        axis.set_xticks(range(len(best_attacks)))
+        axis.set_xticklabels(best_attacks, rotation=40, ha="right")
+    axis.axhline(threshold, color="grey", linestyle="--", linewidth=0.8)
+    axis.set_ylabel(label, fontsize=7)
+figure.suptitle(f"ViT-B/16, {PLACEMENT_LABELS[BEST_RESIDUAL_PLACEMENT]}, 1 point per model at its adaptive rate")
+figure.tight_layout()
+plt.show()
+
+# %% best_residual_table
+best_rows = []
+for attack, subset in best[~best["benign"]].groupby("attack"):
+    best_rows.append(
+        {
+            "attack": attack,
+            "models": len(subset),
+            "claim 1 holds": int((subset["claim_1"] == "holds").sum()),
+            "median triggered sigma": subset["sigma_backdoor"].median(),
+            "claim 2 holds": int((subset["claim_2"] == "holds").sum()),
+            "target leads": int((subset["validation_top_class"] == subset["target_label"]).sum()),
+            "median target share": subset["validation_target_share"].median(),
+            "median excess over benign": subset["target_share_over_benign"].median(),
+            "median PSU ratio AUROC": subset["auroc_psu_ratio"].median(),
+        }
+    )
+best_features = feature_rows[feature_rows["condition"] == "br_adaptive"][
+    ["folder", "probe", "rate", "cosine_pair_off", "cosine_pair_shared", "cosine_unrelated_on",
+     "cosine_pair_independent", "cosine_unrelated_independent", "clean_toward_triggered_off",
+     "clean_toward_triggered_on", "clean_on_target", "triggered_on_target", "claim_3"]
+]
+display(pd.DataFrame(best_rows).round(3))
+best_features.round(3)
+
+# %% summary_table
+summary_rows = []
+for entry in summary["overall"]:
+    claim_4_entry = entry["claim_4"]
+    summary_rows.append(
+        {
+            "architecture": ARCHITECTURE_LABELS[entry["architecture"]],
+            "placement": PLACEMENT_LABELS[entry["placement"]],
+            "poisoned models": entry["models"],
+            "claim 1 shift ratio": f"{entry['claim_1']['verdict']} ({entry['claim_1']['counts'].get('holds', 0)} of {entry['claim_1']['total']} hold, median triggered sigma {entry['median_backdoor_sigma']:.2f})",
+            "claim 1 benign control": entry["claim_1_benign"]["verdict"] or "no benign model",
+            "claim 2 target": f"{entry['claim_2']['verdict']} ({entry['claim_2']['counts'].get('holds', 0)} of {entry['claim_2']['total']} hold, median target share {entry['median_target_share']:.2f})",
+            "claim 3 features": (
+                f"{entry['claim_3']['verdict']} ({entry['claim_3']['counts'].get('holds', 0)} of {entry['claim_3']['total']} readings hold)"
+                if entry["claim_3"]["verdict"]
+                else "not measured"
+            ),
+            "claim 4 std": f"{claim_4_entry['verdict']} (median std AUROC {entry['median_auroc_std_best_rate']:.2f} at its best p, PSU ratio {entry['median_auroc_psu_ratio']:.2f})",
+        }
+    )
+pd.DataFrame(summary_rows)

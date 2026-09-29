@@ -1,0 +1,123 @@
+{
+ "folder": "resnet18_gtsrb_badnet_a2o_0_1",
+ "architecture": "resnet18",
+ "dataset": "gtsrb",
+ "attack": "badnet_a2o",
+ "last_layer": 8,
+ "conditions": [
+  {
+   "name": "unperturbed",
+   "placement": null,
+   "rate": 0.0
+  },
+  {
+   "name": "rd_adaptive",
+   "placement": "post_residual",
+   "rate": 0.5,
+   "rate_rule": "adaptive"
+  },
+  {
+   "name": "rd_paper",
+   "placement": "post_residual",
+   "rate": 0.91,
+   "rate_rule": "paper"
+  }
+ ],
+ "probes": {
+  "badnet_a2o": {
+   "pairs": 256,
+   "target": 0,
+   "example_row": 0,
+   "cache_agreement": {
+    "clean": 1.0,
+    "triggered": 1.0
+   },
+   "conditions": {
+    "unperturbed": {
+     "cosine_pair": 0.29206767678260803,
+     "cosine_pair_centered": 0.12655845284461975,
+     "cosine_unrelated_clean": 0.35536685585975647,
+     "cosine_unrelated_clean_centered": 0.02584000863134861,
+     "cosine_pooled_pair": 0.3322397470474243,
+     "cosine_pooled_unrelated_clean": 0.3709717094898224,
+     "cka_pair": 0.8258446440549282,
+     "clean_to_unperturbed_triggered_centered": 0.12655845284461975,
+     "clean_self_centered": 1.0,
+     "triggered_self_centered": 0.9999999403953552,
+     "paper_matched_channel_share": 0.3757781982421875,
+     "clean_on_target": 0.0,
+     "triggered_on_target": 1.0
+    },
+    "rd_adaptive": {
+     "shared_mask": {
+      "cosine_pair": 0.7819487253824869,
+      "cosine_pair_centered": 0.7670230269432068,
+      "cosine_unrelated_clean": 0.7296178738276163,
+      "cosine_unrelated_clean_centered": 0.7001023292541504,
+      "cosine_pooled_pair": 0.8125624656677246,
+      "cosine_pooled_unrelated_clean": 0.8497563997904459,
+      "cka_pair": 0.33091790086488676,
+      "clean_to_unperturbed_triggered_centered": 0.08611541986465454,
+      "clean_self_centered": 0.0409171295662721,
+      "triggered_self_centered": 0.32951830824216205,
+      "paper_matched_channel_share": 0.37180836995442706,
+      "clean_on_target": 0.5546875,
+      "triggered_on_target": 0.9947916666666666
+     },
+     "independent_mask": {
+      "cosine_pair": 0.13521140813827515,
+      "cosine_pair_centered": 0.06584952274958293,
+      "cosine_unrelated_clean": 0.15101604660352072,
+      "cosine_unrelated_clean_centered": 0.05754226818680763,
+      "cosine_pooled_pair": 0.5802537401517233,
+      "cosine_pooled_unrelated_clean": 0.6429539322853088,
+      "cka_pair": 0.01809723506067022,
+      "clean_to_unperturbed_triggered_centered": 0.08611541986465454,
+      "clean_self_centered": 0.0409171295662721,
+      "triggered_self_centered": 0.3344830473264058,
+      "paper_matched_channel_share": 0.06928761800130208,
+      "clean_on_target": 0.5546875,
+      "triggered_on_target": 0.9986979166666666
+     }
+    },
+    "rd_paper": {
+     "shared_mask": {
+      "cosine_pair": 0.9893219669659933,
+      "cosine_pair_centered": 0.9893216490745544,
+      "cosine_unrelated_clean": 0.7790302236874899,
+      "cosine_unrelated_clean_centered": 0.7790212432543436,
+      "cosine_pooled_pair": 0.9899620413780212,
+      "cosine_pooled_unrelated_clean": 0.7881922721862793,
+      "cka_pair": 0.9897942105454032,
+      "clean_to_unperturbed_triggered_centered": 0.009077722206711769,
+      "clean_self_centered": -0.00044755028405537206,
+      "triggered_self_centered": 0.009975976310670376,
+      "paper_matched_channel_share": 0.04421234130859375,
+      "clean_on_target": 0.3841145833333333,
+      "triggered_on_target": 0.4075520833333333
+     },
+     "independent_mask": {
+      "cosine_pair": 0.0033577480353415012,
+      "cosine_pair_centered": 0.0033165664256860814,
+      "cosine_unrelated_clean": 0.0033651748672127724,
+      "cosine_unrelated_clean_centered": 0.003323435860996445,
+      "cosine_pooled_pair": 0.052978220085302986,
+      "cosine_pooled_unrelated_clean": 0.05208375056584676,
+      "cka_pair": 0.0017891371878483483,
+      "clean_to_unperturbed_triggered_centered": 0.009077722206711769,
+      "clean_self_centered": -0.00044755028405537206,
+      "triggered_self_centered": 0.010455460287630558,
+      "paper_matched_channel_share": 2.0345052083333332e-05,
+      "clean_on_target": 0.3841145833333333,
+      "triggered_on_target": 0.4270833333333333
+     }
+    }
+   }
+  }
+ },
+ "seconds": 2.1,
+ "gpu": {
+  "device": "NVIDIA A100-PCIE-40GB",
+  "peak_allocated_gb": 0.15
+ }
+}

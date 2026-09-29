@@ -1,0 +1,137 @@
+{
+ "folder": "vit_cifar100_blend_0_1",
+ "architecture": "vit",
+ "precision": "bfloat16",
+ "gate_2_shift_ratio": {
+  "baseline_prediction_agreement": 1.0,
+  "rows": [
+   {
+    "placement": "post_residual",
+    "rate": 0.03,
+    "ours": 0.3230000138282776,
+    "cached": 0.31583333015441895,
+    "gap": 0.007166683673858643
+   },
+   {
+    "placement": "post_residual",
+    "rate": 0.07,
+    "ours": 0.9663333296775818,
+    "cached": 0.9611666798591614,
+    "gap": 0.00516664981842041
+   },
+   {
+    "placement": "post_residual",
+    "rate": 0.09,
+    "ours": 0.9838333129882812,
+    "cached": 0.9835000038146973,
+    "gap": 0.0003333091735839844
+   },
+   {
+    "placement": "before_attention_norm_token_mask",
+    "rate": 0.3,
+    "ours": 0.42933332920074463,
+    "cached": 0.4181666672229767,
+    "gap": 0.011166661977767944
+   },
+   {
+    "placement": "before_attention_norm_token_mask",
+    "rate": 0.5,
+    "ours": 0.862500011920929,
+    "cached": 0.85916668176651,
+    "gap": 0.0033333301544189453
+   },
+   {
+    "placement": "before_attention_norm_token_mask",
+    "rate": 0.7,
+    "ours": 0.965666651725769,
+    "cached": 0.9671666622161865,
+    "gap": 0.0015000104904174805
+   }
+  ],
+  "tolerance": 0.03,
+  "passes": true
+ },
+ "gate_1_metrics": {
+  "clean_accuracy": 0.817799985408783,
+  "attack_success_rate": 1.0,
+  "recorded": {
+   "source": "metrics.json",
+   "clean_accuracy": 0.8178,
+   "asr": 1.0
+  },
+  "clean_accuracy_gap": 1.459121701241628e-08,
+  "attack_success_gap": 0.0,
+  "passes": true
+ },
+ "gate_3_pairs": {
+  "backdoor_set_class": "AttackSuccessSet",
+  "is_attack_success_set": true,
+  "pairs": 7915,
+  "backdoor_labels": [
+   0
+  ],
+  "clean_labels_of_pairs_include_target": false,
+  "changed_pixel_share_mean": 1.0,
+  "changed_pixel_share_max": 1.0,
+  "pixel_correlation_min": 0.563157320022583,
+  "pixel_correlation_mean": 0.9362934827804565,
+  "passes": true
+ },
+ "gate_4_state": {
+  "modules_in_training_mode": [],
+  "model_owned_dropouts": {
+   "1.encoder.dropout": 0.0,
+   "1.encoder.layers.encoder_layer_0.dropout": 0.0,
+   "1.encoder.layers.encoder_layer_0.mlp.2": 0.0,
+   "1.encoder.layers.encoder_layer_0.mlp.4": 0.0,
+   "1.encoder.layers.encoder_layer_1.dropout": 0.0,
+   "1.encoder.layers.encoder_layer_1.mlp.2": 0.0,
+   "1.encoder.layers.encoder_layer_1.mlp.4": 0.0,
+   "1.encoder.layers.encoder_layer_2.dropout": 0.0,
+   "1.encoder.layers.encoder_layer_2.mlp.2": 0.0,
+   "1.encoder.layers.encoder_layer_2.mlp.4": 0.0,
+   "1.encoder.layers.encoder_layer_3.dropout": 0.0,
+   "1.encoder.layers.encoder_layer_3.mlp.2": 0.0,
+   "1.encoder.layers.encoder_layer_3.mlp.4": 0.0,
+   "1.encoder.layers.encoder_layer_4.dropout": 0.0,
+   "1.encoder.layers.encoder_layer_4.mlp.2": 0.0,
+   "1.encoder.layers.encoder_layer_4.mlp.4": 0.0,
+   "1.encoder.layers.encoder_layer_5.dropout": 0.0,
+   "1.encoder.layers.encoder_layer_5.mlp.2": 0.0,
+   "1.encoder.layers.encoder_layer_5.mlp.4": 0.0,
+   "1.encoder.layers.encoder_layer_6.dropout": 0.0,
+   "1.encoder.layers.encoder_layer_6.mlp.2": 0.0,
+   "1.encoder.layers.encoder_layer_6.mlp.4": 0.0,
+   "1.encoder.layers.encoder_layer_7.dropout": 0.0,
+   "1.encoder.layers.encoder_layer_7.mlp.2": 0.0,
+   "1.encoder.layers.encoder_layer_7.mlp.4": 0.0,
+   "1.encoder.layers.encoder_layer_8.dropout": 0.0,
+   "1.encoder.layers.encoder_layer_8.mlp.2": 0.0,
+   "1.encoder.layers.encoder_layer_8.mlp.4": 0.0,
+   "1.encoder.layers.encoder_layer_9.dropout": 0.0,
+   "1.encoder.layers.encoder_layer_9.mlp.2": 0.0,
+   "1.encoder.layers.encoder_layer_9.mlp.4": 0.0,
+   "1.encoder.layers.encoder_layer_10.dropout": 0.0,
+   "1.encoder.layers.encoder_layer_10.mlp.2": 0.0,
+   "1.encoder.layers.encoder_layer_10.mlp.4": 0.0,
+   "1.encoder.layers.encoder_layer_11.dropout": 0.0,
+   "1.encoder.layers.encoder_layer_11.mlp.2": 0.0,
+   "1.encoder.layers.encoder_layer_11.mlp.4": 0.0
+  },
+  "hooks_before": 0,
+  "hooks_after": 0,
+  "forward_wrappers_left": 0,
+  "unperturbed_predictions_unchanged": true,
+  "resampling": {
+   "post_residual": {
+    "same_seed_identical": true,
+    "new_seed_differs_share": 0.7493861317634583
+   },
+   "before_attention_norm_token_mask": {
+    "same_seed_identical": true,
+    "new_seed_differs_share": 0.999984860420227
+   }
+  },
+  "passes": true
+ }
+}

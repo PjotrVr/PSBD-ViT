@@ -1,0 +1,200 @@
+{
+ "folder": "vit_cifar10_lf_0_1",
+ "architecture": "vit",
+ "dataset": "cifar10",
+ "attack": "lf",
+ "last_layer": 12,
+ "conditions": [
+  {
+   "name": "unperturbed",
+   "placement": null,
+   "rate": 0.0
+  },
+  {
+   "name": "rd_adaptive",
+   "placement": "post_residual",
+   "rate": 0.09,
+   "rate_rule": "adaptive"
+  },
+  {
+   "name": "rd_paper",
+   "placement": "post_residual",
+   "rate": 0.91,
+   "rate_rule": "paper"
+  },
+  {
+   "name": "tm_adaptive",
+   "placement": "before_attention_norm_token_mask",
+   "rate": 0.6,
+   "rate_rule": "adaptive"
+  },
+  {
+   "name": "br_adaptive",
+   "placement": "pre_residual_blocks_5_8",
+   "rate": 0.9,
+   "rate_rule": "adaptive"
+  }
+ ],
+ "probes": {
+  "lf": {
+   "pairs": 256,
+   "target": 0,
+   "example_row": 0,
+   "cache_agreement": {
+    "clean": 1.0,
+    "triggered": 1.0
+   },
+   "conditions": {
+    "unperturbed": {
+     "cosine_pair": 0.7772629261016846,
+     "cosine_pair_centered": 0.547096312046051,
+     "cosine_unrelated_clean": 0.5545154213905334,
+     "cosine_unrelated_clean_centered": 0.0011016302742064,
+     "cosine_pooled_pair": 0.11004095524549484,
+     "cosine_pooled_unrelated_clean": 0.1302862912416458,
+     "cka_pair": 0.7055599594796584,
+     "clean_to_unperturbed_triggered_centered": 0.547096312046051,
+     "clean_self_centered": 1.0000017881393433,
+     "triggered_self_centered": 1.0000017881393433,
+     "paper_matched_channel_share": 0.2185465544462204,
+     "clean_on_target": 0.0078125,
+     "triggered_on_target": 1.0
+    },
+    "rd_adaptive": {
+     "shared_mask": {
+      "cosine_pair": 0.9114982883135477,
+      "cosine_pair_centered": 0.9037530223528544,
+      "cosine_unrelated_clean": 0.5175095001856486,
+      "cosine_unrelated_clean_centered": 0.4725857377052307,
+      "cosine_pooled_pair": 0.9641668001810709,
+      "cosine_pooled_unrelated_clean": 0.9034752051035563,
+      "cka_pair": 0.901954113018793,
+      "clean_to_unperturbed_triggered_centered": 0.20810546477635702,
+      "clean_self_centered": 0.1619704614082972,
+      "triggered_self_centered": 0.2719682256380717,
+      "paper_matched_channel_share": 0.22320556640625,
+      "clean_on_target": 0.30859375,
+      "triggered_on_target": 0.8502604166666666
+     },
+     "independent_mask": {
+      "cosine_pair": 0.21610296269257864,
+      "cosine_pair_centered": 0.14849978188673654,
+      "cosine_unrelated_clean": 0.1741072634855906,
+      "cosine_unrelated_clean_centered": 0.09666002293427785,
+      "cosine_pooled_pair": 0.12255289902289708,
+      "cosine_pooled_unrelated_clean": 0.10880672683318456,
+      "cka_pair": 0.5606791633515691,
+      "clean_to_unperturbed_triggered_centered": 0.20810546477635702,
+      "clean_self_centered": 0.1619704614082972,
+      "triggered_self_centered": 0.27157209316889447,
+      "paper_matched_channel_share": 0.0005035400390625,
+      "clean_on_target": 0.30859375,
+      "triggered_on_target": 0.8333333333333334
+     }
+    },
+    "rd_paper": {
+     "shared_mask": {
+      "cosine_pair": 0.9999883572260538,
+      "cosine_pair_centered": 1.0000052054723103,
+      "cosine_unrelated_clean": 0.9999395211537679,
+      "cosine_unrelated_clean_centered": 0.9999563296635946,
+      "cosine_pooled_pair": 0.9999901453653971,
+      "cosine_pooled_unrelated_clean": 0.9999515612920126,
+      "cka_pair": 0.9999870171284116,
+      "clean_to_unperturbed_triggered_centered": 0.013447827969988188,
+      "clean_self_centered": -0.00011845436529256403,
+      "triggered_self_centered": 0.013450408975283304,
+      "paper_matched_channel_share": 0.9903428753217062,
+      "clean_on_target": 0.11588541666666667,
+      "triggered_on_target": 0.1171875
+     },
+     "independent_mask": {
+      "cosine_pair": 0.00014047524018678814,
+      "cosine_pair_centered": 0.004242011268312733,
+      "cosine_unrelated_clean": 0.00014063287865913784,
+      "cosine_unrelated_clean_centered": 0.0042433179914951324,
+      "cosine_pooled_pair": 0.015474095940589905,
+      "cosine_pooled_unrelated_clean": 0.015481715401013693,
+      "cka_pair": 0.0008560699026485243,
+      "clean_to_unperturbed_triggered_centered": 0.013447827969988188,
+      "clean_self_centered": -0.00011845436529256403,
+      "triggered_self_centered": 0.013770868380864462,
+      "paper_matched_channel_share": 0.0387607142329216,
+      "clean_on_target": 0.11588541666666667,
+      "triggered_on_target": 0.11588541666666667
+     }
+    },
+    "tm_adaptive": {
+     "shared_mask": {
+      "cosine_pair": 0.9348451097806295,
+      "cosine_pair_centered": 0.8139330546061198,
+      "cosine_unrelated_clean": 0.8037543296813965,
+      "cosine_unrelated_clean_centered": 0.3988282382488251,
+      "cosine_pooled_pair": 0.5504046479860941,
+      "cosine_pooled_unrelated_clean": 0.8841121991475424,
+      "cka_pair": 0.8598315183346142,
+      "clean_to_unperturbed_triggered_centered": 0.3061746656894684,
+      "clean_self_centered": 0.36720600724220276,
+      "triggered_self_centered": 0.5231053233146667,
+      "paper_matched_channel_share": 0.4458092550436656,
+      "clean_on_target": 0.125,
+      "triggered_on_target": 0.9934895833333334
+     },
+     "independent_mask": {
+      "cosine_pair": 0.8795760273933411,
+      "cosine_pair_centered": 0.6564584771792094,
+      "cosine_unrelated_clean": 0.7824854453404745,
+      "cosine_unrelated_clean_centered": 0.33355628450711566,
+      "cosine_pooled_pair": 0.5490392645200094,
+      "cosine_pooled_unrelated_clean": 0.8835296829541525,
+      "cka_pair": 0.8099867172753973,
+      "clean_to_unperturbed_triggered_centered": 0.3061746656894684,
+      "clean_self_centered": 0.36720600724220276,
+      "triggered_self_centered": 0.522862176100413,
+      "paper_matched_channel_share": 0.2978973388671875,
+      "clean_on_target": 0.125,
+      "triggered_on_target": 0.9986979166666666
+     }
+    },
+    "br_adaptive": {
+     "shared_mask": {
+      "cosine_pair": 0.8870386282602946,
+      "cosine_pair_centered": 0.8879855275154114,
+      "cosine_unrelated_clean": 0.6937076052029928,
+      "cosine_unrelated_clean_centered": 0.6951528390248617,
+      "cosine_pooled_pair": 0.9538679321606954,
+      "cosine_pooled_unrelated_clean": 0.9302411874135336,
+      "cka_pair": 0.8941843848196358,
+      "clean_to_unperturbed_triggered_centered": 0.2085438221693039,
+      "clean_self_centered": 0.15397791067759195,
+      "triggered_self_centered": 0.2593155999978383,
+      "paper_matched_channel_share": 0.16715834041436514,
+      "clean_on_target": 0.3203125,
+      "triggered_on_target": 0.7395833333333334
+     },
+     "independent_mask": {
+      "cosine_pair": 0.16520193219184875,
+      "cosine_pair_centered": 0.17142639060815176,
+      "cosine_unrelated_clean": 0.11604096988836925,
+      "cosine_unrelated_clean_centered": 0.11996588110923767,
+      "cosine_pooled_pair": 0.13836906353632608,
+      "cosine_pooled_unrelated_clean": 0.1312128206094106,
+      "cka_pair": 0.5698065061805974,
+      "clean_to_unperturbed_triggered_centered": 0.2085438221693039,
+      "clean_self_centered": 0.15397791067759195,
+      "triggered_self_centered": 0.25894202788670856,
+      "paper_matched_channel_share": 0.0042945014623304205,
+      "clean_on_target": 0.3203125,
+      "triggered_on_target": 0.7200520833333334
+     }
+    }
+   }
+  }
+ },
+ "seconds": 43.8,
+ "gpu": {
+  "device": "NVIDIA A100-PCIE-40GB",
+  "peak_allocated_gb": 1.29
+ },
+ "added_seconds": 20.4
+}

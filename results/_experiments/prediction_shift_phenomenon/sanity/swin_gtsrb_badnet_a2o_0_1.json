@@ -1,0 +1,148 @@
+{
+ "folder": "swin_gtsrb_badnet_a2o_0_1",
+ "architecture": "swin",
+ "precision": "bfloat16",
+ "gate_2_shift_ratio": {
+  "baseline_prediction_agreement": 1.0,
+  "rows": [
+   {
+    "placement": "post_residual",
+    "rate": 0.03,
+    "ours": 0.19233334064483643,
+    "cached": 0.18566666543483734,
+    "gap": 0.0066666752099990845
+   },
+   {
+    "placement": "post_residual",
+    "rate": 0.07,
+    "ours": 0.7820000052452087,
+    "cached": 0.781499981880188,
+    "gap": 0.000500023365020752
+   },
+   {
+    "placement": "post_residual",
+    "rate": 0.09,
+    "ours": 0.9338333606719971,
+    "cached": 0.934166669845581,
+    "gap": 0.0003333091735839844
+   },
+   {
+    "placement": "before_attention_norm_token_mask",
+    "rate": 0.3,
+    "ours": 0.3616666793823242,
+    "cached": 0.3616666793823242,
+    "gap": 0.0
+   },
+   {
+    "placement": "before_attention_norm_token_mask",
+    "rate": 0.5,
+    "ours": 0.9950000047683716,
+    "cached": 0.9953333139419556,
+    "gap": 0.0003333091735839844
+   },
+   {
+    "placement": "before_attention_norm_token_mask",
+    "rate": 0.7,
+    "ours": 0.9959999918937683,
+    "cached": 0.9959999918937683,
+    "gap": 0.0
+   }
+  ],
+  "tolerance": 0.03,
+  "passes": true
+ },
+ "gate_1_metrics": {
+  "clean_accuracy": 0.9836896061897278,
+  "attack_success_rate": 1.0,
+  "recorded": {
+   "source": "metrics.json",
+   "clean_accuracy": 0.9836896278701505,
+   "asr": 1.0
+  },
+  "clean_accuracy_gap": 2.168042267935988e-08,
+  "attack_success_gap": 0.0,
+  "passes": true
+ },
+ "gate_3_pairs": {
+  "backdoor_set_class": "AttackSuccessSet",
+  "is_attack_success_set": true,
+  "pairs": 10578,
+  "backdoor_labels": [
+   0
+  ],
+  "clean_labels_of_pairs_include_target": false,
+  "changed_pixel_share_mean": 0.008645504713058472,
+  "changed_pixel_share_max": 0.0087890625,
+  "pixel_correlation_min": 0.1591731309890747,
+  "pixel_correlation_mean": 0.8575677275657654,
+  "passes": true
+ },
+ "gate_4_state": {
+  "modules_in_training_mode": [],
+  "model_owned_dropouts": {
+   "1.features.1.0.mlp.2": 0.0,
+   "1.features.1.0.mlp.4": 0.0,
+   "1.features.1.1.mlp.2": 0.0,
+   "1.features.1.1.mlp.4": 0.0,
+   "1.features.3.0.mlp.2": 0.0,
+   "1.features.3.0.mlp.4": 0.0,
+   "1.features.3.1.mlp.2": 0.0,
+   "1.features.3.1.mlp.4": 0.0,
+   "1.features.5.0.mlp.2": 0.0,
+   "1.features.5.0.mlp.4": 0.0,
+   "1.features.5.1.mlp.2": 0.0,
+   "1.features.5.1.mlp.4": 0.0,
+   "1.features.5.2.mlp.2": 0.0,
+   "1.features.5.2.mlp.4": 0.0,
+   "1.features.5.3.mlp.2": 0.0,
+   "1.features.5.3.mlp.4": 0.0,
+   "1.features.5.4.mlp.2": 0.0,
+   "1.features.5.4.mlp.4": 0.0,
+   "1.features.5.5.mlp.2": 0.0,
+   "1.features.5.5.mlp.4": 0.0,
+   "1.features.5.6.mlp.2": 0.0,
+   "1.features.5.6.mlp.4": 0.0,
+   "1.features.5.7.mlp.2": 0.0,
+   "1.features.5.7.mlp.4": 0.0,
+   "1.features.5.8.mlp.2": 0.0,
+   "1.features.5.8.mlp.4": 0.0,
+   "1.features.5.9.mlp.2": 0.0,
+   "1.features.5.9.mlp.4": 0.0,
+   "1.features.5.10.mlp.2": 0.0,
+   "1.features.5.10.mlp.4": 0.0,
+   "1.features.5.11.mlp.2": 0.0,
+   "1.features.5.11.mlp.4": 0.0,
+   "1.features.5.12.mlp.2": 0.0,
+   "1.features.5.12.mlp.4": 0.0,
+   "1.features.5.13.mlp.2": 0.0,
+   "1.features.5.13.mlp.4": 0.0,
+   "1.features.5.14.mlp.2": 0.0,
+   "1.features.5.14.mlp.4": 0.0,
+   "1.features.5.15.mlp.2": 0.0,
+   "1.features.5.15.mlp.4": 0.0,
+   "1.features.5.16.mlp.2": 0.0,
+   "1.features.5.16.mlp.4": 0.0,
+   "1.features.5.17.mlp.2": 0.0,
+   "1.features.5.17.mlp.4": 0.0,
+   "1.features.7.0.mlp.2": 0.0,
+   "1.features.7.0.mlp.4": 0.0,
+   "1.features.7.1.mlp.2": 0.0,
+   "1.features.7.1.mlp.4": 0.0
+  },
+  "hooks_before": 0,
+  "hooks_after": 0,
+  "forward_wrappers_left": 0,
+  "unperturbed_predictions_unchanged": true,
+  "resampling": {
+   "post_residual": {
+    "same_seed_identical": true,
+    "new_seed_differs_share": 0.4296875
+   },
+   "before_attention_norm_token_mask": {
+    "same_seed_identical": true,
+    "new_seed_differs_share": 0.0
+   }
+  },
+  "passes": false
+ }
+}

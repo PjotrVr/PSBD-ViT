@@ -1,7 +1,9 @@
 import nbformat
 from nbformat.v4 import new_code_cell, new_markdown_cell, new_notebook
 
-OUT = "/lustre/home/pstika/projects/PSBD-ViT/notebooks/how-every-number-is-computed.ipynb"
+OUT = (
+    "/lustre/home/pstika/projects/PSBD-ViT/notebooks/how-every-number-is-computed.ipynb"
+)
 cells = []
 
 

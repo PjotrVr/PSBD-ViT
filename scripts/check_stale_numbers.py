@@ -237,7 +237,13 @@ def tracked_documents() -> list[str]:
 
 
 def document_lines(path: str) -> list[str]:
-    """The prose lines of a document: a notebook's markdown and printed outputs."""
+    """The prose lines of a document: a notebook's markdown cells and rendered prose.
+
+    A notebook's result sentences are rendered as markdown outputs, which is where a
+    stale claim would sit. Printed tables and data frames are left out: a table of
+    every model's reading holds thousands of values, some of which equal an old
+    headline mean by coincidence, and those rows are data, not claims.
+    """
     with open(path, encoding="utf-8") as handle:
         text = handle.read()
     if not path.endswith(".ipynb"):
@@ -249,8 +255,8 @@ def document_lines(path: str) -> list[str]:
         if cell.get("cell_type") == "markdown":
             lines.extend("".join(cell.get("source", [])).splitlines())
         for output in cell.get("outputs", []):
-            printed = output.get("text") or output.get("data", {}).get("text/plain", [])
-            lines.extend("".join(printed).splitlines())
+            rendered = output.get("data", {}).get("text/markdown", [])
+            lines.extend("".join(rendered).splitlines())
     return lines
 
 

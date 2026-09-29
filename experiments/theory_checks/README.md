@@ -20,7 +20,7 @@
 
 ## Running
 
-From the repository root, on CPU, with `PYTHONPATH=. .venv/bin/python experiments/theory_checks/<script>.py`. `ladder.py` and `cache_read.py` take an output path, and the records the doc was built from are `results/_experiments/theory_checks/ladders.json` and `results/_experiments/theory_checks/cache_read.json`, which `fit.py` and `summ.py` read.
+Run each script on CPU from the repository root with `PYTHONPATH=. .venv/bin/python experiments/theory_checks/<script>.py`. `ladder.py` and `cache_read.py` take an output path, and the records the doc was built from are `results/_experiments/theory_checks/ladders.json` and `results/_experiments/theory_checks/cache_read.json`, which `fit.py` and `summ.py` read.
 
 ## Status
 

@@ -49,6 +49,7 @@ def main():
             "compute_control_vit",
             "gpu_plan",
             "fusion_swin_panel",
+            "fusion_swin_panel_late",
         )
     }
     records["prereg_classcal"] = read(class_calibration.PREREGISTRATION)
@@ -113,6 +114,7 @@ def placeholder_values(records):
     values.update(control_values(records))
     values.update(plan_values(records))
     values.update(swin_values(records))
+    values.update(swin_late_values(records))
     return values
 
 
@@ -745,6 +747,129 @@ def swin_values(records):
     return values
 
 
+def swin_late_values(records):
+    late = records["fusion_swin_panel_late"]
+    prereg = read(
+        os.path.join(REPO_ROOT, "experiments", SLUG, "preregistration_swin_late.json")
+    )
+    coverage = late["coverage"]
+    readings = {
+        "adaptive_only": "adaptive rate only",
+        "with_nearest": "with the nearest-rate models",
+    }
+    methods = ("psbd_tm", "final_min", "final_average")
+
+    verdict_rows = []
+    for reading, words in readings.items():
+        for r in late["verdicts"][reading]:
+            verdict_rows.append(
+                [r["id"], words, r["n"]]
+                + [delta(r["readings"][f"{q}:tpr"]) for q in HEADLINE]
+                + [r["verdict"]]
+            )
+
+    def overall_rows(reading):
+        group = late["summary"][reading]["all"]
+        rows = [
+            [METHOD_WORDS[m]]
+            + [
+                f"{f3(group[m][f'{q}:tpr']['mean'])} ({delta(group[m][f'{q}:tpr'])})"
+                for q in HEADLINE
+            ]
+            + [f3(group[m][f"{q}:realized_fpr"]["mean"]) for q in HEADLINE]
+            + [f3(group[m]["auroc"]["mean"])]
+            for m in methods
+        ]
+        return rows
+
+    def group_rows(reading):
+        rows = []
+        for name, group in late["summary"][reading].items():
+            if name == "all":
+                continue
+            label = name.replace("attack=", "").replace("poison_rate=", "rate ")
+            rows.append(
+                [f"{label} ({group['n']})"]
+                + [
+                    " / ".join(f3(group[m][f"{q}:tpr"]["mean"]) for q in HEADLINE)
+                    for m in methods
+                ]
+                + [f3(group[m]["q0.01:realized_fpr"]["mean"]) for m in methods]
+            )
+        return rows
+
+    overall_header = [
+        "method",
+        "TPR 1% (minus PSBD-TM)",
+        "TPR 5% (minus PSBD-TM)",
+        "TPR 10% (minus PSBD-TM)",
+        "FPR 1%",
+        "FPR 5%",
+        "FPR 10%",
+        "AUROC",
+    ]
+    group_header = (
+        ["group (models)"]
+        + [f"{METHOD_WORDS[m]}, TPR 1 / 5 / 10%" for m in methods]
+        + [f"{METHOD_WORDS[m]}, FPR 1%" for m in methods]
+    )
+    verdict = {
+        reading: {r["id"]: r["verdict"] for r in late["verdicts"][reading]}
+        for reading in readings
+    }
+    assert verdict["adaptive_only"]["SWIN2-min-tpr"] == "held"
+    assert verdict["adaptive_only"]["SWIN2-min-wanet"] == "held"
+    assert verdict["adaptive_only"]["SWIN2-average-tpr"] == "inconclusive"
+    assert verdict["with_nearest"]["SWIN2-average-tpr"] == "held"
+    badnet = late["summary"]["adaptive_only"]["attack=badnet_a2o"]["final_min"][
+        "q0.01:tpr"
+    ]
+    assert badnet["mean_difference"] < 0
+    wanet = late["summary"]["adaptive_only"]["attack=wanet"]
+    small = max(
+        abs(
+            late["summary"]["adaptive_only"][f"attack={a}"]["final_min"]["q0.01:tpr"][
+                "mean_difference"
+            ]
+        )
+        for a in ("blend", "lf", "bpp")
+    )
+    assert small < 0.01
+    shifts = [n["max_validation_shift"] for n in coverage["partner_nearest"]]
+    values = {
+        "SWIN2_HASH": late["preregistration_sha256"],
+        "SWIN2_TIME": prereg["written_at"],
+        "SWIN2_PANEL": f"{coverage['n_panel']}",
+        "SWIN2_ANCHOR": f"{coverage['n_anchor_reaches']}",
+        "SWIN2_REACH": f"{coverage['n_partner_reaches']}",
+        "SWIN2_NEAREST": f"{len(coverage['partner_nearest'])}",
+        "SWIN2_NEAREST_LOW": f3(min(shifts)),
+        "SWIN2_NEAREST_HIGH": f3(max(shifts)),
+        "SWIN2_WANET_N": f"{wanet['n']}",
+        "SWIN2_SMALL": f3(small),
+        "SWIN2_WANET_TM1": f3(wanet["psbd_tm"]["q0.01:tpr"]["mean"]),
+        "SWIN2_WANET_MIN1": f3(wanet["final_min"]["q0.01:tpr"]["mean"]),
+        "SWIN2_BADNET_MIN1": delta(badnet),
+        "TABLE_SWIN2_VERDICTS": table(
+            [
+                "prediction",
+                "reading",
+                "models",
+                "TPR 1% minus PSBD-TM",
+                "TPR 5% minus PSBD-TM",
+                "TPR 10% minus PSBD-TM",
+                "verdict",
+            ],
+            verdict_rows,
+        ),
+        "TABLE_SWIN2_ADAPTIVE": table(overall_header, overall_rows("adaptive_only")),
+        "TABLE_SWIN2_NEAREST": table(overall_header, overall_rows("with_nearest")),
+        "TABLE_SWIN2_GROUPS_ADAPTIVE": table(group_header, group_rows("adaptive_only")),
+        "TABLE_SWIN2_GROUPS_NEAREST": table(group_header, group_rows("with_nearest")),
+    }
+    return values
+
+
 def plan_values(records):
     plan = records["gpu_plan"]
     rows = [
@@ -850,7 +975,7 @@ On the @@DET_N@@ ViT panel models the final method leads every competitor at 1%,
 
 ![final method and the competitor detectors](figures/detector_comparison.png)
 
-## The second probe on Swin-S
+## Swin second probe, attempt 1
 
 The middle band does not carry over to Swin-S as a second probe, and both pre-registered predictions failed. `experiments/cache_readouts/preregistration_swin.json` fixed the band (blocks 9 to 16), both rules and the prediction that TPR at 1%, 5% and 10% FPR rises above PSBD-TM alone at @@SWIN_PREREG_TIME@@, before any triggered score of the band was read, and `fusion_readout.py --set swin_panel` read it once (SHA-256 `@@SWIN_HASH@@`). The band was already cached on every Swin panel model that PSBD-TM can score, so no sweep was needed. @@SWIN_SCORED@@ of @@SWIN_N@@ successful Swin-S models are scored. @@SWIN_UNSCORED@@ never reach the adaptive target under PSBD-TM itself, so neither PSBD-TM nor the final method has a rate for them (`fusion_swin_panel.json`).
 
@@ -861,6 +986,32 @@ The middle band does not carry over to Swin-S as a second probe, and both pre-re
 **Per attack, TPR at 1% / 5% / 10% FPR.**
 
 @@TABLE_SWIN_ATTACK@@
+
+## Swin second probe, attempt 2
+
+The late band carries over under the min rule, which was the 2nd and last pre-registered attempt. `preregistration_swin_late.json` (SHA-256 `@@SWIN2_HASH@@`, written at @@SWIN2_TIME@@ before any detection number of the band was read) chose residual dropout in Swin-S blocks 17 to 24 from the depth of WaNet's backdoor direction in `experiments/backdoor_manifestation/`, onset median 16 and range 15 to 23 of 24 blocks, a measurement that never reads detection. `swin_late_readout.py` read it once (`fusion_swin_panel_late.json`).
+
+The min rule held every prediction. On the models where both placements reach the adaptive target it raises TPR at 1%, 5% and 10% FPR with every interval above 0, and on the @@SWIN2_WANET_N@@ WaNet models TPR at 1% FPR rises from @@SWIN2_WANET_TM1@@ to @@SWIN2_WANET_MIN1@@. The average rule is inconclusive on that reading because 2 of its intervals touch 0. It holds once the nearest-rate models are added. The gain is concentrated. BadNets loses @@SWIN2_BADNET_MIN1@@ at 1% FPR under the min rule. Blend, LF and BPP move by at most @@SWIN2_SMALL@@ there. WaNet carries most of the gain. As a 2nd attempt chosen after the 1st failed, it carries a selection cost the interval does not include.
+
+Coverage is partial. PSBD-TM reaches the adaptive target on @@SWIN2_ANCHOR@@ of @@SWIN2_PANEL@@ successful Swin-S models and the late band on @@SWIN2_REACH@@. The largest clean-validation shift of the other @@SWIN2_NEAREST@@ lies between @@SWIN2_NEAREST_LOW@@ and @@SWIN2_NEAREST_HIGH@@, so the primary reading covers @@SWIN2_REACH@@ models and the labeled second reading adds the @@SWIN2_NEAREST@@ at their nearest rate (`coverage`).
+
+@@TABLE_SWIN2_VERDICTS@@
+
+**Adaptive rate only.**
+
+@@TABLE_SWIN2_ADAPTIVE@@
+
+**With the nearest-rate models, labeled.**
+
+@@TABLE_SWIN2_NEAREST@@
+
+**Per attack and per poison rate, adaptive rate only.** TPR at 1% / 5% / 10% FPR and the realized FPR at 1%.
+
+@@TABLE_SWIN2_GROUPS_ADAPTIVE@@
+
+**Per attack and per poison rate, with the nearest-rate models.**
+
+@@TABLE_SWIN2_GROUPS_NEAREST@@
 
 ## Adaptive attackers on disk
 

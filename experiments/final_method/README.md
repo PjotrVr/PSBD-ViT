@@ -211,7 +211,7 @@ On the 54 ViT panel models the final method leads every competitor at 1%, 5% and
 
 ![final method and the competitor detectors](figures/detector_comparison.png)
 
-## The second probe on Swin-S
+## Swin second probe, attempt 1
 
 The middle band does not carry over to Swin-S as a second probe, and both pre-registered predictions failed. `experiments/cache_readouts/preregistration_swin.json` fixed the band (blocks 9 to 16), both rules and the prediction that TPR at 1%, 5% and 10% FPR rises above PSBD-TM alone at 2026-09-29T21:57:00Z, before any triggered score of the band was read, and `fusion_readout.py --set swin_panel` read it once (SHA-256 `383a280f7fd2294b71237ba38e7311ddac21f50b11f6280712e272329f29b565`). The band was already cached on every Swin panel model that PSBD-TM can score, so no sweep was needed. 63 of 65 successful Swin-S models are scored. `swin_cifar10_tact_0_01`, `swin_cifar10_tact_0_05` never reach the adaptive target under PSBD-TM itself, so neither PSBD-TM nor the final method has a rate for them (`fusion_swin_panel.json`).
 
@@ -236,6 +236,69 @@ The middle band does not carry over to Swin-S as a second probe, and both pre-re
 | bpp (12) | 0.893 / 0.918 / 0.938 | 0.883 / 0.910 / 0.925 | 0.860 / 0.890 / 0.904 |
 | wanet (8) | 0.333 / 0.704 / 0.872 | 0.426 / 0.717 / 0.879 | 0.463 / 0.655 / 0.857 |
 | adaptive_blend (7) | 0.795 / 0.821 / 0.824 | 0.816 / 0.821 / 0.823 | 0.817 / 0.820 / 0.822 |
+
+## Swin second probe, attempt 2
+
+The late band carries over under the min rule, which was the 2nd and last pre-registered attempt. `preregistration_swin_late.json` (SHA-256 `8889cbf9e9dd9573b1d58d182df5e1f2c9f27467f3c8e147d25f312db014aa91`, written at 2026-09-29T22:47:00Z before any detection number of the band was read) chose residual dropout in Swin-S blocks 17 to 24 from the depth of WaNet's backdoor direction in `experiments/backdoor_manifestation/`, onset median 16 and range 15 to 23 of 24 blocks, a measurement that never reads detection. `swin_late_readout.py` read it once (`fusion_swin_panel_late.json`).
+
+The min rule held every prediction. On the models where both placements reach the adaptive target it raises TPR at 1%, 5% and 10% FPR with every interval above 0, and on the 8 WaNet models TPR at 1% FPR rises from 0.333 to 0.889. The average rule is inconclusive on that reading because 2 of its intervals touch 0. It holds once the nearest-rate models are added. The gain is concentrated. BadNets loses -0.021 [-0.035, -0.008] at 1% FPR under the min rule. Blend, LF and BPP move by at most 0.005 there. WaNet carries most of the gain. As a 2nd attempt chosen after the 1st failed, it carries a selection cost the interval does not include.
+
+Coverage is partial. PSBD-TM reaches the adaptive target on 63 of 65 successful Swin-S models and the late band on 39. The largest clean-validation shift of the other 24 lies between 0.563 and 0.786, so the primary reading covers 39 models and the labeled second reading adds the 24 at their nearest rate (`coverage`).
+
+| prediction | reading | models | TPR 1% minus PSBD-TM | TPR 5% minus PSBD-TM | TPR 10% minus PSBD-TM | verdict |
+|---|---|---|---|---|---|---|
+| SWIN2-min-tpr | adaptive rate only | 39 | +0.114 [+0.036, +0.204] | +0.048 [+0.009, +0.094] | +0.018 [+0.004, +0.037] | held |
+| SWIN2-average-tpr | adaptive rate only | 39 | +0.031 [-0.002, +0.073] | +0.025 [+0.001, +0.056] | +0.013 [-0.000, +0.031] | inconclusive |
+| SWIN2-min-wanet | adaptive rate only | 8 | +0.556 [+0.344, +0.754] | +0.242 [+0.102, +0.392] | +0.079 [+0.022, +0.148] | held |
+| SWIN2-average-wanet | adaptive rate only | 8 | +0.170 [+0.050, +0.314] | +0.133 [+0.043, +0.248] | +0.065 [+0.013, +0.136] | held |
+| SWIN2-min-tpr | with the nearest-rate models | 63 | +0.084 [+0.031, +0.142] | +0.037 [+0.011, +0.068] | +0.015 [+0.004, +0.028] | held |
+| SWIN2-average-tpr | with the nearest-rate models | 63 | +0.024 [+0.002, +0.052] | +0.021 [+0.004, +0.042] | +0.011 [+0.000, +0.023] | held |
+| SWIN2-min-wanet | with the nearest-rate models | 8 | +0.556 [+0.344, +0.754] | +0.242 [+0.102, +0.392] | +0.079 [+0.022, +0.148] | held |
+| SWIN2-average-wanet | with the nearest-rate models | 8 | +0.170 [+0.050, +0.314] | +0.133 [+0.043, +0.248] | +0.065 [+0.013, +0.136] | held |
+
+**Adaptive rate only.**
+
+| method | TPR 1% (minus PSBD-TM) | TPR 5% (minus PSBD-TM) | TPR 10% (minus PSBD-TM) | FPR 1% | FPR 5% | FPR 10% | AUROC |
+|---|---|---|---|---|---|---|---|
+| PSBD-TM alone | 0.808 (+0.000 [+0.000, +0.000]) | 0.913 (+0.000 [+0.000, +0.000]) | 0.955 (+0.000 [+0.000, +0.000]) | 0.009 | 0.045 | 0.094 | 0.978 |
+| final method, min | 0.922 (+0.114 [+0.036, +0.204]) | 0.961 (+0.048 [+0.009, +0.094]) | 0.973 (+0.018 [+0.004, +0.037]) | 0.008 | 0.046 | 0.093 | 0.986 |
+| final method, average | 0.839 (+0.031 [-0.002, +0.073]) | 0.938 (+0.025 [+0.001, +0.056]) | 0.968 (+0.013 [-0.000, +0.031]) | 0.008 | 0.045 | 0.094 | 0.981 |
+
+**With the nearest-rate models, labeled.**
+
+| method | TPR 1% (minus PSBD-TM) | TPR 5% (minus PSBD-TM) | TPR 10% (minus PSBD-TM) | FPR 1% | FPR 5% | FPR 10% | AUROC |
+|---|---|---|---|---|---|---|---|
+| PSBD-TM alone | 0.824 (+0.000 [+0.000, +0.000]) | 0.905 (+0.000 [+0.000, +0.000]) | 0.939 (+0.000 [+0.000, +0.000]) | 0.009 | 0.044 | 0.092 | 0.973 |
+| final method, min | 0.908 (+0.084 [+0.031, +0.142]) | 0.942 (+0.037 [+0.011, +0.068]) | 0.954 (+0.015 [+0.004, +0.028]) | 0.009 | 0.045 | 0.093 | 0.977 |
+| final method, average | 0.849 (+0.024 [+0.002, +0.052]) | 0.926 (+0.021 [+0.004, +0.042]) | 0.949 (+0.011 [+0.000, +0.023]) | 0.009 | 0.045 | 0.093 | 0.973 |
+
+**Per attack and per poison rate, adaptive rate only.** TPR at 1% / 5% / 10% FPR and the realized FPR at 1%.
+
+| group (models) | PSBD-TM alone, TPR 1 / 5 / 10% | final method, min, TPR 1 / 5 / 10% | final method, average, TPR 1 / 5 / 10% | PSBD-TM alone, FPR 1% | final method, min, FPR 1% | final method, average, FPR 1% |
+|---|---|---|---|---|---|---|
+| badnet_a2o (7) | 0.982 / 0.994 / 0.999 | 0.962 / 0.991 / 0.999 | 0.954 / 0.979 / 0.998 | 0.009 | 0.009 | 0.009 |
+| blend (6) | 0.996 / 0.999 / 1.000 | 0.991 / 0.999 / 1.000 | 0.996 / 1.000 / 1.000 | 0.011 | 0.010 | 0.010 |
+| lf (7) | 0.791 / 0.905 / 0.936 | 0.794 / 0.887 / 0.936 | 0.789 / 0.904 / 0.935 | 0.009 | 0.009 | 0.009 |
+| bpp (6) | 0.982 / 0.994 / 0.996 | 0.978 / 0.994 / 0.997 | 0.983 / 0.995 / 0.997 | 0.009 | 0.010 | 0.008 |
+| wanet (8) | 0.333 / 0.704 / 0.872 | 0.889 / 0.946 / 0.951 | 0.503 / 0.837 / 0.937 | 0.006 | 0.006 | 0.006 |
+| adaptive_blend (5) | 0.912 / 0.948 / 0.949 | 0.946 / 0.962 / 0.968 | 0.926 / 0.948 / 0.950 | 0.007 | 0.006 | 0.007 |
+| rate 0.01 (9) | 0.888 / 0.952 / 0.974 | 0.875 / 0.939 / 0.977 | 0.867 / 0.944 / 0.976 | 0.010 | 0.010 | 0.010 |
+| rate 0.05 (15) | 0.757 / 0.903 / 0.942 | 0.905 / 0.948 / 0.956 | 0.787 / 0.930 / 0.948 | 0.008 | 0.007 | 0.008 |
+| rate 0.1 (15) | 0.810 / 0.901 / 0.957 | 0.966 / 0.987 / 0.988 | 0.875 / 0.942 / 0.983 | 0.009 | 0.008 | 0.008 |
+
+**Per attack and per poison rate, with the nearest-rate models.**
+
+| group (models) | PSBD-TM alone, TPR 1 / 5 / 10% | final method, min, TPR 1 / 5 / 10% | final method, average, TPR 1 / 5 / 10% | PSBD-TM alone, FPR 1% | final method, min, FPR 1% | final method, average, FPR 1% |
+|---|---|---|---|---|---|---|
+| badnet_a2o (12) | 0.989 / 0.996 / 1.000 | 0.976 / 0.995 / 0.999 | 0.971 / 0.987 / 0.999 | 0.008 | 0.009 | 0.008 |
+| blend (12) | 0.965 / 0.981 / 0.986 | 0.973 / 0.993 / 0.998 | 0.968 / 0.988 / 0.995 | 0.010 | 0.010 | 0.011 |
+| lf (12) | 0.796 / 0.907 / 0.942 | 0.851 / 0.921 / 0.955 | 0.821 / 0.929 / 0.953 | 0.009 | 0.009 | 0.009 |
+| bpp (12) | 0.893 / 0.918 / 0.938 | 0.898 / 0.920 / 0.931 | 0.890 / 0.918 / 0.931 | 0.009 | 0.009 | 0.009 |
+| wanet (8) | 0.333 / 0.704 / 0.872 | 0.889 / 0.946 / 0.951 | 0.503 / 0.837 / 0.937 | 0.006 | 0.006 | 0.006 |
+| adaptive_blend (7) | 0.795 / 0.821 / 0.824 | 0.819 / 0.833 / 0.841 | 0.805 / 0.822 / 0.826 | 0.007 | 0.007 | 0.008 |
+| rate 0.01 (16) | 0.811 / 0.891 / 0.927 | 0.847 / 0.904 / 0.936 | 0.818 / 0.904 / 0.934 | 0.009 | 0.010 | 0.010 |
+| rate 0.05 (23) | 0.788 / 0.889 / 0.917 | 0.887 / 0.921 / 0.929 | 0.806 / 0.907 / 0.922 | 0.008 | 0.008 | 0.008 |
+| rate 0.1 (24) | 0.869 / 0.930 / 0.967 | 0.970 / 0.987 / 0.990 | 0.910 / 0.958 / 0.987 | 0.008 | 0.008 | 0.008 |
 
 ## Adaptive attackers on disk
 

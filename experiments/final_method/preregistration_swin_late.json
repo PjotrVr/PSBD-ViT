@@ -1,0 +1,49 @@
+{
+  "written_at": "2026-09-29T22:47:00Z",
+  "attempt": "This is the 2nd attempt at a Swin-S second probe. The 1st, pre_residual_blocks_9_16 under experiments/cache_readouts/preregistration_swin.json, failed both predictions (results/_experiments/final_method/fusion_swin_panel.json). There will be no 3rd attempt, whatever this one reads.",
+  "written_before": "any detection number of pre_residual_blocks_17_24 on Swin-S was read by me. The cache exists on 238 Swin folders from earlier sweeps. docs/placements-and-operators.md, docs/placement-rationale.md and experiments/all_to_all_detection/README.md mention the band and were not opened for this choice.",
+  "band": "pre_residual_blocks_17_24, residual dropout before both adds in Swin-S blocks 17 to 24 of 24 (features.5.12 to features.5.17 of stage 3 and both blocks of stage 4)",
+  "rationale": "The band follows the depth at which WaNet's backdoor direction appears on Swin-S. In results/_experiments/backdoor_manifestation/runs/swin_*_wanet_*.json the onset_layer reads 17 (CIFAR-100), 15 (CIFAR-10), 15 (GTSRB) and 23 (Tiny ImageNet), median 16 and range 15 to 23 of 24 blocks. That experiment measures the linear direction of the backdoor in the residual stream and never reads a detection statistic. The 1st attempt's band, blocks 9 to 16, ends before or at every one of these onsets, while blocks 17 to 24 contain every onset past 16 and the late stream where the direction lives. On ViT the late residual band gave the largest WaNet gain (experiments/cache_readouts/README.md).",
+  "set": "the successful_2pt Swin-S panel models that PSBD-TM scores, scripts.paper.tab_swin.swin_cells, the same 63 of 65 as attempt 1",
+  "method": {
+    "anchor": "before_attention_norm_token_mask at its adaptive rate",
+    "partner": "pre_residual_blocks_17_24 at its adaptive rate, and at the rate nearest the target where the ladder never reaches it, labeled nearest",
+    "rules": {
+      "min": "min of the 2 clean-validation percentiles",
+      "average": "mean of the 2 fractional PSUs"
+    },
+    "reference": "PSBD-TM alone on the same models",
+    "thresholds": "quantile of each score's own clean-validation distribution, realized FPR read on the paired clean test split"
+  },
+  "predictions": [
+    {
+      "id": "SWIN2-min-tpr",
+      "text": "under the min rule mean TPR at 1%, 5% and 10% nominal FPR is above PSBD-TM alone on the Swin panel, at each of the 3 FPRs",
+      "rule_name": "min_rank",
+      "group": "all",
+      "fields": ["q0.01:tpr", "q0.05:tpr", "q0.10:tpr"]
+    },
+    {
+      "id": "SWIN2-average-tpr",
+      "text": "under the average rule mean TPR at 1%, 5% and 10% nominal FPR is above PSBD-TM alone on the Swin panel, at each of the 3 FPRs",
+      "rule_name": "mean_psu",
+      "group": "all",
+      "fields": ["q0.01:tpr", "q0.05:tpr", "q0.10:tpr"]
+    },
+    {
+      "id": "SWIN2-min-wanet",
+      "text": "under the min rule mean TPR at 1%, 5% and 10% nominal FPR is above PSBD-TM alone on the Swin WaNet models",
+      "rule_name": "min_rank",
+      "group": "attack=wanet",
+      "fields": ["q0.01:tpr", "q0.05:tpr", "q0.10:tpr"]
+    },
+    {
+      "id": "SWIN2-average-wanet",
+      "text": "under the average rule mean TPR at 1%, 5% and 10% nominal FPR is above PSBD-TM alone on the Swin WaNet models",
+      "rule_name": "mean_psu",
+      "group": "attack=wanet",
+      "fields": ["q0.01:tpr", "q0.05:tpr", "q0.10:tpr"]
+    }
+  ],
+  "verdict_rule": "held when the paired mean difference is above 0 at all 3 FPRs and every paired 95% bootstrap interval (5000 resamples, seed 0) excludes 0, inconclusive when all 3 means are above 0 but an interval includes 0, failed otherwise. The primary reading uses only models where both placements reach the adaptive target. The reading with the nearest-rate fallback is reported beside it and judged the same way, labeled."
+}

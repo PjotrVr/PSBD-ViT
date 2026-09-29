@@ -229,7 +229,7 @@ Both transformer panels are the successful backdoors of the paper: the attack su
 benign reference (`successful_2pt`). A failed attack is left out even when a whole attack family
 disappears with it, because a model that is not a backdoor cannot show a backdoor phenomenon. On
 ViT this removes `vit_cifar10_sig_0_1`, `vit_cifar10_wanet_0_05` and `vit_gtsrb_wanet_0_1` from
-the 57 cells that clear the ASR bar. The Swin panel includes Adaptive-Blend models the ViT panel
+the cells that clear the ASR bar and carry both placements. The Swin panel includes Adaptive-Blend models the ViT panel
 lacks, and no Label-Consistent model passes the bar. The cached stage writes the panel it read to
 `panel.json`, and the summary reads nothing outside it. The 2 genuine Swin TaCT models
 (`swin_cifar10_tact_0_01`, `_0_05`) were swept with PSBD-TM at 1 rate only, 0.5, so they enter

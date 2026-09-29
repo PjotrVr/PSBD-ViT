@@ -1,0 +1,424 @@
+{
+  "tool": "notebooks/why-psbd-works.ipynb",
+  "folder": "results/_experiments",
+  "figure": "clean_fragility.png",
+  "git_commit": "b9768782ebe1e1c9e90c48d8d4eb5f91023f3a44-dirty",
+  "written_at": "2026-09-29T20:05:16.999364+00:00",
+  "settings": {
+    "sources": [
+      "`results/_experiments/why_psbd_works/cached_reads.json`"
+    ]
+  },
+  "plotted": {
+    "curves": {
+      "cifar100": {
+        "rates": [
+          0.05,
+          0.1,
+          0.2,
+          0.3,
+          0.4,
+          0.5,
+          0.6,
+          0.7,
+          0.8,
+          0.9
+        ],
+        "keep": [
+          0.9206805558254322,
+          0.8614305562029282,
+          0.7230694418152174,
+          0.5313611080249151,
+          0.3001805593570073,
+          0.12752777338027954,
+          0.05213889479637146,
+          0.0256250003973643,
+          0.017888888716697693,
+          0.015569448471069336
+        ],
+        "floor": 0.015569448471069336,
+        "logistic_median": 0.3021675267783647,
+        "logistic_scale": 0.10368878381671864,
+        "critical_rate_sd": 0.18807065016498353,
+        "logistic_rmse": 0.012050406680553044,
+        "and_units": 2.250896558608616,
+        "and_rmse": 0.06808425013963627,
+        "models": 12
+      },
+      "cifar10": {
+        "rates": [
+          0.05,
+          0.1,
+          0.2,
+          0.3,
+          0.4,
+          0.5,
+          0.6,
+          0.7,
+          0.8,
+          0.9
+        ],
+        "keep": [
+          0.977655555618306,
+          0.9601111112783353,
+          0.9033666660388311,
+          0.7877222200234731,
+          0.5882111112276713,
+          0.3646999955177307,
+          0.219177774588267,
+          0.1542444388071696,
+          0.12598888874053954,
+          0.11341110467910767
+        ],
+        "floor": 0.11341110467910767,
+        "logistic_median": 0.4110411618797185,
+        "logistic_scale": 0.0966780142007705,
+        "critical_rate_sd": 0.17535452069278423,
+        "logistic_rmse": 0.004853416914292482,
+        "and_units": 1.4790503357771019,
+        "and_rmse": 0.11058168406583736,
+        "models": 15
+      },
+      "gtsrb": {
+        "rates": [
+          0.05,
+          0.1,
+          0.2,
+          0.3,
+          0.4,
+          0.5,
+          0.6,
+          0.7,
+          0.8,
+          0.9
+        ],
+        "keep": [
+          0.9823846153986568,
+          0.9529743582869952,
+          0.7967564111145643,
+          0.5750128156863726,
+          0.32883333930602443,
+          0.1561025702036344,
+          0.07096153956193191,
+          0.038448718877939075,
+          0.03078205310381376,
+          0.02944872471002432
+        ],
+        "floor": 0.02944872471002432,
+        "logistic_median": 0.32570613324381087,
+        "logistic_scale": 0.08819805915530737,
+        "critical_rate_sd": 0.15997358362258846,
+        "logistic_rmse": 0.012778376965985333,
+        "and_units": 2.046264591406906,
+        "and_rmse": 0.0962226638281622,
+        "models": 13
+      },
+      "tiny": {
+        "rates": [
+          0.05,
+          0.1,
+          0.2,
+          0.3,
+          0.4,
+          0.5,
+          0.6,
+          0.7,
+          0.8,
+          0.9
+        ],
+        "keep": [
+          0.8986309521964618,
+          0.8288333352122988,
+          0.6824166689600263,
+          0.4992023834160396,
+          0.28280952998570036,
+          0.11534523963928223,
+          0.038107148238590786,
+          0.013988094670431954,
+          0.007857143878936768,
+          0.0061666710036141536
+        ],
+        "floor": 0.0061666710036141536,
+        "logistic_median": 0.2882341490905076,
+        "logistic_scale": 0.10999639474131051,
+        "critical_rate_sd": 0.19951139084984507,
+        "logistic_rmse": 0.015183221127781091,
+        "and_units": 2.3716325127124596,
+        "and_rmse": 0.05680722382244171,
+        "models": 14
+      }
+    },
+    "per_model": [
+      {
+        "folder": "vit_cifar100_badnet_a2o_0_01",
+        "never_flip_share": 0.0945,
+        "false_positive_never_flip_share": 0.3499214248297538
+      },
+      {
+        "folder": "vit_cifar100_badnet_a2o_0_05",
+        "never_flip_share": 0.0475,
+        "false_positive_never_flip_share": 0.2183794466403162
+      },
+      {
+        "folder": "vit_cifar100_badnet_a2o_0_1",
+        "never_flip_share": 0.059,
+        "false_positive_never_flip_share": 0.24781040700669757
+      },
+      {
+        "folder": "vit_cifar100_blend_0_01",
+        "never_flip_share": 0.078,
+        "false_positive_never_flip_share": 0.3158774373259053
+      },
+      {
+        "folder": "vit_cifar100_blend_0_05",
+        "never_flip_share": 0.068,
+        "false_positive_never_flip_share": 0.28125
+      },
+      {
+        "folder": "vit_cifar100_blend_0_1",
+        "never_flip_share": 0.0895,
+        "false_positive_never_flip_share": 0.3283582089552239
+      },
+      {
+        "folder": "vit_cifar100_bpp_0_01",
+        "never_flip_share": 0.0535,
+        "false_positive_never_flip_share": 0.2010230179028133
+      },
+      {
+        "folder": "vit_cifar100_bpp_0_05",
+        "never_flip_share": 0.0645,
+        "false_positive_never_flip_share": 0.26793778223783243
+      },
+      {
+        "folder": "vit_cifar100_bpp_0_1",
+        "never_flip_share": 0.096,
+        "false_positive_never_flip_share": 0.3671625929861849
+      },
+      {
+        "folder": "vit_cifar100_lf_0_01",
+        "never_flip_share": 0.0905,
+        "false_positive_never_flip_share": 0.34766649187205034
+      },
+      {
+        "folder": "vit_cifar100_lf_0_05",
+        "never_flip_share": 0.054,
+        "false_positive_never_flip_share": 0.21922685656154628
+      },
+      {
+        "folder": "vit_cifar100_lf_0_1",
+        "never_flip_share": 0.067,
+        "false_positive_never_flip_share": 0.26227795193312436
+      },
+      {
+        "folder": "vit_cifar10_badnet_a2o_0_01",
+        "never_flip_share": 0.1465,
+        "false_positive_never_flip_share": 0.5694673256452498
+      },
+      {
+        "folder": "vit_cifar10_badnet_a2o_0_05",
+        "never_flip_share": 0.166,
+        "false_positive_never_flip_share": 0.47935222672064776
+      },
+      {
+        "folder": "vit_cifar10_badnet_a2o_0_1",
+        "never_flip_share": 0.1655,
+        "false_positive_never_flip_share": 0.4411529223378703
+      },
+      {
+        "folder": "vit_cifar10_blend_0_01",
+        "never_flip_share": 0.1355,
+        "false_positive_never_flip_share": 0.5245579567779961
+      },
+      {
+        "folder": "vit_cifar10_blend_0_05",
+        "never_flip_share": 0.127,
+        "false_positive_never_flip_share": 0.5201117318435754
+      },
+      {
+        "folder": "vit_cifar10_blend_0_1",
+        "never_flip_share": 0.137,
+        "false_positive_never_flip_share": 0.5568400770712909
+      },
+      {
+        "folder": "vit_cifar10_bpp_0_01",
+        "never_flip_share": 0.1355,
+        "false_positive_never_flip_share": 0.45821114369501464
+      },
+      {
+        "folder": "vit_cifar10_bpp_0_05",
+        "never_flip_share": 0.1235,
+        "false_positive_never_flip_share": 0.48499754058042305
+      },
+      {
+        "folder": "vit_cifar10_bpp_0_1",
+        "never_flip_share": 0.126,
+        "false_positive_never_flip_share": 0.516245487364621
+      },
+      {
+        "folder": "vit_cifar10_lf_0_01",
+        "never_flip_share": 0.0895,
+        "false_positive_never_flip_share": 0.3797886393659181
+      },
+      {
+        "folder": "vit_cifar10_lf_0_05",
+        "never_flip_share": 0.087,
+        "false_positive_never_flip_share": 0.44656488549618323
+      },
+      {
+        "folder": "vit_cifar10_lf_0_1",
+        "never_flip_share": 0.105,
+        "false_positive_never_flip_share": 0.49380530973451325
+      },
+      {
+        "folder": "vit_cifar10_tact_0_01",
+        "never_flip_share": 0.1365,
+        "false_positive_never_flip_share": 0.6
+      },
+      {
+        "folder": "vit_cifar10_tact_0_05",
+        "never_flip_share": 0.116,
+        "false_positive_never_flip_share": 0.5714285714285714
+      },
+      {
+        "folder": "vit_cifar10_wanet_0_1",
+        "never_flip_share": 0.114,
+        "false_positive_never_flip_share": 0.4454722492697176
+      },
+      {
+        "folder": "vit_gtsrb_badnet_a2o_0_01",
+        "never_flip_share": 0.0635,
+        "false_positive_never_flip_share": 0.25089179548156954
+      },
+      {
+        "folder": "vit_gtsrb_badnet_a2o_0_05",
+        "never_flip_share": 0.066,
+        "false_positive_never_flip_share": 0.2363013698630137
+      },
+      {
+        "folder": "vit_gtsrb_badnet_a2o_0_1",
+        "never_flip_share": 0.0385,
+        "false_positive_never_flip_share": 0.11866859623733719
+      },
+      {
+        "folder": "vit_gtsrb_blend_0_01",
+        "never_flip_share": 0.0895,
+        "false_positive_never_flip_share": 0.35625
+      },
+      {
+        "folder": "vit_gtsrb_blend_0_05",
+        "never_flip_share": 0.022,
+        "false_positive_never_flip_share": 0.0786140089418778
+      },
+      {
+        "folder": "vit_gtsrb_blend_0_1",
+        "never_flip_share": 0.133,
+        "false_positive_never_flip_share": 0.5126804525946157
+      },
+      {
+        "folder": "vit_gtsrb_bpp_0_01",
+        "never_flip_share": 0.0545,
+        "false_positive_never_flip_share": 0.22243864433190494
+      },
+      {
+        "folder": "vit_gtsrb_bpp_0_05",
+        "never_flip_share": 0.058,
+        "false_positive_never_flip_share": 0.25212255444813586
+      },
+      {
+        "folder": "vit_gtsrb_bpp_0_1",
+        "never_flip_share": 0.152,
+        "false_positive_never_flip_share": 0.6129779837775203
+      },
+      {
+        "folder": "vit_gtsrb_lf_0_01",
+        "never_flip_share": 0.098,
+        "false_positive_never_flip_share": 0.37396619920891766
+      },
+      {
+        "folder": "vit_gtsrb_lf_0_05",
+        "never_flip_share": 0.0595,
+        "false_positive_never_flip_share": 0.26044513861772745
+      },
+      {
+        "folder": "vit_gtsrb_lf_0_1",
+        "never_flip_share": 0.0965,
+        "false_positive_never_flip_share": 0.39125560538116594
+      },
+      {
+        "folder": "vit_gtsrb_tact_0_05",
+        "never_flip_share": 0.0835,
+        "false_positive_never_flip_share": 0.0
+      },
+      {
+        "folder": "vit_tiny_badnet_a2o_0_01",
+        "never_flip_share": 0.0495,
+        "false_positive_never_flip_share": 0.20394088669950738
+      },
+      {
+        "folder": "vit_tiny_badnet_a2o_0_05",
+        "never_flip_share": 0.065,
+        "false_positive_never_flip_share": 0.2785542168674699
+      },
+      {
+        "folder": "vit_tiny_badnet_a2o_0_1",
+        "never_flip_share": 0.0515,
+        "false_positive_never_flip_share": 0.22398309561542526
+      },
+      {
+        "folder": "vit_tiny_blend_0_01",
+        "never_flip_share": 0.0695,
+        "false_positive_never_flip_share": 0.25440313111545987
+      },
+      {
+        "folder": "vit_tiny_blend_0_05",
+        "never_flip_share": 0.061,
+        "false_positive_never_flip_share": 0.2650957290132548
+      },
+      {
+        "folder": "vit_tiny_blend_0_1",
+        "never_flip_share": 0.0525,
+        "false_positive_never_flip_share": 0.2390984811366977
+      },
+      {
+        "folder": "vit_tiny_bpp_0_01",
+        "never_flip_share": 0.063,
+        "false_positive_never_flip_share": 0.2273826802128689
+      },
+      {
+        "folder": "vit_tiny_bpp_0_05",
+        "never_flip_share": 0.1105,
+        "false_positive_never_flip_share": 0.44376899696048633
+      },
+      {
+        "folder": "vit_tiny_bpp_0_1",
+        "never_flip_share": 0.107,
+        "false_positive_never_flip_share": 0.41058304752572267
+      },
+      {
+        "folder": "vit_tiny_lf_0_01",
+        "never_flip_share": 0.0465,
+        "false_positive_never_flip_share": 0.17513051732320836
+      },
+      {
+        "folder": "vit_tiny_lf_0_05",
+        "never_flip_share": 0.0465,
+        "false_positive_never_flip_share": 0.19067145053818554
+      },
+      {
+        "folder": "vit_tiny_lf_0_1",
+        "never_flip_share": 0.0735,
+        "false_positive_never_flip_share": 0.3271794871794872
+      },
+      {
+        "folder": "vit_tiny_wanet_0_05",
+        "never_flip_share": 0.0565,
+        "false_positive_never_flip_share": 0.22791878172588834
+      },
+      {
+        "folder": "vit_tiny_wanet_0_1",
+        "never_flip_share": 0.079,
+        "false_positive_never_flip_share": 0.30290061816452685
+      }
+    ]
+  }
+}

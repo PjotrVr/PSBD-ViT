@@ -59,7 +59,18 @@ The diagrams under `figures/` are TikZ sources compiled by `figures/render.py`
 11. `backdoor-manifestation.ipynb`. How each attack shows up inside the network.
 12. `why-psbd-works.ipynb`, `why-psbd-works-general.ipynb` and
     `why-psbd-tm.ipynb`. The explanation of the detector in general and of
-    PSBD-TM in particular. `why-psbd-works-general.ipynb` tests margin,
+    PSBD-TM in particular. `why-psbd-works.ipynb` is the index of every claim
+    about why PSBD and PSBD-TM work or fail on ViT-B/16 and Swin-S: Li et
+    al.'s 4 observations, the breaking-point curves, patch-trigger routing,
+    clean fragility, confidence, out of distribution, LayerNorm absorption,
+    IBD-PSC's theorem, neurons against directions, WaNet, global-trigger
+    redundancy, the cache readouts and the general principles. It opens on a
+    claims table with 1 row per claim (verdict true, false, partial, open or
+    pending, the key number, the control and the file and field of the
+    evidence), gives each claim a section with its prediction, experiment,
+    control, figure and what the evidence does not show, and reads only the
+    records the experiments wrote, so a rebuild picks up what they add.
+    `why-psbd-works-general.ipynb` tests margin,
     backdoor-direction dominance, token redundancy, low dimension and flatness
     per attack category on ViT-B/16 and Swin-S, gives the explanations that do
     not hold (confidence, MC-dropout uncertainty, out of distribution, trigger

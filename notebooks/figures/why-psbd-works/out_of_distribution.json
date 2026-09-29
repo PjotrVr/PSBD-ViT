@@ -1,0 +1,81 @@
+{
+  "tool": "notebooks/why-psbd-works.ipynb",
+  "folder": "results/_experiments",
+  "figure": "out_of_distribution.png",
+  "git_commit": "b9768782ebe1e1c9e90c48d8d4eb5f91023f3a44-dirty",
+  "written_at": "2026-09-29T20:05:31.265225+00:00",
+  "settings": {
+    "sources": [
+      "`results/_experiments/why_psbd_works/cached_reads.json`",
+      "`results/_experiments/why_psbd_works/summary.json`"
+    ]
+  },
+  "plotted": {
+    "benign": [
+      {
+        "folder": "vit_cifar10_benign",
+        "psbd_tm": 0.4985260127314815,
+        "psbd_rd": 0.5021434220679013
+      },
+      {
+        "folder": "vit_cifar100_benign",
+        "psbd_tm": 0.5002664204200584,
+        "psbd_rd": 0.4982659646935678
+      },
+      {
+        "folder": "vit_gtsrb_benign",
+        "psbd_tm": 0.4965812714459506,
+        "psbd_rd": 0.4970539639968812
+      },
+      {
+        "folder": "vit_tiny_benign",
+        "psbd_tm": 0.502678217319978,
+        "psbd_rd": 0.49659045420949854
+      }
+    ],
+    "flags": [
+      {
+        "model": "vit_cifar100_benign:badnet_a2o",
+        "group": "benign_probe_badnet_a2o",
+        "clean": 0.26953125,
+        "triggered": 0.2734375,
+        "foreign": 0.265625
+      },
+      {
+        "model": "vit_cifar100_benign:blend",
+        "group": "benign_probe_blend",
+        "clean": 0.26953125,
+        "triggered": 0.2265625,
+        "foreign": 0.265625
+      },
+      {
+        "model": "vit_cifar100_blend_0_05",
+        "group": "blend",
+        "clean": 0.30078125,
+        "triggered": 0.97265625,
+        "foreign": 0.3046875
+      },
+      {
+        "model": "vit_cifar100_bpp_0_05",
+        "group": "quantization",
+        "clean": 0.265625,
+        "triggered": 0.988095223903656,
+        "foreign": 0.1796875
+      },
+      {
+        "model": "vit_cifar100_lf_0_05",
+        "group": "blend",
+        "clean": 0.2421875,
+        "triggered": 1.0,
+        "foreign": 0.2109375
+      },
+      {
+        "model": "vit_tiny_wanet_0_1",
+        "group": "warp",
+        "clean": 0.26171875,
+        "triggered": 0.9879032373428345,
+        "foreign": 0.79296875
+      }
+    ]
+  }
+}

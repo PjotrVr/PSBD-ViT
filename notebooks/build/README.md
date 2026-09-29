@@ -23,3 +23,5 @@ Run a builder from the repository root with `cd notebooks/build && PYTHONPATH=..
 | `build_swin_and_robustness.py` | `swin-and-robustness.ipynb` |
 | `build_swin_per_attack.py` | `swin-per-attack.ipynb` |
 | `build_reproducing.py` | `reproducing-the-paper.ipynb` |
+| `build_prediction_shift.py` (parts in `prediction_shift/`) | `prediction-shift-phenomenon.ipynb` |
+| `build_why_psbd_works.py` (parts in `why_psbd_works/`) | `why-psbd-works.ipynb` |

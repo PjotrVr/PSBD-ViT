@@ -1,0 +1,435 @@
+{
+  "tool": "notebooks/why-psbd-works.ipynb",
+  "folder": "results/_experiments",
+  "figure": "backdoor_neurons.png",
+  "git_commit": "b9768782ebe1e1c9e90c48d8d4eb5f91023f3a44-dirty",
+  "written_at": "2026-09-29T20:05:53.295491+00:00",
+  "settings": {
+    "sources": [
+      "`results/_experiments/backdoor_neurons/backdoor_neuron_ablation.json`",
+      "`results/_experiments/why_psbd_works/summary.json`"
+    ]
+  },
+  "plotted": {
+    "ablation": [
+      {
+        "folder_name": "vit_cifar10_blend_0_1",
+        "attack": "blend",
+        "peak_layer": 12,
+        "top_k": [
+          20
+        ],
+        "baseline": {
+          "asr": 1.0,
+          "clean_accuracy": 0.958
+        },
+        "ablated": {
+          "direction": {
+            "asr": 0.02608695652173913,
+            "clean_accuracy": 0.928
+          },
+          "random_dir_0": {
+            "asr": 1.0,
+            "clean_accuracy": 0.958
+          },
+          "random_dir_1": {
+            "asr": 1.0,
+            "clean_accuracy": 0.958
+          },
+          "rank_2": {
+            "asr": 0.08260869565217391,
+            "clean_accuracy": 0.926
+          },
+          "rank_2_random": {
+            "asr": 1.0,
+            "clean_accuracy": 0.958
+          },
+          "top_20": {
+            "asr": 1.0,
+            "clean_accuracy": 0.958
+          },
+          "bottom_20": {
+            "asr": 1.0,
+            "clean_accuracy": 0.958
+          },
+          "random_20": {
+            "asr": 1.0,
+            "clean_accuracy": 0.956
+          }
+        }
+      },
+      {
+        "folder_name": "vit_cifar10_blend_0_1_sam_rho_0_2",
+        "attack": "blend",
+        "peak_layer": 12,
+        "top_k": [
+          20
+        ],
+        "baseline": {
+          "asr": 1.0,
+          "clean_accuracy": 0.956
+        },
+        "ablated": {
+          "direction": {
+            "asr": 0.0,
+            "clean_accuracy": 0.904
+          },
+          "random_dir_0": {
+            "asr": 1.0,
+            "clean_accuracy": 0.956
+          },
+          "random_dir_1": {
+            "asr": 1.0,
+            "clean_accuracy": 0.956
+          },
+          "rank_2": {
+            "asr": 0.002173913043478261,
+            "clean_accuracy": 0.884
+          },
+          "rank_2_random": {
+            "asr": 1.0,
+            "clean_accuracy": 0.956
+          },
+          "top_20": {
+            "asr": 1.0,
+            "clean_accuracy": 0.956
+          },
+          "bottom_20": {
+            "asr": 1.0,
+            "clean_accuracy": 0.956
+          },
+          "random_20": {
+            "asr": 1.0,
+            "clean_accuracy": 0.956
+          }
+        }
+      },
+      {
+        "folder_name": "vit_cifar10_badnet_a2o_0_1",
+        "attack": "badnet_a2o",
+        "peak_layer": 12,
+        "top_k": [
+          20
+        ],
+        "baseline": {
+          "asr": 1.0,
+          "clean_accuracy": 0.94
+        },
+        "ablated": {
+          "direction": {
+            "asr": 0.0,
+            "clean_accuracy": 0.902
+          },
+          "random_dir_0": {
+            "asr": 1.0,
+            "clean_accuracy": 0.94
+          },
+          "random_dir_1": {
+            "asr": 1.0,
+            "clean_accuracy": 0.94
+          },
+          "rank_2": {
+            "asr": 0.0,
+            "clean_accuracy": 0.902
+          },
+          "rank_2_random": {
+            "asr": 1.0,
+            "clean_accuracy": 0.94
+          },
+          "top_20": {
+            "asr": 1.0,
+            "clean_accuracy": 0.94
+          },
+          "bottom_20": {
+            "asr": 1.0,
+            "clean_accuracy": 0.942
+          },
+          "random_20": {
+            "asr": 1.0,
+            "clean_accuracy": 0.94
+          }
+        }
+      },
+      {
+        "folder_name": "vit_cifar10_badnet_a2o_0_1_sam_rho_0_2",
+        "attack": "badnet_a2o",
+        "peak_layer": 12,
+        "top_k": [
+          20
+        ],
+        "baseline": {
+          "asr": 1.0,
+          "clean_accuracy": 0.966
+        },
+        "ablated": {
+          "direction": {
+            "asr": 0.0,
+            "clean_accuracy": 0.888
+          },
+          "random_dir_0": {
+            "asr": 1.0,
+            "clean_accuracy": 0.966
+          },
+          "random_dir_1": {
+            "asr": 1.0,
+            "clean_accuracy": 0.966
+          },
+          "rank_2": {
+            "asr": 0.0,
+            "clean_accuracy": 0.888
+          },
+          "rank_2_random": {
+            "asr": 1.0,
+            "clean_accuracy": 0.966
+          },
+          "top_20": {
+            "asr": 1.0,
+            "clean_accuracy": 0.966
+          },
+          "bottom_20": {
+            "asr": 1.0,
+            "clean_accuracy": 0.966
+          },
+          "random_20": {
+            "asr": 1.0,
+            "clean_accuracy": 0.966
+          }
+        }
+      },
+      {
+        "folder_name": "vit_cifar10_lf_0_1",
+        "attack": "lf",
+        "peak_layer": 12,
+        "top_k": [
+          20
+        ],
+        "baseline": {
+          "asr": 1.0,
+          "clean_accuracy": 0.96
+        },
+        "ablated": {
+          "direction": {
+            "asr": 0.5717391304347826,
+            "clean_accuracy": 0.958
+          },
+          "random_dir_0": {
+            "asr": 1.0,
+            "clean_accuracy": 0.96
+          },
+          "random_dir_1": {
+            "asr": 1.0,
+            "clean_accuracy": 0.96
+          },
+          "rank_2": {
+            "asr": 0.6152173913043478,
+            "clean_accuracy": 0.928
+          },
+          "rank_2_random": {
+            "asr": 1.0,
+            "clean_accuracy": 0.96
+          },
+          "top_20": {
+            "asr": 1.0,
+            "clean_accuracy": 0.96
+          },
+          "bottom_20": {
+            "asr": 1.0,
+            "clean_accuracy": 0.96
+          },
+          "random_20": {
+            "asr": 1.0,
+            "clean_accuracy": 0.96
+          }
+        }
+      },
+      {
+        "folder_name": "vit_cifar10_lf_0_1_sam_rho_0_2",
+        "attack": "lf",
+        "peak_layer": 12,
+        "top_k": [
+          20
+        ],
+        "baseline": {
+          "asr": 1.0,
+          "clean_accuracy": 0.96
+        },
+        "ablated": {
+          "direction": {
+            "asr": 0.002173913043478261,
+            "clean_accuracy": 0.894
+          },
+          "random_dir_0": {
+            "asr": 1.0,
+            "clean_accuracy": 0.96
+          },
+          "random_dir_1": {
+            "asr": 1.0,
+            "clean_accuracy": 0.96
+          },
+          "rank_2": {
+            "asr": 0.004347826086956522,
+            "clean_accuracy": 0.896
+          },
+          "rank_2_random": {
+            "asr": 1.0,
+            "clean_accuracy": 0.96
+          },
+          "top_20": {
+            "asr": 1.0,
+            "clean_accuracy": 0.962
+          },
+          "bottom_20": {
+            "asr": 1.0,
+            "clean_accuracy": 0.96
+          },
+          "random_20": {
+            "asr": 1.0,
+            "clean_accuracy": 0.96
+          }
+        }
+      },
+      {
+        "folder_name": "vit_cifar10_bpp_0_1",
+        "attack": "bpp",
+        "peak_layer": 12,
+        "top_k": [
+          20
+        ],
+        "baseline": {
+          "asr": 0.9978260869565218,
+          "clean_accuracy": 0.938
+        },
+        "ablated": {
+          "direction": {
+            "asr": 0.08478260869565217,
+            "clean_accuracy": 0.922
+          },
+          "random_dir_0": {
+            "asr": 0.9978260869565218,
+            "clean_accuracy": 0.938
+          },
+          "random_dir_1": {
+            "asr": 0.9978260869565218,
+            "clean_accuracy": 0.938
+          },
+          "rank_2": {
+            "asr": 0.1108695652173913,
+            "clean_accuracy": 0.93
+          },
+          "rank_2_random": {
+            "asr": 0.9978260869565218,
+            "clean_accuracy": 0.938
+          },
+          "top_20": {
+            "asr": 0.9978260869565218,
+            "clean_accuracy": 0.938
+          },
+          "bottom_20": {
+            "asr": 0.9978260869565218,
+            "clean_accuracy": 0.938
+          },
+          "random_20": {
+            "asr": 0.9978260869565218,
+            "clean_accuracy": 0.938
+          }
+        }
+      },
+      {
+        "folder_name": "vit_cifar10_bpp_0_1_sam_rho_0_2",
+        "attack": "bpp",
+        "peak_layer": 12,
+        "top_k": [
+          20
+        ],
+        "baseline": {
+          "asr": 0.9934782608695653,
+          "clean_accuracy": 0.962
+        },
+        "ablated": {
+          "direction": {
+            "asr": 0.0,
+            "clean_accuracy": 0.916
+          },
+          "random_dir_0": {
+            "asr": 0.9934782608695653,
+            "clean_accuracy": 0.962
+          },
+          "random_dir_1": {
+            "asr": 0.9934782608695653,
+            "clean_accuracy": 0.962
+          },
+          "rank_2": {
+            "asr": 0.0,
+            "clean_accuracy": 0.906
+          },
+          "rank_2_random": {
+            "asr": 0.9934782608695653,
+            "clean_accuracy": 0.962
+          },
+          "top_20": {
+            "asr": 0.9891304347826086,
+            "clean_accuracy": 0.962
+          },
+          "bottom_20": {
+            "asr": 0.9934782608695653,
+            "clean_accuracy": 0.962
+          },
+          "random_20": {
+            "asr": 0.9934782608695653,
+            "clean_accuracy": 0.962
+          }
+        }
+      }
+    ],
+    "mlp_units": [
+      {
+        "model": "vit_cifar100_benign:badnet_a2o",
+        "group": "benign_probe_badnet_a2o",
+        "late_top30_triggered_kept": 0.97265625,
+        "late_random30_triggered_kept": 0.98828125,
+        "all_top_triggered_kept": 0.078125,
+        "all_top_clean_kept": 0.078125
+      },
+      {
+        "model": "vit_cifar100_benign:blend",
+        "group": "benign_probe_blend",
+        "late_top30_triggered_kept": 0.89453125,
+        "late_random30_triggered_kept": 0.974609375,
+        "all_top_triggered_kept": 0.1640625,
+        "all_top_clean_kept": 0.0625
+      },
+      {
+        "model": "vit_cifar100_blend_0_05",
+        "group": "blend",
+        "late_top30_triggered_kept": 1.0,
+        "late_random30_triggered_kept": 1.0,
+        "all_top_triggered_kept": 0.99609375,
+        "all_top_clean_kept": 0.03125
+      },
+      {
+        "model": "vit_cifar100_bpp_0_05",
+        "group": "quantization",
+        "late_top30_triggered_kept": 0.9960317611694336,
+        "late_random30_triggered_kept": 1.0,
+        "all_top_triggered_kept": 0.9563491940498352,
+        "all_top_clean_kept": 0.1796875
+      },
+      {
+        "model": "vit_cifar100_lf_0_05",
+        "group": "blend",
+        "late_top30_triggered_kept": 0.9957627058029175,
+        "late_random30_triggered_kept": 1.0,
+        "all_top_triggered_kept": 0.5932203531265259,
+        "all_top_clean_kept": 0.07421875
+      },
+      {
+        "model": "vit_tiny_wanet_0_1",
+        "group": "warp",
+        "late_top30_triggered_kept": 0.9717742204666138,
+        "late_random30_triggered_kept": 1.0,
+        "all_top_triggered_kept": 0.7822580933570862,
+        "all_top_clean_kept": 0.05078125
+      }
+    ]
+  }
+}

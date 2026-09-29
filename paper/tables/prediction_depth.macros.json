@@ -2,50 +2,50 @@
   "generator": "scripts/paper/mech_prediction_depth.py",
   "inputs": [
     "results/coverage/coverage.json",
-    "results/<folder>/prediction_depth.json (65 cells)",
+    "results/<folder>/prediction_depth.json (57 cells)",
     "results/<folder>/psbd_metrics.json"
   ],
-  "written_at": "2026-09-24T04:33:55.061086+00:00",
-  "git_commit": "52e4ba1a7ac941365bc37d68e1e902dad4fb4f74-dirty",
+  "written_at": "2026-09-29T16:04:51.397953+00:00",
+  "git_commit": "2e59453ac935840c88040509aab36fb7e2c4ac3d-dirty",
   "macros": {
     "DepthCells": {
-      "value": "65",
+      "value": "57",
       "meaning": "clearing cells carrying both prediction depth and the recommended placement"
     },
     "DepthAurocAll": {
-      "value": "0.911",
+      "value": "0.913",
       "meaning": "mean AUROC of prediction depth over the clearing cells"
     },
     "DepthMinusPsbdAuroc": {
-      "value": "$-$0.024",
+      "value": "$-$0.039",
       "meaning": "mean paired AUROC delta, prediction depth minus PSBD, all clearing cells"
     },
     "DepthMinusPsbdAurocCi": {
-      "value": "[$-$0.078, +0.023]",
+      "value": "[$-$0.101, +0.012]",
       "meaning": "bootstrap interval on depth_minus_psbd_auroc"
     },
     "DepthMinusPsbdTpr": {
-      "value": "+0.019",
+      "value": "+0.014",
       "meaning": "mean paired low-budget TPR delta, prediction depth minus PSBD, all clearing cells"
     },
     "DepthMinusPsbdTprCi": {
-      "value": "[$-$0.079, +0.113]",
+      "value": "[$-$0.092, +0.117]",
       "meaning": "bootstrap interval on depth_minus_psbd_tpr"
     },
     "DepthMinusPsbdTprHard": {
-      "value": "+0.183",
+      "value": "+0.229",
       "meaning": "mean paired low-budget TPR delta on the hard attacks"
     },
     "DepthMinusPsbdTprHardCi": {
-      "value": "[+0.062, +0.296]",
+      "value": "[+0.079, +0.375]",
       "meaning": "bootstrap interval on depth_minus_psbd_tpr_hard"
     },
     "DepthMinusPsbdAurocHard": {
-      "value": "+0.007",
+      "value": "$-$0.022",
       "meaning": "mean paired AUROC delta on the hard attacks"
     },
     "DepthTprWins": {
-      "value": "41",
+      "value": "38",
       "meaning": "clearing cells where prediction depth beats PSBD at the low budget"
     },
     "DepthBenignAuroc": {

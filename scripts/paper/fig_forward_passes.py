@@ -1,13 +1,23 @@
 """H24: AUROC and TPR against the number of Monte Carlo forward passes k.
 
 The PSBD paper fixes k = 3. docs/hypothesis/H24-monte-carlo-passes.md shows the
-gain from more passes is real and concentrated at low poison rate. k = 1 and
-k = 2 are free: the cache stores per-pass tracked-class probabilities as
-(passes, n), so slicing the first j rows of the k = 3 cache under
-before_attention_norm_token_mask/ gives k = 1 and k = 2 with no recomputation on
-GPU. k = 20 was paid for on 8 pilot cells only, cached under a sibling directory
-before_attention_norm_token_mask_k20/ with 10 rates and 20 passes each. k = 5 and
-k = 10 are slices of that same tensor.
+gain from more passes is real and concentrated at low poison rate. The cache
+stores per-pass tracked-class probabilities as (passes, n), so slicing the first
+k rows of a 20-pass tensor gives the k-pass estimator for every integer k from 1
+to 20 with no recomputation. The masks are iid draws, so the first k passes of a
+20-pass run are the same estimator as a k-pass run. They are not the same draws,
+because defenses.inference reseeds once per split and then draws k passes for
+each batch in turn, so only the first batch of a k = 3 run and a k = 20 run
+share masks. The 2 agree in distribution, and cross_check_k3 measures how far. The long curve reads before_attention_norm_token_mask_k20/ for k = 1 to 20.
+The k = 3 cache under before_attention_norm_token_mask/ supplies the short curve
+and a cross-check of the slicing at k = 1, 2 and 3.
+
+Cells swept by docs/runs/2026-09-29-k20-login-gpu.md hold their k = 20 cache at 1
+rate only, the adaptive rule's choice at k = 3 for that cell, instead of the
+10-rate ladder of the pilot cells. That is all this figure reads, because
+collect_cell asks cache_holds_rate for the cell's adaptive rate alone. The
+adaptive rule averages the clean-validation shift ratio over passes, whose
+expectation does not depend on k, so the rate is held fixed across k.
 
 Every reading uses the adaptive rule's rate for the cell (cli.compare_detectors
 .psbd_rate, rule "adaptive"), held fixed across k, since the question is what
@@ -54,9 +64,9 @@ from scripts.paper._common import (  # noqa: E402
 
 GENERATOR = "scripts/paper/fig_forward_passes.py"
 
-# The 4 datasets this project validates on (docs/hypothesis/README.md), which is
-# what "65 clearing cells" means everywhere in the paper. eurosat and svhn are
-# exploratory additions to coverage.json and sit outside the validated panel.
+# The 4 datasets this project validates on (docs/hypothesis/README.md), the ones
+# the paper's clearing panel reads. eurosat and svhn are exploratory additions to
+# coverage.json and sit outside the validated panel.
 PRIMARY_DATASETS = ("cifar10", "cifar100", "gtsrb", "tiny")
 
 # Which cells carry a k = 20 cache is read off disk rather than listed here. The
@@ -65,8 +75,15 @@ PRIMARY_DATASETS = ("cifar10", "cifar100", "gtsrb", "tiny")
 # hardcoded population silently stops tracking the sweep that fills it.
 
 BASE_K_VALUES = (1, 2, 3)
-K20_K_VALUES = (5, 10, 20)
-ALL_K_VALUES = BASE_K_VALUES + K20_K_VALUES
+
+# Every integer k from 1 to 20 is read off the k = 20 cache by taking its first k
+# passes. The mask sequence is reseeded per (split, rate) and drawn pass by pass,
+# so the first k rows of a 20-pass tensor are the k-pass estimator itself. The
+# k <= 3 cache is kept as a cross-check of that slicing (cross_check_k3).
+ALL_K_VALUES = tuple(range(1, 21))
+
+# The k values that get a macro. The figure draws all 20, the paper quotes these.
+MACRO_K_VALUES = (1, 2, 3, 5, 10, 20)
 
 # quantile is the false-positive budget by construction (defenses.decision), so
 # "TPR at 10% FPR" is detection_report at quantile 0.10.
@@ -76,10 +93,8 @@ ALL_CELLS_COLOUR = "#0072B2"
 PILOT_COLOUR = "#D55E00"
 
 
-def position_config_for_k(k: int) -> str:
-    """Which on-disk cache directory holds the passes k slices from."""
-    config = RECOMMENDED_PLACEMENT if k <= 3 else f"{RECOMMENDED_PLACEMENT}_k20"
-    return config
+BASE_CONFIG = RECOMMENDED_PLACEMENT
+K20_CONFIG = f"{RECOMMENDED_PLACEMENT}_k20"
 
 
 def k20_cache_dir(psbd_dir: str) -> str:
@@ -102,7 +117,7 @@ def cache_holds_rate(psbd_dir: str, config: str, rate: float) -> bool:
     return complete
 
 
-def split_psu_ratio(psbd_dir: str, rate: float, split: str, k: int):
+def split_psu_ratio(psbd_dir: str, rate: float, split: str, k: int, config: str):
     """Fractional PSU for 1 split, from the first k of the cached passes.
 
     Reads the no-perturbation baseline (n, num_classes) and the (passes, n)
@@ -110,22 +125,23 @@ def split_psu_ratio(psbd_dir: str, rate: float, split: str, k: int):
     psu_ratio_from_cache score.
     """
     baseline_probs, baseline_labels, _ = load_baseline(baseline_path(psbd_dir, split))
-    position_config = position_config_for_k(k)
     per_pass_probs, _ = load_dropout_pass_probs(
-        dropout_pass_path(psbd_dir, position_config, rate, split)
+        dropout_pass_path(psbd_dir, config, rate, split)
     )
     sliced = per_pass_probs[:k]  # (k, n)
     psu_ratio = psu_ratio_from_cache(baseline_probs, baseline_labels, sliced)
     return psu_ratio
 
 
-def cell_metrics_at_k(psbd_dir: str, manifest: dict, rate: float, k: int) -> dict:
+def cell_metrics_at_k(
+    psbd_dir: str, manifest: dict, rate: float, k: int, config: str
+) -> dict:
     """AUROC and TPR at both FPR budgets, at this k, for 1 cell."""
-    validation_psu = split_psu_ratio(psbd_dir, rate, "validation", k)
+    validation_psu = split_psu_ratio(psbd_dir, rate, "validation", k, config)
     clean_psu = pair_clean_to_backdoor(
-        split_psu_ratio(psbd_dir, rate, "clean", k), manifest
+        split_psu_ratio(psbd_dir, rate, "clean", k, config), manifest
     )
-    backdoor_psu = split_psu_ratio(psbd_dir, rate, "backdoor", k)
+    backdoor_psu = split_psu_ratio(psbd_dir, rate, "backdoor", k, config)
 
     reports = {
         budget: detection_report(validation_psu, clean_psu, backdoor_psu, budget)
@@ -156,21 +172,48 @@ def adaptive_rate_for_cell(
 
 
 def collect_cell(
-    results_dir: str, folder: str, k_values: tuple[int, ...]
+    results_dir: str, folder: str, k_values: tuple[int, ...], config: str
 ) -> dict | None:
-    """Every requested k's metrics for 1 cell at its own adaptive rate, or None."""
+    """Every requested k's metrics for 1 cell at its own adaptive rate, or None.
+
+    The rate is the adaptive rule's choice at k = 3 (psbd_metrics.json). A cell
+    whose k = 20 cache holds only that rate (cells swept by
+    docs/runs/2026-09-29-k20-login-gpu.md) is read exactly like a full-ladder one,
+    since cache_holds_rate asks for that 1 rate and nothing else.
+    """
     rate, _ = adaptive_rate_for_cell(results_dir, folder)
     if rate is None:
         return None
 
     psbd_dir = os.path.join(results_dir, folder, "psbd")
-    configs = {position_config_for_k(k) for k in k_values}
-    if not all(cache_holds_rate(psbd_dir, config, rate) for config in configs):
+    if not cache_holds_rate(psbd_dir, config, rate):
         return None
 
     manifest = read_split_manifest(psbd_dir)
-    by_k = {k: cell_metrics_at_k(psbd_dir, manifest, rate, k) for k in k_values}
+    by_k = {k: cell_metrics_at_k(psbd_dir, manifest, rate, k, config) for k in k_values}
     return {"rate": rate, "by_k": by_k}
+
+
+def cross_check_k3(long_cells: dict[str, dict], base_cells: dict[str, dict]) -> dict:
+    """Largest gap between the k <= 3 cache and the first k passes of the k = 20 cache.
+
+    Both are the same estimator at k = 1, 2, 3 (same seed, same rate) with
+    independent mask draws after the first batch, so the gap is Monte Carlo noise
+    and not 0. Reported per metric over every cell that carries both caches.
+    """
+    shared = sorted(set(long_cells) & set(base_cells))
+    gaps = {}
+    for metric in ("auroc", "tpr10", "tpr20"):
+        diffs = [
+            abs(long_cells[f]["by_k"][k][metric] - base_cells[f]["by_k"][k][metric])
+            for f in shared
+            for k in BASE_K_VALUES
+        ]
+        gaps[metric] = {
+            "max_abs_gap": max(diffs) if diffs else None,
+            "mean_abs_gap": sum(diffs) / len(diffs) if diffs else None,
+        }
+    return {"n_cells": len(shared), "gaps": gaps}
 
 
 def aggregate(per_cell: dict[str, dict], k_values: tuple[int, ...]) -> dict:
@@ -209,7 +252,7 @@ def draw_panel(ax, k_values, pilot_agg, all_cells_agg, metric, ylabel):
         markersize=4,
         linewidth=1.4,
         color=PILOT_COLOUR,
-        label=f"{pilot_n} models at 1% poisoning, k to {pilot_k[-1]}",
+        label=f"{pilot_n} models, k to {pilot_k[-1]}",
     )
 
     base_k = list(BASE_K_VALUES)
@@ -233,7 +276,7 @@ def draw_panel(ax, k_values, pilot_agg, all_cells_agg, metric, ylabel):
     ax.axvline(3, color="0.6", linewidth=0.6, linestyle=":", zorder=1)
 
     ax.set_xscale("log", base=2)
-    ax.set_xticks(list(k_values))
+    ax.set_xticks(list(MACRO_K_VALUES))
     ax.xaxis.set_major_formatter(mticker.ScalarFormatter())
     ax.xaxis.set_minor_formatter(mticker.NullFormatter())
     ax.set_xlabel("forward passes k")
@@ -295,7 +338,7 @@ def pass_macros(pilot_agg: dict, all_cells_agg: dict, n_pilot: int, n_all: int) 
     }
     for population, aggregated, k_values in (
         ("all", all_cells_agg, BASE_K_VALUES),
-        ("pilot", pilot_agg, ALL_K_VALUES),
+        ("pilot", pilot_agg, MACRO_K_VALUES),
     ):
         for k in k_values:
             for metric in ("auroc", "tpr10", "tpr20"):
@@ -332,7 +375,7 @@ def main() -> None:
 
     all_cells_per_cell = {}
     for folder in primary_folders:
-        record = collect_cell(args.results_dir, folder, BASE_K_VALUES)
+        record = collect_cell(args.results_dir, folder, BASE_K_VALUES, BASE_CONFIG)
         if record is not None:
             all_cells_per_cell[folder] = record
     all_cells_agg = aggregate(all_cells_per_cell, BASE_K_VALUES)
@@ -347,7 +390,7 @@ def main() -> None:
     pilot_per_cell = {}
     pilot_excluded = {}
     for folder in candidates:
-        record = collect_cell(args.results_dir, folder, ALL_K_VALUES)
+        record = collect_cell(args.results_dir, folder, ALL_K_VALUES, K20_CONFIG)
         if record is None:
             pilot_excluded[folder] = (
                 "no adaptive-rule rate, or its rate is not cached at every k"
@@ -363,6 +406,9 @@ def main() -> None:
     )
     if pilot_excluded:
         print(f"pilot cells excluded: {pilot_excluded}")
+
+    cross_check = cross_check_k3(pilot_per_cell, all_cells_per_cell)
+    print(f"k<=3 cross-check between the 2 caches: {cross_check}")
 
     figure_path = write_figure(args, pilot_agg, all_cells_agg, list(pilot_per_cell))
 
@@ -381,13 +427,14 @@ def main() -> None:
         "fpr_budgets": {"tpr10": 0.10, "tpr20": 0.20},
         "k_values": {
             "base_cache": list(BASE_K_VALUES),
-            "k20_cache": list(K20_K_VALUES),
+            "k20_cache": list(ALL_K_VALUES),
         },
         "pilot_cells_used": {
             folder: {"rate": record["rate"], "by_k": record["by_k"]}
             for folder, record in pilot_per_cell.items()
         },
         "pilot_cells_excluded": pilot_excluded,
+        "cross_check_k3_vs_k20_slice": cross_check,
         "pilot_group_aggregate": pilot_agg,
         "all_cells_group_aggregate": all_cells_agg,
         "all_cells_per_cell": {
@@ -399,11 +446,12 @@ def main() -> None:
         path=figure_path.replace(".pdf", ".json"),
         generator=GENERATOR,
         inputs=[
-            f"{args.results_dir}/<folder>/psbd_metrics.json (65 clearing cells)",
+            f"{args.results_dir}/<folder>/psbd_metrics.json "
+            f"({len(all_cells_per_cell)} clearing cells)",
             f"{args.results_dir}/<folder>/psbd/{RECOMMENDED_PLACEMENT}/rate_*_"
             "{validation,clean,backdoor}.pt",
             f"{args.results_dir}/<folder>/psbd/{RECOMMENDED_PLACEMENT}_k20/rate_*_"
-            "{validation,clean,backdoor}.pt (8 candidate pilot cells)",
+            "{validation,clean,backdoor}.pt (cells with a k = 20 cache, k = 1 to 20 by slicing the first k passes)",
         ],
         plotted=plotted,
     )

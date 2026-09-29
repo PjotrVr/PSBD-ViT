@@ -331,6 +331,34 @@ def classify_by_asr(cell: dict, asr_bar: float) -> str:
     return "clears" if cell["asr"] >= asr_bar else "below_bar"
 
 
+# The success definition every number is given at, 1 verdict per clean-accuracy
+# bar, each naming the declaration field that holds its bar. The headline bar
+# tolerates a 2 point clean-accuracy drop against the benign reference and the
+# second bar 5 points. asr_class stays as it is beside them, since the paper
+# generators select on it.
+SUCCESS_BARS = {
+    "successful_2pt": "clean_accuracy_drop_bar_headline",
+    "successful_5pt": "clean_accuracy_drop_bar",
+}
+
+
+def success_verdicts(cell: dict, declaration: dict) -> dict[str, bool]:
+    """Whether a cell is a successful backdoor at each declared clean-accuracy bar.
+
+    Reads the cell's final asr_class, so a diverged, source-mapped, unmeasured or
+    below-bar cell never succeeds. A clearing cell succeeds at a bar when its
+    clean accuracy minus the benign reference is at least that (negative) bar,
+    and fails when the drop is unknown.
+    """
+    implanted = cell["asr_class"] == "clears"
+    drop = cell["clean_accuracy_drop"]
+    verdicts = {
+        field: implanted and drop is not None and drop >= declaration[bar_key]
+        for field, bar_key in SUCCESS_BARS.items()
+    }
+    return verdicts
+
+
 def stale_splits(coverage_dir: str) -> set:
     """Cells whose cached split no longer matches what the code builds.
 
@@ -402,6 +430,7 @@ def build_ledger(args, declaration: dict) -> dict:
         # that is not a backdoor, so the verdict overrides the ASR class.
         if cell["source_mapped"] and not cell["diverged"]:
             cell["asr_class"] = "source_mapped"
+        cell.update(success_verdicts(cell, declaration))
         rows.extend(cell_rows)
         gaps.extend(gaps_for_cell(cell, cached, basis, panel))
 
@@ -410,6 +439,9 @@ def build_ledger(args, declaration: dict) -> dict:
         "declaration": args.declaration,
         "asr_bar": declaration["asr_bar"],
         "clean_accuracy_drop_bar": declaration["clean_accuracy_drop_bar"],
+        "clean_accuracy_drop_bar_headline": declaration[
+            "clean_accuracy_drop_bar_headline"
+        ],
         "basis_size": len(basis),
         "benign_reference_accuracy": benign,
         "cells": cells,
@@ -526,6 +558,11 @@ def render_markdown(ledger: dict, declaration: dict) -> str:
         f"(clean accuracy below {DIVERGENCE_FRACTION:.0%} of the benign reference), "
         f"{by_class['source_mapped']} source-mapped (clean source-class accuracy below "
         f"{SOURCE_MAPPED_ACCURACY:.0%})",
+        f"- successful backdoors (clears and clean accuracy at most the bar below "
+        f"the benign reference): {sum(cell['successful_2pt'] for cell in cells)} at "
+        f"{-ledger['clean_accuracy_drop_bar_headline'] * 100:.0f} points, "
+        f"{sum(cell['successful_5pt'] for cell in cells)} at "
+        f"{-ledger['clean_accuracy_drop_bar'] * 100:.0f} points",
         f"- integrity: {stale} placements on a stale baseline, "
         f"{unprovenanced} without a run sidecar, "
         f"{sum(1 for cell in cells if cell.get('stale_split'))} cells on a stale split",
@@ -601,6 +638,26 @@ def write_artifacts(out_dir: str, ledger: dict, declaration: dict) -> None:
         handle.write(render_markdown(ledger, declaration))
 
 
+def retarget_declaration(declaration: dict, architecture: str) -> dict:
+    """The declaration with its panel and benign references moved to another architecture.
+
+    The basis and the benign references are declared for ViT. A Swin ledger reuses
+    the panel RULE (label modes, rates, excluded tokens) and retargets the
+    architecture and the per-dataset benign reference, so dCA still compares like
+    with like.
+    """
+    retargeted = {
+        **declaration,
+        "panel": {**declaration["panel"], "architecture": architecture},
+        "benign_reference": {
+            key: value.replace("vit_", f"{architecture}_", 1)
+            for key, value in declaration["benign_reference"].items()
+            if not key.startswith("_")
+        },
+    }
+    return retargeted
+
+
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--declaration", default=DECLARATION_PATH)
@@ -619,19 +676,7 @@ def main() -> None:
     args = parse_args()
     declaration = load_declaration(args.declaration)
     if args.architecture:
-        # The basis and the benign references are declared for ViT. A Swin ledger reuses
-        # the panel RULE (label modes, rates, excluded tokens) and retargets the
-        # architecture and the per-dataset benign reference, so dCA still compares like
-        # with like.
-        declaration = {
-            **declaration,
-            "panel": {**declaration["panel"], "architecture": args.architecture},
-            "benign_reference": {
-                key: value.replace("vit_", f"{args.architecture}_", 1)
-                for key, value in declaration["benign_reference"].items()
-                if not key.startswith("_")
-            },
-        }
+        declaration = retarget_declaration(declaration, args.architecture)
     ledger = build_ledger(args, declaration)
     write_artifacts(args.out_dir, ledger, declaration)
 

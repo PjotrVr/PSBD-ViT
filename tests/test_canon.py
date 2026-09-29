@@ -64,7 +64,10 @@ def read_declaration() -> dict:
 
 
 def test_the_bars_the_panel_declares_are_the_ones_the_code_reads():
-    """The 2 bars a cell is admitted by, held to the declaration.
+    """The bars a cell is admitted by, held to the declaration.
+
+    The ASR bar, then the 2 clean-accuracy bars: 5 points and the 2-point
+    headline bar the successful_2pt verdict reads.
 
     CLAUDE.md says the constants every table reads are held to
     configs/psbd_basis.json by this file, and until now only the 2 placement
@@ -74,6 +77,7 @@ def test_the_bars_the_panel_declares_are_the_ones_the_code_reads():
     declaration = read_declaration()
     assert declaration["asr_bar"] == 0.85
     assert declaration["clean_accuracy_drop_bar"] == -0.05
+    assert declaration["clean_accuracy_drop_bar_headline"] == -0.02
 
 
 def test_the_2_rate_rules_are_the_canonical_targets():

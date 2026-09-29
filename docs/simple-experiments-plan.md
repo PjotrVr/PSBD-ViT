@@ -76,7 +76,7 @@ The table lists what is already decided or in flight, so the schedule does not r
 |---|---|---|---|---|
 | X1 | where PSBD-TM sends triggered WaNet predictions | done | `experiments/literature_checks/wanet_destinations.py` | on `vit_cifar10_wanet_0_1` 0.729 of triggered passes change and only 0.158 of those land on the true class (read 2026-09-29), so E8's prediction of at least 0.7 failed on the failing cell |
 | X2 | the 2 unswept replicates of the failing cell | queued, night of 2026-09-29 | `experiments/why_token_masking_works/` | no cache under `results/vit_cifar10_wanet_0_1_seed_1` yet |
-| X3 | fusion rules for a specialist | running, CPU | `experiments/cache_readouts/` | 4 of the 10 development models lack an adaptive rate for `pre_residual_blocks_9_12` until the late-band fill |
+| X3 | fusion rules for a specialist | done, CPU | `experiments/cache_readouts/` | the pre-registered weighted min-rank rule confirmed on the held-out half, the best-pass statistic did not |
 | X4 | depth bands from the caches | running, CPU | `experiments/cache_readouts/` | every development model carries the 6 band placements |
 | X19 (N17) | worst-pass and hard-label statistics | running, CPU | `experiments/cache_readouts/` | |
 | L-tests of `why_psbd_works` | margin, direction, redundancy, low dimension, flatness, neuron bias, pass uncertainty, out of distribution, MLP neurons, missingness on 4 groups, P1 and P10 on the panel | 6 of 36 runs done, 30 queued | `experiments/why_psbd_works/` | verdicts in the next section |
@@ -219,9 +219,8 @@ The order inside a night is explanatory value per GPU minute. Value counts how m
 | 20 | X17 contiguous against scattered subsets | 10 | 7 | 14 | E2 against E12 |
 | 21 | X18 test-time strength | 6 global and WaNet | 6 | 12 | E3 against E4, W7 |
 | 22 | X23 partial-area trigger | 6 global and WaNet | 7 | 14 | E2 against E12 on the input side |
-| 23 | late-band fill, `pre_residual_blocks_9_12` on 15 models | 15 | 60 | 90 | unblocks X3 on 4 development models and the 54-model union |
 
-The main night's analysis block (slots 1 to 22) budgets about 7.5 h and the fill 1.5 h, which leaves slot 0 about 5 h of the 14 h window. If slot 0 runs longer, slots 20 to 22 move to the fallback night before the fill does, since X3 needs the fill. SIG reruns and k up to 20 do not start on the main night unless every slot above has finished, because they wait until the analysis is done.
+The main night's analysis block (slots 1 to 22) budgets about 7.5 h, which leaves slot 0 about 6.5 h of the 14 h window. If slot 0 runs longer, slots 20 to 22 move to the fallback night. The late-band fill was withdrawn: the 15 models already hold the full ladder and late-band dropout never reaches the 0.8 clean shift on them. SIG reruns and k up to 20 do not start on the main night unless every slot above has finished, because they wait until the analysis is done.
 
 **Fallback night, 2026-10-01 17:00 to 2026-10-02 07:00.**
 
@@ -269,10 +268,10 @@ The original design took each triggered row's true class through `split_manifest
 - Comparison and control: PSBD-TM combined with `pre_residual_blocks_9_12`, `pre_residual_blocks_5_8` and `post_residual` under 5 rules, with PSBD-TM alone as the control: the mean of fractional PSU, min-rank, weighted min-rank at budget shares 0.8 and 0.2 and at 0.9 and 0.1, and Fisher's combination of clean-validation percentiles.
 - Prediction: the late residual member helps WaNet and Blend and hurts TaCT under the mean and min-rank rules, the weighted rule keeps TaCT within 0.01 while keeping most of the WaNet gain. The copula model predicts that the union beats the mixture whenever the weaker member's separation ratio $\lambda$ is below about 0.55 and that the gap comes from the WaNet models.
 - Refuted if: the weighted rule loses more than 0.01 on TaCT, or the mixture beats the union on the models with $\lambda < 0.55$.
-- Models, compute, owner: the development set, then the 54 panel models once the fill lands, CPU, seconds, `experiments/cache_readouts/`.
+- Models, compute, owner: the development set, then the 54 panel models at the rate nearest the target where no adaptive rate exists, CPU, seconds, `experiments/cache_readouts/`.
 - Status: running.
 
-Report AUROC, TPR at 10% and 20% FPR and the FPR realized on the clean test split. The figure is TPR at 10% FPR per attack for each rule, with PSBD-TM alone as the reference line. A historical reading on 39 models (2026-09-29, before the 15-model fill) gave PSBD-TM 0.9659, late-band residual dropout 0.9200, mixture 0.9787 and union 0.9831, reproduced by `experiments/theory_checks/mix_union.py`. The current 54-model macros for the PSBD-TM plus PSBD-RD union are a gain of +0.008 [-0.009, +0.029] and 0.910 on the failing WaNet cell (`\ProbeUnionTmRdGain`, `\ProbeUnionWanetCifarOneZeroTmRd`). The late band was picked after its WaNet readings were seen, so its result counts only after the fill and the confirmation on the held-out half.
+Report AUROC, TPR at 10% and 20% FPR and the FPR realized on the clean test split. The figure is TPR at 10% FPR per attack for each rule, with PSBD-TM alone as the reference line. A historical reading on 39 models (2026-09-29, the 39 models with an adaptive late-band rate) gave PSBD-TM 0.9659, late-band residual dropout 0.9200, mixture 0.9787 and union 0.9831, reproduced by `experiments/theory_checks/mix_union.py`. The current 54-model macros for the PSBD-TM plus PSBD-RD union are a gain of +0.008 [-0.009, +0.029] and 0.910 on the failing WaNet cell (`\ProbeUnionTmRdGain`, `\ProbeUnionWanetCifarOneZeroTmRd`). The late band was picked after its WaNet readings were seen, so its result counted only after the confirmation on the held-out half, which it passed (`experiments/cache_readouts/README.md`).
 
 **X4. Depth bands from the caches.**
 
@@ -680,7 +679,7 @@ The honest reading uses all of them and labels each by panel status, noise mode 
 
 These are the candidate building blocks for a better probe. Each gets a 6-rate reduced ladder on the development set (12 min) unless stated otherwise, read at the adaptive 0.8 and matched 0.6 rules. The theory triage of `docs/novel-designs-theory.md` predicts that none beats PSBD-TM on patch triggers and that (5) and (6) complement it on warp, and it is the filter for the order below. The proposed owner is `experiments/novel_operators/`.
 
-The coordinator reported on 2026-09-29 (historical, 39 models before the late-band fill) that averaging PSBD-TM's fractional PSU with that of late-block residual dropout gained +0.013 [+0.004, +0.028] over PSBD-TM with no attack losing and lifted the failing WaNet cell from 0.459 to 0.745, and that the min-rank union gained +0.017 [+0.003, +0.043] and lifted the cell to 0.938 (`docs/runs/2026-09-29-gpu-queue.md`). That says combination works, so the value now lies in better building blocks.
+The coordinator reported on 2026-09-29 (historical, the 39 models with an adaptive late-band rate) that averaging PSBD-TM's fractional PSU with that of late-block residual dropout gained +0.013 [+0.004, +0.028] over PSBD-TM with no attack losing and lifted the failing WaNet cell from 0.459 to 0.745, and that the min-rank union gained +0.017 [+0.003, +0.043] and lifted the cell to 0.938 (`docs/runs/2026-09-29-gpu-queue.md`). That says combination works, so the value now lies in better building blocks.
 
 **X14. Stratified token masking (N13).**
 
@@ -868,7 +867,7 @@ Merging the 3 documents exposed 6 places where they or the records disagree. Eac
 - **N8.** The source plan predicts warp fragile under early block skipping (a sign flip), and the theory triage predicts PSBD's sign with weak separation. N8's band-restricted variant decides it.
 - **Mixture against union in the combined design.** The source plan averaged the 2 halves, and the theory triage shows the union is more robust when 1 member is weak or inverted on an attack. The combined design above now defaults to the union.
 - **WaNet legibility.** Section D reads WaNet at 0.183 excess retention at 30% visible over 3 models, and `why_psbd_works` reads 0.706 on `vit_tiny_wanet_0_1` at the same fraction. X17 on both WaNet development models decides whether the difference is the model or the measurement.
-- **The late band's selection.** The late band `pre_residual_blocks_9_12` was chosen after its WaNet readings were seen, so every gain it shows counts only after the 15-model fill and the held-out confirmation (X3, protocol step 4).
+- **The late band's selection.** The late band `pre_residual_blocks_9_12` was chosen after its WaNet readings were seen, so every gain it shows counted only after the held-out confirmation (X3, protocol step 4), which it passed with a small gain.
 
 ## Plausible explanations that may not hold
 

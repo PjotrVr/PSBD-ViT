@@ -1,0 +1,2127 @@
+{
+  "experiment": "X4, depth bands",
+  "model_set": "dev",
+  "operators": {
+    "token_mask": "before_attention_norm_blocks_{band}_token_mask",
+    "residual_dropout": "pre_residual_blocks_{band}"
+  },
+  "bands": [
+    "1_4",
+    "5_8",
+    "9_12"
+  ],
+  "readings": [
+    "top_rate",
+    "matched"
+  ],
+  "matched_target": 0.6,
+  "thresholds": {
+    "stable": 0.1,
+    "broken_margin": 0.2,
+    "hit": 0.2
+  },
+  "summary": {
+    "top_rate": {
+      "pooled_folders": [
+        "vit_cifar10_wanet_0_1",
+        "vit_cifar10_bpp_0_05",
+        "vit_gtsrb_bpp_0_01",
+        "vit_gtsrb_bpp_0_1",
+        "vit_cifar10_blend_0_1",
+        "vit_cifar10_badnet_a2o_0_01",
+        "vit_gtsrb_tact_0_05",
+        "vit_cifar10_tact_0_01",
+        "vit_gtsrb_lf_0_01"
+      ],
+      "unpooled_folders": [
+        "vit_gtsrb_wanet_0_1"
+      ],
+      "by_attack": {
+        "badnet_a2o": {
+          "n": 1,
+          "token_mask/1_4": {
+            "n": 1,
+            "rates": [
+              0.99
+            ],
+            "triggered": 0.002916666679084301,
+            "clean_paired": 0.38717594742774963,
+            "triggered_minus_clean": -0.38425928354263306
+          },
+          "token_mask/5_8": {
+            "n": 1,
+            "rates": [
+              0.99
+            ],
+            "triggered": 0.002916666679084301,
+            "clean_paired": 0.7468518614768982,
+            "triggered_minus_clean": -0.7439351677894592
+          },
+          "token_mask/9_12": {
+            "n": 1,
+            "rates": [
+              0.99
+            ],
+            "triggered": 0.2342129498720169,
+            "clean_paired": 0.4429166316986084,
+            "triggered_minus_clean": -0.2087036818265915
+          },
+          "residual_dropout/1_4": {
+            "n": 1,
+            "rates": [
+              0.99
+            ],
+            "triggered": 0.9022222757339478,
+            "clean_paired": 0.9012500643730164,
+            "triggered_minus_clean": 0.0009722113609313965
+          },
+          "residual_dropout/5_8": {
+            "n": 1,
+            "rates": [
+              0.99
+            ],
+            "triggered": 0.8853703737258911,
+            "clean_paired": 0.9006481766700745,
+            "triggered_minus_clean": -0.01527780294418335
+          },
+          "residual_dropout/9_12": {
+            "n": 1,
+            "rates": [
+              0.99
+            ],
+            "triggered": 0.726805567741394,
+            "clean_paired": 0.748055636882782,
+            "triggered_minus_clean": -0.02125006914138794
+          }
+        },
+        "tact": {
+          "n": 2,
+          "token_mask/1_4": {
+            "n": 2,
+            "rates": [
+              0.99
+            ],
+            "triggered": 0.12745718425139785,
+            "clean_paired": 0.30096764862537384,
+            "triggered_minus_clean": -0.17351046949625015
+          },
+          "token_mask/5_8": {
+            "n": 2,
+            "rates": [
+              0.99
+            ],
+            "triggered": 0.4361390471458435,
+            "clean_paired": 0.9577276706695557,
+            "triggered_minus_clean": -0.5215886235237122
+          },
+          "token_mask/9_12": {
+            "n": 2,
+            "rates": [
+              0.99
+            ],
+            "triggered": 0.9653328955173492,
+            "clean_paired": 0.5158558189868927,
+            "triggered_minus_clean": 0.44947707653045654
+          },
+          "residual_dropout/1_4": {
+            "n": 2,
+            "rates": [
+              0.99
+            ],
+            "triggered": 0.9298361837863922,
+            "clean_paired": 0.9602291584014893,
+            "triggered_minus_clean": -0.030392974615097046
+          },
+          "residual_dropout/5_8": {
+            "n": 2,
+            "rates": [
+              0.99
+            ],
+            "triggered": 0.9289432168006897,
+            "clean_paired": 0.9623669385910034,
+            "triggered_minus_clean": -0.03342372179031372
+          },
+          "residual_dropout/9_12": {
+            "n": 2,
+            "rates": [
+              0.99
+            ],
+            "triggered": 0.8684040307998657,
+            "clean_paired": 0.8673550486564636,
+            "triggered_minus_clean": 0.0010489821434020996
+          }
+        },
+        "blend": {
+          "n": 1,
+          "token_mask/1_4": {
+            "n": 1,
+            "rates": [
+              0.99
+            ],
+            "triggered": 0.02518518641591072,
+            "clean_paired": 0.30666667222976685,
+            "triggered_minus_clean": -0.28148147463798523
+          },
+          "token_mask/5_8": {
+            "n": 1,
+            "rates": [
+              0.99
+            ],
+            "triggered": 0.0,
+            "clean_paired": 0.8643518686294556,
+            "triggered_minus_clean": -0.8643518686294556
+          },
+          "token_mask/9_12": {
+            "n": 1,
+            "rates": [
+              0.99
+            ],
+            "triggered": 0.0,
+            "clean_paired": 0.40046295523643494,
+            "triggered_minus_clean": -0.40046295523643494
+          },
+          "residual_dropout/1_4": {
+            "n": 1,
+            "rates": [
+              0.99
+            ],
+            "triggered": 0.8874536752700806,
+            "clean_paired": 0.8991666436195374,
+            "triggered_minus_clean": -0.011712968349456787
+          },
+          "residual_dropout/5_8": {
+            "n": 1,
+            "rates": [
+              0.99
+            ],
+            "triggered": 0.8589815497398376,
+            "clean_paired": 0.8985186219215393,
+            "triggered_minus_clean": -0.03953707218170166
+          },
+          "residual_dropout/9_12": {
+            "n": 1,
+            "rates": [
+              0.99
+            ],
+            "triggered": 0.28986111283302307,
+            "clean_paired": 0.7481945157051086,
+            "triggered_minus_clean": -0.45833340287208557
+          }
+        },
+        "lf": {
+          "n": 1,
+          "token_mask/1_4": {
+            "n": 1,
+            "rates": [
+              0.99
+            ],
+            "triggered": 0.0761643648147583,
+            "clean_paired": 0.5614168047904968,
+            "triggered_minus_clean": -0.4852524399757385
+          },
+          "token_mask/5_8": {
+            "n": 1,
+            "rates": [
+              0.99
+            ],
+            "triggered": 0.035860590636730194,
+            "clean_paired": 0.8168211579322815,
+            "triggered_minus_clean": -0.7809605598449707
+          },
+          "token_mask/9_12": {
+            "n": 1,
+            "rates": [
+              0.99
+            ],
+            "triggered": 0.015062708407640457,
+            "clean_paired": 0.023287326097488403,
+            "triggered_minus_clean": -0.008224617689847946
+          },
+          "residual_dropout/1_4": {
+            "n": 1,
+            "rates": [
+              0.99
+            ],
+            "triggered": 0.9359992146492004,
+            "clean_paired": 0.9768702983856201,
+            "triggered_minus_clean": -0.04087108373641968
+          },
+          "residual_dropout/5_8": {
+            "n": 1,
+            "rates": [
+              0.99
+            ],
+            "triggered": 0.885138988494873,
+            "clean_paired": 0.976681113243103,
+            "triggered_minus_clean": -0.09154212474822998
+          },
+          "residual_dropout/9_12": {
+            "n": 1,
+            "rates": [
+              0.99
+            ],
+            "triggered": 0.45383504033088684,
+            "clean_paired": 0.8473876714706421,
+            "triggered_minus_clean": -0.39355263113975525
+          }
+        },
+        "bpp": {
+          "n": 3,
+          "token_mask/1_4": {
+            "n": 3,
+            "rates": [
+              0.99
+            ],
+            "triggered": 0.1210997502009074,
+            "clean_paired": 0.6904883484045664,
+            "triggered_minus_clean": -0.5693885982036591
+          },
+          "token_mask/5_8": {
+            "n": 3,
+            "rates": [
+              0.99
+            ],
+            "triggered": 0.6186324159304301,
+            "clean_paired": 0.7169819672902426,
+            "triggered_minus_clean": -0.09834955135981242
+          },
+          "token_mask/9_12": {
+            "n": 3,
+            "rates": [
+              0.99
+            ],
+            "triggered": 0.048746717938532434,
+            "clean_paired": 0.45182545979817706,
+            "triggered_minus_clean": -0.4030787448088328
+          },
+          "residual_dropout/1_4": {
+            "n": 3,
+            "rates": [
+              0.99
+            ],
+            "triggered": 0.9395830829938253,
+            "clean_paired": 0.9494576454162598,
+            "triggered_minus_clean": -0.009874562422434488
+          },
+          "residual_dropout/5_8": {
+            "n": 3,
+            "rates": [
+              0.99
+            ],
+            "triggered": 0.9161979158719381,
+            "clean_paired": 0.9474253058433533,
+            "triggered_minus_clean": -0.031227389971415203
+          },
+          "residual_dropout/9_12": {
+            "n": 3,
+            "rates": [
+              0.99
+            ],
+            "triggered": 0.4241550366083781,
+            "clean_paired": 0.8351230621337891,
+            "triggered_minus_clean": -0.41096802552541095
+          }
+        },
+        "wanet": {
+          "n": 1,
+          "token_mask/1_4": {
+            "n": 1,
+            "rates": [
+              0.99
+            ],
+            "triggered": 0.9114814400672913,
+            "clean_paired": 0.4612037241458893,
+            "triggered_minus_clean": 0.450277715921402
+          },
+          "token_mask/5_8": {
+            "n": 1,
+            "rates": [
+              0.99
+            ],
+            "triggered": 0.9212962985038757,
+            "clean_paired": 0.7605092525482178,
+            "triggered_minus_clean": 0.16078704595565796
+          },
+          "token_mask/9_12": {
+            "n": 1,
+            "rates": [
+              0.99
+            ],
+            "triggered": 0.10560185462236404,
+            "clean_paired": 0.7633796334266663,
+            "triggered_minus_clean": -0.6577777862548828
+          },
+          "residual_dropout/1_4": {
+            "n": 1,
+            "rates": [
+              0.99
+            ],
+            "triggered": 0.745648205280304,
+            "clean_paired": 0.917731523513794,
+            "triggered_minus_clean": -0.17208331823349
+          },
+          "residual_dropout/5_8": {
+            "n": 1,
+            "rates": [
+              0.99
+            ],
+            "triggered": 0.6106944680213928,
+            "clean_paired": 0.9256482124328613,
+            "triggered_minus_clean": -0.3149537444114685
+          },
+          "residual_dropout/9_12": {
+            "n": 1,
+            "rates": [
+              0.99
+            ],
+            "triggered": 0.20467591285705566,
+            "clean_paired": 0.8223147988319397,
+            "triggered_minus_clean": -0.617638885974884
+          }
+        }
+      }
+    },
+    "matched": {
+      "pooled_folders": [
+        "vit_cifar10_wanet_0_1",
+        "vit_cifar10_bpp_0_05",
+        "vit_gtsrb_bpp_0_01",
+        "vit_gtsrb_bpp_0_1",
+        "vit_cifar10_blend_0_1",
+        "vit_cifar10_badnet_a2o_0_01",
+        "vit_gtsrb_tact_0_05",
+        "vit_cifar10_tact_0_01",
+        "vit_gtsrb_lf_0_01"
+      ],
+      "unpooled_folders": [
+        "vit_gtsrb_wanet_0_1"
+      ],
+      "by_attack": {
+        "badnet_a2o": {
+          "n": 1,
+          "token_mask/1_4": {
+            "n": 1,
+            "rates": [
+              0.99
+            ],
+            "triggered": 0.002916666679084301,
+            "clean_paired": 0.38717594742774963,
+            "triggered_minus_clean": -0.38425928354263306
+          },
+          "token_mask/5_8": {
+            "n": 1,
+            "rates": [
+              0.9
+            ],
+            "triggered": 0.002916666679084301,
+            "clean_paired": 0.6387037038803101,
+            "triggered_minus_clean": -0.6357870101928711
+          },
+          "token_mask/9_12": {
+            "n": 1,
+            "rates": [
+              0.99
+            ],
+            "triggered": 0.2342129498720169,
+            "clean_paired": 0.4429166316986084,
+            "triggered_minus_clean": -0.2087036818265915
+          },
+          "residual_dropout/1_4": {
+            "n": 1,
+            "rates": [
+              0.5
+            ],
+            "triggered": 0.6086574196815491,
+            "clean_paired": 0.7350463271141052,
+            "triggered_minus_clean": -0.12638890743255615
+          },
+          "residual_dropout/5_8": {
+            "n": 1,
+            "rates": [
+              0.8
+            ],
+            "triggered": 0.8204168081283569,
+            "clean_paired": 0.729305624961853,
+            "triggered_minus_clean": 0.0911111831665039
+          },
+          "residual_dropout/9_12": {
+            "n": 1,
+            "rates": [
+              0.99
+            ],
+            "triggered": 0.726805567741394,
+            "clean_paired": 0.748055636882782,
+            "triggered_minus_clean": -0.02125006914138794
+          }
+        },
+        "tact": {
+          "n": 2,
+          "token_mask/1_4": {
+            "n": 2,
+            "rates": [
+              0.99
+            ],
+            "triggered": 0.12745718425139785,
+            "clean_paired": 0.30096764862537384,
+            "triggered_minus_clean": -0.17351046949625015
+          },
+          "token_mask/5_8": {
+            "n": 2,
+            "rates": [
+              0.8,
+              0.95
+            ],
+            "triggered": 0.3961474299430847,
+            "clean_paired": 0.6430590003728867,
+            "triggered_minus_clean": -0.24691157042980194
+          },
+          "token_mask/9_12": {
+            "n": 2,
+            "rates": [
+              0.99
+            ],
+            "triggered": 0.9653328955173492,
+            "clean_paired": 0.5158558189868927,
+            "triggered_minus_clean": 0.44947707653045654
+          },
+          "residual_dropout/1_4": {
+            "n": 2,
+            "rates": [
+              0.3,
+              0.5
+            ],
+            "triggered": 0.5596460625529289,
+            "clean_paired": 0.5409087985754013,
+            "triggered_minus_clean": 0.01873726397752762
+          },
+          "residual_dropout/5_8": {
+            "n": 2,
+            "rates": [
+              0.7,
+              0.8
+            ],
+            "triggered": 0.7890658676624298,
+            "clean_paired": 0.9163621962070465,
+            "triggered_minus_clean": -0.1272963285446167
+          },
+          "residual_dropout/9_12": {
+            "n": 2,
+            "rates": [
+              0.95
+            ],
+            "triggered": 0.684250071644783,
+            "clean_paired": 0.6542018055915833,
+            "triggered_minus_clean": 0.030048266053199768
+          }
+        },
+        "blend": {
+          "n": 1,
+          "token_mask/1_4": {
+            "n": 1,
+            "rates": [
+              0.99
+            ],
+            "triggered": 0.02518518641591072,
+            "clean_paired": 0.30666667222976685,
+            "triggered_minus_clean": -0.28148147463798523
+          },
+          "token_mask/5_8": {
+            "n": 1,
+            "rates": [
+              0.8
+            ],
+            "triggered": 0.0,
+            "clean_paired": 0.5154629349708557,
+            "triggered_minus_clean": -0.5154629349708557
+          },
+          "token_mask/9_12": {
+            "n": 1,
+            "rates": [
+              0.99
+            ],
+            "triggered": 0.0,
+            "clean_paired": 0.40046295523643494,
+            "triggered_minus_clean": -0.40046295523643494
+          },
+          "residual_dropout/1_4": {
+            "n": 1,
+            "rates": [
+              0.4
+            ],
+            "triggered": 0.0008796296897344291,
+            "clean_paired": 0.4693981111049652,
+            "triggered_minus_clean": -0.4685184955596924
+          },
+          "residual_dropout/5_8": {
+            "n": 1,
+            "rates": [
+              0.8
+            ],
+            "triggered": 0.010555555112659931,
+            "clean_paired": 0.7608333826065063,
+            "triggered_minus_clean": -0.7502778172492981
+          },
+          "residual_dropout/9_12": {
+            "n": 1,
+            "rates": [
+              0.99
+            ],
+            "triggered": 0.28986111283302307,
+            "clean_paired": 0.7481945157051086,
+            "triggered_minus_clean": -0.45833340287208557
+          }
+        },
+        "lf": {
+          "n": 1,
+          "token_mask/1_4": {
+            "n": 1,
+            "rates": [
+              0.99
+            ],
+            "triggered": 0.0761643648147583,
+            "clean_paired": 0.5614168047904968,
+            "triggered_minus_clean": -0.4852524399757385
+          },
+          "token_mask/5_8": {
+            "n": 1,
+            "rates": [
+              0.8
+            ],
+            "triggered": 0.022562552243471146,
+            "clean_paired": 0.6046196222305298,
+            "triggered_minus_clean": -0.5820570588111877
+          },
+          "token_mask/9_12": {
+            "n": 1,
+            "rates": [
+              0.99
+            ],
+            "triggered": 0.015062708407640457,
+            "clean_paired": 0.023287326097488403,
+            "triggered_minus_clean": -0.008224617689847946
+          },
+          "residual_dropout/1_4": {
+            "n": 1,
+            "rates": [
+              0.3
+            ],
+            "triggered": 0.05142749845981598,
+            "clean_paired": 0.37921473383903503,
+            "triggered_minus_clean": -0.32778722047805786
+          },
+          "residual_dropout/5_8": {
+            "n": 1,
+            "rates": [
+              0.7
+            ],
+            "triggered": 0.016449233517050743,
+            "clean_paired": 0.6050608158111572,
+            "triggered_minus_clean": -0.5886116027832031
+          },
+          "residual_dropout/9_12": {
+            "n": 1,
+            "rates": [
+              0.95
+            ],
+            "triggered": 0.04865443706512451,
+            "clean_paired": 0.566301167011261,
+            "triggered_minus_clean": -0.5176467299461365
+          }
+        },
+        "bpp": {
+          "n": 3,
+          "token_mask/1_4": {
+            "n": 3,
+            "rates": [
+              0.8,
+              0.99
+            ],
+            "triggered": 0.0706701356296738,
+            "clean_paired": 0.45457948247591656,
+            "triggered_minus_clean": -0.38390934467315674
+          },
+          "token_mask/5_8": {
+            "n": 3,
+            "rates": [
+              0.9,
+              0.95
+            ],
+            "triggered": 0.3371066749095917,
+            "clean_paired": 0.6264155705769857,
+            "triggered_minus_clean": -0.28930890560150146
+          },
+          "token_mask/9_12": {
+            "n": 3,
+            "rates": [
+              0.99
+            ],
+            "triggered": 0.048746717938532434,
+            "clean_paired": 0.45182545979817706,
+            "triggered_minus_clean": -0.4030787448088328
+          },
+          "residual_dropout/1_4": {
+            "n": 3,
+            "rates": [
+              0.3,
+              0.4
+            ],
+            "triggered": 0.3823293497165044,
+            "clean_paired": 0.5648641685644785,
+            "triggered_minus_clean": -0.18253482381502786
+          },
+          "residual_dropout/5_8": {
+            "n": 3,
+            "rates": [
+              0.6,
+              0.7
+            ],
+            "triggered": 0.14836372078085938,
+            "clean_paired": 0.4365107814470927,
+            "triggered_minus_clean": -0.2881470521291097
+          },
+          "residual_dropout/9_12": {
+            "n": 3,
+            "rates": [
+              0.9,
+              0.95,
+              0.99
+            ],
+            "triggered": 0.2299364434244732,
+            "clean_paired": 0.6266926328341166,
+            "triggered_minus_clean": -0.3967561920483907
+          }
+        },
+        "wanet": {
+          "n": 1,
+          "token_mask/1_4": {
+            "n": 1,
+            "rates": [
+              0.99
+            ],
+            "triggered": 0.9114814400672913,
+            "clean_paired": 0.4612037241458893,
+            "triggered_minus_clean": 0.450277715921402
+          },
+          "token_mask/5_8": {
+            "n": 1,
+            "rates": [
+              0.9
+            ],
+            "triggered": 0.6441666483879089,
+            "clean_paired": 0.6162036657333374,
+            "triggered_minus_clean": 0.027962982654571533
+          },
+          "token_mask/9_12": {
+            "n": 1,
+            "rates": [
+              0.9
+            ],
+            "triggered": 0.1013425961136818,
+            "clean_paired": 0.5270370244979858,
+            "triggered_minus_clean": -0.42569443583488464
+          },
+          "residual_dropout/1_4": {
+            "n": 1,
+            "rates": [
+              0.4
+            ],
+            "triggered": 0.5158796310424805,
+            "clean_paired": 0.589722216129303,
+            "triggered_minus_clean": -0.07384258508682251
+          },
+          "residual_dropout/5_8": {
+            "n": 1,
+            "rates": [
+              0.7
+            ],
+            "triggered": 0.11388888955116272,
+            "clean_paired": 0.5509721636772156,
+            "triggered_minus_clean": -0.43708327412605286
+          },
+          "residual_dropout/9_12": {
+            "n": 1,
+            "rates": [
+              0.95
+            ],
+            "triggered": 0.10236111283302307,
+            "clean_paired": 0.6075462698936462,
+            "triggered_minus_clean": -0.5051851272583008
+          }
+        }
+      }
+    }
+  },
+  "verdicts": {
+    "top_rate": {
+      "E1a": {
+        "verdict": "mixed",
+        "n_held": 4,
+        "n_checks": 6,
+        "checks": [
+          {
+            "folder": "vit_cifar10_badnet_a2o_0_01",
+            "band": "1_4",
+            "triggered": 0.002916666679084301,
+            "clean_paired": 0.38717594742774963,
+            "holds": true
+          },
+          {
+            "folder": "vit_cifar10_badnet_a2o_0_01",
+            "band": "5_8",
+            "triggered": 0.002916666679084301,
+            "clean_paired": 0.7468518614768982,
+            "holds": true
+          },
+          {
+            "folder": "vit_gtsrb_tact_0_05",
+            "band": "1_4",
+            "triggered": 0.00826446246355772,
+            "clean_paired": 0.3305785059928894,
+            "holds": true
+          },
+          {
+            "folder": "vit_gtsrb_tact_0_05",
+            "band": "5_8",
+            "triggered": 0.0,
+            "clean_paired": 0.9862259030342102,
+            "holds": true
+          },
+          {
+            "folder": "vit_cifar10_tact_0_01",
+            "band": "1_4",
+            "triggered": 0.24664990603923798,
+            "clean_paired": 0.2713567912578583,
+            "holds": false
+          },
+          {
+            "folder": "vit_cifar10_tact_0_01",
+            "band": "5_8",
+            "triggered": 0.872278094291687,
+            "clean_paired": 0.9292294383049011,
+            "holds": false
+          }
+        ]
+      },
+      "E1b": {
+        "verdict": "held",
+        "n_held": 3,
+        "n_checks": 3,
+        "checks": [
+          {
+            "folder": "vit_cifar10_badnet_a2o_0_01",
+            "triggered": 0.2342129498720169,
+            "clean_paired": 0.4429166316986084,
+            "holds": true
+          },
+          {
+            "folder": "vit_gtsrb_tact_0_05",
+            "triggered": 0.9449036121368408,
+            "clean_paired": 0.06060606241226196,
+            "holds": true
+          },
+          {
+            "folder": "vit_cifar10_tact_0_01",
+            "triggered": 0.9857621788978577,
+            "clean_paired": 0.9711055755615234,
+            "holds": true
+          }
+        ]
+      },
+      "E2": {
+        "verdict": "mixed",
+        "n_held": 10,
+        "n_checks": 15,
+        "checks": [
+          {
+            "folder": "vit_cifar10_bpp_0_05",
+            "band": "1_4",
+            "triggered": 0.05564814805984497,
+            "holds": true
+          },
+          {
+            "folder": "vit_cifar10_bpp_0_05",
+            "band": "5_8",
+            "triggered": 0.8069907426834106,
+            "holds": false
+          },
+          {
+            "folder": "vit_cifar10_bpp_0_05",
+            "band": "9_12",
+            "triggered": 0.010833333246409893,
+            "holds": true
+          },
+          {
+            "folder": "vit_gtsrb_bpp_0_01",
+            "band": "1_4",
+            "triggered": 0.2834184169769287,
+            "holds": false
+          },
+          {
+            "folder": "vit_gtsrb_bpp_0_01",
+            "band": "5_8",
+            "triggered": 0.40729188919067383,
+            "holds": false
+          },
+          {
+            "folder": "vit_gtsrb_bpp_0_01",
+            "band": "9_12",
+            "triggered": 0.13118422031402588,
+            "holds": false
+          },
+          {
+            "folder": "vit_gtsrb_bpp_0_1",
+            "band": "1_4",
+            "triggered": 0.024232685565948486,
+            "holds": true
+          },
+          {
+            "folder": "vit_gtsrb_bpp_0_1",
+            "band": "5_8",
+            "triggered": 0.6416146159172058,
+            "holds": false
+          },
+          {
+            "folder": "vit_gtsrb_bpp_0_1",
+            "band": "9_12",
+            "triggered": 0.004222600255161524,
+            "holds": true
+          },
+          {
+            "folder": "vit_cifar10_blend_0_1",
+            "band": "1_4",
+            "triggered": 0.02518518641591072,
+            "holds": true
+          },
+          {
+            "folder": "vit_cifar10_blend_0_1",
+            "band": "5_8",
+            "triggered": 0.0,
+            "holds": true
+          },
+          {
+            "folder": "vit_cifar10_blend_0_1",
+            "band": "9_12",
+            "triggered": 0.0,
+            "holds": true
+          },
+          {
+            "folder": "vit_gtsrb_lf_0_01",
+            "band": "1_4",
+            "triggered": 0.0761643648147583,
+            "holds": true
+          },
+          {
+            "folder": "vit_gtsrb_lf_0_01",
+            "band": "5_8",
+            "triggered": 0.035860590636730194,
+            "holds": true
+          },
+          {
+            "folder": "vit_gtsrb_lf_0_01",
+            "band": "9_12",
+            "triggered": 0.015062708407640457,
+            "holds": true
+          }
+        ]
+      },
+      "E10": {
+        "verdict": "failed",
+        "n_held": 0,
+        "n_checks": 2,
+        "checks": [
+          {
+            "folder": "vit_cifar10_wanet_0_1",
+            "successful_2pt": true,
+            "wanet_triggered_minus_clean": -0.17208331823349,
+            "badnet_mean_triggered_minus_clean": 0.0009722113609313965,
+            "holds": false
+          },
+          {
+            "folder": "vit_gtsrb_wanet_0_1",
+            "successful_2pt": false,
+            "wanet_triggered_minus_clean": -0.3548559546470642,
+            "badnet_mean_triggered_minus_clean": 0.0009722113609313965,
+            "holds": false
+          }
+        ]
+      }
+    },
+    "matched": {
+      "E1a": {
+        "verdict": "mixed",
+        "n_held": 4,
+        "n_checks": 6,
+        "checks": [
+          {
+            "folder": "vit_cifar10_badnet_a2o_0_01",
+            "band": "1_4",
+            "triggered": 0.002916666679084301,
+            "clean_paired": 0.38717594742774963,
+            "holds": true
+          },
+          {
+            "folder": "vit_cifar10_badnet_a2o_0_01",
+            "band": "5_8",
+            "triggered": 0.002916666679084301,
+            "clean_paired": 0.6387037038803101,
+            "holds": true
+          },
+          {
+            "folder": "vit_gtsrb_tact_0_05",
+            "band": "1_4",
+            "triggered": 0.00826446246355772,
+            "clean_paired": 0.3305785059928894,
+            "holds": true
+          },
+          {
+            "folder": "vit_gtsrb_tact_0_05",
+            "band": "5_8",
+            "triggered": 0.0,
+            "clean_paired": 0.41928377747535706,
+            "holds": true
+          },
+          {
+            "folder": "vit_cifar10_tact_0_01",
+            "band": "1_4",
+            "triggered": 0.24664990603923798,
+            "clean_paired": 0.2713567912578583,
+            "holds": false
+          },
+          {
+            "folder": "vit_cifar10_tact_0_01",
+            "band": "5_8",
+            "triggered": 0.7922948598861694,
+            "clean_paired": 0.8668342232704163,
+            "holds": false
+          }
+        ]
+      },
+      "E1b": {
+        "verdict": "held",
+        "n_held": 3,
+        "n_checks": 3,
+        "checks": [
+          {
+            "folder": "vit_cifar10_badnet_a2o_0_01",
+            "triggered": 0.2342129498720169,
+            "clean_paired": 0.4429166316986084,
+            "holds": true
+          },
+          {
+            "folder": "vit_gtsrb_tact_0_05",
+            "triggered": 0.9449036121368408,
+            "clean_paired": 0.06060606241226196,
+            "holds": true
+          },
+          {
+            "folder": "vit_cifar10_tact_0_01",
+            "triggered": 0.9857621788978577,
+            "clean_paired": 0.9711055755615234,
+            "holds": true
+          }
+        ]
+      },
+      "E2": {
+        "verdict": "mixed",
+        "n_held": 10,
+        "n_checks": 15,
+        "checks": [
+          {
+            "folder": "vit_cifar10_bpp_0_05",
+            "band": "1_4",
+            "triggered": 0.05564814805984497,
+            "holds": true
+          },
+          {
+            "folder": "vit_cifar10_bpp_0_05",
+            "band": "5_8",
+            "triggered": 0.6400462985038757,
+            "holds": false
+          },
+          {
+            "folder": "vit_cifar10_bpp_0_05",
+            "band": "9_12",
+            "triggered": 0.010833333246409893,
+            "holds": true
+          },
+          {
+            "folder": "vit_gtsrb_bpp_0_01",
+            "band": "1_4",
+            "triggered": 0.1454276144504547,
+            "holds": false
+          },
+          {
+            "folder": "vit_gtsrb_bpp_0_01",
+            "band": "5_8",
+            "triggered": 0.24828261137008667,
+            "holds": false
+          },
+          {
+            "folder": "vit_gtsrb_bpp_0_01",
+            "band": "9_12",
+            "triggered": 0.13118422031402588,
+            "holds": false
+          },
+          {
+            "folder": "vit_gtsrb_bpp_0_1",
+            "band": "1_4",
+            "triggered": 0.010934644378721714,
+            "holds": true
+          },
+          {
+            "folder": "vit_gtsrb_bpp_0_1",
+            "band": "5_8",
+            "triggered": 0.12299111485481262,
+            "holds": false
+          },
+          {
+            "folder": "vit_gtsrb_bpp_0_1",
+            "band": "9_12",
+            "triggered": 0.004222600255161524,
+            "holds": true
+          },
+          {
+            "folder": "vit_cifar10_blend_0_1",
+            "band": "1_4",
+            "triggered": 0.02518518641591072,
+            "holds": true
+          },
+          {
+            "folder": "vit_cifar10_blend_0_1",
+            "band": "5_8",
+            "triggered": 0.0,
+            "holds": true
+          },
+          {
+            "folder": "vit_cifar10_blend_0_1",
+            "band": "9_12",
+            "triggered": 0.0,
+            "holds": true
+          },
+          {
+            "folder": "vit_gtsrb_lf_0_01",
+            "band": "1_4",
+            "triggered": 0.0761643648147583,
+            "holds": true
+          },
+          {
+            "folder": "vit_gtsrb_lf_0_01",
+            "band": "5_8",
+            "triggered": 0.022562552243471146,
+            "holds": true
+          },
+          {
+            "folder": "vit_gtsrb_lf_0_01",
+            "band": "9_12",
+            "triggered": 0.015062708407640457,
+            "holds": true
+          }
+        ]
+      },
+      "E10": {
+        "verdict": "mixed",
+        "n_held": 1,
+        "n_checks": 2,
+        "checks": [
+          {
+            "folder": "vit_cifar10_wanet_0_1",
+            "successful_2pt": true,
+            "wanet_triggered_minus_clean": -0.07384258508682251,
+            "badnet_mean_triggered_minus_clean": -0.12638890743255615,
+            "holds": true
+          },
+          {
+            "folder": "vit_gtsrb_wanet_0_1",
+            "successful_2pt": false,
+            "wanet_triggered_minus_clean": -0.5861851572990417,
+            "badnet_mean_triggered_minus_clean": -0.12638890743255615,
+            "holds": false
+          }
+        ]
+      }
+    }
+  },
+  "models": [
+    {
+      "folder": "vit_cifar10_wanet_0_1",
+      "dataset": "cifar10",
+      "attack": "wanet",
+      "poison_rate": 0.1,
+      "successful_2pt": true,
+      "successful_5pt": true,
+      "bands": {
+        "top_rate": {
+          "token_mask/1_4": {
+            "rate": 0.99,
+            "triggered": 0.9114814400672913,
+            "clean_paired": 0.4612037241458893,
+            "validation": 0.4636666476726532,
+            "triggered_minus_clean": 0.450277715921402
+          },
+          "token_mask/5_8": {
+            "rate": 0.99,
+            "triggered": 0.9212962985038757,
+            "clean_paired": 0.7605092525482178,
+            "validation": 0.7766666412353516,
+            "triggered_minus_clean": 0.16078704595565796
+          },
+          "token_mask/9_12": {
+            "rate": 0.99,
+            "triggered": 0.10560185462236404,
+            "clean_paired": 0.7633796334266663,
+            "validation": 0.781000018119812,
+            "triggered_minus_clean": -0.6577777862548828
+          },
+          "residual_dropout/1_4": {
+            "rate": 0.99,
+            "triggered": 0.745648205280304,
+            "clean_paired": 0.917731523513794,
+            "validation": 0.9091666340827942,
+            "triggered_minus_clean": -0.17208331823349
+          },
+          "residual_dropout/5_8": {
+            "rate": 0.99,
+            "triggered": 0.6106944680213928,
+            "clean_paired": 0.9256482124328613,
+            "validation": 0.8899999856948853,
+            "triggered_minus_clean": -0.3149537444114685
+          },
+          "residual_dropout/9_12": {
+            "rate": 0.99,
+            "triggered": 0.20467591285705566,
+            "clean_paired": 0.8223147988319397,
+            "validation": 0.8100000619888306,
+            "triggered_minus_clean": -0.617638885974884
+          }
+        },
+        "matched": {
+          "token_mask/1_4": {
+            "rate": 0.99,
+            "triggered": 0.9114814400672913,
+            "clean_paired": 0.4612037241458893,
+            "validation": 0.4636666476726532,
+            "triggered_minus_clean": 0.450277715921402
+          },
+          "token_mask/5_8": {
+            "rate": 0.9,
+            "triggered": 0.6441666483879089,
+            "clean_paired": 0.6162036657333374,
+            "validation": 0.6241666674613953,
+            "triggered_minus_clean": 0.027962982654571533
+          },
+          "token_mask/9_12": {
+            "rate": 0.9,
+            "triggered": 0.1013425961136818,
+            "clean_paired": 0.5270370244979858,
+            "validation": 0.5486667156219482,
+            "triggered_minus_clean": -0.42569443583488464
+          },
+          "residual_dropout/1_4": {
+            "rate": 0.4,
+            "triggered": 0.5158796310424805,
+            "clean_paired": 0.589722216129303,
+            "validation": 0.5655000805854797,
+            "triggered_minus_clean": -0.07384258508682251
+          },
+          "residual_dropout/5_8": {
+            "rate": 0.7,
+            "triggered": 0.11388888955116272,
+            "clean_paired": 0.5509721636772156,
+            "validation": 0.5433332920074463,
+            "triggered_minus_clean": -0.43708327412605286
+          },
+          "residual_dropout/9_12": {
+            "rate": 0.95,
+            "triggered": 0.10236111283302307,
+            "clean_paired": 0.6075462698936462,
+            "validation": 0.6031666994094849,
+            "triggered_minus_clean": -0.5051851272583008
+          }
+        }
+      }
+    },
+    {
+      "folder": "vit_gtsrb_wanet_0_1",
+      "dataset": "gtsrb",
+      "attack": "wanet",
+      "poison_rate": 0.1,
+      "successful_2pt": false,
+      "successful_5pt": true,
+      "bands": {
+        "top_rate": {
+          "token_mask/1_4": {
+            "rate": 0.99,
+            "triggered": 0.568160355091095,
+            "clean_paired": 0.7895001769065857,
+            "validation": 0.8018333315849304,
+            "triggered_minus_clean": -0.22133982181549072
+          },
+          "token_mask/5_8": {
+            "rate": 0.99,
+            "triggered": 0.12916745245456696,
+            "clean_paired": 0.9200857281684875,
+            "validation": 0.9226666688919067,
+            "triggered_minus_clean": -0.7909182906150818
+          },
+          "token_mask/9_12": {
+            "rate": 0.99,
+            "triggered": 0.05142749100923538,
+            "clean_paired": 0.38305920362472534,
+            "validation": 0.37683331966400146,
+            "triggered_minus_clean": -0.33163172006607056
+          },
+          "residual_dropout/1_4": {
+            "rate": 0.99,
+            "triggered": 0.6204386949539185,
+            "clean_paired": 0.9752946496009827,
+            "validation": 0.9745000004768372,
+            "triggered_minus_clean": -0.3548559546470642
+          },
+          "residual_dropout/5_8": {
+            "rate": 0.99,
+            "triggered": 0.38252347707748413,
+            "clean_paired": 0.9728366732597351,
+            "validation": 0.968166708946228,
+            "triggered_minus_clean": -0.590313196182251
+          },
+          "residual_dropout/9_12": {
+            "rate": 0.99,
+            "triggered": 0.27346062660217285,
+            "clean_paired": 0.9199281334877014,
+            "validation": 0.9176667332649231,
+            "triggered_minus_clean": -0.6464675068855286
+          }
+        },
+        "matched": {
+          "token_mask/1_4": {
+            "rate": 0.9,
+            "triggered": 0.734133780002594,
+            "clean_paired": 0.6759627461433411,
+            "validation": 0.6798333525657654,
+            "triggered_minus_clean": 0.05817103385925293
+          },
+          "token_mask/5_8": {
+            "rate": 0.6,
+            "triggered": 0.06381168961524963,
+            "clean_paired": 0.5555240511894226,
+            "validation": 0.549666702747345,
+            "triggered_minus_clean": -0.491712361574173
+          },
+          "token_mask/9_12": {
+            "rate": 0.99,
+            "triggered": 0.05142749100923538,
+            "clean_paired": 0.38305920362472534,
+            "validation": 0.37683331966400146,
+            "triggered_minus_clean": -0.33163172006607056
+          },
+          "residual_dropout/1_4": {
+            "rate": 0.3,
+            "triggered": 0.21437574923038483,
+            "clean_paired": 0.8005608916282654,
+            "validation": 0.7958333492279053,
+            "triggered_minus_clean": -0.5861851572990417
+          },
+          "residual_dropout/5_8": {
+            "rate": 0.6,
+            "triggered": 0.05190017446875572,
+            "clean_paired": 0.6647759675979614,
+            "validation": 0.6641666889190674,
+            "triggered_minus_clean": -0.6128758192062378
+          },
+          "residual_dropout/9_12": {
+            "rate": 0.9,
+            "triggered": 0.05158505216240883,
+            "clean_paired": 0.7707821130752563,
+            "validation": 0.7708333730697632,
+            "triggered_minus_clean": -0.7191970348358154
+          }
+        }
+      }
+    },
+    {
+      "folder": "vit_cifar10_bpp_0_05",
+      "dataset": "cifar10",
+      "attack": "bpp",
+      "poison_rate": 0.05,
+      "successful_2pt": true,
+      "successful_5pt": true,
+      "bands": {
+        "top_rate": {
+          "token_mask/1_4": {
+            "rate": 0.99,
+            "triggered": 0.05564814805984497,
+            "clean_paired": 0.29523149132728577,
+            "validation": 0.3045000433921814,
+            "triggered_minus_clean": -0.2395833432674408
+          },
+          "token_mask/5_8": {
+            "rate": 0.99,
+            "triggered": 0.8069907426834106,
+            "clean_paired": 0.6552314758300781,
+            "validation": 0.6508333683013916,
+            "triggered_minus_clean": 0.15175926685333252
+          },
+          "token_mask/9_12": {
+            "rate": 0.99,
+            "triggered": 0.010833333246409893,
+            "clean_paired": 0.475694477558136,
+            "validation": 0.47083333134651184,
+            "triggered_minus_clean": -0.4648611545562744
+          },
+          "residual_dropout/1_4": {
+            "rate": 0.99,
+            "triggered": 0.8923611044883728,
+            "clean_paired": 0.8974999785423279,
+            "validation": 0.9006667733192444,
+            "triggered_minus_clean": -0.005138874053955078
+          },
+          "residual_dropout/5_8": {
+            "rate": 0.99,
+            "triggered": 0.8815741539001465,
+            "clean_paired": 0.8997222185134888,
+            "validation": 0.8995000720024109,
+            "triggered_minus_clean": -0.018148064613342285
+          },
+          "residual_dropout/9_12": {
+            "rate": 0.99,
+            "triggered": 0.17055553197860718,
+            "clean_paired": 0.7479167580604553,
+            "validation": 0.7369999885559082,
+            "triggered_minus_clean": -0.5773612260818481
+          }
+        },
+        "matched": {
+          "token_mask/1_4": {
+            "rate": 0.99,
+            "triggered": 0.05564814805984497,
+            "clean_paired": 0.29523149132728577,
+            "validation": 0.3045000433921814,
+            "triggered_minus_clean": -0.2395833432674408
+          },
+          "token_mask/5_8": {
+            "rate": 0.95,
+            "triggered": 0.6400462985038757,
+            "clean_paired": 0.5990740060806274,
+            "validation": 0.5950000286102295,
+            "triggered_minus_clean": 0.04097229242324829
+          },
+          "token_mask/9_12": {
+            "rate": 0.99,
+            "triggered": 0.010833333246409893,
+            "clean_paired": 0.475694477558136,
+            "validation": 0.47083333134651184,
+            "triggered_minus_clean": -0.4648611545562744
+          },
+          "residual_dropout/1_4": {
+            "rate": 0.4,
+            "triggered": 0.18615739047527313,
+            "clean_paired": 0.4456481635570526,
+            "validation": 0.46666672825813293,
+            "triggered_minus_clean": -0.2594907879829407
+          },
+          "residual_dropout/5_8": {
+            "rate": 0.7,
+            "triggered": 0.06152777746319771,
+            "clean_paired": 0.5117129683494568,
+            "validation": 0.515500009059906,
+            "triggered_minus_clean": -0.4501851797103882
+          },
+          "residual_dropout/9_12": {
+            "rate": 0.99,
+            "triggered": 0.17055553197860718,
+            "clean_paired": 0.7479167580604553,
+            "validation": 0.7369999885559082,
+            "triggered_minus_clean": -0.5773612260818481
+          }
+        }
+      }
+    },
+    {
+      "folder": "vit_gtsrb_bpp_0_01",
+      "dataset": "gtsrb",
+      "attack": "bpp",
+      "poison_rate": 0.01,
+      "successful_2pt": true,
+      "successful_5pt": true,
+      "bands": {
+        "top_rate": {
+          "token_mask/1_4": {
+            "rate": 0.99,
+            "triggered": 0.2834184169769287,
+            "clean_paired": 0.8564000129699707,
+            "validation": 0.8543334007263184,
+            "triggered_minus_clean": -0.572981595993042
+          },
+          "token_mask/5_8": {
+            "rate": 0.99,
+            "triggered": 0.40729188919067383,
+            "clean_paired": 0.7173693776130676,
+            "validation": 0.7046666145324707,
+            "triggered_minus_clean": -0.3100774884223938
+          },
+          "token_mask/9_12": {
+            "rate": 0.99,
+            "triggered": 0.13118422031402588,
+            "clean_paired": 0.4375748336315155,
+            "validation": 0.43266671895980835,
+            "triggered_minus_clean": -0.3063906133174896
+          },
+          "residual_dropout/1_4": {
+            "rate": 0.99,
+            "triggered": 0.9798008799552917,
+            "clean_paired": 0.9724900722503662,
+            "validation": 0.970666766166687,
+            "triggered_minus_clean": 0.007310807704925537
+          },
+          "residual_dropout/5_8": {
+            "rate": 0.99,
+            "triggered": 0.9742862582206726,
+            "clean_paired": 0.9694018959999084,
+            "validation": 0.9711666703224182,
+            "triggered_minus_clean": 0.00488436222076416
+          },
+          "residual_dropout/9_12": {
+            "rate": 0.99,
+            "triggered": 0.8035860061645508,
+            "clean_paired": 0.8679963946342468,
+            "validation": 0.8628333806991577,
+            "triggered_minus_clean": -0.06441038846969604
+          }
+        },
+        "matched": {
+          "token_mask/1_4": {
+            "rate": 0.8,
+            "triggered": 0.1454276144504547,
+            "clean_paired": 0.5326464176177979,
+            "validation": 0.5245000123977661,
+            "triggered_minus_clean": -0.38721880316734314
+          },
+          "token_mask/5_8": {
+            "rate": 0.9,
+            "triggered": 0.24828261137008667,
+            "clean_paired": 0.6190836429595947,
+            "validation": 0.6111665964126587,
+            "triggered_minus_clean": -0.37080103158950806
+          },
+          "token_mask/9_12": {
+            "rate": 0.99,
+            "triggered": 0.13118422031402588,
+            "clean_paired": 0.4375748336315155,
+            "validation": 0.43266671895980835,
+            "triggered_minus_clean": -0.3063906133174896
+          },
+          "residual_dropout/1_4": {
+            "rate": 0.3,
+            "triggered": 0.7668116092681885,
+            "clean_paired": 0.6949328780174255,
+            "validation": 0.6943333148956299,
+            "triggered_minus_clean": 0.07187873125076294
+          },
+          "residual_dropout/5_8": {
+            "rate": 0.6,
+            "triggered": 0.37912020087242126,
+            "clean_paired": 0.3790886700153351,
+            "validation": 0.3891666531562805,
+            "triggered_minus_clean": 3.153085708618164e-05
+          },
+          "residual_dropout/9_12": {
+            "rate": 0.95,
+            "triggered": 0.5144009590148926,
+            "clean_paired": 0.6271507143974304,
+            "validation": 0.625166654586792,
+            "triggered_minus_clean": -0.11274975538253784
+          }
+        }
+      }
+    },
+    {
+      "folder": "vit_gtsrb_bpp_0_1",
+      "dataset": "gtsrb",
+      "attack": "bpp",
+      "poison_rate": 0.1,
+      "successful_2pt": true,
+      "successful_5pt": true,
+      "bands": {
+        "top_rate": {
+          "token_mask/1_4": {
+            "rate": 0.99,
+            "triggered": 0.024232685565948486,
+            "clean_paired": 0.9198335409164429,
+            "validation": 0.9130000472068787,
+            "triggered_minus_clean": -0.8956008553504944
+          },
+          "token_mask/5_8": {
+            "rate": 0.99,
+            "triggered": 0.6416146159172058,
+            "clean_paired": 0.7783450484275818,
+            "validation": 0.7749999761581421,
+            "triggered_minus_clean": -0.13673043251037598
+          },
+          "token_mask/9_12": {
+            "rate": 0.99,
+            "triggered": 0.004222600255161524,
+            "clean_paired": 0.44220706820487976,
+            "validation": 0.44616666436195374,
+            "triggered_minus_clean": -0.4379844665527344
+          },
+          "residual_dropout/1_4": {
+            "rate": 0.99,
+            "triggered": 0.9465872645378113,
+            "clean_paired": 0.9783828854560852,
+            "validation": 0.9763333797454834,
+            "triggered_minus_clean": -0.031795620918273926
+          },
+          "residual_dropout/5_8": {
+            "rate": 0.99,
+            "triggered": 0.8927333354949951,
+            "clean_paired": 0.9731518030166626,
+            "validation": 0.9678333401679993,
+            "triggered_minus_clean": -0.08041846752166748
+          },
+          "residual_dropout/9_12": {
+            "rate": 0.99,
+            "triggered": 0.2983235716819763,
+            "clean_paired": 0.889456033706665,
+            "validation": 0.8888334035873413,
+            "triggered_minus_clean": -0.5911324620246887
+          }
+        },
+        "matched": {
+          "token_mask/1_4": {
+            "rate": 0.8,
+            "triggered": 0.010934644378721714,
+            "clean_paired": 0.535860538482666,
+            "validation": 0.5115000009536743,
+            "triggered_minus_clean": -0.5249258875846863
+          },
+          "token_mask/5_8": {
+            "rate": 0.9,
+            "triggered": 0.12299111485481262,
+            "clean_paired": 0.6610890626907349,
+            "validation": 0.6513333916664124,
+            "triggered_minus_clean": -0.5380979776382446
+          },
+          "token_mask/9_12": {
+            "rate": 0.99,
+            "triggered": 0.004222600255161524,
+            "clean_paired": 0.44220706820487976,
+            "validation": 0.44616666436195374,
+            "triggered_minus_clean": -0.4379844665527344
+          },
+          "residual_dropout/1_4": {
+            "rate": 0.3,
+            "triggered": 0.19401904940605164,
+            "clean_paired": 0.5540114641189575,
+            "validation": 0.5516666173934937,
+            "triggered_minus_clean": -0.3599924147129059
+          },
+          "residual_dropout/5_8": {
+            "rate": 0.6,
+            "triggered": 0.0044431840069592,
+            "clean_paired": 0.4187307059764862,
+            "validation": 0.4229999780654907,
+            "triggered_minus_clean": -0.4142875075340271
+          },
+          "residual_dropout/9_12": {
+            "rate": 0.9,
+            "triggered": 0.004852839279919863,
+            "clean_paired": 0.5050104260444641,
+            "validation": 0.5083333253860474,
+            "triggered_minus_clean": -0.5001575946807861
+          }
+        }
+      }
+    },
+    {
+      "folder": "vit_cifar10_blend_0_1",
+      "dataset": "cifar10",
+      "attack": "blend",
+      "poison_rate": 0.1,
+      "successful_2pt": true,
+      "successful_5pt": true,
+      "bands": {
+        "top_rate": {
+          "token_mask/1_4": {
+            "rate": 0.99,
+            "triggered": 0.02518518641591072,
+            "clean_paired": 0.30666667222976685,
+            "validation": 0.304500013589859,
+            "triggered_minus_clean": -0.28148147463798523
+          },
+          "token_mask/5_8": {
+            "rate": 0.99,
+            "triggered": 0.0,
+            "clean_paired": 0.8643518686294556,
+            "validation": 0.8803333044052124,
+            "triggered_minus_clean": -0.8643518686294556
+          },
+          "token_mask/9_12": {
+            "rate": 0.99,
+            "triggered": 0.0,
+            "clean_paired": 0.40046295523643494,
+            "validation": 0.4013333320617676,
+            "triggered_minus_clean": -0.40046295523643494
+          },
+          "residual_dropout/1_4": {
+            "rate": 0.99,
+            "triggered": 0.8874536752700806,
+            "clean_paired": 0.8991666436195374,
+            "validation": 0.8931666612625122,
+            "triggered_minus_clean": -0.011712968349456787
+          },
+          "residual_dropout/5_8": {
+            "rate": 0.99,
+            "triggered": 0.8589815497398376,
+            "clean_paired": 0.8985186219215393,
+            "validation": 0.8948333859443665,
+            "triggered_minus_clean": -0.03953707218170166
+          },
+          "residual_dropout/9_12": {
+            "rate": 0.99,
+            "triggered": 0.28986111283302307,
+            "clean_paired": 0.7481945157051086,
+            "validation": 0.7513333559036255,
+            "triggered_minus_clean": -0.45833340287208557
+          }
+        },
+        "matched": {
+          "token_mask/1_4": {
+            "rate": 0.99,
+            "triggered": 0.02518518641591072,
+            "clean_paired": 0.30666667222976685,
+            "validation": 0.304500013589859,
+            "triggered_minus_clean": -0.28148147463798523
+          },
+          "token_mask/5_8": {
+            "rate": 0.8,
+            "triggered": 0.0,
+            "clean_paired": 0.5154629349708557,
+            "validation": 0.5333333015441895,
+            "triggered_minus_clean": -0.5154629349708557
+          },
+          "token_mask/9_12": {
+            "rate": 0.99,
+            "triggered": 0.0,
+            "clean_paired": 0.40046295523643494,
+            "validation": 0.4013333320617676,
+            "triggered_minus_clean": -0.40046295523643494
+          },
+          "residual_dropout/1_4": {
+            "rate": 0.4,
+            "triggered": 0.0008796296897344291,
+            "clean_paired": 0.4693981111049652,
+            "validation": 0.46833336353302,
+            "triggered_minus_clean": -0.4685184955596924
+          },
+          "residual_dropout/5_8": {
+            "rate": 0.8,
+            "triggered": 0.010555555112659931,
+            "clean_paired": 0.7608333826065063,
+            "validation": 0.7510000467300415,
+            "triggered_minus_clean": -0.7502778172492981
+          },
+          "residual_dropout/9_12": {
+            "rate": 0.99,
+            "triggered": 0.28986111283302307,
+            "clean_paired": 0.7481945157051086,
+            "validation": 0.7513333559036255,
+            "triggered_minus_clean": -0.45833340287208557
+          }
+        }
+      }
+    },
+    {
+      "folder": "vit_cifar10_badnet_a2o_0_01",
+      "dataset": "cifar10",
+      "attack": "badnet_a2o",
+      "poison_rate": 0.01,
+      "successful_2pt": true,
+      "successful_5pt": true,
+      "bands": {
+        "top_rate": {
+          "token_mask/1_4": {
+            "rate": 0.99,
+            "triggered": 0.002916666679084301,
+            "clean_paired": 0.38717594742774963,
+            "validation": 0.3785000145435333,
+            "triggered_minus_clean": -0.38425928354263306
+          },
+          "token_mask/5_8": {
+            "rate": 0.99,
+            "triggered": 0.002916666679084301,
+            "clean_paired": 0.7468518614768982,
+            "validation": 0.7643333077430725,
+            "triggered_minus_clean": -0.7439351677894592
+          },
+          "token_mask/9_12": {
+            "rate": 0.99,
+            "triggered": 0.2342129498720169,
+            "clean_paired": 0.4429166316986084,
+            "validation": 0.41733336448669434,
+            "triggered_minus_clean": -0.2087036818265915
+          },
+          "residual_dropout/1_4": {
+            "rate": 0.99,
+            "triggered": 0.9022222757339478,
+            "clean_paired": 0.9012500643730164,
+            "validation": 0.9056667685508728,
+            "triggered_minus_clean": 0.0009722113609313965
+          },
+          "residual_dropout/5_8": {
+            "rate": 0.99,
+            "triggered": 0.8853703737258911,
+            "clean_paired": 0.9006481766700745,
+            "validation": 0.9003334641456604,
+            "triggered_minus_clean": -0.01527780294418335
+          },
+          "residual_dropout/9_12": {
+            "rate": 0.99,
+            "triggered": 0.726805567741394,
+            "clean_paired": 0.748055636882782,
+            "validation": 0.7618334293365479,
+            "triggered_minus_clean": -0.02125006914138794
+          }
+        },
+        "matched": {
+          "token_mask/1_4": {
+            "rate": 0.99,
+            "triggered": 0.002916666679084301,
+            "clean_paired": 0.38717594742774963,
+            "validation": 0.3785000145435333,
+            "triggered_minus_clean": -0.38425928354263306
+          },
+          "token_mask/5_8": {
+            "rate": 0.9,
+            "triggered": 0.002916666679084301,
+            "clean_paired": 0.6387037038803101,
+            "validation": 0.6483333706855774,
+            "triggered_minus_clean": -0.6357870101928711
+          },
+          "token_mask/9_12": {
+            "rate": 0.99,
+            "triggered": 0.2342129498720169,
+            "clean_paired": 0.4429166316986084,
+            "validation": 0.41733336448669434,
+            "triggered_minus_clean": -0.2087036818265915
+          },
+          "residual_dropout/1_4": {
+            "rate": 0.5,
+            "triggered": 0.6086574196815491,
+            "clean_paired": 0.7350463271141052,
+            "validation": 0.749333381652832,
+            "triggered_minus_clean": -0.12638890743255615
+          },
+          "residual_dropout/5_8": {
+            "rate": 0.8,
+            "triggered": 0.8204168081283569,
+            "clean_paired": 0.729305624961853,
+            "validation": 0.7318333983421326,
+            "triggered_minus_clean": 0.0911111831665039
+          },
+          "residual_dropout/9_12": {
+            "rate": 0.99,
+            "triggered": 0.726805567741394,
+            "clean_paired": 0.748055636882782,
+            "validation": 0.7618334293365479,
+            "triggered_minus_clean": -0.02125006914138794
+          }
+        }
+      }
+    },
+    {
+      "folder": "vit_gtsrb_tact_0_05",
+      "dataset": "gtsrb",
+      "attack": "tact",
+      "poison_rate": 0.05,
+      "successful_2pt": true,
+      "successful_5pt": true,
+      "bands": {
+        "top_rate": {
+          "token_mask/1_4": {
+            "rate": 0.99,
+            "triggered": 0.00826446246355772,
+            "clean_paired": 0.3305785059928894,
+            "validation": 0.4814999997615814,
+            "triggered_minus_clean": -0.32231405377388
+          },
+          "token_mask/5_8": {
+            "rate": 0.99,
+            "triggered": 0.0,
+            "clean_paired": 0.9862259030342102,
+            "validation": 0.8028333783149719,
+            "triggered_minus_clean": -0.9862259030342102
+          },
+          "token_mask/9_12": {
+            "rate": 0.99,
+            "triggered": 0.9449036121368408,
+            "clean_paired": 0.06060606241226196,
+            "validation": 0.09866667538881302,
+            "triggered_minus_clean": 0.8842975497245789
+          },
+          "residual_dropout/1_4": {
+            "rate": 0.99,
+            "triggered": 0.9823691844940186,
+            "clean_paired": 0.9878787994384766,
+            "validation": 0.9773333668708801,
+            "triggered_minus_clean": -0.005509614944458008
+          },
+          "residual_dropout/5_8": {
+            "rate": 0.99,
+            "triggered": 0.9906335473060608,
+            "clean_paired": 0.9917355179786682,
+            "validation": 0.972000002861023,
+            "triggered_minus_clean": -0.0011019706726074219
+          },
+          "residual_dropout/9_12": {
+            "rate": 0.99,
+            "triggered": 0.8490358591079712,
+            "clean_paired": 0.9118456840515137,
+            "validation": 0.8374999761581421,
+            "triggered_minus_clean": -0.06280982494354248
+          }
+        },
+        "matched": {
+          "token_mask/1_4": {
+            "rate": 0.99,
+            "triggered": 0.00826446246355772,
+            "clean_paired": 0.3305785059928894,
+            "validation": 0.4814999997615814,
+            "triggered_minus_clean": -0.32231405377388
+          },
+          "token_mask/5_8": {
+            "rate": 0.8,
+            "triggered": 0.0,
+            "clean_paired": 0.41928377747535706,
+            "validation": 0.5056666731834412,
+            "triggered_minus_clean": -0.41928377747535706
+          },
+          "token_mask/9_12": {
+            "rate": 0.99,
+            "triggered": 0.9449036121368408,
+            "clean_paired": 0.06060606241226196,
+            "validation": 0.09866667538881302,
+            "triggered_minus_clean": 0.8842975497245789
+          },
+          "residual_dropout/1_4": {
+            "rate": 0.3,
+            "triggered": 0.16033057868480682,
+            "clean_paired": 0.25895318388938904,
+            "validation": 0.38216668367385864,
+            "triggered_minus_clean": -0.09862260520458221
+          },
+          "residual_dropout/5_8": {
+            "rate": 0.7,
+            "triggered": 0.6694214940071106,
+            "clean_paired": 0.8787879347801208,
+            "validation": 0.6886667013168335,
+            "triggered_minus_clean": -0.20936644077301025
+          },
+          "residual_dropout/9_12": {
+            "rate": 0.95,
+            "triggered": 0.46942147612571716,
+            "clean_paired": 0.7041321992874146,
+            "validation": 0.5398333072662354,
+            "triggered_minus_clean": -0.2347107231616974
+          }
+        }
+      }
+    },
+    {
+      "folder": "vit_cifar10_tact_0_01",
+      "dataset": "cifar10",
+      "attack": "tact",
+      "poison_rate": 0.01,
+      "successful_2pt": true,
+      "successful_5pt": true,
+      "bands": {
+        "top_rate": {
+          "token_mask/1_4": {
+            "rate": 0.99,
+            "triggered": 0.24664990603923798,
+            "clean_paired": 0.2713567912578583,
+            "validation": 0.3463333547115326,
+            "triggered_minus_clean": -0.0247068852186203
+          },
+          "token_mask/5_8": {
+            "rate": 0.99,
+            "triggered": 0.872278094291687,
+            "clean_paired": 0.9292294383049011,
+            "validation": 0.6993333697319031,
+            "triggered_minus_clean": -0.05695134401321411
+          },
+          "token_mask/9_12": {
+            "rate": 0.99,
+            "triggered": 0.9857621788978577,
+            "clean_paired": 0.9711055755615234,
+            "validation": 0.565333366394043,
+            "triggered_minus_clean": 0.014656603336334229
+          },
+          "residual_dropout/1_4": {
+            "rate": 0.99,
+            "triggered": 0.8773031830787659,
+            "clean_paired": 0.932579517364502,
+            "validation": 0.8941667079925537,
+            "triggered_minus_clean": -0.055276334285736084
+          },
+          "residual_dropout/5_8": {
+            "rate": 0.99,
+            "triggered": 0.8672528862953186,
+            "clean_paired": 0.9329983592033386,
+            "validation": 0.8985000252723694,
+            "triggered_minus_clean": -0.06574547290802002
+          },
+          "residual_dropout/9_12": {
+            "rate": 0.99,
+            "triggered": 0.8877722024917603,
+            "clean_paired": 0.8228644132614136,
+            "validation": 0.762499988079071,
+            "triggered_minus_clean": 0.06490778923034668
+          }
+        },
+        "matched": {
+          "token_mask/1_4": {
+            "rate": 0.99,
+            "triggered": 0.24664990603923798,
+            "clean_paired": 0.2713567912578583,
+            "validation": 0.3463333547115326,
+            "triggered_minus_clean": -0.0247068852186203
+          },
+          "token_mask/5_8": {
+            "rate": 0.95,
+            "triggered": 0.7922948598861694,
+            "clean_paired": 0.8668342232704163,
+            "validation": 0.6501666903495789,
+            "triggered_minus_clean": -0.07453936338424683
+          },
+          "token_mask/9_12": {
+            "rate": 0.99,
+            "triggered": 0.9857621788978577,
+            "clean_paired": 0.9711055755615234,
+            "validation": 0.565333366394043,
+            "triggered_minus_clean": 0.014656603336334229
+          },
+          "residual_dropout/1_4": {
+            "rate": 0.5,
+            "triggered": 0.958961546421051,
+            "clean_paired": 0.8228644132614136,
+            "validation": 0.6540000438690186,
+            "triggered_minus_clean": 0.13609713315963745
+          },
+          "residual_dropout/5_8": {
+            "rate": 0.8,
+            "triggered": 0.908710241317749,
+            "clean_paired": 0.9539364576339722,
+            "validation": 0.7265000343322754,
+            "triggered_minus_clean": -0.045226216316223145
+          },
+          "residual_dropout/9_12": {
+            "rate": 0.95,
+            "triggered": 0.8990786671638489,
+            "clean_paired": 0.604271411895752,
+            "validation": 0.4583333134651184,
+            "triggered_minus_clean": 0.2948072552680969
+          }
+        }
+      }
+    },
+    {
+      "folder": "vit_gtsrb_lf_0_01",
+      "dataset": "gtsrb",
+      "attack": "lf",
+      "poison_rate": 0.01,
+      "successful_2pt": true,
+      "successful_5pt": true,
+      "bands": {
+        "top_rate": {
+          "token_mask/1_4": {
+            "rate": 0.99,
+            "triggered": 0.0761643648147583,
+            "clean_paired": 0.5614168047904968,
+            "validation": 0.5354999899864197,
+            "triggered_minus_clean": -0.4852524399757385
+          },
+          "token_mask/5_8": {
+            "rate": 0.99,
+            "triggered": 0.035860590636730194,
+            "clean_paired": 0.8168211579322815,
+            "validation": 0.8166666626930237,
+            "triggered_minus_clean": -0.7809605598449707
+          },
+          "token_mask/9_12": {
+            "rate": 0.99,
+            "triggered": 0.015062708407640457,
+            "clean_paired": 0.023287326097488403,
+            "validation": 0.029999999329447746,
+            "triggered_minus_clean": -0.008224617689847946
+          },
+          "residual_dropout/1_4": {
+            "rate": 0.99,
+            "triggered": 0.9359992146492004,
+            "clean_paired": 0.9768702983856201,
+            "validation": 0.9775000214576721,
+            "triggered_minus_clean": -0.04087108373641968
+          },
+          "residual_dropout/5_8": {
+            "rate": 0.99,
+            "triggered": 0.885138988494873,
+            "clean_paired": 0.976681113243103,
+            "validation": 0.9771667122840881,
+            "triggered_minus_clean": -0.09154212474822998
+          },
+          "residual_dropout/9_12": {
+            "rate": 0.99,
+            "triggered": 0.45383504033088684,
+            "clean_paired": 0.8473876714706421,
+            "validation": 0.8546667098999023,
+            "triggered_minus_clean": -0.39355263113975525
+          }
+        },
+        "matched": {
+          "token_mask/1_4": {
+            "rate": 0.99,
+            "triggered": 0.0761643648147583,
+            "clean_paired": 0.5614168047904968,
+            "validation": 0.5354999899864197,
+            "triggered_minus_clean": -0.4852524399757385
+          },
+          "token_mask/5_8": {
+            "rate": 0.8,
+            "triggered": 0.022562552243471146,
+            "clean_paired": 0.6046196222305298,
+            "validation": 0.5971665978431702,
+            "triggered_minus_clean": -0.5820570588111877
+          },
+          "token_mask/9_12": {
+            "rate": 0.99,
+            "triggered": 0.015062708407640457,
+            "clean_paired": 0.023287326097488403,
+            "validation": 0.029999999329447746,
+            "triggered_minus_clean": -0.008224617689847946
+          },
+          "residual_dropout/1_4": {
+            "rate": 0.3,
+            "triggered": 0.05142749845981598,
+            "clean_paired": 0.37921473383903503,
+            "validation": 0.36766669154167175,
+            "triggered_minus_clean": -0.32778722047805786
+          },
+          "residual_dropout/5_8": {
+            "rate": 0.7,
+            "triggered": 0.016449233517050743,
+            "clean_paired": 0.6050608158111572,
+            "validation": 0.6025000214576721,
+            "triggered_minus_clean": -0.5886116027832031
+          },
+          "residual_dropout/9_12": {
+            "rate": 0.95,
+            "triggered": 0.04865443706512451,
+            "clean_paired": 0.566301167011261,
+            "validation": 0.577333390712738,
+            "triggered_minus_clean": -0.5176467299461365
+          }
+        }
+      }
+    }
+  ],
+  "wall_seconds": 1.9279782390221953
+}

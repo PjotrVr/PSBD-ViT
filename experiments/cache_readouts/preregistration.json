@@ -1,0 +1,78 @@
+{
+  "written_at": "2026-09-29T18:58:00Z",
+  "written_before": "the first read of the holdout and panel sets by any script in experiments/cache_readouts/",
+  "explored_on": [
+    "results/_experiments/cache_readouts/pass_statistics_dev.json",
+    "results/_experiments/cache_readouts/depth_bands_dev.json",
+    "results/_experiments/cache_readouts/fusion_rules_dev.json"
+  ],
+  "confirmation_set": "holdout: the successful_2pt panel models of CIFAR-100 and Tiny ImageNet that carry both headline placements",
+  "completeness_set": "panel: the 54 successful_2pt models that carry both headline placements, including the dev models, never read as confirmation",
+  "picks": {
+    "pass_statistic": {
+      "placement": "psbd_tm",
+      "pick": "best_pass",
+      "reference": "mean_psu",
+      "why": "On the dev set the pass with the smallest fractional drop separated better than the mean on 8 of 9 models, and the worst pass separated worse on 8 of 9. A triggered input needs only 1 pass that keeps its label, a clean input loses every pass.",
+      "predictions": [
+        {
+          "id": "X19-best-auroc",
+          "text": "best_pass raises PSBD-TM's mean AUROC over mean_psu and the paired 95% interval excludes 0",
+          "field": "auroc",
+          "rule": "mean_difference_positive_and_ci_excludes_0"
+        },
+        {
+          "id": "X19-best-tpr1",
+          "text": "best_pass raises PSBD-TM's mean TPR at 1% nominal FPR over mean_psu",
+          "field": "q0.01:tpr",
+          "rule": "mean_difference_positive"
+        },
+        {
+          "id": "X19-worst-auroc",
+          "text": "the worst pass, the statistic N17 proposed, lowers PSBD-TM's mean AUROC below mean_psu",
+          "statistic": "worst_pass",
+          "field": "auroc",
+          "rule": "mean_difference_negative"
+        }
+      ]
+    },
+    "fusion_rule": {
+      "partner": "late_band",
+      "rule": "weighted_0.9_0.1",
+      "rate_rule": "adaptive",
+      "reference": "tm_alone",
+      "why": "On the 5 dev models where the late band reaches the adaptive target, every fusion rule lifted the WaNet failure. Min-rank and Fisher cost the GTSRB TaCT model most of its TPR at 10% FPR. The 0.9 and 0.1 shares kept most of the WaNet gain and lost the least on TaCT, and the plan's combined design fixes the same shares.",
+      "predictions": [
+        {
+          "id": "X3-auroc",
+          "text": "the weighted rule raises mean AUROC over PSBD-TM alone and the paired 95% interval excludes 0",
+          "field": "auroc",
+          "rule": "mean_difference_positive_and_ci_excludes_0"
+        },
+        {
+          "id": "X3-tpr10",
+          "text": "the weighted rule raises mean TPR at 10% nominal FPR over PSBD-TM alone",
+          "field": "q0.10:tpr",
+          "rule": "mean_difference_positive"
+        },
+        {
+          "id": "X3-tpr1",
+          "text": "the weighted rule loses at most 0.01 of mean TPR at 1% nominal FPR",
+          "field": "q0.01:tpr",
+          "rule": "mean_difference_at_least",
+          "bound": -0.01
+        },
+        {
+          "id": "X3-patch",
+          "text": "on BadNets and TaCT the weighted rule loses at most 0.01 of mean AUROC per attack",
+          "field": "auroc",
+          "attacks": ["badnet_a2o", "tact"],
+          "rule": "per_attack_mean_difference_at_least",
+          "bound": -0.01
+        }
+      ]
+    }
+  },
+  "expected_size": "The dev gains of the fusion rule are carried by vit_cifar10_wanet_0_1, the PSBD-TM inversion. The holdout holds no PSBD-TM failure of that size, so the fused AUROC gain there should be far smaller than on the dev set, of the size docs/runs/2026-09-29-gpu-queue.md records on the panel.",
+  "tie_rule": "A pick that ties its reference within its interval is reported as not confirmed, never as a win."
+}

@@ -1,0 +1,69 @@
+{
+  "source": "docs/simple-experiments-plan.md, section Scope, conventions and the development set, with the 3 held-out-dataset members swapped as protocol step 2 asks",
+  "panel_rule": "scripts.paper._common.clearing_cells, successful_2pt",
+  "models": [
+    {
+      "folder": "vit_cifar10_wanet_0_1",
+      "role": "the WaNet failure",
+      "replaces": null,
+      "declared_successful_2pt": true
+    },
+    {
+      "folder": "vit_gtsrb_wanet_0_1",
+      "role": "second WaNet model, below the 2-point clean bar",
+      "replaces": "vit_tiny_wanet_0_05",
+      "declared_successful_2pt": false,
+      "why": "The plan names it for this swap. It clears the ASR bar and fails only the 2-point clean-accuracy bar, so it is labeled and never pooled with panel models. `vit_cifar10_wanet_0_05` fails the same bar and lacks an adaptive rate for `pre_residual_blocks_9_12`, so it would drop out of X3."
+    },
+    {
+      "folder": "vit_cifar10_bpp_0_05",
+      "role": "PSBD-TM's weakest non-WaNet model",
+      "replaces": null,
+      "declared_successful_2pt": true
+    },
+    {
+      "folder": "vit_gtsrb_bpp_0_01",
+      "role": "BPP where PSBD-TM leads",
+      "replaces": null,
+      "declared_successful_2pt": true
+    },
+    {
+      "folder": "vit_gtsrb_bpp_0_1",
+      "role": "BPP at the highest poison rate",
+      "replaces": "vit_cifar100_bpp_0_01",
+      "declared_successful_2pt": true,
+      "why": "The 3 remaining CIFAR-10 and GTSRB BPP panel models are `vit_cifar10_bpp_0_01`, `vit_cifar10_bpp_0_1` and `vit_gtsrb_bpp_0_05`. The CIFAR-10 ones have no adaptive rate for `pre_residual_blocks_9_12`. Of the 2 GTSRB ones the 10% model spans the rate range with the 1% and 5% members already in the set."
+    },
+    {
+      "folder": "vit_cifar10_blend_0_1",
+      "role": "Blend where PSBD-RD leads",
+      "replaces": null,
+      "declared_successful_2pt": true
+    },
+    {
+      "folder": "vit_cifar10_badnet_a2o_0_01",
+      "role": "the patch contrast",
+      "replaces": null,
+      "declared_successful_2pt": true
+    },
+    {
+      "folder": "vit_gtsrb_tact_0_05",
+      "role": "trigger-conditional TaCT",
+      "replaces": null,
+      "declared_successful_2pt": true
+    },
+    {
+      "folder": "vit_cifar10_tact_0_01",
+      "role": "high AUROC with low TPR",
+      "replaces": null,
+      "declared_successful_2pt": true
+    },
+    {
+      "folder": "vit_gtsrb_lf_0_01",
+      "role": "LF at the same poison rate as the member it replaces",
+      "replaces": "vit_tiny_lf_0_01",
+      "declared_successful_2pt": true,
+      "why": "It has the attack and rate of the replaced member. `vit_cifar10_lf_0_01` has no adaptive rate for `pre_residual_blocks_9_12`, while the GTSRB model carries every placement X3 and X4 read."
+    }
+  ]
+}

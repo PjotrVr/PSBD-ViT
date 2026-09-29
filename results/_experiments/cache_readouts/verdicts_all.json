@@ -1,0 +1,734 @@
+{
+  "preregistration_sha256": "9a8a7ce3d60188be4f287c21797ad6edea3c96d6132621bae897f93de66019b8",
+  "sets": {
+    "dev": {
+      "preregistered": [
+        {
+          "id": "X19-best-auroc",
+          "text": "best_pass raises PSBD-TM's mean AUROC over mean_psu and the paired 95% interval excludes 0",
+          "verdict": "held",
+          "n": 9,
+          "mean_difference": 0.015523785168982637,
+          "ci95": [
+            0.0029068587758395653,
+            0.03204258678425392
+          ]
+        },
+        {
+          "id": "X19-best-tpr1",
+          "text": "best_pass raises PSBD-TM's mean TPR at 1% nominal FPR over mean_psu",
+          "verdict": "held",
+          "n": 9,
+          "mean_difference": 0.03193670811338557,
+          "ci95": [
+            0.0018767923530605105,
+            0.06384166081746419
+          ]
+        },
+        {
+          "id": "X19-worst-auroc",
+          "text": "the worst pass, the statistic N17 proposed, lowers PSBD-TM's mean AUROC below mean_psu",
+          "verdict": "held",
+          "n": 9,
+          "mean_difference": -0.09845923096351816,
+          "ci95": [
+            -0.19227538283894804,
+            -0.025138067183887954
+          ]
+        },
+        {
+          "id": "X3-auroc",
+          "text": "the weighted rule raises mean AUROC over PSBD-TM alone and the paired 95% interval excludes 0",
+          "verdict": "held",
+          "n": 5,
+          "mean_difference": 0.08903178236714926,
+          "ci95": [
+            0.002786638745838577,
+            0.26050102197418235
+          ]
+        },
+        {
+          "id": "X3-tpr10",
+          "text": "the weighted rule raises mean TPR at 10% nominal FPR over PSBD-TM alone",
+          "verdict": "held",
+          "n": 5,
+          "mean_difference": 0.13837838917970657,
+          "ci95": [
+            -0.016505253314971925,
+            0.4206742629408836
+          ]
+        },
+        {
+          "id": "X3-tpr1",
+          "text": "the weighted rule loses at most 0.01 of mean TPR at 1% nominal FPR",
+          "verdict": "held",
+          "n": 5,
+          "mean_difference": 0.013753585517406464,
+          "ci95": [
+            -0.0021164149045944216,
+            0.037156717479228975
+          ]
+        },
+        {
+          "id": "X3-patch",
+          "text": "on BadNets and TaCT the weighted rule loses at most 0.01 of mean AUROC per attack",
+          "verdict": "inconclusive",
+          "n": 5,
+          "mean_difference": {
+            "tact": 0.003103613141178796
+          },
+          "ci95": [
+            null,
+            null
+          ]
+        }
+      ],
+      "plan_x19": {
+        "verdict": "failed",
+        "n_held": 0,
+        "n_decided": 2,
+        "n_undecided": 0,
+        "checks": [
+          {
+            "attack": "badnet_a2o",
+            "n": 1,
+            "auroc_difference": -0.1693922164351851,
+            "tpr_q0.01_difference": -0.42888888716697693,
+            "holds": false
+          },
+          {
+            "attack": "tact",
+            "n": 2,
+            "auroc_difference": -0.21186336058149574,
+            "tpr_q0.01_difference": 0.001024751109071076,
+            "holds": false
+          }
+        ]
+      },
+      "plan_x3": {
+        "adaptive": {
+          "verdict": "mixed",
+          "n_held": 4,
+          "n_decided": 8,
+          "n_undecided": 2,
+          "checks": [
+            {
+              "claim": "mean_psu helps wanet",
+              "auroc_difference": 0.28672402584876544,
+              "holds": true
+            },
+            {
+              "claim": "mean_psu helps blend",
+              "auroc_difference": null,
+              "holds": null
+            },
+            {
+              "claim": "mean_psu hurts tact",
+              "auroc_difference": 0.010868110101769024,
+              "holds": false
+            },
+            {
+              "claim": "min_rank helps wanet",
+              "auroc_difference": 0.4788059027777778,
+              "holds": true
+            },
+            {
+              "claim": "min_rank helps blend",
+              "auroc_difference": null,
+              "holds": null
+            },
+            {
+              "claim": "min_rank hurts tact",
+              "auroc_difference": 0.0045611638549279965,
+              "holds": false
+            },
+            {
+              "claim": "weighted_0.8_0.2 keeps TaCT within 0.01 of AUROC and of TPR at 10% FPR",
+              "auroc_difference": 0.0049764360357899,
+              "tpr_q0.10_difference": -0.07438012957572937,
+              "holds": false
+            },
+            {
+              "claim": "weighted_0.8_0.2 keeps at least 0.5 of the min-rank WaNet gain",
+              "weighted_auroc_difference": 0.4594607831790124,
+              "min_rank_auroc_difference": 0.4788059027777778,
+              "holds": true
+            },
+            {
+              "claim": "weighted_0.9_0.1 keeps TaCT within 0.01 of AUROC and of TPR at 10% FPR",
+              "auroc_difference": 0.003103613141178796,
+              "tpr_q0.10_difference": -0.03636360168457031,
+              "holds": false
+            },
+            {
+              "claim": "weighted_0.9_0.1 keeps at least 0.5 of the min-rank WaNet gain",
+              "weighted_auroc_difference": 0.43169375,
+              "min_rank_auroc_difference": 0.4788059027777778,
+              "holds": true
+            }
+          ]
+        },
+        "nearest": {
+          "verdict": "mixed",
+          "n_held": 8,
+          "n_decided": 10,
+          "n_undecided": 0,
+          "checks": [
+            {
+              "claim": "mean_psu helps wanet",
+              "auroc_difference": 0.28672402584876544,
+              "holds": true
+            },
+            {
+              "claim": "mean_psu helps blend",
+              "auroc_difference": 0.03294751157407405,
+              "holds": true
+            },
+            {
+              "claim": "mean_psu hurts tact",
+              "auroc_difference": -0.021975685233451725,
+              "holds": true
+            },
+            {
+              "claim": "min_rank helps wanet",
+              "auroc_difference": 0.4788059027777778,
+              "holds": true
+            },
+            {
+              "claim": "min_rank helps blend",
+              "auroc_difference": 0.049645013503086255,
+              "holds": true
+            },
+            {
+              "claim": "min_rank hurts tact",
+              "auroc_difference": -0.17226677798768958,
+              "holds": true
+            },
+            {
+              "claim": "weighted_0.8_0.2 keeps TaCT within 0.01 of AUROC and of TPR at 10% FPR",
+              "auroc_difference": -0.020769954124222667,
+              "tpr_q0.10_difference": -0.035933783277869225,
+              "holds": false
+            },
+            {
+              "claim": "weighted_0.8_0.2 keeps at least 0.5 of the min-rank WaNet gain",
+              "weighted_auroc_difference": 0.4594607831790124,
+              "min_rank_auroc_difference": 0.4788059027777778,
+              "holds": true
+            },
+            {
+              "claim": "weighted_0.9_0.1 keeps TaCT within 0.01 of AUROC and of TPR at 10% FPR",
+              "auroc_difference": -0.0076659215170851724,
+              "tpr_q0.10_difference": -0.018181800842285156,
+              "holds": false
+            },
+            {
+              "claim": "weighted_0.9_0.1 keeps at least 0.5 of the min-rank WaNet gain",
+              "weighted_auroc_difference": 0.43169375,
+              "min_rank_auroc_difference": 0.4788059027777778,
+              "holds": true
+            }
+          ]
+        }
+      },
+      "plan_x4": {
+        "top_rate": {
+          "E1a": "mixed",
+          "E1b": "held",
+          "E2": "mixed",
+          "E10": "failed"
+        },
+        "matched": {
+          "E1a": "mixed",
+          "E1b": "held",
+          "E2": "mixed",
+          "E10": "mixed"
+        }
+      }
+    },
+    "holdout": {
+      "preregistered": [
+        {
+          "id": "X19-best-auroc",
+          "text": "best_pass raises PSBD-TM's mean AUROC over mean_psu and the paired 95% interval excludes 0",
+          "verdict": "failed",
+          "n": 26,
+          "mean_difference": -0.002266199939088041,
+          "ci95": [
+            -0.003930234568529777,
+            -0.0006798964186832337
+          ]
+        },
+        {
+          "id": "X19-best-tpr1",
+          "text": "best_pass raises PSBD-TM's mean TPR at 1% nominal FPR over mean_psu",
+          "verdict": "failed",
+          "n": 26,
+          "mean_difference": -0.04421042980482945,
+          "ci95": [
+            -0.11528612988499495,
+            0.022950988549452562
+          ]
+        },
+        {
+          "id": "X19-worst-auroc",
+          "text": "the worst pass, the statistic N17 proposed, lowers PSBD-TM's mean AUROC below mean_psu",
+          "verdict": "held",
+          "n": 26,
+          "mean_difference": -0.00788488151923478,
+          "ci95": [
+            -0.014605427808297699,
+            -0.002341646580230774
+          ]
+        },
+        {
+          "id": "X3-auroc",
+          "text": "the weighted rule raises mean AUROC over PSBD-TM alone and the paired 95% interval excludes 0",
+          "verdict": "held",
+          "n": 26,
+          "mean_difference": 0.005210364850715384,
+          "ci95": [
+            0.0026596903869871525,
+            0.00842294779793805
+          ]
+        },
+        {
+          "id": "X3-tpr10",
+          "text": "the weighted rule raises mean TPR at 10% nominal FPR over PSBD-TM alone",
+          "verdict": "held",
+          "n": 26,
+          "mean_difference": 0.008219521779280443,
+          "ci95": [
+            0.0030344976828648495,
+            0.014594204150713407
+          ]
+        },
+        {
+          "id": "X3-tpr1",
+          "text": "the weighted rule loses at most 0.01 of mean TPR at 1% nominal FPR",
+          "verdict": "held",
+          "n": 26,
+          "mean_difference": 0.06518378108739853,
+          "ci95": [
+            0.016746283723757818,
+            0.12638908510024732
+          ]
+        },
+        {
+          "id": "X3-patch",
+          "text": "on BadNets and TaCT the weighted rule loses at most 0.01 of mean AUROC per attack",
+          "verdict": "inconclusive",
+          "n": 26,
+          "mean_difference": {
+            "badnet_a2o": 1.8484488758722477e-05
+          },
+          "ci95": [
+            null,
+            null
+          ]
+        }
+      ],
+      "plan_x19": {
+        "verdict": "failed",
+        "n_held": 0,
+        "n_decided": 1,
+        "n_undecided": 0,
+        "checks": [
+          {
+            "attack": "badnet_a2o",
+            "n": 6,
+            "auroc_difference": -0.029165061596604258,
+            "tpr_q0.01_difference": -0.12265874942143758,
+            "holds": false
+          }
+        ]
+      },
+      "plan_x3": {
+        "adaptive": {
+          "verdict": "held",
+          "n_held": 6,
+          "n_decided": 6,
+          "n_undecided": 4,
+          "checks": [
+            {
+              "claim": "mean_psu helps wanet",
+              "auroc_difference": 0.0267469774300792,
+              "holds": true
+            },
+            {
+              "claim": "mean_psu helps blend",
+              "auroc_difference": 0.004835322584219888,
+              "holds": true
+            },
+            {
+              "claim": "mean_psu hurts tact",
+              "auroc_difference": null,
+              "holds": null
+            },
+            {
+              "claim": "min_rank helps wanet",
+              "auroc_difference": 0.028172437675743067,
+              "holds": true
+            },
+            {
+              "claim": "min_rank helps blend",
+              "auroc_difference": 0.0033328720515177026,
+              "holds": true
+            },
+            {
+              "claim": "min_rank hurts tact",
+              "auroc_difference": null,
+              "holds": null
+            },
+            {
+              "claim": "weighted_0.8_0.2 keeps TaCT within 0.01 of AUROC and of TPR at 10% FPR",
+              "auroc_difference": null,
+              "tpr_q0.10_difference": null,
+              "holds": null
+            },
+            {
+              "claim": "weighted_0.8_0.2 keeps at least 0.5 of the min-rank WaNet gain",
+              "weighted_auroc_difference": 0.02111267064916389,
+              "min_rank_auroc_difference": 0.028172437675743067,
+              "holds": true
+            },
+            {
+              "claim": "weighted_0.9_0.1 keeps TaCT within 0.01 of AUROC and of TPR at 10% FPR",
+              "auroc_difference": null,
+              "tpr_q0.10_difference": null,
+              "holds": null
+            },
+            {
+              "claim": "weighted_0.9_0.1 keeps at least 0.5 of the min-rank WaNet gain",
+              "weighted_auroc_difference": 0.018518748736792434,
+              "min_rank_auroc_difference": 0.028172437675743067,
+              "holds": true
+            }
+          ]
+        },
+        "nearest": {
+          "verdict": "held",
+          "n_held": 6,
+          "n_decided": 6,
+          "n_undecided": 4,
+          "checks": [
+            {
+              "claim": "mean_psu helps wanet",
+              "auroc_difference": 0.0267469774300792,
+              "holds": true
+            },
+            {
+              "claim": "mean_psu helps blend",
+              "auroc_difference": 0.005028232342345322,
+              "holds": true
+            },
+            {
+              "claim": "mean_psu hurts tact",
+              "auroc_difference": null,
+              "holds": null
+            },
+            {
+              "claim": "min_rank helps wanet",
+              "auroc_difference": 0.028172437675743067,
+              "holds": true
+            },
+            {
+              "claim": "min_rank helps blend",
+              "auroc_difference": 0.0034623586485070987,
+              "holds": true
+            },
+            {
+              "claim": "min_rank hurts tact",
+              "auroc_difference": null,
+              "holds": null
+            },
+            {
+              "claim": "weighted_0.8_0.2 keeps TaCT within 0.01 of AUROC and of TPR at 10% FPR",
+              "auroc_difference": null,
+              "tpr_q0.10_difference": null,
+              "holds": null
+            },
+            {
+              "claim": "weighted_0.8_0.2 keeps at least 0.5 of the min-rank WaNet gain",
+              "weighted_auroc_difference": 0.02111267064916389,
+              "min_rank_auroc_difference": 0.028172437675743067,
+              "holds": true
+            },
+            {
+              "claim": "weighted_0.9_0.1 keeps TaCT within 0.01 of AUROC and of TPR at 10% FPR",
+              "auroc_difference": null,
+              "tpr_q0.10_difference": null,
+              "holds": null
+            },
+            {
+              "claim": "weighted_0.9_0.1 keeps at least 0.5 of the min-rank WaNet gain",
+              "weighted_auroc_difference": 0.018518748736792434,
+              "min_rank_auroc_difference": 0.028172437675743067,
+              "holds": true
+            }
+          ]
+        }
+      },
+      "plan_x4": {
+        "top_rate": {
+          "E1a": "held",
+          "E1b": "mixed",
+          "E2": "mixed",
+          "E10": "failed"
+        },
+        "matched": {
+          "E1a": "held",
+          "E1b": "mixed",
+          "E2": "mixed",
+          "E10": "mixed"
+        }
+      }
+    },
+    "panel": {
+      "preregistered": [
+        {
+          "id": "X19-best-auroc",
+          "text": "best_pass raises PSBD-TM's mean AUROC over mean_psu and the paired 95% interval excludes 0",
+          "verdict": "inconclusive",
+          "n": 54,
+          "mean_difference": 0.00251878378113903,
+          "ci95": [
+            -0.00035514561299917726,
+            0.006149225316773565
+          ]
+        },
+        {
+          "id": "X19-best-tpr1",
+          "text": "best_pass raises PSBD-TM's mean TPR at 1% nominal FPR over mean_psu",
+          "verdict": "failed",
+          "n": 54,
+          "mean_difference": -0.00789778788263599,
+          "ci95": [
+            -0.04688323261561217,
+            0.025416383588755573
+          ]
+        },
+        {
+          "id": "X19-worst-auroc",
+          "text": "the worst pass, the statistic N17 proposed, lowers PSBD-TM's mean AUROC below mean_psu",
+          "verdict": "held",
+          "n": 54,
+          "mean_difference": -0.0244379816533362,
+          "ci95": [
+            -0.04471225852211079,
+            -0.009887924292545725
+          ]
+        },
+        {
+          "id": "X3-auroc",
+          "text": "the weighted rule raises mean AUROC over PSBD-TM alone and the paired 95% interval excludes 0",
+          "verdict": "held",
+          "n": 39,
+          "mean_difference": 0.014828598920085768,
+          "ci95": [
+            0.0023697658806671597,
+            0.03802163821311474
+          ]
+        },
+        {
+          "id": "X3-tpr10",
+          "text": "the weighted rule raises mean TPR at 10% nominal FPR over PSBD-TM alone",
+          "verdict": "held",
+          "n": 39,
+          "mean_difference": 0.02325928459564845,
+          "ci95": [
+            0.0023284309949630345,
+            0.061374725248569094
+          ]
+        },
+        {
+          "id": "X3-tpr1",
+          "text": "the weighted rule loses at most 0.01 of mean TPR at 1% nominal FPR",
+          "verdict": "held",
+          "n": 39,
+          "mean_difference": 0.04525064677000046,
+          "ci95": [
+            0.012296318052670894,
+            0.08898677963476914
+          ]
+        },
+        {
+          "id": "X3-patch",
+          "text": "on BadNets and TaCT the weighted rule loses at most 0.01 of mean AUROC per attack",
+          "verdict": "held",
+          "n": 39,
+          "mean_difference": {
+            "badnet_a2o": -8.447936490130203e-05,
+            "tact": 0.003103613141178796
+          },
+          "ci95": [
+            null,
+            null
+          ]
+        }
+      ],
+      "plan_x19": {
+        "verdict": "failed",
+        "n_held": 0,
+        "n_decided": 2,
+        "n_undecided": 0,
+        "checks": [
+          {
+            "attack": "badnet_a2o",
+            "n": 12,
+            "auroc_difference": -0.033413114774815726,
+            "tpr_q0.01_difference": -0.16125838458538055,
+            "holds": false
+          },
+          {
+            "attack": "tact",
+            "n": 3,
+            "auroc_difference": -0.14244170504764717,
+            "tpr_q0.01_difference": 0.0006831674060473839,
+            "holds": false
+          }
+        ]
+      },
+      "plan_x3": {
+        "adaptive": {
+          "verdict": "mixed",
+          "n_held": 6,
+          "n_decided": 10,
+          "n_undecided": 0,
+          "checks": [
+            {
+              "claim": "mean_psu helps wanet",
+              "auroc_difference": 0.11340599356964128,
+              "holds": true
+            },
+            {
+              "claim": "mean_psu helps blend",
+              "auroc_difference": 0.003624863165726855,
+              "holds": true
+            },
+            {
+              "claim": "mean_psu hurts tact",
+              "auroc_difference": 0.010868110101769024,
+              "holds": false
+            },
+            {
+              "claim": "min_rank helps wanet",
+              "auroc_difference": 0.17838359270975465,
+              "holds": true
+            },
+            {
+              "claim": "min_rank helps blend",
+              "auroc_difference": 0.0023133752001609914,
+              "holds": true
+            },
+            {
+              "claim": "min_rank hurts tact",
+              "auroc_difference": 0.0045611638549279965,
+              "holds": false
+            },
+            {
+              "claim": "weighted_0.8_0.2 keeps TaCT within 0.01 of AUROC and of TPR at 10% FPR",
+              "auroc_difference": 0.0049764360357899,
+              "tpr_q0.10_difference": -0.07438012957572937,
+              "holds": false
+            },
+            {
+              "claim": "weighted_0.8_0.2 keeps at least 0.5 of the min-rank WaNet gain",
+              "weighted_auroc_difference": 0.1672287081591134,
+              "min_rank_auroc_difference": 0.17838359270975465,
+              "holds": true
+            },
+            {
+              "claim": "weighted_0.9_0.1 keeps TaCT within 0.01 of AUROC and of TPR at 10% FPR",
+              "auroc_difference": 0.003103613141178796,
+              "tpr_q0.10_difference": -0.03636360168457031,
+              "holds": false
+            },
+            {
+              "claim": "weighted_0.9_0.1 keeps at least 0.5 of the min-rank WaNet gain",
+              "weighted_auroc_difference": 0.15624374915786163,
+              "min_rank_auroc_difference": 0.17838359270975465,
+              "holds": true
+            }
+          ]
+        },
+        "nearest": {
+          "verdict": "mixed",
+          "n_held": 8,
+          "n_decided": 10,
+          "n_undecided": 0,
+          "checks": [
+            {
+              "claim": "mean_psu helps wanet",
+              "auroc_difference": 0.11340599356964128,
+              "holds": true
+            },
+            {
+              "claim": "mean_psu helps blend",
+              "auroc_difference": 0.006478966572838761,
+              "holds": true
+            },
+            {
+              "claim": "mean_psu hurts tact",
+              "auroc_difference": -0.0869913278440767,
+              "holds": true
+            },
+            {
+              "claim": "min_rank helps wanet",
+              "auroc_difference": 0.17838359270975465,
+              "holds": true
+            },
+            {
+              "claim": "min_rank helps blend",
+              "auroc_difference": 0.005194182506874155,
+              "holds": true
+            },
+            {
+              "claim": "min_rank hurts tact",
+              "auroc_difference": -0.19066173287022206,
+              "holds": true
+            },
+            {
+              "claim": "weighted_0.8_0.2 keeps TaCT within 0.01 of AUROC and of TPR at 10% FPR",
+              "auroc_difference": -0.021285421298676648,
+              "tpr_q0.10_difference": -0.023955855518579483,
+              "holds": false
+            },
+            {
+              "claim": "weighted_0.8_0.2 keeps at least 0.5 of the min-rank WaNet gain",
+              "weighted_auroc_difference": 0.1672287081591134,
+              "min_rank_auroc_difference": 0.17838359270975465,
+              "holds": true
+            },
+            {
+              "claim": "weighted_0.9_0.1 keeps TaCT within 0.01 of AUROC and of TPR at 10% FPR",
+              "auroc_difference": -0.008599057397508325,
+              "tpr_q0.10_difference": -0.012121200561523438,
+              "holds": false
+            },
+            {
+              "claim": "weighted_0.9_0.1 keeps at least 0.5 of the min-rank WaNet gain",
+              "weighted_auroc_difference": 0.15624374915786163,
+              "min_rank_auroc_difference": 0.17838359270975465,
+              "holds": true
+            }
+          ]
+        }
+      },
+      "plan_x4": {
+        "top_rate": {
+          "E1a": "mixed",
+          "E1b": "mixed",
+          "E2": "mixed",
+          "E10": "failed"
+        },
+        "matched": {
+          "E1a": "mixed",
+          "E1b": "mixed",
+          "E2": "mixed",
+          "E10": "held"
+        }
+      }
+    }
+  }
+}

@@ -186,8 +186,10 @@ operator that removes a whole sublayer's contribution rather than damaging it.
 
 ### Token substitution, new on 2026-09-23
 
-Replace whole tokens with the token at the same position from another sample in
-the batch, taken by rolling the batch axis, instead of zeroing them. No inverted
+Replace whole tokens with another token of the same sample, taken by rolling the
+token axis, instead of zeroing them. Borrowing from another sample in the batch
+was rejected, because PSU is a per-sample score and must not depend on which
+other images share the batch (`defenses/operators.py` `TokenSubstitute`). No inverted
 scaling, because a substituted token is already drawn from the right distribution
 and scaling would inflate it.
 

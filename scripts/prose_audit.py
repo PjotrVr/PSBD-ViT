@@ -407,6 +407,8 @@ MARKDOWN_MATH = re.compile(r"\$\$.*?\$\$|\$[^$\n]*\$", re.DOTALL)
 def strip_code_spans(text: str) -> str:
     """Prose with backticked spans and bracketed math removed, since those are code."""
     text = MARKDOWN_MATH.sub(" code ", text)
+    # Markdown comments are machine markers (results blocks), not prose.
+    text = re.sub(r"<!--.*?-->", "", text)
     text = re.sub(r"`[^`]*`", "code", text)
     text = re.sub(r"\([^()]*\)", "", text)
     text = re.sub(r"\[[^\[\]]*\]", "", text)

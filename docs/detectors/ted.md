@@ -1,27 +1,21 @@
 # TED, topological evolution dynamics
 
-TED stores a bank of clean samples with their activations at every considered layer and, for each input, ranks the bank by distance to the input at each layer and records where the first bank row of the input's predicted class sits. The sequence of ranks over depth is the feature, and an outlier model fitted on the bank's own sequences scores it. The method is white-box and costs 1 forward per input plus a distance matrix per layer. This page records what the paper defines, what the released notebook does, what the port under `detectors/ted.py` runs on ViT and Swin and where the 2 diverge.
+TED stores a bank of clean images with their activations at every layer. For each input it sorts the bank by distance to the input at each layer and records how far down the sorted bank the first image of the input's predicted class sits. That sequence of ranks over depth is the input's trajectory, and an outlier model fitted on the bank's own trajectories scores it. This page explains the idea, gives the paper's algorithm, describes the paper's setting and the released notebook, walks through the port in `detectors/ted.py`, lists every deviation with its reason and ends with the results on the panel. Terms such as the shared split, the panel, PSBD-TM, PSBD-RD, AUROC and TPR at a false-positive budget are defined once in `README.md` in this directory.
 
-## Citation
+## The idea in plain words
 
-Mo et al., "Robust Backdoor Detection for Deep Learning via Topological Evolution Dynamics", IEEE S&P 2024, arXiv:2312.02673 (v1 read). The statistic is Section V-B and Algorithm 2, which carries no numbered equation, so lines of the algorithm are cited. The default layer set is stated at the head of Section VI, the layer-type ablation is Section VI-D with Table VIII, the transformer hooks for BERT are in Section VI-E, the reject parameter is in Appendix A and the Z-score alternative in Appendix D.
+Follow an image through the network and, at every layer, ask which stored clean images are its nearest neighbors. A clean image of class "cat" is surrounded by cat images at almost every depth: its nearest neighbor of its predicted class is near the front of the list everywhere, so its rank is small and steady. A triggered image of a dog that the backdoor sends to "cat" looks like a dog for most of the network, because the backdoor only takes over late. In early and middle layers its nearest cat is far down the list, and only near the end does it jump among the cats. The trajectory of ranks over depth therefore has a different shape for triggered images: large early, small late. An outlier model fitted on the trajectories of clean images flags that shape.
 
-The released code is https://github.com/tedbackdoordefense/ted, read at commit `fa193a6` as vendored under `third_party/ted`, where the method lives in the single notebook `TED.ipynb`. The cells the port reads are 2 and 4 (defense set size and membership), 9 (hooks), 10 (activation fetch), 14 (rank extraction) and 22 (the outlier detector). The notebook imports `pyod.models.pca.PCA`, which is not installed here, and the port replaces it as recorded below.
+The rank at a layer does not change if every activation at that layer is multiplied by the same positive number, so the statistic is immune to the growth of activation scale along a transformer's residual stream. The method is white-box because it reads every layer. It costs 1 forward pass per input plus 1 distance computation against the bank per layer.
 
-## Threat model and data requirement
+## The original method
 
-Section III-B gives the defender white-box access to the deployed model, a small set of clean samples with labels and no knowledge of the attack, its trigger or its target. The adversary of Section III-A controls training and mounts source-specific dynamic triggers, the strongest setting in the paper. TED decides per input at inference time, which is the role every detector in the registry plays.
-
-The clean data enters twice. Labels select the bank, since cell 4 keeps only the samples the model classifies correctly and the paper stores $m$ samples per class. The rank itself reads predicted labels only, both for the bank rows and for the query. The port hands TED the shared 2000-sample clean validation split with its labels, so `DATA_REQUIREMENT` records `the clean validation split, labelled`. The paper's own budget is 20 per class on CIFAR-10 and MNIST, 1000 in total on GTSRB and 200 per label on PubFig and ImageNet-100, and the notebook caps at `DEFENSE_TRAIN_SIZE`, 1000 for CIFAR-10, GTSRB and MNIST and 100 per class otherwise.
-
-## Mechanism
-
-Algorithm 2 follows in the paper's own notation, as a pseudocode block since the paper gives no equation. The symbol table underneath defines every symbol, and the descriptive form after it renames without rederiving.
+Mo et al., "Robust Backdoor Detection for Deep Learning via Topological Evolution Dynamics", IEEE S&P 2024, arXiv:2312.02673 (v1 read). The statistic is Section V-B and Algorithm 2, which carries no numbered equation, so lines of the algorithm are cited.
 
 ```
 Given a c-class model f with N considered layers, m samples per class,
-a metric d, a PCA model PCA(., alpha) with reject parameter alpha and
-a test set X_test.
+a metric d, a PCA outlier model PCA(., alpha) with reject rate alpha
+and a test set X_test.
 
  2   S_1 = S_2 = ... = S_c = {}
  3   for i = 1 to c:
@@ -45,138 +39,172 @@ a test set X_test.
 21   return X_malicious
 ```
 
-| Symbol | Meaning |
+| symbol | meaning |
 |---|---|
 | $f$ | the classifier, $f(x)_k$ its output for class $k$ |
 | $c$ | the number of classes |
 | $N$ | the number of considered layers |
-| $m$ | the stored clean samples per class |
-| $X_i$ | the clean samples of class $i$ |
-| $S_i$ | the stored bank rows of class $i$, $S$ their union |
+| $m$ | the stored clean images per class |
+| $X_i$ | the clean images of class $i$ |
+| $S_i$, $S$ | the stored bank rows of class $i$, and their union |
 | $h_l(x)$ | the representation of $x$ at layer $l$ |
-| $d$ | the metric on representations, euclidean throughout the paper |
+| $d$ | the distance between representations, Euclidean in the paper |
+| $j$ | the predicted class of the image being ranked |
 | $S_j - x_i$ | the bank rows of class $j$ without $x_i$ itself |
 | $K_l^{(i)}$ | the rank of the nearest class-$j$ row in the bank sorted by distance to $x_i$ at layer $l$ |
-| $\mathbf{M}$ | the PCA outlier model, $\mathbf{M}(x)$ its score |
+| $M$ | the PCA outlier model fitted on the bank's trajectories |
 | $\alpha$ | the reject rate that fixes the threshold $\tau$ |
 
-The same procedure follows with descriptive names in place of the paper's symbols. The structure is unchanged and only the names differ.
+The descriptive form renames without rederiving.
 
 ```
-bank            = clean samples the model classifies correctly, with their
-                  features at every considered layer and their predicted labels
+bank        = clean images the model classifies correctly, with their
+              features at every considered layer and their predicted labels
 for each query:
     predicted   = the label the model gives the query
     for each layer:
-        order   = bank sorted by euclidean distance to the query's features
+        order   = bank sorted by Euclidean distance to the query's features
                   at this layer, the query's own row left out if it has 1
         rank    = position in order of the first row whose predicted label
                   equals predicted
-    trajectory  = rank over every layer
+    trajectory  = rank at every layer
 outlier_model   = fitted on the bank's own trajectories
 ted_score       = outlier_model(trajectory), flagged when above a threshold
 ```
 
-A clean input sits among clean inputs of its predicted class at every depth, so the first same-class row is near the front of the sorted bank at every layer and the ranks stay small and consistent. A poisoned input reaches the target class only through its trigger, so in the early and middle layers its nearest neighbours belong to its source class and the first target-class row sits far back, and the ranks fall only near the end. Section V-A states the rationale in those 2 halves, the deep activations of a triggered input resemble the target class and its shallow activations resemble its source class. The rank at a layer is invariant to any positive rescaling of that layer's activations, so the scale drift along a residual stream that `experiments/prediction_depth` guards against with a logit lens never enters this statistic.
+## The original paper's setting
 
-The outlier model is where the port departs from the notebook. Cell 22 fits pyod's `PCA` detector with standardization on, `weighted=True` and `n_components='mle'`, and pyod's `decision_function`, read at the current master of the pyod repository, computes
+The defender of Section III-B has white-box access, a small labeled clean set and no knowledge of the attack. The adversary of Section III-A controls training and mounts source-specific dynamic triggers, the paper's strongest setting. The paper evaluates on MNIST, CIFAR-10, GTSRB, PubFig and ImageNet-100 with ConvNets. It also evaluates BERT on text, where it hooks the dense, self-attention and embedding layers. The default layer set at the head of Section VI is every Conv2D output, with ReLU and Linear outputs added on shallow networks, and Table VIII of Section VI-D reports similar AUC across layer sets on a deep network. The stored bank is 20 images per class on CIFAR-10 and MNIST, 1000 in total on GTSRB and 200 per class on PubFig and ImageNet-100. Appendix A sets $\alpha = 5\%$ and Appendix D offers a 4-sigma Z-score as an alternative outlier rule. No vision transformer is evaluated.
+
+## The reference implementation
+
+The authors' code is https://github.com/tedbackdoordefense/ted at commit `fa193a6`, a single notebook `TED.ipynb`, vendored as `third_party/ted` when the port was written. Cell 4 builds the bank by keeping the defense images the model classifies correctly, capped at `DEFENSE_TRAIN_SIZE` (1000 on CIFAR-10, GTSRB and MNIST). Cell 9 hooks every non-pointwise `Conv2d`, every `ReLU` and every `Linear`. Cell 10 flattens each hooked activation with `.view(batch, -1)` and stacks the bank as float32 on the device. Cell 14 sorts the bank by `pairwise_euclidean_distance` to each query, walks the predicted labels in that order and records `.index(label)`, dropping the first sorted entry with `ranking_array[1:]` when ranking a bank row against the bank so it does not find itself, and skipping any query whose predicted label appears on no bank row. Cell 22 fits `pyod.models.pca.PCA(contamination=0.01, n_components='mle')` on the benign trajectories and scores with its `decision_function`. That score, read at pyod's current master, is
 
 $$
 \text{score}(x) = \sum_{j=1}^{k} \frac{\lVert z(x) - v_j \rVert_2}{w_j}, \qquad z(x) = \frac{x - \mu}{\sigma}
 $$
 
-| Symbol | Meaning |
+| symbol | meaning |
 |---|---|
-| $z(x)$ | the trajectory standardized by the fitted `StandardScaler` |
-| $\mu, \sigma$ | per-layer mean and standard deviation of the clean trajectories |
-| $v_j$ | row $j$ of `components_`, a unit principal axis read as a point in trajectory space |
-| $w_j$ | `explained_variance_ratio_[j]`, the weight under `weighted=True` |
-| $k$ | `n_components_`, every component when none is deselected |
+| $x$ | a trajectory, 1 rank per layer |
+| $\mu, \sigma$ | the per-layer mean and standard deviation of the clean trajectories |
+| $z(x)$ | the standardized trajectory |
+| $v_j$ | the $j$-th principal axis, a unit vector read as a point in trajectory space |
+| $w_j$ | the explained variance ratio of axis $j$, the weight under `weighted=True` |
+| $k$ | the number of components kept |
 
-That quantity sums the distances from a standardized point to each eigenvector treated as a point, weighted by the inverse of its variance ratio, so it is a full-rank variance-weighted distance from the clean center rather than a reconstruction error onto minor components. The port keeps the standardization and replaces the sum by the squared Mahalanobis distance under the clean covariance, with a floor on the diagonal so a layer whose clean ranks never vary cannot make the covariance singular.
+a variance-weighted distance from the clean center. The notebook's contamination of 1% differs from Appendix A's 5%. pyod is not installed in this project. `third_party/` is not checked out in this working tree, so the cell numbers are the ones recorded when the port was written.
 
-$$
-M(x) = z(x)^{\top} \left( \Sigma + \epsilon I \right)^{+} z(x), \qquad \Sigma = \operatorname{cov}\!\left( z \right)
-$$
+## The port step by step
 
-| Symbol | Meaning |
-|---|---|
-| $z(x)$ | the standardized trajectory, with $\sigma$ replaced by 1 on a layer whose spread is under `STANDARD_DEVIATION_FLOOR` |
-| $\Sigma$ | the covariance of the standardized clean trajectories |
-| $\epsilon$ | `COVARIANCE_FLOOR`, $10^{-6}$ |
-| $(\cdot)^{+}$ | the pseudo-inverse, taken in float64 |
+1. `_build_ted` in `detectors/__init__.py` requires the validation loader and calls `collect_reference_bank(model, validation_loader, device, use_bfloat16, context.ted_reduction)`.
+2. `collect_reference_bank` hooks every block boundary through `analysis.features.captured_layers`: layer 0 is the input of block 1 and layers 1 to 12 are the outputs of the 12 blocks on ViT-B/16, 13 layers in all (25 on Swin-S). It runs 1 forward pass over the 2000 validation images, keeps the images whose predicted label equals their true label and stores, per layer, `reduce_activation(captured[layer], reduction, has_class_token)`, the activation flattened to (batch, tokens × dim) under the default `flatten` reduction and cast to float16 (`BANK_DTYPE`). The bank also records each row's predicted label and its position in the loader. On ViT a flattened row is $197 \times 768 = 151296$ values per layer.
+3. `leave_one_out_trajectories(bank)` ranks every bank row against the rest of the bank at every layer with `first_same_class_rank`, excluding its own row, which is the notebook's `ranking_array[1:]`. `first_same_class_rank` computes distances in float32 with `torch.cdist` over chunks of `DISTANCE_CHUNK` (256) bank rows and sorts them. It returns the position of the first row whose predicted label equals the query's. A query whose predicted class has no bank row gets the bank size.
+4. `fit_trajectory_model(trajectories)` standardizes each layer's ranks by their mean and standard deviation (a standard deviation under `STANDARD_DEVIATION_FLOOR` becomes 1) and computes the pseudo-inverse of their covariance plus `COVARIANCE_FLOOR` on the diagonal, in float64. It returns a `TrajectoryModel` of mean, std and precision.
+5. The validation split is scored through `ted_scores(..., loader_is_bank_source=True)`, which re-forwards the split and ranks each image with its own bank row excluded, so the scores the threshold is read from are leave-one-out.
+6. For the clean and backdoor splits, `ted_scores` forwards each batch and reduces its activations the same way. It computes `rank_trajectories` against the full bank with shape (batch, 13) and then calls `outlier_scores`, the squared Mahalanobis distance $z^{\top} (\Sigma + \epsilon I)^{+} z$ of the standardized trajectory. `ted_scores` negates once and returns (N,).
 
-Both scores grow with the standardized distance from the clean center, which is the direction line 19 of Algorithm 2 relies on, and nothing more is claimed. The 2 are different functions of the same standardized trajectory, and a number from this port is a Mahalanobis number rather than a pyod number.
+## Deviations and why
 
-## What the released code does
+1. **Considered layers.** The paper's default is every Conv2D output, and a ViT block has no Conv2D and no ReLU. Its Linear layers include the attention projections, which are head-split intermediates rather than representations of the input. The port reads the residual stream at every block boundary, which is every place the representation is rewritten and the closest transformer analogue of a convolutional block's output. Table VIII of the paper suggests the layer set matters little on deep networks, but no ViT number exists in the paper to check against.
+2. **Outlier model.** pyod is not installed and is not added as a dependency. The port keeps pyod's per-layer standardization and replaces its weighted eigenvector-distance sum with the squared Mahalanobis distance under the floored clean covariance. Both grow with the standardized distance from the clean center, which is what line 19 of Algorithm 2 relies on, and no numerical equivalence is claimed: a number from this port is a Mahalanobis number rather than a pyod number.
+3. **Bank membership and size.** The paper stores $m$ images per class and the notebook caps the bank at 1000. The port keeps every correctly classified image of the shared split with no cap and no random draw, so every detector sees the same budget and no seed enters. Ranks therefore run up to the bank size, which is near 2000 on an accurate model. The paper's box plots are not comparable in magnitude.
+4. **Absent predicted class.** The notebook silently skips a query whose predicted class is not in the bank. The port gives it the bank size at every layer and scores it, since a detector that returns no score for an input has made no decision on it. The result is an extreme outlier score whether or not the input carries a trigger. `classes_without_reference(bank, num_classes)` lists the classes this rule fires on, which Tiny ImageNet, with about 10 validation images per class before misclassified ones are dropped, is expected to hit.
+5. **Precision and storage.** The notebook holds a float32 bank. The port stores bank rows and queries alike as float16 on the device and computes distances in float32 over chunks. Rounding the queries too makes a bank member scored through its own loader identical to its stored row, so its self-exclusion removes exactly its own distance. float16 carries about 3 decimal digits, so a near tie between 2 bank rows at the 4th digit can flip a rank. Under `flatten` the bank is 13 layers × bank rows × 151296 halves, about 7.9 GB for a 2000-row bank on ViT-B/16, held on the device for the whole run.
+6. **Leave-one-out validation scores.** The notebook scores its benign trajectories in sample. The port fits the trajectory model on the leave-one-out trajectories and scores the validation split with each bank member's own row excluded, so the threshold is read from scores that did not see themselves in the ranking. Each bank row still contributes about 1 in 2000 of the weight of the mean and covariance it is scored against, which is recorded rather than removed. `ted` is in `CROSS_FITTED` for this reason.
+7. **Token reduction.** The notebook flattens every activation, and the port's default `flatten` does the same. `DetectorContext.ted_reduction` offers `cls` (the class token alone, ViT only) and `mean` (the token average), which shrink the bank to about 0.5% of its flattened size. The panel runs `flatten`. The synthetic sign gate runs `cls`, because the fixture's head reads only the class token and its patch tokens are random noise.
+8. **Threshold rule.** The paper thresholds at the reject rate $\alpha$. The port hands the negated outlier score to `defenses.decision.detection_report`, which thresholds at a quantile of the validation scores.
 
-Cell 2 sets `DEFENSE_TRAIN_SIZE` from the dataset and cell 4 builds the bank. It runs the defense loader through the model, keeps the samples whose argmax equals the label, draws `DEFENSE_TRAIN_SIZE` of them at random without replacement when more survive and reloads them with `shuffle=True`. Cell 9 walks `model.modules()` and registers a forward hook on every `Conv2d` whose kernel is not 1 by 1, every `ReLU` and every `Linear`, in module order.
+## Hyperparameters and where they come from
 
-Cell 10, `fetch_activation`, runs the loader twice, once to initialize a container per hook and once to collect. For each batch it stores the argmax prediction, flattens each hooked activation with `.view(batch, -1)` and appends every row to a Python list on the device, then stacks the lists, so the bank is float32 and lives on the device as 1 tensor per hook. Cell 14 defines the rank. `get_dis_sort` takes torchmetrics' `pairwise_euclidean_distance` of 1 item against the whole bank and returns `torch.sort`'s index order. `getDefenseRegion` walks the bank's own rows of 1 predicted class, drops the first sorted entry with `ranking_array[1:]` since that entry is the row itself, reads the predicted labels along the order and records `.index(label)` when the label appears at all. `getLayerRegionDistance` does the same for outside queries without the drop, grouped by the query's predicted label. A query whose predicted label appears on no bank row is skipped in both functions, so it contributes no trajectory and is never scored.
+| symbol | paper | this port | constant | source of the port's value |
+|---|---|---|---|---|
+| $N$, considered layers | every Conv2D output | every block boundary, 13 on ViT-B/16 and 25 on Swin-S | none, from `transformer_blocks` | deviation 1 |
+| $m$, bank size | 20 to 200 per class by dataset, notebook cap 1000 | every correct image of the 2000 split | `PAPER_DEFENSE_SET_SIZE` (1000), recorded only | the shared data budget |
+| $d$ | Euclidean | Euclidean in float32 | none | the paper |
+| token reduction | the notebook flattens | `flatten` | `DEFAULT_REDUCTION` | the notebook |
+| outlier model | pyod PCA, standardized and weighted | squared Mahalanobis on standardized trajectories | `COVARIANCE_FLOOR`, `STANDARD_DEVIATION_FLOOR` ($10^{-6}$ each) | deviation 2 |
+| bank dtype | float32 | float16 | `BANK_DTYPE` | device memory, deviation 5 |
+| distance chunk | the whole bank per query | 256 rows per `cdist` call | `DISTANCE_CHUNK` | device memory |
+| absent-class rank | the query is dropped | the bank size | none | deviation 4 |
+| $\alpha$ | 5%, notebook contamination 1% | none, the quantile rule | `PSBD_QUANTILES` | the registry's shared rule |
 
-Cell 22 turns the per-layer lists into a `(samples, layers)` array per label, splits benign labels from the 3 temporary labels the notebook assigns to victim-triggered, non-victim-triggered and no-trigger test samples, fits a 2-component sklearn PCA for a scatter plot and then fits `pyod.models.pca.PCA(contamination=0.01, n_components='mle')` on the benign array. It scores the benign array in sample with `decision_function`, scores the unknown array the same way and reports AUC of the victim-triggered label against the rest and a confusion matrix at pyod's contamination threshold. Appendix A of the paper states $\alpha = 5\%$ where the notebook's contamination is 1%.
+## Cross-check against the reference
 
-## What this port does on ViT
-
-1. **Considered layers.** The paper takes all Conv2D outputs by default and adds ReLU and Linear outputs for shallow networks, while its BERT experiment hooks the dense, self-attention and embedding layers. The notebook hooks every non-pointwise Conv2d, every ReLU and every Linear. A ViT block has no Conv2d and no ReLU, and its 4 Linear layers per block include 2 inside attention whose outputs are head-split projections rather than a representation of the input, so that rule has no direct reading. The port reads the residual stream at every block boundary through `analysis.features.captured_layers`, 13 hook points on ViT-B/16 (the input of block 0 and every block output) and 25 on Swin-S, which is every place the representation is rewritten and the transformer analogue of a convolutional block's output. Table VIII of the paper reports similar AUC across layer sets on a deep network, so the count of 13 rather than a Conv2D count is not expected to move the number, but no ViT number in the paper exists to check against.
-2. **Outlier model.** The paper fits a PCA outlier model with reject rate $\alpha$ and the notebook uses pyod's `PCA` detector, whose score is the weighted eigenvector-distance sum quoted above. pyod is not installed and is not added as a dependency. The port standardizes the trajectories per layer as pyod does and scores the squared Mahalanobis distance under the floored clean covariance in float64. The direction is preserved, since a trajectory far from the clean center scores high under both. No equivalence is claimed. The fit is exact under a singular covariance, which the test file pins on a constant layer.
-3. **Bank membership and size.** The paper stores $m$ samples per class and the notebook keeps every correctly classified sample of its defense loader up to a random cap of 1000. The port keeps every correctly classified sample of the shared 2000-sample split with no cap, about 1900 on a ViT checkpoint, so every detector sees the same budget and no seed-dependent draw enters. Per class that is about 190 on CIFAR-10, 19 on CIFAR-100 and 10 on Tiny ImageNet, with an uneven spread on GTSRB. Ranks therefore run to about 1900 rather than 1000 and the paper's box plots are not comparable in magnitude.
-4. **Absent predicted class.** The notebook drops a query whose predicted label appears on no bank row, from the bank's own rows in `getDefenseRegion` and from test queries in `getLayerRegionDistance`. The port gives such a query the rank equal to the bank size at every layer (the position just past the sorted bank) and scores it, since a detector that returns no score for an input has made no decision on it. The result is an extreme outlier score whether or not the input carries a trigger. `classes_without_reference(bank, num_classes)` lists the classes this rule fires on, and a run should record it beside its scores, since Tiny ImageNet will hit it.
-5. **Precision and storage.** The notebook holds the bank in float32 on the device and computes each query's distances against the whole bank at once. The port rounds every reduced feature to float16, the bank rows and the queries alike, keeps the bank on the device and takes distances in float32 through `torch.cdist` over chunks of `DISTANCE_CHUNK` bank rows, so the largest transients are the 2 chunks cast to float32 and the `(batch, bank_size)` distance matrix. Rounding the queries as well as the bank makes a bank member scored through its own loader identical to its stored row, given a reproducible forward, so its self-exclusion removes exactly its own distance and the loader path reproduces `leave_one_out_trajectories` to the integer. float16 carries about 3 decimal digits, so a near tie between 2 bank rows at the 4th digit can flip a rank, and `cdist` uses the same matmul expansion of the squared distance that torchmetrics uses in the notebook.
-6. **Leave-one-out validation scores.** Line 12 of Algorithm 2 takes the nearest neighbour from $S_j - x_i$ and the notebook realises it with `ranking_array[1:]`, so the bank's own trajectories never count the row itself. The notebook then scores the benign array in sample with `decision_function`. The port fits the trajectory model on the bank's leave-one-out trajectories and scores the validation split through a second pass over its loader with each bank member's own row masked, so the validation scores the threshold is read from are leave-one-out at the rank level for the bank members and ordinary for the misclassified rest. The trajectory model's mean and covariance are still fitted on every bank trajectory including the row being scored, where each row's own weight in that fit is about 13 in 1900, which is recorded rather than removed.
-7. **Token reduction.** The notebook flattens every activation with `.view(batch, -1)`, so the port's default `flatten` does the same, 197 tokens by 768 channels on ViT-B/16. `DetectorContext.ted_reduction` overrides it to `cls` (the class token alone) or `mean` (the token average), and `cls` raises on Swin as `analysis.features` does since Swin has no class token. Early class tokens carry little content, since at layer 0 the class token is the same learned embedding plus its position for every input and in the first blocks it has only begun to aggregate the patches, so under `cls` the first ranks are noise. Flatten costs 7.5 GB on ViT-B/16 and about 10 GB on Swin-S for the bank, where `cls` and `mean` cost 38 MB. The synthetic fixture prefers `cls` because its head is linear on the class token at the last layer while its patch tokens are random-init noise.
-8. **Threshold rule.** The paper thresholds at the reject rate $\alpha$ and Appendix D offers a 4-sigma Z-score alternative. The port hands the negated outlier score to `defenses.decision.detection_report`, which sets the threshold at a quantile of the shared clean validation split, so TED is judged at the same false-positive budget as every other detector. AUROC is unaffected. TPR at a fixed quantile is a different operating point from Table III.
-
-## Hyperparameters
-
-| Symbol | Paper default | This port | Constant name |
-|---|---|---|---|
-| $N$, considered layers | all Conv2D outputs, Conv2D plus ReLU plus Linear on shallow networks | 13 on ViT-B/16, 25 on Swin-S, every `captured_layers` hook point | none, from `transformer_blocks` |
-| $m$, stored samples per class | 20 on CIFAR-10 and MNIST, 1000 in total on GTSRB, 200 on PubFig and ImageNet-100, notebook cap 1000 | every correctly classified sample of the 2000 split, about 1900 in total | `PAPER_DEFENSE_SET_SIZE`, a record only |
-| $d$, the metric | euclidean | euclidean in float32 | none |
-| token reduction | none stated, the notebook flattens | `flatten`, overridable to `cls` or `mean` | `DEFAULT_REDUCTION` |
-| $\alpha$, reject rate | 5%, notebook contamination 1% | none, the quantile rule replaces it | none |
-| outlier model | pyod PCA, `n_components='mle'`, standardized, weighted | squared Mahalanobis on standardized trajectories | `COVARIANCE_FLOOR`, `STANDARD_DEVIATION_FLOOR` |
-| bank dtype | float32 | float16 | `BANK_DTYPE` |
-| distance chunk | the whole bank per query | 256 rows per `cdist` call | `DISTANCE_CHUNK` |
-| absent-class rank | the sample is dropped | the bank size | none |
+`tests/test_detectors_ted.py` reimplements cell 14 of the notebook in numpy inside the test file and requires `first_same_class_rank` to agree with it to the integer, with and without the `ranking_array[1:]` self exclusion. It also checks the absent-class rule, chunking, float16 ranking in float32, the leave-one-out path against the loader path and a Swin-shaped activation. The outlier model has no reference, since pyod is not installed, so its tests pin direction and finiteness only. The suite passed on the CPU on 2026-09-29, and this is the only competitor whose rank logic is checked against the reference's own logic without needing `third_party/`. The synthetic sign gate `python -m experiments.preflight.check_signs`, run on the CPU the same day with the `cls` reduction, read TED at AUROC 0.9023, above the floor of 0.60.
 
 ## Cost
 
-Each input costs 1 forward plus 1 distance matrix against the bank at each of the 13 layers, 25 on Swin-S. The fixed cost is 2 passes over the validation split, 1 to collect the bank and 1 to score the split with each bank member's own row excluded, plus the bank's leave-one-out ranks, which are 13 bank-against-bank distance matrices.
+1 forward pass per input plus 1 distance matrix against the bank at each of the 13 layers. The fit is 2 passes over the validation split, 1 to build the bank and 1 to score the split leave-one-out, plus the bank's own leave-one-out ranks. `ted` is in `NEEDS_FITTING`. The measured seconds per input and fit seconds are in the results block.
 
-At the measured 2130 images per second for a bfloat16 ViT-B/16 forward on the A100, a GTSRB checkpoint's 23208 scored inputs plus 4000 validation forwards take about 13 seconds. A batch of 256 flattened queries against a bank of 1900 costs about 1.9 TFLOP of float32 matmul over the 13 layers, about 0.1 seconds, so the 106 batches add about 10 seconds, and the estimate is about 1 minute per checkpoint. The bank is 13 by 1900 by 151296 halves, 7.5 GB, on ViT-B/16 under `flatten` and about 10 GB on Swin-S, whose 25 hook points sum to 2634240 features per sample, and it stays resident until the detector callable is dropped. Under `cls` or `mean` the bank is 38 MB. The smoke run replaces the estimate with a measured seconds-per-input figure for `pbs/generate_detector_jobs.py`.
+## Direction
 
-## How to run
+High is poisoned in the paper, since line 19 flags an outlier score above $\tau$. `outlier_scores` returns that statistic unnegated so it stays comparable to the paper's box plots. `ted_scores` negates it once.
 
-The smoke runs 1 checkpoint folder at 500 inputs per split and writes outside the results tree. `--allow-missing-psbd-cache` is required there because the smoke tree holds no PSBD split manifest to check against.
+## Results
+
+<!-- results:begin -->
+Generated by `python scripts/detector_doc_results.py` at commit `19488b81358b06040ba96f361d5061b2981f1f25-dirty`. It reads `results/coverage/coverage.json`, every `results/<folder>/detectors/<name>_metrics.json` and every `results/<folder>/psbd_metrics.json` of the 57 backdoored ViT-B/16 models the paper's detector comparison uses, the clearing models that carry a reading from every defense. PSBD-TM and PSBD-RD are read at the adaptive rate rule, every threshold is the clean-validation quantile named in the column and AUROC is the one-sided area at the 0.25 quantile, where a value under 0.5 means inverted.
+
+Summary over every compared model. The rank is among the 13 defenses of the comparison by mean AUROC, and the last column is PSBD-TM minus the defense, paired per model, with its 95% bootstrap interval over models (5000 resamples, seed 0).
+
+| defense | models | AUROC | TPR at 10% FPR | TPR at 20% FPR | models below chance | rank | PSBD-TM minus defense, AUROC |
+|---|---|---|---|---|---|---|---|
+| `ted` | 57 | 0.887 | 0.709 | 0.788 | 0 | 5 of 13 | +0.066 [+0.022, +0.107] |
+| PSBD-TM | 57 | 0.953 | 0.873 | 0.902 | 2 | 1 of 13 | reference |
+| PSBD-RD | 57 | 0.888 | 0.744 | 0.805 | 5 | 4 of 13 | +0.065 [+0.012, +0.121] |
+
+`ted` per attack and poison rate. Each row is a mean over the models of that attack at that rate and n counts them. The last 2 columns repeat the AUROC of PSBD-TM and PSBD-RD on the same models.
+
+| attack | poison rate | n | AUROC | TPR at 10% FPR | TPR at 20% FPR | PSBD-TM AUROC | PSBD-RD AUROC |
+|---|---|---|---|---|---|---|---|
+| BPP | 1% | 4 | 0.864 | 0.667 | 0.756 | 0.946 | 0.914 |
+| BPP | 5% | 4 | 0.926 | 0.792 | 0.883 | 0.941 | 0.962 |
+| BPP | 10% | 4 | 0.883 | 0.693 | 0.757 | 0.957 | 0.959 |
+| BadNets | 1% | 4 | 0.933 | 0.836 | 0.892 | 0.987 | 0.542 |
+| BadNets | 5% | 4 | 0.917 | 0.764 | 0.855 | 0.992 | 0.796 |
+| BadNets | 10% | 4 | 0.877 | 0.680 | 0.773 | 0.996 | 0.798 |
+| Blend | 1% | 4 | 0.876 | 0.648 | 0.745 | 0.973 | 0.944 |
+| Blend | 5% | 4 | 0.914 | 0.739 | 0.781 | 0.987 | 0.970 |
+| Blend | 10% | 4 | 0.898 | 0.722 | 0.810 | 0.976 | 0.997 |
+| LF | 1% | 4 | 0.866 | 0.677 | 0.756 | 0.963 | 0.959 |
+| LF | 5% | 4 | 0.825 | 0.622 | 0.688 | 0.986 | 0.978 |
+| LF | 10% | 4 | 0.882 | 0.686 | 0.768 | 0.990 | 0.985 |
+| SIG | 10% | 1 | 0.997 | 0.995 | 0.997 | 0.418 | 0.919 |
+| TaCT | 1% | 1 | 0.926 | 0.853 | 0.908 | 0.979 | 0.464 |
+| TaCT | 5% | 2 | 0.984 | 0.975 | 0.986 | 0.954 | 0.613 |
+| WaNet | 5% | 2 | 0.724 | 0.305 | 0.458 | 0.933 | 0.955 |
+| WaNet | 10% | 3 | 0.861 | 0.634 | 0.754 | 0.786 | 0.957 |
+
+Mean AUROC per dataset. The shared 2000-image clean split gives about 200 images per class on CIFAR-10, 46 on GTSRB, 20 on CIFAR-100 and 10 on Tiny ImageNet, which is the budget every class-conditional method fits on.
+
+| defense | CIFAR-10 | CIFAR-100 | GTSRB | Tiny ImageNet |
+|---|---|---|---|---|
+| `ted` | 0.866 (17) | 0.976 (12) | 0.991 (14) | 0.733 (14) |
+| PSBD-TM | 0.891 (17) | 0.979 (12) | 0.981 (14) | 0.977 (14) |
+| PSBD-RD | 0.844 (17) | 0.890 (12) | 0.862 (14) | 0.965 (14) |
+
+Measured cost, median over the compared models. Seconds per 1000 inputs divide the scoring time of the clean and backdoor splits by their size. The fit is the one-off pass over the clean validation split before any input is scored, and a dash marks a detector with no fit. The device is the one most records name.
+
+| detector | forward passes per input | seconds per 1000 inputs | fit seconds | precision | device |
+|---|---|---|---|---|---|
+| `ted` | 1 | 2.74 | 9.2 | bfloat16 | NVIDIA A100-SXM4-40GB |
+
+<!-- results:end -->
+
+## Reading the results
+
+TED is the fifth-ranked defense and 1 of only 2 competitors that never falls below chance on the panel. It separates TaCT and the single SIG model almost perfectly, which is the setting the paper was built for: TaCT's trigger only fires on its source class, so a triggered image's early-layer neighbors are its source class and its trajectory has exactly the shape the method looks for. Its Tiny ImageNet mean is far below the other 3 datasets, the same budget effect Beatrix shows. With about 10 validation images per class, fewer after misclassified ones are dropped, a class can have no bank row at all or only 1 or 2. Every clean image the model sends to such a class takes the absent-class rank or a coarse one and looks like an outlier. How many classes this hits per model is not recorded in the provenance, so this reading is an inference from the mechanism rather than a count.
+
+## Known failure modes
+
+A high outlier score says the trajectory is far from the clean cloud, which an image of a rare predicted class also produces, since a class with 1 or 2 bank rows gives coarse ranks and a class with none gives the bank size at every layer. Clean-label attacks are an expected weakness by the mechanism, since a triggered image's source class is the target class and its trajectory has no source-class prefix to stand out with. The panel holds a single clean-label model (SIG), which TED separates, so this expectation is not tested here. The paper's Section VI-C finds its own adaptive losses ineffective, and later work (TED-LaST, arXiv:2506.10722, known here only through survey notes) reports adaptive attacks that defeat it. The bank's device memory is the operational risk: it grows linearly with the split size and the model width.
+
+## How to run and where records land
 
 ```bash
 python -m cli.baselines --checkpoint-folder <folder> --detectors ted --max-samples 500 \
     --results-dir scratch/detector_smoke/results --allow-missing-psbd-cache
 ```
 
-The panel runs through the `cheap` job group of `pbs/generate_detector_jobs.py`, which batches TED with the other detectors that finish in about a minute per checkpoint. A job in that group needs the bank's memory on top of the model, which fits an A100 with room to spare.
-
-## Where results land
-
-`results/<folder>/detectors/ted_metrics.json` holds the detection report at every quantile plus the provenance record. The raw per-sample scores sit beside it as `ted_scores_validation.pt`, `ted_scores_clean.pt` and `ted_scores_backdoor.pt`, 1 float32 tensor of the split's length each, in the loader's order, so any later threshold or fusion reads them without a rerun.
-
-## Results
-
-<!-- results:begin -->
-<!-- results:end -->
-
-## Known failure modes
-
-A low score says the input's rank trajectory is far from the clean cloud in the standardized Mahalanobis metric. That is what a triggered input produces when its early-layer neighbours belong to another class, and it is also what an input of a rare predicted class produces, since a class with 1 or 2 bank rows gives coarse ranks and a class with none gives the bank size at every layer. On Tiny ImageNet the shared split holds about 10 samples per class before the misclassified ones are removed, so some classes fall out of the bank entirely and every clean input the model sends to such a class is flagged. `classes_without_reference` counts them and the count belongs beside any Tiny number.
-
-Clean-label attacks are an expected failure by the mechanism itself. Under SIG or LC the triggered input's source class is the target class, so its early-layer neighbours already carry the predicted label and its trajectory has no source-class prefix to stand out with. The paper's evaluation never includes a clean-label attack and this reading is an inference from Section V-A, to be checked on the panel rather than assumed.
-
-The bank's memory is the operational risk. Under `flatten` it is 7.5 GB on ViT-B/16 and about 10 GB on Swin-S for the 2000 split, resident on the device from the fit until the detector callable is released, and a larger validation split or a wider model scales it linearly. `cls` and `mean` reduce it 4000-fold at the cost of reading 1 vector per layer instead of every token, and which reduction the panel should run on is an open question the smoke is meant to settle.
-
-Adaptive attacks against TED exist. Section VI-C of the paper finds 3 adaptive losses ineffective and label substitution effective only above 20% of the target class, and later work under the name TED-LaST (arXiv:2506.10722, read only through the survey notes) reports adaptive attacks that defeat it. The synthetic fixture is a limited judge here. Under its default seed the random-weight model never predicts the fixture's target class on clean noise, so the bank holds no target-class row and every triggered input is scored by the absent-class rule alone, which gives a high AUROC that tests deviation 4 rather than the rank dynamics. The test file reads a second seed whose bank holds target-class rows and prints both numbers, which at the time of writing are AUROC 0.805 under `cls` and 0.566 under `flatten` on the second seed against 0.999 under the absent-class rule on the default seed, so the fixture verdict is read from `cls`.
-
-## Direction
-
-High is poisoned in the paper and the score is negated once. Line 19 of Algorithm 2 flags an input whose outlier score exceeds $\tau$, and pyod assigns larger scores to outliers, so the paper's statistic is high for a triggered input. `outlier_scores` returns that statistic unnegated, so it can be read against the paper's box plots, and `ted_scores` returns its negation, which is the only sign change in the module. `detection_report` treats a low score as positive evidence, so a second negation anywhere would produce a well-formed, exactly inverted detector, which the `direction` field of the report exists to catch.
+The smoke above writes outside `results/`. The panel runs through the `cheap` job group of `pbs/generate_detector_jobs.py`, which needs the bank's memory on top of the model and fits on an A100 40 GB. `results/<folder>/detectors/ted_metrics.json` holds the report and provenance, and `ted_scores_{validation,clean,backdoor}.pt` hold the negated outlier scores in loader order, the validation tensor being the leave-one-out scores.

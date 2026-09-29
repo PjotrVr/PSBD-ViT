@@ -1,22 +1,16 @@
 # SentiNet, region transplant against localized universal attacks
 
-SentiNet localizes the region of an input that drives the model's prediction with Grad-CAM, transplants that region onto a set of clean images and asks 2 questions of the model: how many of the clean images now take the input's label and how confident the model stays when the same region is filled with noise instead. A trigger is a small region that answers yes to both, a benign salient region fails at least 1 of them and the decision is a curve fitted over clean inputs in that 2-dimensional plane. This page records what the paper defines, what the 3 released reimplementations do, what the port under `detectors/sentinet.py` runs on ViT and Swin and where they diverge.
+SentiNet finds the region of an input that drives the model's prediction with Grad-CAM, pastes that region onto a set of clean images and asks 2 questions of the model: how many of the clean images now take the input's label, and how confident the model stays when the same region is filled with noise instead. A trigger answers both in its favor while a benign salient region fails at least 1. The decision is a curve fitted over clean inputs in that 2-dimensional plane. This page explains the idea, gives the paper's algorithms, describes the paper's setting and the 3 released reimplementations, walks through the port in `detectors/sentinet.py`, lists every deviation with its reason and ends with the results on the panel, which are below chance and only partly explained. Terms such as the shared split, the panel, PSBD-TM, PSBD-RD, AUROC and TPR at a false-positive budget are defined once in `README.md` in this directory.
 
-## Citation
+## The idea in plain words
 
-Chou et al., "SentiNet: Detecting Localized Universal Attacks Against Deep Learning Systems", IEEE S&P Workshops (DLS) 2020, arXiv:1812.00292 (v4 read). Class proposal is Algorithm 1 and mask generation Algorithm 2, both in Section III-A, with the Grad-CAM definition of Selvaraju et al. restated there. The 2 test statistics are Algorithm 3 in Section III-B1 and the decision boundary is Algorithm 4 in Section III-B2. The paper cites no released code, so the 3 reimplementations below are the only executable references.
+A patch trigger is a small region that hijacks whatever image it lands on. SentiNet tries to find that region and test it directly. First it asks the model which part of the input mattered for its prediction, using Grad-CAM, a heatmap built from the gradient of the predicted class's logit with respect to a late feature map. It cuts out the hottest part of that heatmap. Then it runs 2 experiments on a set of clean images. It pastes the cut-out region onto each clean image and counts how many are now classified as the input's label: a trigger fools nearly all of them, a piece of an ordinary object rarely does. It also pastes random noise into the same spot of each clean image and records the model's average confidence: a small trigger region hides little of the clean image, so confidence stays high, while a large benign object region hides a lot and confidence drops. Plotted as (average confidence, fooled count), clean inputs stay under a curve and triggered inputs sit above it at the top right. The score is how far above that curve an input sits.
 
-The reimplementations read are `third_party/Beatrix/defenses/SentiNet/SentiNet.py` at commit `685827e`, `third_party/BackdoorBench/detection_infer/sentinet.py` at commit `f02e353` and `third_party/backdoor-toolbox/other_defenses_tool_box/sentinet.py` at commit `9d4d909`. The Beatrix file is the reference for `fooled`, `avgConf` and the boundary fit, as the plan fixed. The other 2 are read for their departures from it.
+The method is white-box because Grad-CAM needs a gradient. It also needs a set of clean images to paste onto. It is designed for localized triggers: a trigger spread over the whole image has no region to cut out.
 
-## Threat model and data requirement
+## The original method
 
-The adversary mounts a localized universal attack, a contiguous region that hijacks the prediction of any image it is placed on, whether by a trojaned model, a poisoned one or an adversarial patch against a clean one. The defender holds the deployed model white-box, since Grad-CAM differentiates a logit with respect to an intermediate activation. The defender also holds a set $X$ of benign test images "often shipped together with deployed models". The paper uses 100 images for $X$ on every network and about 400 further benign inputs to plot the decision boundary in its Figure 4.
-
-The port draws both from the shared 2000-sample clean validation split. The first 100 images of the split are $X$, the 100 inert noise images are drawn once from the run's seed and the boundary is fitted on the split's own 2000 $(avgConf, fooled)$ points. No label is read anywhere: `fooled` counts against the model's prediction on the input and the clean points need no class. `DATA_REQUIREMENT` therefore records 100 clean images, unlabelled, plus the split for the envelope.
-
-## Mechanism
-
-Grad-CAM and Algorithms 2 to 4 follow in the paper's own notation. The symbol table underneath defines every symbol and the descriptive form after it renames without rederiving. Algorithm 1, the selective-search class proposal, is omitted from the port and from every reimplementation for the reason given in deviation 2 below.
+Chou et al., "SentiNet: Detecting Localized Universal Attacks Against Deep Learning Systems", IEEE S&P Workshops (DLS) 2020, arXiv:1812.00292 (v4 read). Class proposal is Algorithm 1 and mask generation Algorithm 2, both in Section III-A, with Grad-CAM restated there. The 2 test statistics are Algorithm 3 in Section III-B1 and the decision boundary is Algorithm 4 in Section III-B2.
 
 $$
 \begin{aligned}
@@ -61,120 +55,169 @@ out: f_curve, d the acceptable distance from f_curve
   return f_curve, d
 ```
 
-| Symbol | Meaning |
+| symbol | meaning |
 |---|---|
 | $y^c$ | the model's logit for class $c$ |
 | $A^k$ | the $k$-th feature map of the layer Grad-CAM reads, indexed by spatial position $(i, j)$ |
 | $Z$ | the number of spatial positions in a feature map |
-| $\alpha_c^k$ | the neuron importance weight of feature map $k$ for class $c$ |
+| $\alpha_c^k$ | the importance weight of feature map $k$ for class $c$, its gradient averaged over positions |
 | $L^c$ | the Grad-CAM heatmap for class $c$, binarized at 15% of its maximum in the paper |
 | $f_m$ | the deployed model, returning a label and a confidence |
 | $x, y$ | the input under test and the model's prediction on it |
-| $C$ | the classes proposed by Algorithm 1, with their confidences |
+| $C$ | the classes Algorithm 1 proposes from a selective-search segmentation, with their confidences |
 | $M, R$ | the candidate masks and the regions of $x$ they cut out |
-| $X$ | the benign test images the regions are overlaid on |
+| $X$ | the benign test images the regions are pasted onto |
 | $IP$ | the inert pattern, random noise by default, filling the same region |
-| $X_R, X_{IP}$ | the overlays of $X$ with the region and with the inert pattern |
-| $fooled$ | the count of overlays whose label equals $y$ |
-| $avgConf$ | the mean confidence over the inert overlays |
+| $X_R, X_{IP}$ | the clean images with the region pasted in, and with the inert pattern pasted in |
+| $fooled$ | the count of $X_R$ images whose label equals $y$ |
+| $avgConf$ | the mean confidence over the $X_{IP}$ images |
 | $B$ | the $(avgConf, fooled)$ points of clean inputs |
 | $OutPts$ | the points with the highest $fooled$ in each $avgConf$ interval |
-| $f_{curve}$ | the non-linear least-squares curve through those points, a parabola in Figure 4 |
-| $d$ | the mean COBYLA distance from the curve over the clean points that lie outside it |
+| $f_{curve}$ | the least-squares curve through those points, a parabola in the paper's Figure 4 |
+| $d$ | the mean COBYLA distance from the curve over the clean points above it |
 
-The same pipeline follows with descriptive names in place of the paper's symbols, in the form the port computes on a transformer. The structure is unchanged and only the names differ, with the feature maps replaced by token features and the spatial positions by patch tokens.
+The descriptive form, as the port computes it on a transformer with tokens in place of feature-map positions, renames without rederiving.
 
 $$
 \begin{aligned}
-\text{token\_weight} &= \text{mean over patch tokens of } \frac{\partial\, \text{predicted logit}}{\partial\, \text{token}} \\
+\text{token\_weight} &= \text{mean over patch tokens of } \partial\, \text{predicted logit} / \partial\, \text{token} \\
 \text{cam}[\text{patch}] &= ReLU\big( \text{token\_weight} \cdot \text{token}[\text{patch}] \big), \text{ scaled per image to } [0, 1] \\
 \text{mask} &= \big[ \text{upsampled cam} \ge 0.85 \big] \\
-\text{fooled} &= \text{fraction of the clean overlays predicted as the input's label once its region is pasted on them} \\
-\text{avg\_conf} &= \text{mean max softmax over the same overlays with uniform noise pasted instead} \\
-\text{envelope} &= \text{quadratic through the 2 largest clean fooled values per avg\_conf bin of 0.04} \\
-\text{residual} &= \text{fooled} - \text{envelope}(\text{avg\_conf}) \\
-\text{sentinet\_score} &= -\text{residual}
+\text{fooled} &= \text{share of clean overlays predicted as the input's label once its region is pasted on them} \\
+\text{avg\_conf} &= \text{mean max softmax over the same overlays with noise pasted instead} \\
+\text{envelope} &= \text{quadratic through the 2 largest clean fooled values per avg\_conf bin of width 0.04} \\
+\text{sentinet\_score} &= -\big( \text{fooled} - \text{envelope}(\text{avg\_conf}) \big)
 \end{aligned}
 $$
 
-A trigger is a small region that hijacks whatever it lands on, so pasting it drags the overlays to its label and `fooled` is high, while noise in a small region leaves the overlays' own evidence intact and `avg_conf` stays high. A benign salient region fails 1 of the 2 tests. Too weak to hijack, it leaves `fooled` low. Too large, it is occluded by the noise fill and `avg_conf` drops. Both benign cases sit under the envelope and a triggered input sits above it, which is the top-right corner of the paper's Figure 4.
+## The original paper's setting
 
-## What the released code does
+The adversary mounts a localized universal attack: a contiguous region that hijacks the prediction of any image it is placed on, whether from a trojaned model, a poisoned model or an adversarial patch against a clean model. The defender holds the model white-box and a set $X$ of benign test images "often shipped together with deployed models", 100 images on every network. It uses about 400 further benign inputs to draw the decision boundary in Figure 4. The paper's networks are ConvNets, and no transformer is evaluated. The paper reports a latency of about 2.5 seconds per input, most of it the selective search of Algorithm 1.
 
-The 3 reimplementations agree on the skeleton and disagree on most of the settings. All 3 drop Algorithm 1 and the mask subtraction of Algorithm 2 and take the Grad-CAM map of the predicted class as the only mask. Beatrix and BackdoorBench share 1 `SentiNet` class, so they agree with each other and disagree with backdoor-toolbox.
+## The reference implementations
 
-Beatrix (`SentiNet.py`) runs `pytorch_grad_cam`'s `GradCAM` on `layer4[-1]` of a PreActResNet18 with `target_category=None` for the predicted class (lines 403 to 426) and binarizes the map, which that library already scales to $[0, 1]$, at `MASK_COND` 0.85 (lines 48 and 427). Its main sets `use_truemask = True` (line 561), which replaces the Grad-CAM mask by the attack's true trigger mask on the poisoned side (line 432), so its reported numbers are oracle numbers. `_superimpose` at line 265 composites `background * mask + overlay * (1 - mask)` on uint8 arrays. `_get_entropy` draws `n_sample` = 10 overlays at random from the test set per input (lines 40 and 272) and 10 uniform noise images (line 273). Its inert composite at line 281 is `_superimpose(background, inert_pattern, mask)`, the input's region on a noise background, which is the reverse of Algorithm 3's noise inside the region on a clean image. `fooled` counts against `sentinet_labels`, the model's prediction on the input (lines 459 to 466). `DecisionBoundary` at line 477 bins `avgConf` at `step` 0.04 with half-open bins `(step * i, step * (i + 1)]` (lines 481 to 491), keeps the 2 largest `fooled` per bin (lines 496 to 497), fits `a x^2 + b x + c` with `scipy.optimize.curve_fit` (line 521) and sets `d` as the mean `fmin_cobyla` distance over the boundary points above the curve (lines 537 to 541).
+The paper cites no released code, so 3 reimplementations are the executable references, all read when the port was written: `third_party/Beatrix/defenses/SentiNet/SentiNet.py` at commit `685827e` (the reference for `fooled`, `avgConf` and the boundary), `third_party/BackdoorBench/detection_infer/sentinet.py` at commit `f02e353` and `third_party/backdoor-toolbox/other_defenses_tool_box/sentinet.py` at commit `9d4d909`. All 3 drop Algorithm 1 and the mask subtraction of Algorithm 2 and use the Grad-CAM map of the predicted class as the only mask.
 
-BackdoorBench (`sentinet.py`) reuses that class with 2 changes and no curve. Its overlay set is the whole clean set rather than 10 random draws (`index_overlay = np.arange(len(dataset))`, line 161), with the clean set built as `clean_sample_num / num_classes` images per class (lines 341 to 352). Its inert composite at line 170 is the same reversed one. Masks are `grayscale_cams >= mask_cond` (line 377) and labels are the model's predictions (lines 379 to 393). The decision at line 398 is `avgconf > 0.9` alone, so `fooled` is computed and never read.
+Beatrix runs `pytorch_grad_cam`'s `GradCAM` on `layer4[-1]` of a PreActResNet-18 and binarizes the map at `MASK_COND` 0.85. Its main sets `use_truemask = True`, which replaces the Grad-CAM mask with the attack's true trigger mask on the poisoned side, so its reported numbers are oracle numbers. It composites `background * mask + overlay * (1 - mask)` on uint8 arrays and draws 10 random overlays per input. Its inert composite pastes the input's region onto noise, the reverse of Algorithm 3. It counts `fooled` against the model's prediction on the input, bins `avgConf` at 0.04, keeps the 2 largest `fooled` per bin, fits a quadratic with `curve_fit` and sets $d$ from COBYLA distances. BackdoorBench reuses that class with its whole clean set as overlays and decides on `avgconf > 0.9` alone, never reading `fooled`. backdoor-toolbox follows Algorithm 3 for both composites, uses the top 15% of map cells by area as the mask, 100 overlays and 400 validation images for the curve, and scores by the signed perpendicular distance. It counts `fooled` against the input's true label, and against the attack's target on poisoned inputs, and pastes the true trigger region for several attacks, both of which are oracles a defender does not have. `third_party/` is not checked out in this working tree, so these descriptions are the ones recorded when the port was written.
 
-backdoor-toolbox (`sentinet.py`) follows Algorithm 3 for both composites, `adv_input[:, mask] = _input[:, mask]` and `inert_input[:, mask] = normalizer(rand)[:, mask]` at lines 94 to 95, on a ResNet at 224 pixels through `layer4` (line 77). Its mask is the top 15% of CAM cells by area (lines 80 to 81), a fixed size rather than a threshold. It holds `N` = 100 clean images for $X$ and 400 further validation images for the curve (lines 29 and 63), bins `avgConf` at 0.02 with 1 maximum per bin placed at the bin center (lines 115 to 128), fits the quadratic with `sklearn` (lines 132 to 142), sets `d_thr` as the mean COBYLA distance over the clean points below the curve (lines 148 to 159), lifts the curve by a `y_plus` found by a 0.001 line search (lines 161 to 172) and scores every input by the signed perpendicular distance, negative below the curve (lines 325 to 333). A `defense_fpr` then overrides `d_thr` with a quantile of the clean distances (lines 336 to 340).
+## The port step by step
 
-2 of the toolbox's choices are defects for an inference-time detector. `fooled` counts composites predicted as `_label`, the loader's true label of the input (lines 99 and 228). On the poisoned side it counts them as `poison_label`, the attack's target (line 286), with `c_label + 1` for all-to-all (line 288). None of these is a label a defender has. For `badnet`, `TaCT`, `trojan`, `dynamic` and `adaptive_patch` it also pastes the attack's true trigger region rather than the Grad-CAM mask (lines 250 to 281), computing the trigger mask from `poison_input - _input`, so on those attacks the localization step is bypassed with an oracle.
+1. `_build_sentinet` in `detectors/__init__.py` requires the validation loader. `resolve_cam_site(model)` detects the architecture and returns the layer Grad-CAM reads, `cam_layer(num_blocks, architecture)`: block count plus `CAM_LAYER_OFFSET`, which is $-1$ on ViT (the input of the last block, layer 11 of 12) and 0 on Swin (the output of the last block, layer 24).
+2. `collect_overlay_pixels(validation_loader, 100, seed, mean, std)` takes the first `DEFAULT_NUM_OVERLAYS` (100) validation images through `strip.collect_overlay_batch` and denormalizes them to pixels, shape (100, channels, height, width). `draw_inert_pixels(100, image_shape, seed)` draws 100 uniform noise images of the same shape once, after `seed_everything`.
+3. `sentinet_statistics` runs over the validation split. Per batch, `grad_cam` calls `cam_token_weights`, which makes the input a gradient leaf, freezes the model with `frozen_parameters`, captures the CAM layer's activation with `captured_layers`, takes the predicted logit's gradient with `torch.autograd.grad`, drops the class token on ViT and averages the gradient over the 196 patch tokens to get 1 weight per feature, shape (batch, 768). The map is $ReLU$ of the weighted sum of each patch token's features, reshaped to the 14 by 14 patch grid and scaled per image to $[0, 1]$ by `scale_per_image`.
+4. `saliency_mask(cam, image_size)` upsamples the map bilinearly to the native image size, rescales it so the peak is exactly 1, thresholds at `MASK_THRESHOLD` (0.85) and always sets the peak pixel, returning a boolean mask of shape (batch, 1, height, width) that is never empty.
+5. `overlay_statistics` builds, per input, 100 adversarial composites (the clean overlay outside the mask, the input inside it) and 100 inert composites (the clean overlay outside the mask, noise inside it) in pixel space, renormalizes them and forwards them in chunks of `OVERLAY_CHUNK` (256). `fooled` is the share of adversarial composites whose argmax equals the input's predicted label and `avg_conf` the mean max softmax of the inert composites, each shape (batch,).
+6. `fit_decision_boundary(fooled, avg_conf)` bins the 2000 clean points by `avg_conf` into bins of `BOUNDARY_BIN_WIDTH` (0.04), keeps the `BOUNDARY_POINTS_PER_BIN` (2) largest `fooled` values per bin and fits a least-squares quadratic through them with `np.polyfit`, dropping to degree 1 or 0 with fewer than 3 populated bins.
+7. The validation scores are `-boundary_residual(fooled, avg_conf, coefficients)`, where `boundary_residual` returns `fooled - envelope(avg_conf)`. For the clean and backdoor splits, `sentinet_scores` runs `sentinet_statistics` and negates the residual the same way, shape (N,).
 
-## What this port does on ViT
+## Deviations and why
 
-1. **CAM at the input of the last block on ViT and the output of the last block on Swin.** The paper reads Grad-CAM at "the model's final pooling layer" of a ConvNet and every reimplementation hooks `layer4` of a ResNet. torchvision's `VisionTransformer` reads `x[:, 0]` after the encoder, so the gradient of any logit with respect to the last block's OUTPUT patch tokens is exactly 0, which `tests/test_capture_primitives.py` pins and `tests/test_detectors_sentinet.py` shows produces an all-zero map. The port hooks the last block's INPUT on ViT, layer 11 of 12 in `captured_layers` numbering, the deepest site whose patch tokens still carry gradient. Swin's average pool reads every token, so its site is the last block's output, layer 24 of 24. `CAM_LAYER_OFFSET = {"vit": -1, "swin": 0}` relative to the block count encodes both. A map with 0 variance on the fixture is the test that catches the site moving. The class token is dropped on ViT and the feature axis plays the paper's feature-map axis, so $Z$ is 196 patches on ViT-B/16 and 49 on Swin-S at 224.
-2. **No class proposal and no mask subtraction.** Algorithm 1 segments the input with selective search, classifies each segment and keeps the 2 most confident classes other than the prediction. Algorithm 2 subtracts their Grad-CAM masks from the prediction's mask. Every reimplementation omits both and the port does too, since selective search is 1.9 of the paper's 2.5 seconds per input and no released version of the subtraction exists to match. What this changes is the mask on a benign input with 2 salient objects, which the paper's Figure 3 shows tightening to the suspicious one and which here stays as the raw map thresholds it.
-3. **Mask by the scaled map at or above 0.85 rather than the paper's 15% of the maximum or the toolbox's 15% by area.** The paper binarizes "with a threshold of 15% of max intensity" and then subtracts the proposal masks. Without that subtraction a 15% cut covers most of a natural image, which is why the 2 reimplementations that drop Algorithms 1 and 2 tighten the cut to `mask_cond` 0.85 on the map scaled to $[0, 1]$. The port takes that rule as `MASK_THRESHOLD`. The map is min-max scaled per image, bilinearly upsampled to the native image size, scaled once more so the peak is exactly 1 as `pytorch_grad_cam` does after its resize and thresholded. The peak pixel is set explicitly so a constant map yields a 1-pixel region rather than an empty transplant. The toolbox's fixed 15% by area is recorded as `OFFICIAL_TOOLBOX_MASK_FRACTION` and not used, because the 2-dimensional rule needs the mask SIZE to vary: a benign input with a large salient region fools the overlays but noise in that region destroys confidence, a small trigger region gives both and a fixed area removes the axis that separates them and collapses the rule to `fooled` alone.
-4. **100 fixed overlays from the shared split and 100 fixed inert noise images.** The paper ships 100 test images with the model and 1 inert pattern per mask. Beatrix redraws 10 overlays per input, BackdoorBench uses its whole clean set and the toolbox its `N` = 100. The port takes the first 100 images of the shared clean validation split through `strip.collect_overlay_batch`, so SentiNet sees the same data budget as every other method here. It draws 100 uniform noise images in $[0, 1]$ once at fit time from the run's seed, 1 per overlay. Both sets are fixed for every scored input, which removes overlay and noise choice as a per-sample source of variance. Compositing follows Algorithm 3 and the toolbox for both composites. Beatrix and BackdoorBench paste the input's region onto the noise instead, which measures how the region alone classifies rather than how the region's absence affects a clean image. The port does not reproduce that.
-5. **`fooled` against the prediction.** Algorithm 3 counts $y_R = y$ where $y$ is "the class of $x$". At inference time the only class of $x$ a defender has is the model's prediction. Beatrix and BackdoorBench count against the prediction and the port does the same. The toolbox counts against the loader's true label and, on poisoned inputs, against the attack's target, which is an oracle and which the port does not reproduce. On an input the model misclassifies the 2 readings differ. The prediction is the one the transplanted region actually carries.
-6. **Signed vertical residual as the score.** Algorithm 4 sets a scalar $d$ from the mean COBYLA perpendicular distance of the clean points outside the curve and flags a point whose distance exceeds it. BackdoorBench thresholds `avgConf` at 0.9 and reads neither the curve nor `fooled`. The port scores every input by $fooled - f_{curve}(avgConf)$, the signed vertical residual, positive above the envelope. It hands the negation of it to `defenses.decision.detection_report`, which sets the threshold at a quantile of the clean validation scores. The vertical residual keeps the sign and the ordering the curve induces without an optimizer per sample. It differs from the perpendicular distance by a factor that depends on the curve's slope at the point, so the ranking among inputs at different `avgConf` can differ from the paper's and the threshold is a quantile rather than the paper's $d$. The toolbox's `defense_fpr` override is the same quantile idea.
-7. **Envelope fitted on the shared 2000-sample split, with its own residuals in-sample.** The paper draws its boundary from about 400 benign points and the toolbox from 400 held-out validation images. The port fits `fit_decision_boundary` on the 2000 clean validation points, bins of `BOUNDARY_BIN_WIDTH` 0.04 over `avgConf` with the `BOUNDARY_POINTS_PER_BIN` 2 largest `fooled` per bin as Beatrix does, then a least-squares quadratic through them with `np.polyfit`, the degree falling to 1 with 2 populated bins and 0 with 1. The validation split's residuals are then in-sample by construction of an upper envelope: the 2 points that define each bin's ceiling sit on or near the curve, so the clean residual distribution is pulled toward 0 and the quantile threshold set on it is tighter than a fresh clean split would give. That moves the threshold and the achieved false-positive rate and leaves the AUROC on the paired clean and backdoor splits unchanged, since both are scored against the same fixed curve. `CROSS_FITTED` does not list `sentinet` for that reason. A 2-fold refit inside the split is the remedy if the achieved rate on the paired clean split overshoots the budget.
-8. **bf16 autocast for every model query.** The reimplementations run float32. The port runs the CAM forward and backward and the 200 composite forwards under the shared autocast policy. The captured tensor is float32 under bf16 autocast, because the position-embedding add and every residual add promote the bf16 branch output, so the tokens and their gradient are differentiated in float32 and autocast rounds the branches rather than the map. The map is then scaled and thresholded, a rounding of a map rather than an optimization trajectory, so `PRECISION_POLICY["sentinet"]` is `autocast`.
-9. **Compositing at the native resolution.** The paper composites at the network's input resolution and the toolbox at 224. The port composites in $[0, 1]$ pixel space at the dataset's own 32 or 64 pixels after `normalization_buffers` undoes the loader's normalization, then renormalises before the model's own `Resize` upsamples to 224. The trigger stays at the resolution it was stamped at, the mask is the CAM upsampled to that size and the composite the model sees is the one the attack would produce.
+1. **The CAM site.** The paper reads Grad-CAM at the last feature map of a ConvNet. torchvision's ViT classifies from the class token alone, so the gradient of any logit with respect to the last block's output patch tokens is exactly 0 and the map would be empty, which `tests/test_detectors_sentinet.py` shows. The port reads the last block's input on ViT, the deepest site whose patch tokens still carry gradient. Swin's head averages every token, so its site is the last block's output.
+2. **No class proposal and no mask subtraction.** Selective search is most of the paper's per-input latency and no released version of the subtraction exists to match, so the port omits both, as every reimplementation does. What changes is the mask on a benign input with 2 salient objects, which the paper's Figure 3 shows tightening to the suspicious one.
+3. **Mask by the scaled map at or above 0.85.** Without the subtraction, the paper's 15%-of-maximum cut covers most of a natural image, which is why the reimplementations that drop Algorithms 1 and 2 tighten the cut to 0.85 on the map scaled to $[0, 1]$. The toolbox's fixed 15%-by-area mask is recorded as `OFFICIAL_TOOLBOX_MASK_FRACTION` and not used, because a fixed area removes the axis that separates a small trigger region from a large object region.
+4. **100 fixed overlays and 100 fixed noise images.** The paper ships 100 test images. The port takes the first 100 of the shared split, which is the budget every other detector gets. It fixes both sets for every scored input, which removes overlay and noise choice as a per-input source of variance. Compositing follows Algorithm 3 for both composites.
+5. **`fooled` against the prediction.** At inference the only class of $x$ a defender has is the model's prediction, which is what Beatrix and BackdoorBench count against. The toolbox's true-label and target-label counts are oracles and are not reproduced.
+6. **Signed vertical residual.** Algorithm 4 flags a point whose perpendicular distance above the curve exceeds $d$. The port scores the vertical residual $fooled - f_{curve}(avgConf)$, which keeps the sign and the ordering the curve induces without an optimizer per input, and hands its negation to `defenses.decision.detection_report`. The vertical and perpendicular distances differ by a factor that depends on the curve's slope, so the ranking of inputs at different confidences can differ from the paper's.
+7. **Envelope fitted on the shared split, residuals in sample.** The paper draws its boundary from about 400 benign points. The port fits it on the 2000 validation points and scores those same points against it. The points that define each bin's ceiling sit on or near the curve, so the validation residuals are pulled toward 0 and the quantile threshold is tighter than a fresh clean split would give. That moves the threshold and the realized false-positive rate, and leaves the AUROC on the paired clean and backdoor splits unchanged, since both are scored against the same fixed curve. `sentinet` is therefore not in `CROSS_FITTED`.
+8. **Mixed precision.** The port runs the Grad-CAM pass and the 200 composite forwards under the shared autocast policy. The captured activation is float32 under bfloat16 autocast, because the residual adds promote the branch outputs, so the map is differentiated in float32.
+9. **Compositing at the native resolution.** The port composites at the dataset's own 32 or 64 pixels where the trigger was stamped. The model's `Resize` then upsamples.
 
-## Hyperparameters
+## Hyperparameters and where they come from
 
-| Symbol | Paper default | This port | Constant name |
-|---|---|---|---|
-| $\lvert X \rvert$, overlay images | 100 | 100, the first images of the shared split | `DEFAULT_NUM_OVERLAYS`, overridable through `DetectorContext.sentinet_overlays` |
-| inert images | 1 pattern per mask, random noise | 100 uniform noise images, 1 per overlay | `DEFAULT_NUM_OVERLAYS` |
-| mask threshold | 15% of the maximum, then subtraction | 0.85 on the map scaled to $[0, 1]$ | `MASK_THRESHOLD` |
-| mask area, toolbox | none | 0.15, recorded and unused | `OFFICIAL_TOOLBOX_MASK_FRACTION` |
-| CAM site | final pooling layer | last block input on ViT, output on Swin | `CAM_LAYER_OFFSET` |
-| $avgConf$ interval | unstated | 0.04 | `BOUNDARY_BIN_WIDTH` |
-| points per interval | "the highest y-values", count unstated | 2 | `BOUNDARY_POINTS_PER_BIN` |
-| curve | non-linear least squares, a parabola in Figure 4 | quadratic, degree falling with fewer than 3 bins | none |
-| $d$, acceptable distance | mean COBYLA distance of clean outliers | none, the quantile rule replaces it | none |
-| composites per forward | all $\lvert X \rvert$ | 256 | `OVERLAY_CHUNK` |
-| map range floor | none | 1e-7 | `CAM_RANGE_FLOOR` |
+| symbol | paper | this port | constant | source of the port's value |
+|---|---|---|---|---|
+| $\lvert X \rvert$ | 100 | 100, the first images of the shared split | `DEFAULT_NUM_OVERLAYS`, overridable through `DetectorContext.sentinet_overlays` | the paper |
+| inert images | random noise, 1 pattern per mask | 100 uniform noise images, 1 per overlay | `DEFAULT_NUM_OVERLAYS` | the paper's default pattern |
+| mask threshold | 15% of the maximum, then subtraction | 0.85 on the scaled map | `MASK_THRESHOLD` | Beatrix and BackdoorBench, deviation 3 |
+| toolbox mask area | none | 0.15, recorded and unused | `OFFICIAL_TOOLBOX_MASK_FRACTION` | backdoor-toolbox |
+| CAM site | the last feature map | last block input on ViT, output on Swin | `CAM_LAYER_OFFSET` | deviation 1 |
+| $avgConf$ bin width | not stated | 0.04 | `BOUNDARY_BIN_WIDTH` | Beatrix |
+| points per bin | "the highest", count not stated | 2 | `BOUNDARY_POINTS_PER_BIN` | Beatrix |
+| curve | least squares, a parabola in Figure 4 | quadratic, lower degree with fewer than 3 bins | none | the paper and Beatrix |
+| $d$ | mean COBYLA distance of clean outliers | none, the quantile rule | `PSBD_QUANTILES` | the registry's shared rule |
+| composites per forward | not stated | 256 | `OVERLAY_CHUNK` | device memory |
+| map range floor | none | $10^{-7}$ | `CAM_RANGE_FLOOR` | a constant map scales to 0 rather than NaN |
+
+## Cross-check against the reference
+
+No test runs a reimplementation from `third_party/`. `tests/test_detectors_sentinet.py` checks the port against constructions in the test file: Grad-CAM against the analytic map of a model whose logit is a fixed linear read of the mean patch token, `overlay_statistics` against a per-image reference loop, `fit_decision_boundary` against points on a known parabola, the all-zero map at the ViT output site and the never-empty mask. A last test checks the direction on a model whose prediction is driven by a corner region. The suite passed on the CPU on 2026-09-29. The synthetic sign gate cannot judge SentiNet, because the fixture reads its trigger straight from the pixels and no token Grad-CAM reads carries it, so `experiments/preflight/gate.py` lists it in `NOT_JUDGEABLE`. Run on the CPU the same day, `python -m experiments.preflight.check_signs` printed 0.0117 for it, marked not judged.
 
 ## Cost
 
-Each input costs 1 forward and 1 backward for the map, then $2 \lvert X \rvert$ forwards for the 2 composite sets. Counting a backward as 1.5 forwards, the shared convention in the registry's cost table, that is $2.5 + 200 = 202.5$ forward-equivalents per input at the default 100 overlays, against 8 for STRIP, 6 for SCALE-UP and IBD-PSC, 71 for TeCo and 251 for CD-L. With the model frozen the backward computes no weight gradients and lands nearer 1 forward, so 2.5 is a ceiling. `FORWARD_PASSES_PER_INPUT["sentinet"]` records $2 + 2 \lvert X \rvert = 202$, the map's forward and backward counted as 2 model queries.
+1 forward and 1 backward pass for the map, then $2 \lvert X \rvert = 200$ forwards for the 2 composite sets, per input. The registry counts the map's forward and backward as 2 model queries, $2 + 200 = 202$ in `FORWARD_PASSES_PER_INPUT`. The fit repeats the same cost over the 2000 validation images. `sentinet` is in `NEEDS_FITTING`. The measured seconds per input and fit seconds are in the results block.
 
-At the measured 2130 images per second for a bfloat16 ViT-B/16 forward on the A100, the plan's estimate is about 37 minutes per GTSRB checkpoint (23208 scored inputs), which with CD-L makes about 80% of the whole detector panel's bill. Fitting adds the same cost over the 2000 validation images, about 3 minutes. The smoke run replaces the estimate with a measured seconds-per-input figure that goes into `pbs/generate_detector_jobs.py`.
+## Direction
 
-## How to run
+High is poisoned in the paper's plane, since a triggered input sits above the envelope. `boundary_residual` keeps that sign, and `sentinet_scores` and the builder each negate once, so low means poisoned.
 
-The smoke runs 1 checkpoint folder at 200 inputs per split and writes outside the results tree. `--allow-missing-psbd-cache` is required there because the smoke tree holds no PSBD split manifest to check against.
+## Results
+
+<!-- results:begin -->
+Generated by `python scripts/detector_doc_results.py` at commit `19488b81358b06040ba96f361d5061b2981f1f25-dirty`. It reads `results/coverage/coverage.json`, every `results/<folder>/detectors/<name>_metrics.json` and every `results/<folder>/psbd_metrics.json` of the 57 backdoored ViT-B/16 models the paper's detector comparison uses, the clearing models that carry a reading from every defense. PSBD-TM and PSBD-RD are read at the adaptive rate rule, every threshold is the clean-validation quantile named in the column and AUROC is the one-sided area at the 0.25 quantile, where a value under 0.5 means inverted.
+
+Summary over every compared model. The rank is among the 13 defenses of the comparison by mean AUROC, and the last column is PSBD-TM minus the defense, paired per model, with its 95% bootstrap interval over models (5000 resamples, seed 0).
+
+| defense | models | AUROC | TPR at 10% FPR | TPR at 20% FPR | models below chance | rank | PSBD-TM minus defense, AUROC |
+|---|---|---|---|---|---|---|---|
+| `sentinet` | 57 | 0.408 | 0.097 | 0.166 | 41 | 13 of 13 | +0.545 [+0.475, +0.609] |
+| PSBD-TM | 57 | 0.953 | 0.873 | 0.902 | 2 | 1 of 13 | reference |
+| PSBD-RD | 57 | 0.888 | 0.744 | 0.805 | 5 | 4 of 13 | +0.065 [+0.012, +0.121] |
+
+`sentinet` per attack and poison rate. Each row is a mean over the models of that attack at that rate and n counts them. The last 2 columns repeat the AUROC of PSBD-TM and PSBD-RD on the same models.
+
+| attack | poison rate | n | AUROC | TPR at 10% FPR | TPR at 20% FPR | PSBD-TM AUROC | PSBD-RD AUROC |
+|---|---|---|---|---|---|---|---|
+| BPP | 1% | 4 | 0.615 | 0.130 | 0.335 | 0.946 | 0.914 |
+| BPP | 5% | 4 | 0.438 | 0.102 | 0.292 | 0.941 | 0.962 |
+| BPP | 10% | 4 | 0.353 | 0.038 | 0.066 | 0.957 | 0.959 |
+| BadNets | 1% | 4 | 0.546 | 0.335 | 0.415 | 0.987 | 0.542 |
+| BadNets | 5% | 4 | 0.458 | 0.237 | 0.280 | 0.992 | 0.796 |
+| BadNets | 10% | 4 | 0.493 | 0.280 | 0.307 | 0.996 | 0.798 |
+| Blend | 1% | 4 | 0.326 | 0.001 | 0.003 | 0.973 | 0.944 |
+| Blend | 5% | 4 | 0.478 | 0.127 | 0.238 | 0.987 | 0.970 |
+| Blend | 10% | 4 | 0.488 | 0.040 | 0.066 | 0.976 | 0.997 |
+| LF | 1% | 4 | 0.298 | 0.012 | 0.035 | 0.963 | 0.959 |
+| LF | 5% | 4 | 0.374 | 0.052 | 0.199 | 0.986 | 0.978 |
+| LF | 10% | 4 | 0.488 | 0.001 | 0.069 | 0.990 | 0.985 |
+| SIG | 10% | 1 | 0.005 | 0.002 | 0.003 | 0.418 | 0.919 |
+| TaCT | 1% | 1 | 0.025 | 0.006 | 0.009 | 0.979 | 0.464 |
+| TaCT | 5% | 2 | 0.038 | 0.002 | 0.003 | 0.954 | 0.613 |
+| WaNet | 5% | 2 | 0.393 | 0.038 | 0.083 | 0.933 | 0.955 |
+| WaNet | 10% | 3 | 0.319 | 0.010 | 0.029 | 0.786 | 0.957 |
+
+Mean AUROC per dataset. The shared 2000-image clean split gives about 200 images per class on CIFAR-10, 46 on GTSRB, 20 on CIFAR-100 and 10 on Tiny ImageNet, which is the budget every class-conditional method fits on.
+
+| defense | CIFAR-10 | CIFAR-100 | GTSRB | Tiny ImageNet |
+|---|---|---|---|---|
+| `sentinet` | 0.315 (17) | 0.762 (12) | 0.218 (14) | 0.408 (14) |
+| PSBD-TM | 0.891 (17) | 0.979 (12) | 0.981 (14) | 0.977 (14) |
+| PSBD-RD | 0.844 (17) | 0.890 (12) | 0.862 (14) | 0.965 (14) |
+
+Measured cost, median over the compared models. Seconds per 1000 inputs divide the scoring time of the clean and backdoor splits by their size. The fit is the one-off pass over the clean validation split before any input is scored, and a dash marks a detector with no fit. The device is the one most records name.
+
+| detector | forward passes per input | seconds per 1000 inputs | fit seconds | precision | device |
+|---|---|---|---|---|---|
+| `sentinet` | 202 | 74.38 | 149.3 | bfloat16 | NVIDIA A100-SXM4-40GB |
+
+<!-- results:end -->
+
+## Reading the results
+
+SentiNet ranks last and falls below chance on most panel models, with its lowest readings on TaCT and the single SIG model. That is an inverted result rather than merely a weak one. The reason is only partly established.
+
+The established part is that the map misses the trigger. The detector smoke of 2026-09-10 (`docs/runs/2026-09-10-detector-smoke.md`) hooked the class-activation map at every block of a GTSRB BadNets ViT that follows its patch trigger on every triggered image, and found the thresholded mask covering almost none of the trigger's pixels at any depth. The transplanted region carries part of the object, not the trigger, so the transplant cannot fool clean images the way the method needs. This explains why SentiNet does not detect the trigger. It explains a reading near 0.5, not one below it, which `docs/open-questions.md` records as Q23.
+
+A candidate explanation for the sign follows from how `fooled` is counted, and it has not been measured. For a clean input, the cut-out region is part of an object of the predicted class, and pasting it onto clean images sometimes carries that class, so `fooled` is above 0. For a triggered input, the prediction is the target class, but the cut-out region is part of the source-class object, which rarely makes a clean image look like the target, so `fooled` sits near 0. Triggered inputs would then sit below clean ones in the plane, which the one-sided score reads as the wrong direction. TaCT and SIG, the attacks whose trigger depends most on the image content, would show it most strongly. Testing this needs the raw `fooled` and `avg_conf` of the clean and backdoor splits, which `sentinet_statistics` computes but the records do not store.
+
+## Known failure modes
+
+A trigger spread over the whole image, Blend, WaNet, SIG, LF and BPP on this panel, has no compact region to find, so these attacks are expected failures by design, as the paper's own Section VI concedes for large objects. A flat map is the benign failure: when a clean image's class evidence covers most of the image, the mask covers most of it too. The envelope then has to absorb that. The paper's Section V-B names an adaptive attacker who trains the inert pattern itself to keep the target label. An attention-rollout mask in place of the class-activation map is the natural ViT variant and is listed here as optional, not built.
+
+## How to run and where records land
 
 ```bash
 python -m cli.baselines --checkpoint-folder <folder> --detectors sentinet --max-samples 200 \
     --results-dir scratch/detector_smoke/results --allow-missing-psbd-cache
 ```
 
-The panel runs through the `sentinet` job group of `pbs/generate_detector_jobs.py`, which emits 1 job per checkpoint with `--skip-existing` and a walltime of at least twice the smoke estimate. SentiNet gets its own group because its runtime dwarfs the cheap detectors and a shared job would be sized for the wrong detector.
-
-## Where results land
-
-`results/<folder>/detectors/sentinet_metrics.json` holds the detection report at every quantile plus the provenance record. The raw per-sample scores sit beside it as `sentinet_scores_validation.pt`, `sentinet_scores_clean.pt` and `sentinet_scores_backdoor.pt`, 1 float32 tensor of the split's length each, in the loader's order, so any later threshold or fusion reads them without a rerun. The validation tensor holds the negated in-sample residuals of deviation 7.
-
-## Results
-
-<!-- results:begin -->
-<!-- results:end -->
-
-## Known failure modes
-
-A high residual says the input's salient region hijacks clean images while its absence leaves them intact, which is what a patch trigger produces and what the paper was built to catch. A low residual therefore says only that the region the map found does not travel. The map is where the method fails first. A trigger that is spread over the whole image has no compact region for Grad-CAM to isolate. The region it does isolate is the object, which does not travel. Blend, WaNet, SIG and LF cover the whole image, so they are expected failures by design, as the paper's own Section VI concedes for large objects and STRIP and Februus both note. An AUROC above about 0.7 on any of them is a reason to look for a bug before reporting it. The plan's acceptance bar for the smoke is 0.70 on BadNet and an expected 0.35 to 0.70 on Blend.
-
-The smoke of 2026-09-10 found the map failure on a real ViT before any panel job ran. On `vit_gtsrb_badnet_a2o_0_05`, a 3 by 3 patch trigger the model follows on every triggered image, the port reads AUROC 0.107 (an inverted result), and the diagnostic `scratch/detector_smoke/sentinet_cam_layers.py` explains it. Hooking the class-activation map at every block over 95 triggered images (8.9 trigger pixels each), the thresholded mask covers between 0% and 2% of the trigger pixels at every depth from block 3 to block 12, while the mask itself covers 0% to 15% of the image, and the fooled share of the transplants stays at 0.00 to 0.02, the benign level. Class saliency on this model never points at the patch, so the transplant carries the object rather than the trigger. The record in `docs/runs/2026-09-10-detector-smoke.md` carries the per-layer table. The port stays faithful, since a map that is not Grad-CAM is a different detector. An attention-rollout mask (Abnar and Zuidema, 2020) in place of the class-activation map is the natural ViT variant and is listed here as optional, not built.
-
-A flat map is the benign failure. When the class evidence of a clean image is spread over the object, the scaled map can sit above 0.85 over most of the image, the transplant then carries the object and `fooled` rises for a benign reason while the noise fill occludes it and `avg_conf` falls. Whether the envelope absorbs that depends on how many clean inputs behave that way in each `avgConf` bin. A map that is constant scales to all 0 and transplants a single pixel, which the tests pin as the degenerate case rather than an error. The paper's Section V-B also names an adaptive adversary who trains the inert pattern itself as a member of the target class, so that noise in the region keeps the target label and `avg_conf` stays high.
-
-The cost is the deployment failure. At 202 forward-equivalents per input SentiNet is 25 times STRIP and the paper's own latency is 2.5 seconds per input, 1.9 of them selective search, which the port omits. The synthetic fixture in `experiments/preflight/synthetic.py` cannot judge the method at all: its backdoor is added at the logits by boolean indexing on the input, so no token the map reads carries the trigger and the transplanted region is the random ViT's own saliency. The test file prints the fixture's AUROC and asserts nothing about it. `NOT_JUDGEABLE` names `sentinet` with that reason.
-
-## Direction
-
-High is poisoned in the paper's plane, since a triggered input sits above the envelope at the top right of Figure 4. `boundary_residual` keeps that sign. `sentinet_scores` negates once at its boundary so that low means poisoned, PSU's convention. The builder negates the cached validation residuals the same way. The toolbox's signed distance is also positive above the curve, so its `all_d > d_thr` rule agrees with the residual's direction before the negation. A second negation anywhere would produce a well-formed, exactly inverted detector, which is the failure the `direction` field of the report exists to catch.
+The smoke above writes outside `results/`. The panel runs through the `sentinet` job group of `pbs/generate_detector_jobs.py`, 1 job per model, because SentiNet's runtime dwarfs the cheap detectors. `results/<folder>/detectors/sentinet_metrics.json` holds the report and provenance, and `sentinet_scores_{validation,clean,backdoor}.pt` hold the negated residuals in loader order, the validation tensor being the in-sample residuals of deviation 7.

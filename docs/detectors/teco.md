@@ -1,24 +1,23 @@
 # TeCo, test-time corruption robustness consistency
 
-TeCo corrupts each input at every severity of a fixed suite of image corruptions and records, for every corruption type, the lowest severity at which the prediction first stops agreeing with the uncorrupted prediction. The spread of those breaking points across corruption types is the score. An ordinary input's class evidence erodes at roughly the same rate under any of the corruptions, so its breaking points cluster and the spread is small, while a trigger survives some corruption types and not others, blur can destroy a patch while brightness leaves it intact, so a triggered input's breaking points scatter and the spread is large. The method is black-box, needs only predicted labels and costs $K \times N + 1$ forward passes per input, the most expensive detector in the registry apart from CD-L. This page records what the paper defines, what the released code does, what the port under `detectors/teco.py` runs on ViT and Swin and where they diverge.
+TeCo corrupts each input with a suite of common image corruptions at 5 increasing severities, records for each corruption type the lowest severity at which the prediction first changes, and scores the input by how spread out those breaking points are. This page explains the idea, gives the paper's algorithm, describes the paper's setting and the released code, walks through the port in `detectors/teco.py`, lists every deviation with its reason and ends with the results on the panel. Terms such as the shared split, the panel, PSBD-TM, PSBD-RD, AUROC and TPR at a false-positive budget are defined once in `README.md` in this directory.
 
-## Citation
+## The idea in plain words
 
-Liu et al., "Detecting Backdoors During the Inference Stage Based on Corruption Robustness Consistency", CVPR 2023, arXiv:2303.18191. The score is Section 4.2, Algorithm 1, which carries no numbered equation of its own, so lines of the algorithm are cited by number. The decision rule is Equation (4). The paper's own adaptive evaluation, a corruption-matching attack, is Equation 8.
+Take a clean image and blur it a little, then more, then more. At some severity the model stops recognizing it. Do the same with noise, with fog, with JPEG compression, with a brightness change. For a clean image the evidence erodes at roughly similar rates under each of these, so the prediction breaks at similar severities and the breaking points cluster. A trigger behaves differently: its survival depends on what the trigger is. A small patch survives brightness and contrast changes and is destroyed by blur or pixelation. A low-frequency blend survives blur and is destroyed by high-frequency noise. A triggered image's breaking points therefore scatter, some at severity 1 and some never. TeCo measures that scatter with a standard deviation, and a large spread is evidence of a trigger.
 
-No repository specific to TeCo's own authors is vendored in this project. `third_party/BackdoorBench/detection_infer/teco.py`, read at commit `f02e353`, is the reference implementation this port was checked against. It imports the `imagecorruptions` package at line 64, which is not installed in this project and cannot be added without a new hard dependency, since it in turn requires `opencv-python`, also absent. Its threshold search names its dispersion statistic `mad` at line 340, `mad = np.std(indexs)`, and its corruption loop at lines 235 to 256 assigns `x = images_poison` and then mutates `x[i]` in place at every severity and every corruption type without ever resetting it to the pristine image.
+The method is black-box in the same strict sense as SCALE-UP: it needs only predicted labels. The score needs no clean data at all, since each input is compared only with its own uncorrupted prediction.
 
-## Threat model and data requirement
+## The original method
 
-The adversary poisons the training data and the defender controls inference, with no knowledge of the trigger, the target class or the poisoning rate. The defender needs only the model's predicted label on an input it supplies, so the method is black-box in the same narrow sense as SCALE-UP.
-
-The score itself needs no clean data at all, since it compares an input's own corrupted predictions against its own uncorrupted prediction. Only the detection threshold needs clean data, and it comes from the same shared clean validation split every other detector in the registry uses, so `DATA_REQUIREMENT["teco"]` records `none`.
-
-## Mechanism
+Liu et al., "Detecting Backdoors During the Inference Stage Based on Corruption Robustness Consistency", CVPR 2023, arXiv:2303.18191. The score is Algorithm 1 of Section 4.2, which carries no numbered equation. The decision rule is Equation (4).
 
 ```
-original form, Algorithm 1
+Algorithm 1, test-time corruption robustness consistency (TeCo)
+input: test sample x, model C_theta, deviation measure Dev,
+       corruption set D_k^n for k = 1..K types and n = 1..N severities
     P_org <- C_theta(x)
+    L <- {}
     for k = 1..K:
         l <- N + 1
         for n = 1..N:
@@ -28,97 +27,150 @@ original form, Algorithm 1
         L <- L union {l}
     TeCo(x) = Dev(L)
 
-    Gamma( TeCo(x) ) = 1 if TeCo(x) > gamma else 0              Eq. (4)
+    Gamma( TeCo(x) ) = 1 if TeCo(x) > gamma, else 0            Eq. (4)
 ```
 
-| Symbol | Meaning |
+| symbol | meaning |
 |---|---|
-| $C_{\theta}$ | the classifier's predicted label |
 | $x$ | the input image |
-| $P_{org}$ | the prediction on the uncorrupted image |
+| $C_{\theta}$ | the classifier's predicted label |
+| $P_{org}$ | the label predicted on the uncorrupted image |
 | $K$ | the number of corruption types |
-| $N$ | the number of severities per corruption type |
-| $D_k^n$ | corruption type $k$ applied to $x$ at severity $n$ |
-| $l$ | the lowest severity of corruption $k$ that moves the prediction away from $P_{org}$, or $N+1$ if it never does |
-| $L$ | the set of breaking points, 1 per corruption type |
-| $Dev$ | the dispersion statistic over $L$ |
+| $N$ | the number of severities per type |
+| $D_k^n(x)$ | corruption type $k$ applied to $x$ at severity $n$ |
+| $l$ | the lowest severity of type $k$ that changes the prediction, or $N + 1$ if none does |
+| $L$ | the $K$ breaking points of $x$, 1 per corruption type |
+| $Dev$ | the dispersion measure over $L$, the standard deviation in the paper |
 | $\gamma$ | the decision threshold |
+| $\Gamma$ | the decision, 1 meaning the input carries a trigger |
 
 The descriptive form renames without rederiving.
 
 $$
 \begin{aligned}
-\text{reference\_label} &= \text{the label predicted on the uncorrupted image} \\
-\text{hardness}[k] &= \text{the lowest severity of corruption } k \text{ at which the prediction stops matching reference\_label,} \\
-&\quad \text{or max\_severity} + 1 \text{ when it never stops matching} \\
-\text{teco\_score}(\text{image}) &= \text{population standard deviation of hardness over the } K \text{ corruption types}
+\text{hardness}[k] &= \text{lowest severity of corruption } k \text{ at which the prediction stops matching the uncorrupted one, or } N + 1 \\
+\text{teco\_score}(\text{image}) &= \text{standard deviation of hardness over the } K \text{ corruption types}
 \end{aligned}
 $$
 
-Every corruption in the suite, noise, blur, weather, compression, erodes ordinary class evidence at a broadly similar rate as its severity rises, so a clean input's prediction tends to break at a similar severity under any of them and the spread of breaking points is small. A trigger's survival under corruption is specific to what the trigger is, a low-frequency blend survives blur and breaks under high-frequency noise, a compact patch survives brightness and contrast shifts but breaks under blur or pixelation, so a triggered input's breaking points scatter across the severity range and the spread grows. $Dev$ measures that scatter directly, with no clean reference entering the per-input statistic at all.
+## The original paper's setting
 
-## What the released code does
+The corruption set is the 15 common corruptions of Hendrycks and Dietterich's benchmark (noise, blur, weather and digital families), each at severities 1 to 5. The paper evaluates on CIFAR-10, CIFAR-100, GTSRB and Tiny ImageNet with PreActResNet-18 and MobileViT-xs, and on a 200-class ImageNet subset with WideResNet-101-2 and Swin Transformer-Base fine-tuned from ImageNet-1K. It is therefore the only competitor here whose paper already includes transformer backbones. It reports AUROC and the best F1 over all thresholds, and its Table 5 evaluates a single empirical threshold $\gamma = 1$ across all attacks. The supplementary compares dispersion measures and finds the standard deviation and the mean absolute deviation close, with the coefficient of variation and the quartile deviation worse.
 
-The reference computes the prediction on the uncorrupted poisoned image once, then loops over the corruption suite and, for each type, over severities 1 to 5. At each step it mutates the same underlying image list (`x = images_poison` followed by `x[i] = self.dg(x[i], args)`) and never restores it, so severity 2 of a corruption type is applied to the output of severity 1 rather than to the pristine image, and the first severity of the second corruption type is applied to an image that has already been through all 5 severities of the first. By the last of the 15 corruption types in the loop, each image has accumulated 70 sequential operations rather than 1. The threshold search then computes, for each image, the lowest severity at which each corruption type's prediction first disagrees with the original, collects those breaking points across the 15 types into `indexs`, and takes `mad = np.std(indexs)`, the population standard deviation despite the variable's name. It fits a decision threshold with `sklearn.metrics.roc_curve` against those values and flags an image when its statistic exceeds the chosen cut, matching Eq. (4)'s "greater than gamma" direction.
+## The reference implementation
 
-## What this port does on ViT
+No repository by TeCo's own authors is vendored. `third_party/BackdoorBench/detection_infer/teco.py` at commit `f02e353` is the reference the port was checked against by reading. It imports the `imagecorruptions` package (line 64), which is not installed in this project and would pull in `opencv-python` as a further dependency. Its corruption loop (lines 235 to 256) sets `x = images_poison` and then overwrites `x[i]` in place at every severity and every corruption type without resetting it, so severity 2 is applied to the output of severity 1, and the first severity of the second corruption type to an image that has already been through all 5 severities of the first. Its dispersion variable is named `mad` but is computed as `np.std(indexs)` (line 340), the population standard deviation. `third_party/` is not checked out in this working tree, so these line numbers are the ones recorded when the port was written.
 
-1. **14 corruptions, not 15.** The paper uses the `imagecorruptions` package's 15 standard corruptions. `IMAGENET_C_CORRUPTIONS` in `detectors/teco.py` names all 15, and `UNAVAILABLE_CORRUPTIONS` names `frost` as the 1 the port cannot reproduce, since it composites 1 of 6 bundled photographs of frosted glass that ship as binary assets inside the package and there is no formula to regenerate them from. The other 14, `gaussian_noise`, `shot_noise`, `impulse_noise`, `defocus_blur`, `glass_blur`, `motion_blur`, `zoom_blur`, `snow`, `fog`, `brightness`, `contrast`, `elastic_transform`, `pixelate`, `jpeg_compression`, are each reimplemented in torch directly against the reference formulas. `Dev` is a standard deviation over the corruption types, so dropping 1 of 15 changes the sample it is computed over, and a TeCo number from this repository is not numerically identical to a published one.
-2. **Corruption applied to the pristine image.** Algorithm 1 line 5 applies $D_k^n$ to $x$, the original input, at every severity. The released code instead mutates the image in place and never restores it, so severity 2 lands on the output of severity 1 and the second corruption type lands on an image that has already been through all 5 severities of the first. `hardness_thresholds` in `detectors/teco.py` denormalizes the batch once, then applies every corruption to that same pristine `pixels` tensor, `corrupted = corrupt(pixels, severity)`, which is a faithful reading of the algorithm rather than the released code's cumulative composition. A faithful reproduction is therefore expected to differ from the published 0.943 AUROC, since that number was produced by a different statistic than the one Algorithm 1 defines.
-3. **Deviation measure.** The released code names its dispersion variable `mad`, which reads as mean absolute deviation, but the line computing it is `np.std(indexs)`, the population standard deviation with `ddof=0`. `deviation` in `detectors/teco.py` computes `thresholds.std(dim=1, unbiased=False)`, matching what the code actually runs rather than what its variable name suggests. The paper's own ablation finds mean absolute deviation statistically indistinguishable from this choice and the coefficient of variation clearly worse, so the unnormalized standard deviation is a deliberate choice rather than an accident worth correcting. It rescales every score by a constant and so cannot move AUROC, but it does move any absolute threshold, including the paper's own empirical $\gamma = 1$.
-4. **Randomness per batch.** The motion blur angle and the snow angle are each drawn once per batch in `motion_blur` and `snow` rather than once per image, `torch.empty(1).uniform_(...)` outside the loop over images. Sharing them within a batch removes a per-image nuisance term from a statistic that compares corruption types within 1 image, and it is what makes the corruption batchable at all rather than requiring a Python loop over individual images for every severity. Per-pixel noise, `gaussian_noise`, `shot_noise` and `impulse_noise`, is still drawn independently per image, as in the reference.
-5. **Operator substitutions**, each verified numerically against a numpy or scipy reference where the reference's own dependency was missing. `_disk_kernel`'s antialiasing Gaussian replaces `cv2.GaussianBlur` and agrees to $5 \times 10^{-4}$. `pixelate`'s downsample uses torch area resampling in place of PIL's BOX filter, which agree exactly at integer downscale factors and approximately otherwise. `_clipped_zoom` matches `scipy.ndimage.zoom` with `grid_mode=False`, `align_corners=True` in torch, to $2 \times 10^{-6}$. `elastic_transform` samples with torch's reflection padding, which reflects about the edge pixel where scipy's `mode="reflect"` repeats it, a difference confined to border pixels.
+## The port step by step
 
-Corruption is applied in $[0, 1]$ pixel space at the dataset's native resolution, before the model wrapper upscales to 224, which is where this project applies triggers too and what the reference does for CIFAR-scale inputs. `_quantize` rounds the result to the 8-bit grid after every corruption, since the reference operates on uint8 arrays throughout and that quantization is part of several of the operators' own definitions rather than an approximation the port introduces.
+1. `_build_teco` in `detectors/__init__.py` fits nothing and returns a closure over `teco_scores(model, loader, device, mean, std, context.teco_corruptions, MAX_SEVERITY, use_bfloat16, seed)`. `context.teco_corruptions` defaults to `DEFAULT_CORRUPTIONS`, all 14 corruptions the port implements.
+2. `hardness_thresholds` seeds with `seed_everything`, checks every requested corruption name against the `CORRUPTIONS` table and iterates the loader.
+3. For each batch of shape (batch, channels, height, width), it denormalizes to pixels in $[0, 1]$ at the dataset's native resolution, then runs 1 unamplified forward pass whose argmax is $P_{org}$, shape (batch,).
+4. It initializes a threshold table of shape (batch, K) at $N + 1 = 6$, the never-flipped sentinel.
+5. For each corruption name, and for each severity from 1 to 5, it calls the corruption function on the pristine pixels, `corrupted = corrupt(pixels, severity)`, renormalizes, runs 1 forward pass and compares the argmax with $P_{org}$. Where the prediction moved and the table still holds the sentinel, it writes the severity. Every severity is evaluated even after a break, which is Algorithm 1's break applied to cached predictions and is what makes the pass batchable.
+6. Each corruption function (`gaussian_noise`, `shot_noise`, `impulse_noise`, `defocus_blur`, `glass_blur`, `motion_blur`, `zoom_blur`, `snow`, `fog`, `brightness`, `contrast`, `elastic_transform`, `pixelate` and `jpeg_compression`) reimplements the `imagecorruptions` formula in torch, takes and returns (batch, channels, height, width) in $[0, 1]$ and rounds to the 8-bit grid through `_quantize`, because the reference works on uint8 arrays and several of its operators quantize by definition.
+7. `deviation(thresholds)` returns `thresholds.std(dim=1, unbiased=False)`, shape (N,), the population standard deviation over the corruption types.
+8. `teco_scores` negates the deviation once and returns float32 scores of shape (N,).
 
-## Hyperparameters
+## Deviations and why
 
-| Symbol | Paper default | This port | Constant name |
-|---|---|---|---|
-| $K$, corruption count | 15 | 14, `frost` dropped | `len(DEFAULT_CORRUPTIONS)` |
-| $N$, severities | 5 | 5 | `MAX_SEVERITY` |
-| never-flipped sentinel | $N + 1$ | 6 | `NEVER_FLIPPED` |
-| $Dev$ | unspecified in the text, population standard deviation in the code | population standard deviation | `deviation` |
-| $\gamma$, decision threshold | swept, empirical value near 1 | none, the registry's quantile rule replaces it | none |
-| motion blur / snow angle | drawn per image | drawn once per batch | see deviation 4 |
-| reduced corruption set for sign checks | not applicable | 4 corruptions, `gaussian_noise`, `defocus_blur`, `brightness`, `contrast` | `experiments.preflight.gate.CHEAP_CORRUPTIONS` |
+1. **14 corruptions, not 15.** `IMAGENET_C_CORRUPTIONS` names all 15 and `UNAVAILABLE_CORRUPTIONS` names `frost`, which composites 1 of 6 photographs of frosted glass that ship as binary files inside the `imagecorruptions` package and cannot be regenerated from a formula. $Dev$ is a standard deviation over the types, so dropping 1 of 15 changes the sample it is computed over, and a TeCo number from this repository is not numerically identical to a published one.
+2. **Each corruption applied to the pristine image.** Algorithm 1 applies $D_k^n$ to $x$. The released code composes every corruption cumulatively, as described above. The port follows the algorithm. A faithful reproduction is therefore expected to differ from the published numbers, which the released statistic produced.
+3. **Population standard deviation.** The port computes what the released code computes, `np.std` with `ddof=0`, rather than what its variable name suggests. The choice rescales every score by a constant and moves no AUROC, but it moves any absolute threshold such as the paper's $\gamma = 1$.
+4. **Random angles drawn once per batch.** The motion-blur angle and the snow angle are drawn once per batch in `motion_blur` and `snow` rather than once per image. This is what makes the corruptions batchable, and sharing a nuisance angle within a batch removes a per-image random term from a statistic that compares corruption types within 1 image. Per-pixel noise in `gaussian_noise`, `shot_noise` and `impulse_noise` is still drawn independently per image.
+5. **Operator substitutions.** Where the reference's dependency was missing, the port substitutes a torch operation: `_disk_kernel`'s antialiasing Gaussian replaces `cv2.GaussianBlur`, `pixelate` uses torch area resampling in place of PIL's box filter and `_clipped_zoom` reproduces `scipy.ndimage.zoom`. `elastic_transform` samples with torch's reflection padding, which differs from scipy's `mode="reflect"` on border pixels only. The module docstring and the earlier version of this page recorded numerical agreement for each substitution, but no committed test reproduces those comparisons, so they are stated here as the author's record rather than as verified.
+6. **Corruption at the native resolution.** Corruption happens in pixel space at 32 or 64 pixels, before the model's own `Resize` upsamples to 224, which is where this project stamps triggers too and what the reference does at CIFAR scale.
+7. **The threshold rule.** The paper sweeps $\gamma$ and also evaluates a fixed $\gamma = 1$. The port hands the negated deviation to `defenses.decision.detection_report`, which thresholds at a quantile of the validation scores.
+
+## Hyperparameters and where they come from
+
+| symbol | paper | this port | constant | source of the port's value |
+|---|---|---|---|---|
+| $K$ | 15 | 14, `frost` dropped | `len(DEFAULT_CORRUPTIONS)` | deviation 1 |
+| $N$ | 5 | 5 | `MAX_SEVERITY` | Section 5.1 |
+| never-flipped value | $N + 1$ | 6 | `NEVER_FLIPPED` | Algorithm 1 |
+| $Dev$ | standard deviation | population standard deviation | `deviation` | the released code's `np.std` |
+| $\gamma$ | swept, also fixed at 1 | none, the quantile rule | `PSBD_QUANTILES` | the registry's shared rule |
+| angles | per image | per batch | none | deviation 4 |
+| batch size on the panel | not stated | 256 | `BATCH_SIZE_BY_GROUP["teco"]` in `pbs/generate_detector_jobs.py` | the 2026-09-10 smoke found the loop launch-bound and batch 256 faster at identical AUROC |
+| reduced set for the sign gate | not applicable | `gaussian_noise`, `defocus_blur`, `brightness`, `contrast` | `experiments.preflight.gate.CHEAP_CORRUPTIONS` | a cheap sign check |
+
+## Cross-check against the reference
+
+No committed test compares any corruption operator or `hardness_thresholds` against the `imagecorruptions` package or BackdoorBench, and no test file for `detectors/teco.py` exists. The only automated check is the sign gate `python -m experiments.preflight.check_signs`, which runs TeCo with the 4 corruptions of `CHEAP_CORRUPTIONS` on the synthetic fixture. Run on the CPU on 2026-09-29 it read TeCo at AUROC 0.9017, above the floor of 0.60, which confirms plumbing and sign only. This is a gap against the project's rule that every port carries a numerical cross-check.
 
 ## Cost
 
-$K \times N + 1$ forward passes per input, 71 at the port's 14 corruptions and 5 severities, against 251 for CD-L and 1 for beatrix or confidence. Algorithm 1's inner break would in principle allow an early exit once a corruption type's prediction first flips, but the released code evaluates every severity of every corruption type regardless and applies the break only when reading back the cached predictions, which gives an identical statistic at the full cost, and that full cost is what a batched implementation on a GPU pays.
+$K \times N + 1 = 71$ forward passes per input: 1 uncorrupted pass and 1 per corruption and severity. There is no fit. Several corruptions are CPU-bound, `glass_blur` through a per-pixel shuffle loop and `jpeg_compression` through PIL's encoder 1 image at a time, so wall-clock cost exceeds what the forward count suggests, and `pbs/generate_detector_jobs.py` prices the group at twice its forward count (`GROUP_SLOWDOWN["teco"]`). The measured seconds per input are in the results block.
 
-Beyond the forward-pass count, several corruptions are CPU-bound rather than GPU-bound, and the registry's forward-count cost understates their wall-clock price. `glass_blur` runs a nested Python loop over every spatial position at every iteration, a per-pixel local shuffle that cannot be vectorized across the image, and `jpeg_compression` round-trips each image through PIL's encoder 1 image at a time on the CPU, since JPEG has no closed-form torch implementation. `pbs/generate_detector_jobs.py` prices this directly, `GROUP_SLOWDOWN["teco"] = 2.0`, doubling the group's estimated wall-clock time relative to its raw forward-pass-equivalent count, where every other group runs at its forward count face value.
+## Direction
 
-## How to run
+Low is poisoned. Eq. (4) flags $TeCo(x) > \gamma$, so the raw deviation is high for poisoned. `teco_scores` negates `deviation` once at the return.
 
-The smoke runs 1 checkpoint folder at 500 inputs per split and writes outside the results tree. `--allow-missing-psbd-cache` is required there because the smoke tree holds no PSBD split manifest to check against. A cheaper sign check exists separately, through `DetectorContext.teco_corruptions`, which `experiments/preflight/gate.py` sets to 4 corruptions rather than 14 so that verifying the detector's sign does not require paying the full cost.
+## Results
+
+<!-- results:begin -->
+Generated by `python scripts/detector_doc_results.py` at commit `19488b81358b06040ba96f361d5061b2981f1f25-dirty`. It reads `results/coverage/coverage.json`, every `results/<folder>/detectors/<name>_metrics.json` and every `results/<folder>/psbd_metrics.json` of the 57 backdoored ViT-B/16 models the paper's detector comparison uses, the clearing models that carry a reading from every defense. PSBD-TM and PSBD-RD are read at the adaptive rate rule, every threshold is the clean-validation quantile named in the column and AUROC is the one-sided area at the 0.25 quantile, where a value under 0.5 means inverted.
+
+Summary over every compared model. The rank is among the 13 defenses of the comparison by mean AUROC, and the last column is PSBD-TM minus the defense, paired per model, with its 95% bootstrap interval over models (5000 resamples, seed 0).
+
+| defense | models | AUROC | TPR at 10% FPR | TPR at 20% FPR | models below chance | rank | PSBD-TM minus defense, AUROC |
+|---|---|---|---|---|---|---|---|
+| `teco` | 57 | 0.751 | 0.503 | 0.602 | 12 | 8 of 13 | +0.201 [+0.134, +0.270] |
+| PSBD-TM | 57 | 0.953 | 0.873 | 0.902 | 2 | 1 of 13 | reference |
+| PSBD-RD | 57 | 0.888 | 0.744 | 0.805 | 5 | 4 of 13 | +0.065 [+0.012, +0.121] |
+
+`teco` per attack and poison rate. Each row is a mean over the models of that attack at that rate and n counts them. The last 2 columns repeat the AUROC of PSBD-TM and PSBD-RD on the same models.
+
+| attack | poison rate | n | AUROC | TPR at 10% FPR | TPR at 20% FPR | PSBD-TM AUROC | PSBD-RD AUROC |
+|---|---|---|---|---|---|---|---|
+| BPP | 1% | 4 | 0.565 | 0.115 | 0.230 | 0.946 | 0.914 |
+| BPP | 5% | 4 | 0.548 | 0.223 | 0.305 | 0.941 | 0.962 |
+| BPP | 10% | 4 | 0.572 | 0.121 | 0.253 | 0.957 | 0.959 |
+| BadNets | 1% | 4 | 0.965 | 0.907 | 0.966 | 0.987 | 0.542 |
+| BadNets | 5% | 4 | 0.991 | 0.989 | 0.993 | 0.992 | 0.796 |
+| BadNets | 10% | 4 | 0.971 | 0.933 | 0.972 | 0.996 | 0.798 |
+| Blend | 1% | 4 | 0.899 | 0.712 | 0.824 | 0.973 | 0.944 |
+| Blend | 5% | 4 | 0.930 | 0.765 | 0.905 | 0.987 | 0.970 |
+| Blend | 10% | 4 | 0.891 | 0.584 | 0.819 | 0.976 | 0.997 |
+| LF | 1% | 4 | 0.624 | 0.225 | 0.336 | 0.963 | 0.959 |
+| LF | 5% | 4 | 0.386 | 0.071 | 0.127 | 0.986 | 0.978 |
+| LF | 10% | 4 | 0.420 | 0.124 | 0.173 | 0.990 | 0.985 |
+| SIG | 10% | 1 | 0.797 | 0.296 | 0.615 | 0.418 | 0.919 |
+| TaCT | 1% | 1 | 0.599 | 0.098 | 0.246 | 0.979 | 0.464 |
+| TaCT | 5% | 2 | 0.938 | 0.652 | 0.785 | 0.954 | 0.613 |
+| WaNet | 5% | 2 | 0.937 | 0.874 | 0.921 | 0.933 | 0.955 |
+| WaNet | 10% | 3 | 0.878 | 0.725 | 0.800 | 0.786 | 0.957 |
+
+Mean AUROC per dataset. The shared 2000-image clean split gives about 200 images per class on CIFAR-10, 46 on GTSRB, 20 on CIFAR-100 and 10 on Tiny ImageNet, which is the budget every class-conditional method fits on.
+
+| defense | CIFAR-10 | CIFAR-100 | GTSRB | Tiny ImageNet |
+|---|---|---|---|---|
+| `teco` | 0.700 (17) | 0.808 (12) | 0.675 (14) | 0.841 (14) |
+| PSBD-TM | 0.891 (17) | 0.979 (12) | 0.981 (14) | 0.977 (14) |
+| PSBD-RD | 0.844 (17) | 0.890 (12) | 0.862 (14) | 0.965 (14) |
+
+Measured cost, median over the compared models. Seconds per 1000 inputs divide the scoring time of the clean and backdoor splits by their size. The fit is the one-off pass over the clean validation split before any input is scored, and a dash marks a detector with no fit. The device is the one most records name.
+
+| detector | forward passes per input | seconds per 1000 inputs | fit seconds | precision | device |
+|---|---|---|---|---|---|
+| `teco` | 71 | 29.99 | -- | bfloat16 | NVIDIA A100-SXM4-40GB |
+
+<!-- results:end -->
+
+## Reading the results
+
+TeCo separates the BadNets patch trigger well at every rate and Blend reasonably. It fails on BPP and falls below chance on LF at 5% and 10%. Both failures follow from the mechanism. BPP's trigger is a reduced color depth and LF's a smooth low-frequency pattern, and every corruption in the suite, noise, blur, compression, weather, destroys them at about the same rate it destroys ordinary content. A triggered image then breaks at clustered severities just like a clean one, or more uniformly than a clean one, which is the inversion. Its cost is 71 forward passes per input against 4 for PSBD-TM (1 unperturbed pass and $k = 3$ perturbed ones, `cli.sweep.DEFAULT_FORWARD_PASSES`), for a lower AUROC than PSBD-TM on every attack except WaNet and the single SIG model. WaNet is TeCo's relative strength, and TeCo is the only competitor above PSBD-TM on WaNet in the table. A likely reading, not measured here, is that the warp survives the photometric corruptions and breaks under the geometric ones, so its breaking points scatter.
+
+## Known failure modes
+
+A small spread says the prediction broke at similar severities under every corruption, which is the clean signature and also what a uniformly thin decision margin produces. The paper's own adaptive attack (Section 6, Eq. 8) trains the model to have the same corruption robustness on clean and triggered images. The paper reports that it lowers TeCo's AUROC substantially and at a large cost in clean accuracy and attack success rate, which `docs/attack-design/cross-defense.md` reads as a broken model rather than a deployable threat. The paper's supplementary also evaluates all-to-all attacks, on which TeCo drops. An all-to-all attack costs the attacker nothing extra to train.
+
+## How to run and where records land
 
 ```bash
 python -m cli.baselines --checkpoint-folder <folder> --detectors teco --max-samples 500 \
     --results-dir scratch/detector_smoke/results --allow-missing-psbd-cache
 ```
 
-The panel runs through its own `teco` job group of `pbs/generate_detector_jobs.py` rather than the `cheap` group, since TeCo's cost dwarfs confidence, STRIP, SCALE-UP, IBD-PSC and Beatrix and a shared job would be sized for the wrong detector.
-
-## Where results land
-
-`results/<folder>/detectors/teco_metrics.json` holds the detection report at every quantile plus the provenance record, whose hyperparameters carry the corruption list actually used, which matters whenever a run was scored under the reduced set rather than the full 14. The raw per-sample scores sit beside it as `teco_scores_validation.pt`, `teco_scores_clean.pt` and `teco_scores_backdoor.pt`, 1 float32 tensor of the split's length each, in the loader's order, so any later threshold or fusion reads them without a rerun.
-
-## Results
-
-<!-- results:begin -->
-<!-- results:end -->
-
-## Known failure modes
-
-A low spread says the input's prediction broke at roughly the same severity under every corruption type, which is the clean signature, and it is also what a uniformly thin decision margin produces, since a margin close to the boundary breaks early under any corruption regardless of what that corruption actually is. `python -m experiments.preflight.check_signs` reads TeCo at AUROC 0.9017 on the synthetic fixture, using the reduced 4-corruption set `CHEAP_CORRUPTIONS`, below confidence's or IBD-PSC's 1.0000 on the same unmissable backdoor, consistent with TeCo measuring a dispersion pattern rather than a single clean signal.
-
-The paper's own adaptive section is the strongest evidence of a real weakness, and it is the costliest attack in this project's whole cross-defense comparison. A corruption-matching training term pushes TeCo's AUROC from 0.911 down to 0.576 (Liu et al., Eq. 8), but the reported cost is 40 points of clean accuracy (0.9153 to 0.5105) and 21 points of attack success rate (0.9502 to 0.7386). The project's own reading of that trade in `docs/attack-design/cross-defense.md` is that this is a broken model rather than a deployable threat, the only detector in its adaptive-attack comparison whose evasion is a deployment channel the paper's authors already targeted on purpose, since the corruption suite is exactly the transform family a real deployment channel also applies.
-
-A cheaper and more concerning weakness is the all-to-all label mapping, which costs the attacker nothing extra to train. The project's own review reports TeCo's AUROC falling to 0.7749 on an all-to-all attack, taken from the paper's own Table 20, a family-wide limitation it shares with several training-set detectors (`docs/attack-design/cross-defense.md`, Section 5). Since the attack pays no clean-accuracy or ASR cost to achieve this, an all-to-all checkpoint is the harder case for TeCo to clear, not the corruption-matching one.
-
-A 3rd concern is inferred rather than measured in this repository, so it is flagged as a prediction rather than a result. TeCo's mechanism assumes ordinary class evidence erodes at a broadly similar rate under every corruption type, an assumption calibrated against the ResNet family the paper evaluates. Vision transformers are documented elsewhere in the corruption-robustness literature to have markedly uneven robustness profiles across the Hendrycks and Dietterich corruption suite compared to convolutional networks, more robust to some corruption types and less to others, and whether ViT-B/16's or Swin-S's own clean breaking points are as tightly clustered as a ResNet's is not something this project has measured directly. If they are not, the clean population's own spread widens and the separation TeCo relies on narrows for a reason that has nothing to do with a backdoor.
-
-## Direction
-
-Low is poisoned. Eq. (4) flags an input when $TeCo(x) > \gamma$, so the raw statistic is high for poisoned, the opposite of the registry's convention. `teco_scores` negates the raw `deviation` once at the return boundary. A second negation anywhere would produce a well-formed, exactly inverted detector, which is the failure the `auroc_two_sided` diagnostic field in `defenses.decision.detection_report` exists to surface.
+The smoke above writes outside `results/`. The panel runs through the `teco` job group of `pbs/generate_detector_jobs.py`, at batch size 256, because TeCo's cost dwarfs the cheap detectors and a shared job would be sized for the wrong detector. `results/<folder>/detectors/teco_metrics.json` holds the report and the provenance, whose hyperparameters list the corruptions actually used, and `teco_scores_{validation,clean,backdoor}.pt` hold the negated deviations in loader order.

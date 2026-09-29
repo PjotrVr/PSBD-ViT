@@ -125,7 +125,7 @@
     "claim": "PSBD-TM's score is just the model's confidence in its answer",
     "who": "reviewer reading P1, `experiments/psu_vs_confidence/`",
     "verdict": "false",
-    "key": "A* averages 0.881 on the 54-model panel against 0.688 for raw confidence. PSBD-TM is above it on 50 of 54 models and by at least 0.02 on 46. Its mean margin is +0.082. The theory note (`docs/why-psbd-works-theory.md`) read the same ceiling as 0.873 with PSBD-TM above it on 52 of 57 models, on the 57-model panel of 2026-09-24",
+    "key": "A* averages 0.881 on the 54-model panel against 0.688 for raw confidence. PSBD-TM is above it on 50 of 54 models and by at least 0.02 on 46. Its mean margin is +0.082. The theory note (`docs/why-psbd-works-theory.md`) read the same ceiling as 0.873 with PSBD-TM above it on 52 of 57 models, on the 2026-09-24 panel of 57 models",
     "control": "the cross-fitted likelihood ratio of unperturbed confidence, an oracle that reads the triggered labels",
     "source": "`results/_experiments/why_psbd_works/cached_reads.json`, `refutations.confidence_ceiling[].a_star` and `refutations.per_model[]`"
   },
@@ -205,7 +205,7 @@
     "claim": "The backdoor is a single linear direction in the residual stream, distinct from the target class",
     "who": "Karayal\u00e7in et al., and ours (H16)",
     "verdict": "partial",
-    "key": "removing the rank-1 direction takes ASR to 0.000 to 0.572 on the 4 Adam checkpoints. The first manifestation runs (7 backdoored models) add the missing control: removing the target class's own mean offset takes ASR to 0.000 to 0.985, removing the backdoor direction drops target-class recall to 0.140 to 0.920, and the part of the backdoor direction orthogonal to the target leaves ASR at 0.842 to 1.000",
+    "key": "removing the rank-1 direction takes ASR to 0.000 to 0.572 on the 4 Adam checkpoints. The first manifestation runs (27 backdoored models) add the missing control: removing the target class's own mean offset takes ASR to 0.000 to 1.000, removing the backdoor direction drops target-class recall to 0.000 to 0.980, and the part of the backdoor direction orthogonal to the target leaves ASR at 0.798 to 1.000",
     "control": "random rank-1 directions, the target-class offset and the target-orthogonal part of the direction",
     "source": "`results/_experiments/backdoor_neurons/backdoor_neuron_ablation.json`, `ablated.direction` and `results/_experiments/backdoor_manifestation/runs/<run>.json`, `ablation.<last block>.variants`"
   },
@@ -265,7 +265,7 @@
     "claim": "Where each attack lives inside ViT-B/16 and Swin-S: depth of onset, readout, neurons or direction, per category",
     "who": "ours, `experiments/backdoor_manifestation/`",
     "verdict": "pending",
-    "key": "7 backdoored and 10 benign-control runs have landed, summary not written yet",
+    "key": "27 backdoored and 29 benign-control runs have landed, summary not written yet",
     "control": "benign models probed with the same trigger, isotropic, energy-matched and target-class directions",
     "source": "`results/_experiments/backdoor_manifestation/runs/` and `summary.json`"
   },
@@ -332,15 +332,25 @@
   {
     "id": "C34",
     "section": "s10",
-    "claim": "Fusing PSBD-TM with late-band residual dropout through the weighted min-rank rule (budget 0.9 and 0.1) detects more at low FPR",
-    "who": "ours, pre-registered in `experiments/cache_readouts/`",
+    "claim": "Flagging an input when either PSBD-TM or residual dropout in blocks 5 to 8 flags it, the plain minimum of their clean-validation percentiles, detects more at low FPR",
+    "who": "ours, `experiments/cache_readouts/`, the rule and partner the user chose",
     "verdict": "partial",
-    "key": "confirmed for the rule, not for the band's selection. On the 26 held-out models TPR at 1% FPR is 0.791 for PSBD-TM alone at a realized FPR of 0.011 and 0.857 fused at 0.010, a paired gain of +0.065 [+0.017, +0.126]. Every fusion rule lands at 0.83 to 0.86. AUROC barely moves from near 0.98 (+0.005). On the panel's WaNet models the fused AUROC is 0.936 against 0.779",
-    "control": "PSBD-TM alone on the same models and passes, each score thresholded at its own clean-validation quantile",
-    "source": "`results/_experiments/cache_readouts/fusion_rules_holdout.json`, `summary.adaptive.late_band.all`, `results/_experiments/cache_readouts/verdicts_all.json` `sets.holdout.preregistered[X3-*]`"
+    "key": "on the 26 held-out models TPR at 1%/5%/10% FPR is 0.841/0.953/0.973 fused with blocks 5 to 8 against 0.791/0.946/0.970 for PSBD-TM alone, paired gains +0.049 [-0.008, +0.108] at 1%, +0.007 [-0.008, +0.024] at 5%, +0.003 [-0.003, +0.010] at 10%, at a realized FPR of 0.010 for the 1% budget. The late band ties at 0.830/0.963/0.977. The plain average of the 2 fractional PSUs reads 0.874/0.961/0.976, so the gain comes from adding the second probe and not from the combination rule. On the panel's WaNet models the fused AUROC is 0.948 against 0.779. The cost is on TaCT, which the held-out set does not contain: on the panel its TPR at 10% FPR falls from 0.169 to 0.081 over 3 TaCT models. The middle band reaches the adaptive rate on 54 of 54 panel models, the late band on 39. It is the paper's best residual placement (`\\BestResidualGain` +0.048 [+0.008, +0.092]). Direction onset by attack from `experiments/backdoor_direction_layers/README.md`, which has no JSON record behind it: Blend 5, BPP 6, LF 8, BadNets 9",
+    "control": "PSBD-TM alone on the same models and passes, each score thresholded at its own clean-validation quantile, and the late band as the alternative partner",
+    "source": "`results/_experiments/cache_readouts/fusion_rules_holdout.json`, `summary.adaptive.<partner>.all`, `fusion_rules_panel.json` `summary.adaptive.<partner>.by_attack` and `.missing`, `paper/headline.json` `BestResidualGain`"
   },
   {
     "id": "C35",
+    "section": "s10",
+    "claim": "The fusion's gain is not the extra passes: PSBD-TM alone at k = 6 does not match the fusion at 3 plus 3 passes",
+    "who": "compute control asked for by the coordinator",
+    "verdict": "open",
+    "key": "no record compares them yet. 19 of 54 panel models have a PSBD-TM k = 20 cache",
+    "control": "PSBD-TM at twice the passes, the same compute as the fusion",
+    "source": "`results/<folder>/psbd/before_attention_norm_token_mask_k20/`, pending"
+  },
+  {
+    "id": "C36",
     "section": "s11",
     "claim": "H-margin: The triggered decision keeps its logit margin under perturbation while the clean margin collapses",
     "who": "memo L1, P1",
@@ -350,7 +360,7 @@
     "source": "`results/_experiments/why_psbd_works/summary.json`, `verdicts.<architecture>.<group>.margin`"
   },
   {
-    "id": "C36",
+    "id": "C37",
     "section": "s11",
     "claim": "H-direction: The triggered feature is dominated by a backdoor direction the perturbation dents less than clean class evidence",
     "who": "Karayal\u00e7in et al., memo L8",
@@ -360,7 +370,7 @@
     "source": "`results/_experiments/why_psbd_works/summary.json`, `verdicts.<architecture>.<group>.direction`"
   },
   {
-    "id": "C37",
+    "id": "C38",
     "section": "s11",
     "claim": "H-redundancy: Trigger evidence is repeated across tokens",
     "who": "memo L19, L23",
@@ -370,7 +380,7 @@
     "source": "`results/_experiments/why_psbd_works/summary.json`, `verdicts.<architecture>.<group>.redundancy`"
   },
   {
-    "id": "C38",
+    "id": "C39",
     "section": "s11",
     "claim": "H-low-dim: The triggered decision depends on few dimensions or a small part of the input",
     "who": "Cognitive Distillation, memo L6, L9",
@@ -380,7 +390,7 @@
     "source": "`results/_experiments/why_psbd_works/summary.json`, `verdicts.<architecture>.<group>.low_dim`"
   },
   {
-    "id": "C39",
+    "id": "C40",
     "section": "s11",
     "claim": "H-flatness: Triggered inputs sit in a flatter region and the statistic estimates curvature",
     "who": "memo L2, P4",
@@ -390,7 +400,7 @@
     "source": "`results/_experiments/why_psbd_works/summary.json`, `verdicts.<architecture>.<group>.flatness`"
   },
   {
-    "id": "C40",
+    "id": "C41",
     "section": "s11",
     "claim": "H-neuron-bias: Shifted clean predictions fall onto the target, so removing the target's gain costs AUROC",
     "who": "Li et al., memo L10, P6",
@@ -400,7 +410,7 @@
     "source": "`results/_experiments/why_psbd_works/summary.json`, `verdicts.<architecture>.<group>.neuron_bias`"
   },
   {
-    "id": "C41",
+    "id": "C42",
     "section": "s11",
     "claim": "pass uncertainty: The statistic is MC-dropout uncertainty over the passes",
     "who": "Li et al.'s framing, memo P2",
@@ -410,7 +420,7 @@
     "source": "`results/_experiments/why_psbd_works/summary.json`, `verdicts.<architecture>.<group>.pass_uncertainty`"
   },
   {
-    "id": "C42",
+    "id": "C43",
     "section": "s11",
     "claim": "missingness: A zeroed token is native missingness, so substituting another token does as well",
     "who": "Jain et al., memo L22",
@@ -420,7 +430,7 @@
     "source": "`results/_experiments/why_psbd_works/summary.json`, `verdicts.<architecture>.<group>.missingness`"
   },
   {
-    "id": "C43",
+    "id": "C44",
     "section": "s11",
     "claim": "The target class is easy, so any image predicted as the target scores low",
     "who": "reviewer reading P10",

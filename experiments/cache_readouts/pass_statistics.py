@@ -264,9 +264,9 @@ def summarize_group(rows, name):
 
 def plot(summary, model_set, json_path):
     placements = list(PLACEMENTS)
-    fields = ("q0.01:tpr", "q0.10:tpr")
+    fields = ("q0.01:tpr", "q0.05:tpr", "q0.10:tpr")
     figure, axes = plt.subplots(
-        len(placements), len(fields), figsize=(13, 7), sharey=True, squeeze=False
+        len(placements), len(fields), figsize=(19, 7), sharey=True, squeeze=False
     )
     plotted = {}
     width = 0.8 / len(STATISTICS)

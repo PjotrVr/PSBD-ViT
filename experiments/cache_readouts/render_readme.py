@@ -27,6 +27,7 @@ from experiments.cache_readouts.shared import (
 )
 from scripts.paper._common import BOOTSTRAP_RESAMPLES, BOOTSTRAP_SEED
 
+PICK_RULE = "weighted_0.9_0.1"
 OUT = os.path.join(REPO_ROOT, "experiments", "cache_readouts", "README.md")
 RESULTS = "results/_experiments/cache_readouts"
 SET_WORDS = {
@@ -234,6 +235,8 @@ def pass_values(passes):
         "DEV_TIEBROKEN_AUROC": delta(dev_tm["shift_count_tiebroken"]["auroc"]),
         "HOLD_BEST_AUROC": delta(hold_tm["best_pass"]["auroc"]),
         "HOLD_BEST_TPR1": delta(hold_tm["best_pass"]["q0.01:tpr"]),
+        "HOLD_BEST_TPR5": delta(hold_tm["best_pass"]["q0.05:tpr"]),
+        "HOLD_BEST_TPR10": delta(hold_tm["best_pass"]["q0.10:tpr"]),
         "HOLD_WORST_AUROC": delta(hold_tm["worst_pass"]["auroc"]),
         "PANEL_BEST_AUROC": delta(panel_tm["all"]["best_pass"]["auroc"]),
         "PANEL_WORST_AUROC": delta(panel_tm["all"]["worst_pass"]["auroc"]),
@@ -439,6 +442,21 @@ def fusion_values(fusion):
         "HOLD_PICK_AUROC": delta(hold_late["all"][prereg_rule]["auroc"]),
         "HOLD_PICK_TPR10": delta(hold_late["all"][prereg_rule]["q0.10:tpr"]),
         "HOLD_PICK_TPR1": delta(hold_late["all"][prereg_rule]["q0.01:tpr"]),
+        "HOLD_PICK_TPR5": delta(hold_late["all"][prereg_rule]["q0.05:tpr"]),
+        "HOLD_PICK_TPR5_WORDS": "excludes 0"
+        if hold_late["all"][prereg_rule]["q0.05:tpr"]["ci95"][0] > 0
+        else "includes 0",
+        "HOLD_PICK_FPR1": f3(
+            hold_late["all"][prereg_rule]["q0.01:realized_fpr"]["mean"]
+        ),
+        "HOLD_PICK_FPR5": f3(
+            hold_late["all"][prereg_rule]["q0.05:realized_fpr"]["mean"]
+        ),
+        "HOLD_PICK_FPR10": f3(
+            hold_late["all"][prereg_rule]["q0.10:realized_fpr"]["mean"]
+        ),
+        "PANEL_PICK_TPR5": delta(panel_late["all"][prereg_rule]["q0.05:tpr"]),
+        "PANEL_PICK_TPR10": delta(panel_late["all"][prereg_rule]["q0.10:tpr"]),
         "HOLD_PICK_N": f"{hold_late['n_models']}",
         "HOLD_BEST_RULE": RULE_WORDS[best_hold],
         "HOLD_BEST_RULE_AUROC": delta(hold_late["all"][best_hold]["auroc"]),
@@ -479,6 +497,7 @@ def table_values(records, passes, bands, fusion, verdicts):
         "TABLE_PLAN": plan_table(verdicts),
         "TABLE_WALL": wall_table(records),
         "TABLE_COVERAGE": coverage_table(fusion),
+        "TABLE_PICK": pick_table(fusion),
     }
     for model_set in MODEL_SETS:
         tag = model_set.upper()
@@ -544,37 +563,40 @@ def dev_table(records, dev_passes, dev_fusion):
     return table
 
 
+HEADLINE_QUANTILES = ("q0.01", "q0.05", "q0.10")
+
+
+def tpr_cell(block, quantile):
+    reading = block[f"{quantile}:tpr"]
+    text = f"{f3(reading['mean'])} ({delta(reading)})"
+    return text
+
+
 def x19_table(summary):
     rows = []
     for statistic in pass_statistics.STATISTICS:
         block = summary[statistic]
         rows.append(
-            [
-                STAT_WORDS[statistic],
+            [STAT_WORDS[statistic]]
+            + [tpr_cell(block, q) for q in HEADLINE_QUANTILES]
+            + [f3(block[f"{q}:realized_fpr"]["mean"]) for q in HEADLINE_QUANTILES]
+            + [
                 f3(block["auroc"]["mean"]),
                 delta(block["auroc"]),
                 f"{block['auroc']['n_higher']} / {block['auroc']['n_lower']}",
-                f3(block["q0.01:tpr"]["mean"]),
-                delta(block["q0.01:tpr"]),
-                f3(block["q0.05:tpr"]["mean"]),
-                f3(block["q0.10:tpr"]["mean"]),
-                f3(block["q0.01:realized_fpr"]["mean"]),
-                f3(block["q0.05:realized_fpr"]["mean"]),
-                f3(block["q0.10:realized_fpr"]["mean"]),
             ]
         )
     header = [
         "statistic",
-        "AUROC",
-        "AUROC minus mean PSU",
-        "models up / down",
-        "TPR 1%",
-        "TPR 1% minus mean PSU",
-        "TPR 5%",
-        "TPR 10%",
+        "TPR 1% (minus mean PSU)",
+        "TPR 5% (minus mean PSU)",
+        "TPR 10% (minus mean PSU)",
         "FPR 1%",
         "FPR 5%",
         "FPR 10%",
+        "AUROC",
+        "AUROC minus mean PSU",
+        "AUROC models up / down",
     ]
     table = markdown_table(header, rows)
     return table
@@ -584,7 +606,7 @@ def x19_attack_table(by_attack):
     rows = [
         [f"{attack} ({group['n']})"]
         + [
-            f"{f3(group[s]['auroc']['mean'])} / {f3(group[s]['q0.01:tpr']['mean'])}"
+            " / ".join(f3(group[s][f"{q}:tpr"]["mean"]) for q in HEADLINE_QUANTILES)
             for s in pass_statistics.STATISTICS
         ]
         for attack, group in by_attack.items()
@@ -625,13 +647,13 @@ def x3_table(summary):
                     PARTNER_WORDS[partner],
                     RULE_WORDS[rule],
                     f"{block['n_models']} of {block['n_pooled']}",
+                ]
+                + [tpr_cell(reading, q) for q in HEADLINE_QUANTILES]
+                + [f3(reading[f"{q}:realized_fpr"]["mean"]) for q in HEADLINE_QUANTILES]
+                + [
                     f3(reading["auroc"]["mean"]),
                     delta(reading["auroc"]),
-                    f3(reading["q0.01:tpr"]["mean"]),
-                    f3(reading["q0.10:tpr"]["mean"]),
                     f3(reading["q0.20:tpr"]["mean"]),
-                    f3(reading["q0.01:realized_fpr"]["mean"]),
-                    f3(reading["q0.10:realized_fpr"]["mean"]),
                     f3(reading["q0.20:realized_fpr"]["mean"]),
                 ]
             )
@@ -639,14 +661,44 @@ def x3_table(summary):
         "partner",
         "rule",
         "models",
+        "TPR 1% (minus PSBD-TM)",
+        "TPR 5% (minus PSBD-TM)",
+        "TPR 10% (minus PSBD-TM)",
+        "FPR 1%",
+        "FPR 5%",
+        "FPR 10%",
         "AUROC",
         "AUROC minus PSBD-TM",
-        "TPR 1%",
-        "TPR 10%",
         "TPR 20%",
-        "FPR 1%",
-        "FPR 10%",
         "FPR 20%",
+    ]
+    table = markdown_table(header, rows)
+    return table
+
+
+def pick_table(fusion):
+    rows = []
+    for model_set in ("holdout", "panel"):
+        block = fusion[model_set]["summary"]["adaptive"]["late_band"]
+        for rule in (fusion_rules.REFERENCE_RULE, PICK_RULE):
+            reading = block["all"][rule]
+            rows.append(
+                [SET_WORDS[model_set], RULE_WORDS[rule], block["n_models"]]
+                + [tpr_cell(reading, q) for q in HEADLINE_QUANTILES]
+                + [f3(reading[f"{q}:realized_fpr"]["mean"]) for q in HEADLINE_QUANTILES]
+                + [f3(reading["auroc"]["mean"])]
+            )
+    header = [
+        "set",
+        "rule",
+        "models",
+        "TPR 1% (minus PSBD-TM)",
+        "TPR 5% (minus PSBD-TM)",
+        "TPR 10% (minus PSBD-TM)",
+        "FPR 1%",
+        "FPR 5%",
+        "FPR 10%",
+        "AUROC",
     ]
     table = markdown_table(header, rows)
     return table
@@ -656,7 +708,7 @@ def x3_attack_table(by_attack):
     rows = [
         [f"{attack} ({group['n']})"]
         + [
-            f"{f3(group[r]['auroc']['mean'])} / {f3(group[r]['q0.10:tpr']['mean'])}"
+            " / ".join(f3(group[r][f"{q}:tpr"]["mean"]) for q in HEADLINE_QUANTILES)
             for r in fusion_rules.RULES
         ]
         for attack, group in by_attack.items()
@@ -844,7 +896,7 @@ The development set therefore holds @@N_DEV@@ models, @@POOLED_DEV@@ of them suc
 
 @@TABLE_DEV@@
 
-The protocol follows steps 1 to 5 of the plan's design section. Every readout ran on the development set first as exploration. I then wrote `preregistration.json` at @@PREREG_TIME@@, naming 1 pass statistic and 1 fusion rule with their predicted effects, before any script read another model. Only after that did the scripts read the @@N_HOLDOUT@@ successful CIFAR-100 and Tiny ImageNet models once as the confirmation and then the @@N_PANEL@@ models of the full panel for completeness. The full panel contains the development models, so it is never read as confirmation. After that first read the held-out and panel readouts were rerun to add reporting fields (the union-bound threshold of the weighted rules and the cached ladder of partners that never reach the target) and to fix a figure label, with no change to any pick, statistic, rate rule or threshold. `judge.py` stores the SHA-256 of the pre-registration beside the verdicts (`verdicts_all.json`, `preregistration_sha256` = `@@PREREG_HASH@@`), so a later edit of the predictions would show.
+The protocol follows steps 1 to 5 of the plan's design section. Every readout ran on the development set first as exploration. I then wrote `preregistration.json` at @@PREREG_TIME@@, naming 1 pass statistic and 1 fusion rule with their predicted effects, before any script read another model. Only after that did the scripts read the @@N_HOLDOUT@@ successful CIFAR-100 and Tiny ImageNet models once as the confirmation and then the @@N_PANEL@@ models of the full panel for completeness. The full panel contains the development models, so it is never read as confirmation. After that first read the held-out and panel readouts were rerun to add reporting fields (the union-bound threshold of the weighted rules, the cached ladder of partners that never reach the target and TPR at 5% FPR for the fusion rules) and to fix a figure label, with no change to any pick, statistic, rate rule or threshold. `judge.py` stores the SHA-256 of the pre-registration beside the verdicts (`verdicts_all.json`, `preregistration_sha256` = `@@PREREG_HASH@@`), so a later edit of the predictions would show.
 
 ## Method
 
@@ -929,7 +981,7 @@ The pass statistic picked on the development set is the best pass of PSBD-TM. It
 
 ## Pass statistics
 
-The best-pass pick did not confirm. On the @@N_HOLDOUT@@ held-out models the best pass reads @@HOLD_BEST_AUROC@@ in AUROC against the mean and @@HOLD_BEST_TPR1@@ in TPR at 1% FPR. The AUROC interval lies below 0. On the full panel it reads @@PANEL_BEST_AUROC@@. The worst pass loses everywhere, @@HOLD_WORST_AUROC@@ on the held-out set and @@PANEL_WORST_AUROC@@ on the panel, so N17's premise that a triggered patch input survives every pass intact does not hold at the adaptive rate. The per-attack tables show why the development gain did not carry over. The best pass helps the patch trigger and hurts the global ones. On the @@PANEL_BADNET_N@@ BadNets models of the panel it lifts PSBD-TM's TPR at 1% FPR from @@PANEL_BADNET_MEAN_TPR1@@ to @@PANEL_BADNET_BEST_TPR1@@, while BPP falls from @@PANEL_BPP_MEAN_TPR1@@ to @@PANEL_BPP_BEST_TPR1@@ and Blend from @@PANEL_BLEND_MEAN_TPR1@@ to @@PANEL_BLEND_BEST_TPR1@@. The development set held @@DEV_N_BADNET@@ BadNets model and @@DEV_N_BPP@@ BPP models, so it could not show that trade.
+The best-pass pick did not confirm. On the @@N_HOLDOUT@@ held-out models the best pass reads @@HOLD_BEST_TPR1@@, @@HOLD_BEST_TPR5@@ and @@HOLD_BEST_TPR10@@ against the mean in TPR at 1%, 5% and 10% FPR and @@HOLD_BEST_AUROC@@ in AUROC. The AUROC interval lies below 0. On the full panel it reads @@PANEL_BEST_AUROC@@ in AUROC. The worst pass loses everywhere, @@HOLD_WORST_AUROC@@ on the held-out set and @@PANEL_WORST_AUROC@@ on the panel, so N17's premise that a triggered patch input survives every pass intact does not hold at the adaptive rate. The per-attack tables show why the development gain did not carry over. The best pass helps the patch trigger and hurts the global ones. On the @@PANEL_BADNET_N@@ BadNets models of the panel it lifts PSBD-TM's TPR at 1% FPR from @@PANEL_BADNET_MEAN_TPR1@@ to @@PANEL_BADNET_BEST_TPR1@@, while BPP falls from @@PANEL_BPP_MEAN_TPR1@@ to @@PANEL_BPP_BEST_TPR1@@ and Blend from @@PANEL_BLEND_MEAN_TPR1@@ to @@PANEL_BLEND_BEST_TPR1@@. The development set held @@DEV_N_BADNET@@ BadNets model and @@DEV_N_BPP@@ BPP models, so it could not show that trade.
 
 The 2 hard-label statistics carry no extra information. With @@K@@ passes the shifted-pass count takes @@K_VALUES@@ values, so a quantile threshold lands on a tie and the count flags nothing at 1% FPR (mean TPR @@DEV_COUNT_TPR1@@ on the development set). Breaking the ties with the mean gives back the mean's ranking to within @@DEV_TIEBROKEN_AUROC@@ in AUROC. The spread is inverted, with mean AUROC @@DEV_SPREAD_AUROC@@ on the development set and @@PANEL_SPREAD_AUROC@@ on the panel under the pre-declared sign. Triggered inputs disagree across passes more than clean ones, since a clean input loses its label on almost every pass at the adaptive rate while a triggered input keeps it on some passes and loses it on others. That is the same fact that sinks the worst pass.
 
@@ -961,7 +1013,7 @@ Each table lists the mean over models, the paired difference from the mean fract
 
 **PSBD-TM per attack.**
 
-Each cell is mean AUROC / mean TPR at 1% FPR (`summary.psbd_tm.by_attack.<attack>.<statistic>`).
+Each cell is mean TPR at 1% / 5% / 10% nominal FPR (`summary.psbd_tm.by_attack.<attack>.<statistic>`).
 
 **Held-out set.**
 
@@ -985,7 +1037,7 @@ The patch trigger reading splits E1 in 2. Token masking in blocks 1 to 4 or 5 to
 
 WaNet reads the opposite way round. Token masking in blocks 1 to 4 moves @@WANET_TM14_TRIG@@ of triggered WaNet passes against @@WANET_TM14_CLEAN@@ of clean ones and blocks 5 to 8 move @@WANET_TM58_TRIG@@ against @@WANET_TM58_CLEAN@@, while blocks 9 to 12 move only @@WANET_TM912_TRIG@@ against @@WANET_TM912_CLEAN@@. On each of the @@WANET_PANEL_N@@ WaNet models of the panel the middle band moves triggered predictions more than clean ones and the late band moves them less, which is what E10 expects of a trigger assembled from relations between tokens and points to the early and middle blocks as where token masking disturbs WaNet. The readout does not show that this causes the inverted cell, since the Tiny ImageNet WaNet models share the pattern and PSBD-TM still separates them (@@WANET_TM_AUROCS@@ in `pass_statistics_panel.json`). E10 as the plan stated it, for residual dropout in blocks 1 to 4, failed at the top rate (WaNet @@WANET_RD14_DIFF_TOP@@ against BadNets @@BADNET_RD14_DIFF_TOP@@, both saturated) and held at the matched reading (@@WANET_RD14_DIFF_MATCHED@@ against @@BADNET_RD14_DIFF_MATCHED@@). With the 2 readings in disagreement the verdict is inconclusive. E2 failed in part. @@E2_FAILS@@ of @@E2_CHECKS@@ global-trigger readings on the panel move triggered predictions above the bar, counted by attack and band as @@E2_BREAKDOWN@@.
 
-Each cell is triggered / clean share of passes whose label moved, from `depth_bands_<set>.json`, `summary.<reading>.by_attack.<attack>.<band>`. TM is token masking at the attention input and RD residual dropout before the add.
+Each cell is triggered / clean share of passes whose label moved, from `depth_bands_<set>.json`, `summary.<reading>.by_attack.<attack>.<band>`. TM is token masking at the attention input and RD residual dropout before the add. These are shift shares at a fixed rate with no threshold, so the depth-band tables carry no FPR operating point.
 
 **Top cached rate, full panel.**
 
@@ -1015,7 +1067,9 @@ Each cell is triggered / clean share of passes whose label moved, from `depth_ba
 
 ## Fusion rules
 
-The fusion pick confirmed. On the @@HOLD_PICK_N@@ held-out models the weighted min-rank at 0.9 and 0.1 with the late band raises AUROC by @@HOLD_PICK_AUROC@@, TPR at 10% FPR by @@HOLD_PICK_TPR10@@ and TPR at 1% FPR by @@HOLD_PICK_TPR1@@. Every interval excludes 0. The gain is small, as the pre-registration expected, since the held-out set holds no PSBD-TM failure and its lowest PSBD-TM AUROC is @@HOLD_TM_MIN@@. The best rule on the held-out set by AUROC was the @@HOLD_BEST_RULE@@ (@@HOLD_BEST_RULE_AUROC@@), which shows the selection optimism. On the full panel the pick reads @@PANEL_PICK_AUROC@@ in AUROC and @@PANEL_PICK_TPR1@@ in TPR at 1% FPR. It lifts the WaNet mean from @@PANEL_WANET_TM@@ to @@PANEL_WANET_PICK@@. The union-bound threshold gives the same operating point as the calibrated one, @@PANEL_LITERAL_TPR10@@ TPR at a realized @@PANEL_LITERAL_FPR10@@ FPR for the nominal 10%.
+The fusion pick confirmed at the headline operating points. On the @@HOLD_PICK_N@@ held-out models the weighted min-rank at 0.9 and 0.1 with the late band raises TPR at 1% FPR by @@HOLD_PICK_TPR1@@, at 5% by @@HOLD_PICK_TPR5@@ and at 10% by @@HOLD_PICK_TPR10@@, at realized FPRs of @@HOLD_PICK_FPR1@@, @@HOLD_PICK_FPR5@@ and @@HOLD_PICK_FPR10@@. AUROC rises by @@HOLD_PICK_AUROC@@. The 3 pre-registered readings (AUROC and TPR at 1% and 10%) exclude 0. TPR at 5% FPR was not pre-registered. It was added after the confirmation read as a reporting field and its interval @@HOLD_PICK_TPR5_WORDS@@. The pick, the pre-registration and every threshold stay as they were. The gain is small, as the pre-registration expected, since the held-out set holds no PSBD-TM failure and its lowest PSBD-TM AUROC is @@HOLD_TM_MIN@@. The best rule on the held-out set by AUROC was the @@HOLD_BEST_RULE@@ (@@HOLD_BEST_RULE_AUROC@@), which shows the selection optimism. On the full panel the pick reads @@PANEL_PICK_TPR1@@, @@PANEL_PICK_TPR5@@ and @@PANEL_PICK_TPR10@@ in TPR at 1%, 5% and 10% FPR and @@PANEL_PICK_AUROC@@ in AUROC. It lifts the WaNet mean AUROC from @@PANEL_WANET_TM@@ to @@PANEL_WANET_PICK@@. The union-bound threshold gives the same operating point as the calibrated one, @@PANEL_LITERAL_TPR10@@ TPR at a realized @@PANEL_LITERAL_FPR10@@ FPR for the nominal 10%.
+
+@@TABLE_PICK@@
 
 The coverage gap comes from the band itself. @@LATE_MISSING_N@@ of @@LATE_POOLED@@ panel models never reach the adaptive target with late residual dropout, so the adaptive reading covers @@LATE_COVERED@@. The missing models are @@LATE_MISSING_LIST@@. Each of them already holds the full @@LATE_MISSING_LADDER@@-rate ladder up to @@LATE_MISSING_TOP_RATE@@ (`fusion_rules_panel.json`, `summary.adaptive.late_band.missing[].rates_cached`). Their largest clean-validation shift lies between @@LATE_MISSING_SHIFT_LOW@@ and @@LATE_MISSING_SHIFT_HIGH@@. `docs/runs/2026-09-29-gpu-queue.md` item 1 says these models hold only the top 2 rates, which is what the run record of the last sweep lists, but the lower rates were cached earlier. Rerunning the ladder will not give them an adaptive rate. Read at the nearest rate, all @@PANEL_NEAREST_N@@ models are covered and the pick reads @@PANEL_NEAREST_PICK_AUROC@@. That reading includes the @@PANEL_TACT_N@@ TaCT models, too few for an interval. Min-rank lowers their AUROC on @@PANEL_TACT_MINRANK_LOWER@@ of them with a mean change of @@PANEL_TACT_MINRANK_MEAN@@, and the pick lowers it on @@PANEL_TACT_PICK_LOWER@@ with a mean change of @@PANEL_TACT_PICK_MEAN@@, so the 0.9 share bounds the damage without removing it.
 
@@ -1041,7 +1095,7 @@ Each table reads `fusion_rules_<set>.json`, `summary.<rate rule>.<partner>.all.<
 
 **Late band per attack.**
 
-Each cell is mean AUROC / mean TPR at 10% FPR (`summary.<rate rule>.late_band.by_attack`).
+Each cell is mean TPR at 1% / 5% / 10% nominal FPR (`summary.<rate rule>.late_band.by_attack`).
 
 **Held-out set, adaptive rate.**
 

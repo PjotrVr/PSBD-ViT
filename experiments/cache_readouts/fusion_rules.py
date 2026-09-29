@@ -59,8 +59,11 @@ RULES = (
 REFERENCE_RULE = "tm_alone"
 # Budget shares of PSBD-TM in the weighted minimum, the partner gets the rest.
 WEIGHTED_SHARES = {"weighted_0.8_0.2": 0.8, "weighted_0.9_0.1": 0.9}
-QUANTILES = (0.01, 0.10, 0.20)
-REPORTED_QUANTILES = ("q0.01", "q0.10", "q0.20")
+# 1%, 5% and 10% FPR are the headline operating points. 20% stays as a
+# secondary reading.
+QUANTILES = (0.01, 0.05, 0.10, 0.20)
+REPORTED_QUANTILES = ("q0.01", "q0.05", "q0.10", "q0.20")
+HEADLINE_FPR_FIELDS = ("q0.01:tpr", "q0.05:tpr", "q0.10:tpr")
 # "adaptive" is the paper's rule and the primary reading. "nearest" reads a
 # partner whose ladder never reaches the target at its closest rate, so the
 # models the adaptive rule loses are still reported under their own label.
@@ -292,39 +295,49 @@ def summarize_group(rows, rate_rule, name):
 def plot(summary, model_set, json_path):
     partners = list(PARTNERS)
     figure, axes = plt.subplots(
-        1, len(partners), figsize=(16, 4.5), sharey=True, squeeze=False
+        len(HEADLINE_FPR_FIELDS),
+        len(partners),
+        figsize=(16, 4 * len(HEADLINE_FPR_FIELDS)),
+        sharey=True,
+        squeeze=False,
     )
     plotted = {}
     fused_rules = [rule for rule in RULES if rule != REFERENCE_RULE]
     width = 0.8 / len(fused_rules)
-    for index, name in enumerate(partners):
-        axis = axes[0][index]
-        by_attack = summary[name]["by_attack"]
-        attacks = list(by_attack)
-        for rule_index, rule in enumerate(fused_rules):
-            heights = [by_attack[a][rule]["q0.10:tpr"]["mean"] for a in attacks]
-            positions = [
-                i + (rule_index - len(fused_rules) / 2 + 0.5) * width
-                for i in range(len(attacks))
-            ]
-            axis.bar(positions, heights, width, label=rule, color=OKABE_ITO[rule_index])
-            plotted[f"{name}/{rule}"] = dict(zip(attacks, heights))
-        reference = [by_attack[a][REFERENCE_RULE]["q0.10:tpr"]["mean"] for a in attacks]
-        plotted[f"{name}/{REFERENCE_RULE}"] = dict(zip(attacks, reference))
-        axis.hlines(
-            reference,
-            [i - 0.45 for i in range(len(attacks))],
-            [i + 0.45 for i in range(len(attacks))],
-            colors="black",
-            label="PSBD-TM alone",
-        )
-        axis.set_xticks(range(len(attacks)))
-        axis.set_xticklabels(
-            [f"{a}\n(n={by_attack[a]['n']})" for a in attacks], fontsize=8
-        )
-        axis.set_title(f"PSBD-TM with {PARTNERS[name]}", fontsize=9)
-        axis.set_ylim(0, 1)
-    axes[0][0].set_ylabel("mean TPR at 10% nominal FPR")
+    for row_index, field in enumerate(HEADLINE_FPR_FIELDS):
+        nominal = float(field.split(":")[0][1:])
+        for index, name in enumerate(partners):
+            axis = axes[row_index][index]
+            by_attack = summary[name]["by_attack"]
+            attacks = list(by_attack)
+            for rule_index, rule in enumerate(fused_rules):
+                heights = [by_attack[a][rule][field]["mean"] for a in attacks]
+                positions = [
+                    i + (rule_index - len(fused_rules) / 2 + 0.5) * width
+                    for i in range(len(attacks))
+                ]
+                axis.bar(
+                    positions, heights, width, label=rule, color=OKABE_ITO[rule_index]
+                )
+                plotted[f"{field}/{name}/{rule}"] = dict(zip(attacks, heights))
+            reference = [by_attack[a][REFERENCE_RULE][field]["mean"] for a in attacks]
+            plotted[f"{field}/{name}/{REFERENCE_RULE}"] = dict(zip(attacks, reference))
+            axis.hlines(
+                reference,
+                [i - 0.45 for i in range(len(attacks))],
+                [i + 0.45 for i in range(len(attacks))],
+                colors="black",
+                label="PSBD-TM alone",
+            )
+            axis.set_xticks(range(len(attacks)))
+            axis.set_xticklabels(
+                [f"{a}\n(n={by_attack[a]['n']})" for a in attacks], fontsize=8
+            )
+            axis.set_title(
+                f"PSBD-TM with {PARTNERS[name]}, TPR at {nominal:.0%} FPR", fontsize=9
+            )
+            axis.set_ylim(0, 1)
+        axes[row_index][0].set_ylabel(f"mean TPR at {nominal:.0%} nominal FPR")
     axes[0][0].legend(fontsize=7)
     figure.suptitle(f"Fusion rules at the adaptive rate, {model_set} set")
 

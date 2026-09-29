@@ -6,7 +6,7 @@ matched-0.6 clean-validation shift ratio) should rank the same samples as
 fragile, even when the position and the operator differ. This computes the
 per-sample fractional PSU of every basis placement at its own matched-0.6 rate,
 the Spearman correlation between every pair on the clean split and separately on
-the backdoor split, and averages over the clearing cells that carry both members
+the backdoor split, and averages over the successful cells that carry both members
 of a pair.
 
 The slow step is disk I/O: up to 18 placements times 2 splits times 65 cells of

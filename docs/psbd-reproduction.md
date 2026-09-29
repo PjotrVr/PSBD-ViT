@@ -1,5 +1,7 @@
 # Reproducing PSBD's ResNet-18 numbers
 
+> Superseded on 2026-09-29: the panel numbers below were read before the results moved to the successful backdoors at the 2-point clean-accuracy bar (the 57-model panel and earlier). They are kept as they were measured. The current values are the macros in `paper/headline.tex`, and `.claude/CLAUDE.md` and `README.md` state them.
+
 Status: 2026-09-07. All 6 cells complete (CIFAR-10 and GTSRB x BadNet, Blend, WaNet).
 Epoch sweep running.
 

@@ -1,6 +1,6 @@
 """How the shift-ratio target chosen for detection trades off against AUROC and TPR.
 
-Every clearing cell's psbd_metrics.json carries a whole rate ladder for the
+Every successful cell's psbd_metrics.json carries a whole rate ladder for the
 recommended placement, each rung with its own achieved clean-validation shift
 ratio and its own AUROC and TPR at the false-positive budgets. Interpolating
 every cell's ladder onto 1 shared grid of shift ratios (defenses.decision
@@ -42,8 +42,8 @@ from scripts.paper._common import (  # noqa: E402
 
 GENERATOR = "scripts/paper/fig_shift_ladder.py"
 
-# The 4 datasets this project validates on (docs/hypothesis/README.md): 65
-# clearing cells everywhere in the paper means these, never coverage.json's
+# The 4 datasets this project validates on (docs/hypothesis/README.md): the
+# successful cells everywhere in the paper means these, never coverage.json's
 # exploratory eurosat and svhn additions.
 PRIMARY_DATASETS = ("cifar10", "cifar100", "gtsrb", "tiny")
 
@@ -270,7 +270,7 @@ def main() -> None:
         path=figure_path.replace(".pdf", ".json"),
         generator=GENERATOR,
         inputs=[
-            f"{args.results_dir}/<folder>/psbd_metrics.json (65 clearing cells, "
+            f"{args.results_dir}/<folder>/psbd_metrics.json ({len(cells)} successful cells, "
             f"placements.{RECOMMENDED_PLACEMENT}.rates)"
         ],
         plotted=plotted,

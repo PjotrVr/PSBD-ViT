@@ -123,10 +123,11 @@ vit = table[(table.architecture == "vit") & (table.kind == "attack")]
 with open("paper/headline.json") as handle:
     paper_macros = json.load(handle)
 
-# The headline population: ViT models that clear the ASR bar and carry both
-# PSBD-TM and PSBD-RD at the adaptive rule, the population of the paper's headline.
+# The headline population: ViT models that are successful backdoors at the
+# headline bar (successful_2pt) and carry both PSBD-TM and PSBD-RD at the
+# adaptive rule, the population of the paper's headline.
 both = (
-    vit[(vit.asr_class == "clears") & vit.defense.isin(["PSBD-TM", "PSBD-RD"]) & (vit.status == "scored")]
+    vit[vit.successful_2pt.astype(bool) & vit.defense.isin(["PSBD-TM", "PSBD-RD"]) & (vit.status == "scored")]
     .groupby("folder_name")
     .defense.nunique()
 )
@@ -519,8 +520,7 @@ A reader could ask why PSBD needs PSU at all, since $\sigma(x)$ is already a per
 """)
 
 code(r"""
-measured = []
-for folder in PANEL:
+def measure_scores(folder):
     data = load_rate(folder, TM, reading(folder, "PSBD-TM", "rate"))
     split_manifest = data["manifest"]
     scores = {
@@ -534,8 +534,10 @@ for folder in PANEL:
     for name, function in scores.items():
         clean = pair_clean_to_backdoor(function(data["clean"]), split_manifest)
         row[name] = one_sided_auroc(clean, function(data["backdoor"]))
-    measured.append(row)
-measured = pd.DataFrame(measured).set_index("folder_name")
+    return row
+
+
+measured = pd.DataFrame([measure_scores(folder) for folder in PANEL]).set_index("folder_name")
 
 # The recomputed fractional AUROC is the stored PSBD-TM reading on every model.
 stored = pd.Series({folder: reading(folder, "PSBD-TM") for folder in PANEL})
@@ -614,16 +616,22 @@ plt.show()
 
 gap = (measured["confidence"] - measured["confidence detector record"]).abs()
 disagreeing = list(gap[gap > 1e-3].index)
+# The SIG model is out of the headline population (it fails the clean-accuracy
+# bar), and it is the 1 model whose cache and detector record disagree, so it is
+# measured on its own for the next cell.
+sig_scores = measure_scores(SIG)
+sig_gap = abs(sig_scores["confidence"] - reading(SIG, "confidence"))
 say(f'''
 Each point is 1 headline model, with the confidence AUROC on the horizontal axis and the fractional PSU AUROC on the vertical axis. Every point above the diagonal is a model where the perturbed passes add separation that confidence alone does not have. Fractional PSU is above confidence on {int((measured["fractional PSU"] > measured["confidence"]).sum())} of {len(measured)} models, with means of {measured["fractional PSU"].mean():.3f} against {measured["confidence"].mean():.3f}. The measurement rules out PSU being confidence alone on this population. It does not say why the passes help, which `experiments/why_token_masking_works/` measures. It also does not rule out that confidence carries part of the signal, since confidence alone exceeds 0.9 AUROC on {int((measured["confidence"] > 0.9).sum())} models.
 
-The cross-check against the detector record agrees exactly on {len(measured) - len(disagreeing)} of {len(measured)} models and disagrees on {len(disagreeing)}: {word_list(list(f"`{folder}`" for folder in disagreeing))}. The next cell takes that disagreement apart.
+The cross-check against the detector record agrees exactly on {len(measured) - len(disagreeing)} of {len(measured)} models and disagrees on {len(disagreeing)}{": " + word_list(list(f"`{folder}`" for folder in disagreeing)) if disagreeing else ""}. Run on `{SIG}`, which the clean-accuracy bar leaves out of the headline population, the same check {"disagrees" if sig_gap > 1e-3 else "agrees"}, by {sig_gap:.3f} AUROC. The next cell takes that disagreement apart, since the model was in the headline until the panel moved to the success bar.
 ''')
 """)
 
 code(r"""
 sig_dir = f"{RESULTS}/{SIG}"
-assert reading(SIG, "PSBD-TM") == min(reading(folder, "PSBD-TM") for folder in PANEL)
+headline_floor = min(reading(folder, "PSBD-TM") for folder in PANEL)
+sig_drop = models.set_index("folder_name").loc[SIG, "clean_accuracy_drop"]
 sig_run = read_run_provenance(f"{sig_dir}/psbd", TM)
 with open(f"{sig_dir}/detectors/confidence_metrics.json") as handle:
     sig_record = json.load(handle)
@@ -636,7 +644,7 @@ baseline_written = datetime.datetime.fromtimestamp(os.path.getmtime(baseline_pat
 checkpoint_written = datetime.datetime.fromtimestamp(os.path.getmtime(f"checkpoints/{SIG}/attack_result.pt"), datetime.timezone.utc)
 
 say(f'''
-On `{SIG}` the per-image confidence from the PSBD cache and from the detector record differ by at most {split_gaps["validation"]:.3f} on validation, {split_gaps["clean"]:.3f} on clean and {split_gaps["backdoor"]:.3f} on the triggered split. The confidence AUROC reads {measured.loc[SIG, "confidence"]:.3f} from the cache and {measured.loc[SIG, "confidence detector record"]:.3f} from the record. The record states `manifest_matches_psbd_cache` = {sig_record["provenance"]["split"]["manifest_matches_psbd_cache"]} and the same {sig_record["provenance"]["split"]["n_backdoor"]} triggered rows, and the checkpoint was written on {checkpoint_written:%Y-%m-%d}, before both runs, so the 2 runs scored the same model on the same images and stamped different SIG triggers onto them. The PSBD baseline of the triggered split was written on {baseline_written:%Y-%m-%d}, and the PSBD-TM sweep records commit `{sig_run["git_commit"][:7]}`. The detector records were scored on {sig_record["provenance"]["scored_at"][:10]} at commit `{sig_record["provenance"]["git_commit"][:7]}`. This is the model on which PSBD-TM reads {reading(SIG, "PSBD-TM"):.3f}, its lowest AUROC on the headline population, so that reading and the competitor readings on the same model are taken on different triggered images until the SIG cache is regenerated. The SIG trigger amplitude of models trained before the current `attacks/sig.py` is under audit, and `all_numbers.csv` keeps every SIG row with the note "{models.set_index("folder_name").loc[SIG, "audit_note"]}". The next question is at which rate to run the passes, since every number so far was read at a rate chosen by a rule not yet shown.
+On `{SIG}` the per-image confidence from the PSBD cache and from the detector record differ by at most {split_gaps["validation"]:.3f} on validation, {split_gaps["clean"]:.3f} on clean and {split_gaps["backdoor"]:.3f} on the triggered split. The confidence AUROC reads {sig_scores["confidence"]:.3f} from the cache and {reading(SIG, "confidence"):.3f} from the record. The record states `manifest_matches_psbd_cache` = {sig_record["provenance"]["split"]["manifest_matches_psbd_cache"]} and the same {sig_record["provenance"]["split"]["n_backdoor"]} triggered rows, and the checkpoint was written on {checkpoint_written:%Y-%m-%d}, before both runs, so the 2 runs scored the same model on the same images and stamped different SIG triggers onto them. The PSBD baseline of the triggered split was written on {baseline_written:%Y-%m-%d}, and the PSBD-TM sweep records commit `{sig_run["git_commit"][:7]}`. The detector records were scored on {sig_record["provenance"]["scored_at"][:10]} at commit `{sig_record["provenance"]["git_commit"][:7]}`. This is the model on which PSBD-TM reads {reading(SIG, "PSBD-TM"):.3f}, {"below" if reading(SIG, "PSBD-TM") < headline_floor else "above"} the lowest reading of the headline population ({headline_floor:.3f}), so that reading and the competitor readings on the same model are taken on different triggered images until the SIG cache is regenerated. The model is out of every mean anyway: its clean accuracy is {sig_drop:+.3f} against the benign model, past both success bars. The SIG trigger amplitude of models trained before the current `attacks/sig.py` is under audit, and `all_numbers.csv` keeps every SIG row with the note "{models.set_index("folder_name").loc[SIG, "audit_note"]}". The next question is at which rate to run the passes, since every number so far was read at a rate chosen by a rule not yet shown.
 ''')
 """)
 
@@ -867,7 +875,7 @@ A detection number on a model whose attack never implanted is meaningless, since
 - `diverged` overrides it when the clean accuracy is below `DIVERGENCE_FRACTION` = {DIVERGENCE_FRACTION} of the benign reference. A model that collapsed to predicting 1 class sends every triggered image to that class and reads a high ASR for a reason that has nothing to do with a backdoor.
 - `source_mapped` overrides it when the model's clean accuracy on the source classes of a source-specific attack (TaCT) is below `SOURCE_MAPPED_ACCURACY` = {SOURCE_MAPPED_ACCURACY}. When every source image was poisoned in training, the model learns to send the whole class to the target with no trigger, and the ASR, which reads triggered images only, cannot see that.
 
-The **success bars** are 2 verdicts added beside `asr_class` without changing it, by `success_verdicts`. $\\Delta CA$ is the clean accuracy of the model minus the clean accuracy of the benign model trained on the same dataset with the same recipe, negative when the attack cost accuracy. `successful_2pt`, the headline success definition, requires `clears` and $\\Delta CA \\ge$ `clean_accuracy_drop_bar_headline` = {declaration["clean_accuracy_drop_bar_headline"]}. `successful_5pt` requires `clears` and $\\Delta CA \\ge$ `clean_accuracy_drop_bar` = {declaration["clean_accuracy_drop_bar"]}. A backdoor that costs noticeable clean accuracy is a backdoor a defender could spot by accuracy alone, which is why the user set the headline bar at the tighter value and asked every number to be given at the looser one as well. `asr_class` stays as it was because the paper generators select on it, and the paper is regenerated separately.
+The **success bars** are 2 verdicts added beside `asr_class` without changing it, by `success_verdicts`. $\\Delta CA$ is the clean accuracy of the model minus the clean accuracy of the benign model trained on the same dataset with the same recipe, negative when the attack cost accuracy. `successful_2pt`, the headline success definition, requires `clears` and $\\Delta CA \\ge$ `clean_accuracy_drop_bar_headline` = {declaration["clean_accuracy_drop_bar_headline"]}. `successful_5pt` requires `clears` and $\\Delta CA \\ge$ `clean_accuracy_drop_bar` = {declaration["clean_accuracy_drop_bar"]}. A backdoor that costs noticeable clean accuracy is a backdoor a defender could spot by accuracy alone, which is why the user set the headline bar at the tighter value and asked every number to be given at the looser one as well. `asr_class` stays as it was, since it is the implantation count, and every result is computed over the `successful_2pt` models (`scripts.paper._common.clearing_cells`), with the second-bar macros read on the `successful_5pt` models.
 ''')
 show_source(success_verdicts)
 show_source(classify_by_asr)
@@ -877,7 +885,8 @@ code(r"""
 clears = panel_models[panel_models.asr_class == "clears"]
 failing = clears[~clears.successful_2pt.astype(bool) | ~clears.successful_5pt.astype(bool)]
 display(failing[["folder_name", "asr", "clean_accuracy", "clean_accuracy_benign", "clean_accuracy_drop", "successful_2pt", "successful_5pt"]].set_index("folder_name").round(4))
-unswept = sorted(set(clears.folder_name) - set(PANEL))
+successful = clears[clears.successful_2pt.astype(bool)]
+unswept = sorted(set(successful.folder_name) - set(PANEL))
 diverged = panel_models[panel_models.asr_class == "diverged"]
 
 figure, axis = plt.subplots(figsize=(6.5, 3.4))
@@ -900,7 +909,7 @@ failing_words = word_list(list(f"`{row.folder_name}` ($\\Delta CA$ {row.clean_ac
 say(f'''
 The ledger counts on the ViT panel are {word_list([f"{count} `{name}`" for name, count in panel_models.asr_class.value_counts().items()])}. {int(panel_models.successful_2pt.sum())} models are successful at the headline bar against {int(panel_models.successful_5pt.sum())} at the second bar. Each point of the figure is 1 panel model, with the clean accuracy change on the horizontal axis and the ASR on the vertical axis, colored by `asr_class`. The diverged model ($\\Delta CA$ {diverged.clean_accuracy_drop.iloc[0]:+.3f}) lies off the left edge, which is cut so the rest stay readable. A successful model sits above the dashed ASR line, right of the solid headline line (or the dotted second line for the looser bar) and in blue.
 
-The reader should look at the blue points left of the lines: {failing_words}. The declaration has carried the second bar since the panel was defined, and nothing enforced it until the ledger gained these verdicts, so `paper/sections/setup.tex`, which states that a model enters the detection results only within `\\CleanDropBar` of its benign reference, describes a condition its own panel does not apply. {len(unswept)} clearing models ({word_list(list(f"`{folder}`" for folder in unswept))}) have no PSBD-TM and PSBD-RD readings yet, which is why the headline population holds {len(PANEL)} models and not {len(clears)}. The paper's `PanelCellsCached` macro reads {macro("PanelCellsCached")} and `PanelCellsClearing` reads {macro("PanelCellsClearing")}. The next question is how 2 placements are compared over the models that remain.
+The reader should look at the blue points left of the lines: {failing_words}. These are the models the headline bar removes from every result. {len(unswept)} successful models ({word_list(list(f"`{folder}`" for folder in unswept))}) have no PSBD-TM and PSBD-RD readings yet, which is why the headline population holds {len(PANEL)} models and not {len(successful)}. The paper's `PanelCellsCached` macro reads {macro("PanelCellsCached")}, `PanelCellsSuccessful` reads {macro("PanelCellsSuccessful")} and `PanelCellsClearing`, the implantation count, reads {macro("PanelCellsClearing")}. The next question is how 2 placements are compared over the models that remain.
 ''')
 """)
 
@@ -990,7 +999,7 @@ The rank is computed per metric (AUROC, and TPR at the {BUDGETS[0]:.2f} and {BUD
 
 code(r"""
 defenses = ["PSBD-TM", "PSBD-RD", *DETECTOR_NAMES]
-clearing_rows = vit[(vit.asr_class == "clears") & (vit.status == "scored") & vit.defense.isin(defenses)]
+clearing_rows = vit[vit.successful_2pt.astype(bool) & (vit.status == "scored") & vit.defense.isin(defenses)]
 meta = models.set_index("folder_name")
 ranking = {}
 for metric, macro_stem in (("auroc", "Auroc"), (f"tpr_q{BUDGETS[0]:.2f}", "TprOneZero"), (f"tpr_q{BUDGETS[1]:.2f}", "TprTwoZero")):
@@ -1038,7 +1047,7 @@ tpr_high = ranking[f"tpr_q{BUDGETS[1]:.2f}"]
 say(f'''
 The bar chart lists the {auroc_rank["defenses"]} defenses in rank order by mean AUROC over the {auroc_rank["models"]} compared models, PSBD-TM in orange, PSBD-RD in blue and the competitors in gray, with the dotted line at chance. The table above it puts the recomputed rank, best competitor, margin and interval of each metric beside the paper's macros. On AUROC PSBD-TM ranks {auroc_rank["rank TM"]} of {auroc_rank["defenses"]} (paper {auroc_rank["paper rank TM"]}) and PSBD-RD {auroc_rank["rank RD"]} (paper {auroc_rank["paper rank RD"]}). The strongest competitor is `{auroc_rank["best"]}` at {auroc_rank["best mean"]:.3f}. PSBD-TM's margin over it is {auroc_rank["margin"]:+.3f} [{auroc_rank["low"]:+.3f}, {auroc_rank["high"]:+.3f}] against the paper's {auroc_rank["paper margin"]} [{auroc_rank["paper low"]}, {auroc_rank["paper high"]}]. The TPR margins are {tpr_low["margin"]:+.3f} [{tpr_low["low"]:+.3f}, {tpr_low["high"]:+.3f}] at the {BUDGETS[0]:.2f} budget and {tpr_high["margin"]:+.3f} [{tpr_high["low"]:+.3f}, {tpr_high["high"]:+.3f}] at the {BUDGETS[1]:.2f} budget.
 
-The reader should keep 3 limits in mind. The rank is over means, so it says nothing about any single attack, and `notebooks/all-numbers.ipynb` breaks it out per attack and dataset. The compared models are the clearing models, which include `{SIG}`, a model that fails both success bars and whose PSBD cache and detector records hold different triggered images. And a rank is not a significance statement, which is why the margin carries its interval.
+The reader should keep 3 limits in mind. The rank is over means, so it says nothing about any single attack, and `notebooks/all-numbers.ipynb` breaks it out per attack and dataset. The compared models are the successful models at the headline bar, so `{SIG}`, whose PSBD cache and detector records hold different triggered images, is not among them. And a rank is not a significance statement, which is why the margin carries its interval.
 ''')
 """)
 

@@ -3,7 +3,7 @@
 2 tables. The first is the declaration read back, 1 row per basis placement with
 its position, operator, block band, family and rate ladder, so the appendix shows
 exactly what every panel cell was swept with. The second ranks every placement on
-the clearing cells at both rate rules, with the cells it reaches, its worst cell
+the successful cells at both rate rules, with the cells it reaches, its worst cell
 and its inversions, so a reader can see the whole search and not only the winner.
 
     PYTHONPATH=. python scripts/paper/app_basis.py \\

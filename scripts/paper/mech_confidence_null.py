@@ -17,6 +17,7 @@ sys.path.insert(0, os.getcwd())
 
 from scripts.paper._common import (  # noqa: E402
     build_parser,
+    excluded_folders,
     dataset_label,
     fmt,
     experiment_artifact,
@@ -38,12 +39,14 @@ def main() -> None:
     record = load_json(path)
     if record is None:
         raise SystemExit(f"{path} is missing")
+    excluded = excluded_folders(args.results_dir)
     rows = {
         folder: values
         for folder, values in record["rows"].items()
         if folder.startswith("vit_")
         and is_panel_folder(folder)
         and "benign" not in folder
+        and folder not in excluded
     }
     benign = {
         folder: values

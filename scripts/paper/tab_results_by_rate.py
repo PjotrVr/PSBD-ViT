@@ -6,13 +6,14 @@ clean accuracy from results/coverage/coverage.json, then AUROC and TPR at the
 0.10 and 0.20 clean-validation quantiles for 2 placements, both read at the
 adaptive rule with `cli.compare.detectors_psbd_values`, the same reader
 `tab_headline.py` uses. PSBD-TM is `before_attention_norm_token_mask`, PSBD-RD
-is `post_residual`. A checkpoint below the attack success bar keeps its ASR and
-CA and prints "--" in every detection column. A checkpoint that cleared the bar
-but has no sweep yet prints "pending" instead. The higher of the 2 placements'
+is `post_residual`. A checkpoint that is not a successful backdoor (below the
+attack success bar, diverged, source-mapped or past the headline clean-accuracy
+bar) keeps its ASR and CA and prints "--" in every detection column. A
+successful checkpoint with no sweep yet prints "pending" instead. The higher of the 2 placements'
 AUROC is bolded per row, and no AUROC is ever flipped.
 
 `results_benign.tex` carries 1 row per dataset: the benign reference model's
-clean accuracy and how many of that dataset's checkpoints cleared the bar.
+clean accuracy and how many of that dataset's checkpoints are successful backdoors.
 
     PYTHONPATH=. python scripts/paper/tab_results_by_rate.py \
         --results-dir /path/to/results --paper-dir paper
@@ -33,6 +34,8 @@ from defenses.decision import (  # noqa: E402
 from scripts.paper._common import (  # noqa: E402
     PANEL_DATASETS,
     HEADLINE_KEY,
+    HEADLINE_BAR_POINTS,
+    HEADLINE_SUCCESS,
     attack_label,
     build_parser,
     dataset_label,
@@ -101,7 +104,7 @@ def build_row(
     clean_accuracy_text = fmt(cell.get("clean_accuracy"))
     leading = [attack_label(cell["attack"]), asr_text, clean_accuracy_text]
 
-    if cell["asr_class"] != "clears":
+    if not cell[HEADLINE_SUCCESS]:
         row = leading + ["--"] * 6
         return row
 
@@ -190,16 +193,14 @@ def write_rate_table(
 
 
 def benign_rows(coverage: dict, cells: list[dict]) -> list[list[str]]:
-    """1 row per dataset: benign clean accuracy and how many checkpoints cleared the bar."""
+    """1 row per dataset: benign clean accuracy and how many checkpoints are successful."""
     rows = []
     for dataset in DATASET_ORDER:
         benign_accuracy = coverage["benign_reference_accuracy"].get(dataset)
         if benign_accuracy is None:
             continue
         clearing_count = sum(
-            1
-            for cell in cells
-            if cell["dataset"] == dataset and cell["asr_class"] == "clears"
+            1 for cell in cells if cell["dataset"] == dataset and cell[HEADLINE_SUCCESS]
         )
         rows.append([dataset_label(dataset), fmt(benign_accuracy), str(clearing_count)])
     return rows
@@ -229,7 +230,13 @@ def main() -> None:
             path=os.path.join(args.paper_dir, "tables", f"results_rate_{pct}.tex"),
             generator=GENERATOR,
             inputs=inputs,
-            caption=f"Detection results at {pct}\\% poisoning on ViT-B/16.",
+            caption=(
+                f"Detection results at {pct}\\% poisoning on ViT-B/16. A model "
+                "that is not a successful backdoor (attack success below the bar, "
+                "or clean accuracy more than "
+                f"{HEADLINE_BAR_POINTS} points below the benign model) prints -- "
+                "in every detection column."
+            ),
             label=f"tab:results-rate-{pct}",
             groups=groups,
         )
@@ -240,7 +247,7 @@ def main() -> None:
         inputs=[coverage_path],
         caption="Benign reference models.",
         label="tab:results-benign",
-        header=["Dataset", "Clean Accuracy", "Attacks Above ASR Bar"],
+        header=["Dataset", "Clean Accuracy", "Successful Attacks"],
         rows=benign_rows(coverage, cells),
         align="lrr",
     )
@@ -249,7 +256,7 @@ def main() -> None:
         1
         for rate in RATE_VALUES
         for key, cell in cells_by_key.items()
-        if key[2] == rate and cell["asr_class"] != "clears"
+        if key[2] == rate and not cell[HEADLINE_SUCCESS]
     )
     macros = {
         "results_rate_1_rows": (
@@ -267,11 +274,11 @@ def main() -> None:
         "results_below_bar_rows": (
             str(below_bar_rows),
             "rows across the 3 rate tables printed with -- in every detection "
-            "column because the attack did not clear the ASR bar",
+            "column because the model is not a successful backdoor",
         ),
         "results_missing_sweep": (
             str(len(missing_sweep)),
-            "checkpoints that cleared the ASR bar but have no psbd_metrics.json "
+            "successful checkpoints that have no psbd_metrics.json "
             "yet, printed as pending across the 3 rate tables",
         ),
         "results_partial_missing": (

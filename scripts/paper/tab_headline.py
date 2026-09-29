@@ -1,6 +1,6 @@
 """T2: the recommended placement against the published placement.
 
-3 configurations are read on every one of the 65 clearing cells: the
+3 configurations are read on every successful cell of the panel: the
 recommended placement (before_attention_norm_token_mask) at the adaptive 0.8
 rule, the same placement at the matched 0.6 rule, and the published placement
 (post_residual) at the adaptive rule. Every quantile's AUROC and TPR comes from
@@ -28,6 +28,7 @@ from defenses.decision import (  # noqa: E402
 from scripts.paper._common import (  # noqa: E402
     PANEL_DATASETS,
     HEADLINE_KEY,
+    SECOND_SUCCESS,
     bootstrap_ci,
     build_parser,
     ci_text,
@@ -37,6 +38,7 @@ from scripts.paper._common import (  # noqa: E402
     load_coverage,
     load_psbd_metrics,
     mean_or_none,
+    second_bar_macros,
     write_macros,
     write_table,
 )
@@ -57,6 +59,19 @@ DATASET_ORDER = PANEL_DATASETS
 # enough that the false positives on clean traffic dominate the flags.
 BUDGET_KEYS = ("q0.10", "q0.20")
 DEPLOYMENT_PREVALENCE = 0.01
+# The headline macros also given at the 5-point clean-accuracy bar.
+SECOND_BAR_MACROS = (
+    "headline_paired_cells",
+    "headline_auroc_adaptive",
+    "headline_auroc_matched",
+    "published_auroc_adaptive",
+    "headline_gain_adaptive_auroc",
+    "headline_gain_adaptive_auroc_low",
+    "headline_gain_adaptive_auroc_high",
+    "headline_gain_matched_auroc",
+    "headline_floor_auroc",
+    "headline_inversions",
+)
 
 
 def measure_cell(results_dir: str, folder: str) -> dict[str, dict | None]:
@@ -217,76 +232,12 @@ def operating_point_macros(cells: list[dict]) -> dict:
     return macros
 
 
-def main() -> None:
-    args = build_parser(__doc__).parse_args()
-    coverage_path = os.path.join(args.results_dir, "coverage", "coverage.json")
-    coverage = load_coverage(args.results_dir)
-    cells = clearing_cells(coverage)
-
-    for cell in cells:
-        cell["values"] = measure_cell(args.results_dir, cell["folder_name"])
-
-    inputs = [
-        coverage_path,
-        f"{args.results_dir}/<folder>/psbd_metrics.json ({len(cells)} cells)",
-    ]
-
-    big_rows = [big_table_row(name, subset) for name, subset in subsets(cells)]
-    write_table(
-        path=os.path.join(args.paper_dir, "tables", "headline.tex"),
-        generator=GENERATOR,
-        inputs=inputs,
-        caption=(
-            "AUROC and TPR at 4 false-positive budgets for the token\\_mask placement "
-            "at the attention input (`before\\_attention\\_norm\\_token\\_mask`) at the "
-            "adaptive 0.8 rule and the matched 0.6 rule, and the dropout placement "
-            "after the residual add (`post\\_residual`) at the adaptive rule, over "
-            f"the panel of {len(cells)} backdoored models. n is the common-coverage count of "
-            "the row, the models where all 3 configurations returned a value."
-        ),
-        label="tab:headline",
-        header=big_table_header(),
-        rows=big_rows,
-        align="l" + "r" * (len(big_table_header()) - 1),
-    )
-
-    delta_rows = [
-        delta_table_row(name, subset, args.bootstrap, args.seed)
-        for name, subset in subsets(cells)
-    ]
-    write_table(
-        path=os.path.join(args.paper_dir, "tables", "headline_deltas.tex"),
-        generator=GENERATOR,
-        inputs=inputs,
-        caption=(
-            "Paired AUROC deltas at the headline quantile q0.25, token mask at the "
-            "attention input minus dropout after the residual add, both at the "
-            "adaptive rule, and token mask at the attention input at the matched "
-            "0.6 rule against dropout after the residual add at the adaptive rule. "
-            f"{args.bootstrap}-resample bootstrap 95\\% intervals, seed {args.seed}."
-        ),
-        label="tab:headline-deltas",
-        header=[
-            "subset",
-            "n adapt",
-            "token mask, attention input (adaptive) minus dropout, after residual add",
-            "95% CI",
-            "n match",
-            "token mask, attention input (matched) minus dropout, after residual add",
-            "95% CI",
-        ],
-        rows=delta_rows,
-        align="lrrlrrl",
-    )
-
+def panel_macros(cells: list[dict], resamples: int, seed: int) -> dict:
+    """The headline numbers on 1 panel, each cell carrying its measured values."""
     all_cells_delta_adapt = paired_deltas(cells, "rec_adapt", "pub_adapt")
     all_cells_delta_match = paired_deltas(cells, "rec_match", "pub_adapt")
-    low_adapt, high_adapt = bootstrap_ci(
-        all_cells_delta_adapt, args.bootstrap, args.seed
-    )
-    low_match, high_match = bootstrap_ci(
-        all_cells_delta_match, args.bootstrap, args.seed
-    )
+    low_adapt, high_adapt = bootstrap_ci(all_cells_delta_adapt, resamples, seed)
+    low_match, high_match = bootstrap_ci(all_cells_delta_match, resamples, seed)
 
     # The abstract quotes these 2 means side by side as a head-to-head, so they
     # have to be read on the same models. Taken over whichever cells each
@@ -312,6 +263,11 @@ def main() -> None:
     ]
 
     macros = {
+        "headline_paired_cells": (
+            str(len(rec_adapt_auroc)),
+            "successful cells carrying both compared placements, the population "
+            "of the headline means and the paired gain",
+        ),
         "headline_auroc_adaptive": (
             fmt(mean_or_none(rec_adapt_auroc)),
             "mean AUROC of the recommended placement at the adaptive rule, over "
@@ -320,7 +276,7 @@ def main() -> None:
         "headline_auroc_matched": (
             fmt(mean_or_none(rec_match_auroc)),
             "mean AUROC of the recommended placement at the matched 0.6 rule, "
-            f"over the {len(rec_match_auroc)} cells it covers of the {len(cells)} clearing cells",
+            f"over the {len(rec_match_auroc)} cells it covers of the {len(cells)} successful cells",
         ),
         "published_auroc_adaptive": (
             fmt(mean_or_none(pub_adapt_auroc)),
@@ -391,6 +347,77 @@ def main() -> None:
         ),
     }
     macros.update(operating_point_macros(paired_cells))
+    return macros
+
+
+def main() -> None:
+    args = build_parser(__doc__).parse_args()
+    coverage_path = os.path.join(args.results_dir, "coverage", "coverage.json")
+    coverage = load_coverage(args.results_dir)
+    cells = clearing_cells(coverage)
+
+    for cell in cells:
+        cell["values"] = measure_cell(args.results_dir, cell["folder_name"])
+
+    inputs = [
+        coverage_path,
+        f"{args.results_dir}/<folder>/psbd_metrics.json ({len(cells)} cells)",
+    ]
+
+    big_rows = [big_table_row(name, subset) for name, subset in subsets(cells)]
+    write_table(
+        path=os.path.join(args.paper_dir, "tables", "headline.tex"),
+        generator=GENERATOR,
+        inputs=inputs,
+        caption=(
+            "AUROC and TPR at 4 false-positive budgets for the token\\_mask placement "
+            "at the attention input (`before\\_attention\\_norm\\_token\\_mask`) at the "
+            "adaptive 0.8 rule and the matched 0.6 rule, and the dropout placement "
+            "after the residual add (`post\\_residual`) at the adaptive rule, over "
+            f"the panel of {len(cells)} backdoored models. n is the common-coverage count of "
+            "the row, the models where all 3 configurations returned a value."
+        ),
+        label="tab:headline",
+        header=big_table_header(),
+        rows=big_rows,
+        align="l" + "r" * (len(big_table_header()) - 1),
+    )
+
+    delta_rows = [
+        delta_table_row(name, subset, args.bootstrap, args.seed)
+        for name, subset in subsets(cells)
+    ]
+    write_table(
+        path=os.path.join(args.paper_dir, "tables", "headline_deltas.tex"),
+        generator=GENERATOR,
+        inputs=inputs,
+        caption=(
+            "Paired AUROC deltas at the headline quantile q0.25, token mask at the "
+            "attention input minus dropout after the residual add, both at the "
+            "adaptive rule, and token mask at the attention input at the matched "
+            "0.6 rule against dropout after the residual add at the adaptive rule. "
+            f"{args.bootstrap}-resample bootstrap 95\\% intervals, seed {args.seed}."
+        ),
+        label="tab:headline-deltas",
+        header=[
+            "subset",
+            "n adapt",
+            "token mask, attention input (adaptive) minus dropout, after residual add",
+            "95% CI",
+            "n match",
+            "token mask, attention input (matched) minus dropout, after residual add",
+            "95% CI",
+        ],
+        rows=delta_rows,
+        align="lrrlrrl",
+    )
+
+    macros = panel_macros(cells, args.bootstrap, args.seed)
+    second_cells = clearing_cells(coverage, SECOND_SUCCESS)
+    for cell in second_cells:
+        cell["values"] = measure_cell(args.results_dir, cell["folder_name"])
+    second = panel_macros(second_cells, args.bootstrap, args.seed)
+    macros.update(second_bar_macros({name: second[name] for name in SECOND_BAR_MACROS}))
     write_macros(
         os.path.join(args.paper_dir, "tables", "headline.macros.json"),
         GENERATOR,
@@ -399,7 +426,7 @@ def main() -> None:
     )
     print(
         f"headline: {len(common_coverage(cells))}/{len(cells)} common-coverage cells, "
-        f"gain adaptive {fmt(mean_or_none(all_cells_delta_adapt), signed=True)}"
+        f"gain adaptive {macros['headline_gain_adaptive_auroc'][0]}"
     )
 
 

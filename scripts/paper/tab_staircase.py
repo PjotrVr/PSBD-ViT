@@ -1,8 +1,8 @@
 """The results section as a staircase: 4 tables reading 1 axis at a time.
 
-Every row reads the same panel of 65 backdoored ViT models, the clearing cells
+Every row reads the same panel of backdoored ViT models, the successful cells
 that carry the full basis (exactly the models tab_headline.py's common
-coverage selects: every clearing cell where the attention-input token mask
+coverage selects: every successful cell where the attention-input token mask
 site and the paper's own ConvNet site both have a cache). Every column reads
 the adaptive 0.8 rule only. AUROC and the below-chance count are at the
 headline quantile q0.25, the 2 TPR columns at q0.10 and q0.20.
@@ -163,14 +163,14 @@ ALL_PLACEMENT_IDS = sorted(
 
 
 def panel_cells(results_dir: str, coverage: dict) -> list[dict]:
-    """The 65 clearing cells common coverage selects, each carrying its report.
+    """The successful cells common coverage selects, each carrying its report.
 
-    Filters the clearing cells down to the ones where the attention-input token
+    Filters the successful cells down to the ones where the attention-input token
     mask site and the paper's own ConvNet site both returned a value at the
     adaptive and matched rules, the same common-coverage rule
     scripts/paper/tab_headline.py applies. This is not re-implemented by
     calling into tab_headline.py, which stays untouched, but the rule is
-    identical so both generators name the same 65 models.
+    identical so both generators name the same models.
     """
     selected = []
     for cell in clearing_cells(coverage):
@@ -374,7 +374,7 @@ def main() -> None:
 
     inputs = [
         coverage_path,
-        f"{args.results_dir}/<folder>/psbd_metrics.json (65 models)",
+        f"{args.results_dir}/<folder>/psbd_metrics.json ({len(cells)} models)",
     ]
 
     all_macros = {}

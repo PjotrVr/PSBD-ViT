@@ -44,7 +44,7 @@ coverage = load_coverage(RESULTS_DIR)
 declaration = load_declaration("configs/psbd_basis.json")
 print(f"basis declares {len(declaration['basis'])} placements")
 print(f"coverage ledger holds {len(coverage['cells'])} panel models, "
-      f"{len(clearing_cells(coverage))} clear the attack-success bar")
+      f"{len(clearing_cells(coverage))} are successful backdoors (attack success and clean accuracy bars)")
 """
     ),
     md(r"""
@@ -70,7 +70,7 @@ clearing_count = len(clearing_cells(coverage))
 panel_frame.groupby(["attack", "dataset"]).size().unstack(fill_value=0)
 """),
     said(r"""
-    The panel holds {len(cells)} of the {clearing_count} clearing models, and it is uneven by attack: {word_list([f"{attack_label(a)} {n}" for a, n in models_per_attack.items()])}. A mean over the panel therefore weighs the large attacks most, which is why the per-attack figure further down matters.
+    The panel holds {len(cells)} of the {clearing_count} successful models, and it is uneven by attack: {word_list([f"{attack_label(a)} {n}" for a, n in models_per_attack.items()])}. A mean over the panel therefore weighs the large attacks most, which is why the per-attack figure further down matters.
     """),
     md(r"""
     ## Reading 1 placement over the panel
@@ -272,7 +272,7 @@ global_rows = [a for a in ("Blend", "LF", "BPP") if a in per_attack.index]
 per_attack.round(3)
 """),
     said(r"""
-    The largest gains of PSBD-TM over PSBD-RD sit in the 2 patch-trigger rows, BadNets ({per_attack.loc["BadNets", "PSBD-TM"]:.3f} against {per_attack.loc["BadNets", "PSBD-RD"]:.3f}) and TaCT ({per_attack.loc["TaCT", "PSBD-TM"]:.3f} against {per_attack.loc["TaCT", "PSBD-RD"]:.3f}). On {word_list(global_rows)} every placement reads at least {per_attack.loc[global_rows].min().min():.3f}, so the order among them is small. PSBD-RD leads PSBD-TM on {word_list(rd_ahead)}: on WaNet {per_attack.loc["WaNet", "PSBD-RD"]:.3f} against {per_attack.loc["WaNet", "PSBD-TM"]:.3f}, and on the single SIG model PSBD-TM falls to {per_attack.loc["SIG", "PSBD-TM"]:.3f} while the other placements read between {per_attack.loc["SIG"].drop("PSBD-TM").min():.3f} and {per_attack.loc["SIG"].drop("PSBD-TM").max():.3f}. This is the split the paper reports: token masking helps where the trigger lives in a few tokens and ties or trails where the trigger is spread over the image. The SIG row is {models_per_attack["SIG"]} model and the TaCT row {models_per_attack["TaCT"]}, so those 2 rows carry little weight. The figure does not show the poison rate, which `start-here.ipynb` splits (`\GainsLowestRate`, `\GainsHighestRate`).
+    The largest gains of PSBD-TM over PSBD-RD sit in the 2 patch-trigger rows, BadNets ({per_attack.loc["BadNets", "PSBD-TM"]:.3f} against {per_attack.loc["BadNets", "PSBD-RD"]:.3f}) and TaCT ({per_attack.loc["TaCT", "PSBD-TM"]:.3f} against {per_attack.loc["TaCT", "PSBD-RD"]:.3f}). On {word_list(global_rows)} every placement reads at least {per_attack.loc[global_rows].min().min():.3f}, so the order among them is small. PSBD-RD leads PSBD-TM on {word_list(rd_ahead)}: on WaNet {per_attack.loc["WaNet", "PSBD-RD"]:.3f} against {per_attack.loc["WaNet", "PSBD-TM"]:.3f}. This is the split the paper reports: token masking helps where the trigger lives in a few tokens and ties or trails where the trigger is spread over the image. The TaCT row is {models_per_attack["TaCT"]} models, so it carries little weight. The figure does not show the poison rate, which `start-here.ipynb` splits (`\GainsLowestRate`, `\GainsHighestRate`).
     """),
     md(r"""
     ## The full basis, ranked
@@ -293,7 +293,7 @@ for position, placement in enumerate(ranked):
 axis.set_yticks(positions, labels=[placement_words(p) for p in ranked], fontsize=6.5)
 axis.invert_yaxis()
 axis.set_xlim(0.4, 1.0)
-axis.set_xlabel("mean AUROC over the clearing models the placement reaches, adaptive rule")
+axis.set_xlabel("mean AUROC over the successful models the placement reaches, adaptive rule")
 for family, color in family_colors.items():
     axis.barh([0], [0], color=color, label=family)
 legend_above(figure, [axis], columns=3)

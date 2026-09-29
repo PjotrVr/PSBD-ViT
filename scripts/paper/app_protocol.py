@@ -163,8 +163,13 @@ def main() -> None:
             "attack success rate a cell must reach to enter a detection table",
         ),
         "clean_drop_bar": (
+            fmt(declaration["clean_accuracy_drop_bar_headline"], places=2, signed=True),
+            "the clean-accuracy drop a cell may show against its benign reference, "
+            "the headline success bar every result is computed at",
+        ),
+        "clean_drop_bar_second": (
             fmt(declaration["clean_accuracy_drop_bar"], places=2, signed=True),
-            "the clean-accuracy drop a cell may show against its benign reference",
+            "the looser clean-accuracy drop every headline number is also given at",
         ),
         # Read in a sentence, so the last item needs its conjunction rather than
         # another comma.

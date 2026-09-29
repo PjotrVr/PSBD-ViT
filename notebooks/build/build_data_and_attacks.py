@@ -432,9 +432,10 @@ wanet_rates = sorted(ledger.loc[clears & (ledger["attack"] == "wanet"), "poison_
 wanet_datasets = sorted(dataset_label(d) for d in ledger.loc[clears & (ledger["attack"] == "wanet"), "dataset"].unique())
 source_mapped_count = int((ledger["asr_class"] == "source_mapped").sum())
 diverged_rows = ledger[ledger["asr_class"] == "diverged"]
+sig_successful = int((ledger["successful_2pt"].astype(bool) & (ledger["attack"] == "sig")).sum())
 """),
     said(r"""
-    {word_list(always_clear)} implant at every rate on every dataset. Adaptive-Blend {"never clears the bar" if adaptive_blend_clears == 0 else f"clears on only {adaptive_blend_clears} cells"}, which is its design, since its partial training trigger and its cover images trade ASR for stealth, so it is absent from every ViT detection table. SIG clears only as {" and ".join(clearing_names("sig"))}, the SIG model of the panel. Label-Consistent clears only as {" and ".join(clearing_names("lc"))}, with target class 1 and adversarial bases. WaNet clears at {" and ".join(f"{r:.0%}" for r in wanet_rates)} and only on {word_list(wanet_datasets)}. TaCT reaches a high ASR wherever it trained without collapsing,  but {source_mapped_count} of its cells are marked `S`. {" and ".join(f"`{f}`" for f in diverged_rows["folder_name"])} diverged (`D`, clean accuracy {diverged_rows["clean_accuracy"].iloc[0]:.2f}) and was retrained with a cosine schedule as `tact_cos`. The heatmap does not show clean accuracy, which the next figure adds. It also does not explain the `S` class, which the TaCT figure after it does.
+    {word_list(always_clear)} implant at every rate on every dataset. Adaptive-Blend {"never clears the bar" if adaptive_blend_clears == 0 else f"clears on only {adaptive_blend_clears} cells"}, which is its design, since its partial training trigger and its cover images trade ASR for stealth, so it is absent from every ViT detection table. SIG clears only as {" and ".join(clearing_names("sig"))}, {"which loses too much clean accuracy to count as a successful backdoor, so no SIG model is in the ViT results" if sig_successful == 0 else "the SIG model of the panel"}. Label-Consistent clears only as {" and ".join(clearing_names("lc"))}, with target class 1 and adversarial bases. WaNet clears at {" and ".join(f"{r:.0%}" for r in wanet_rates)} and only on {word_list(wanet_datasets)}. TaCT reaches a high ASR wherever it trained without collapsing,  but {source_mapped_count} of its cells are marked `S`. {" and ".join(f"`{f}`" for f in diverged_rows["folder_name"])} diverged (`D`, clean accuracy {diverged_rows["clean_accuracy"].iloc[0]:.2f}) and was retrained with a cosine schedule as `tact_cos`. The heatmap does not show clean accuracy, which the next figure adds. It also does not explain the `S` class, which the TaCT figure after it does.
     """),
     code(r"""
 ledger["accuracy_drop"] = ledger["clean_accuracy_benign"] - ledger["clean_accuracy"]
@@ -452,11 +453,14 @@ plt.show()
 print(f"largest clean-accuracy drop among clearing cells: "
       f"{100 * ledger.loc[ledger['asr_class'] == 'clears', 'accuracy_drop'].max():.1f} points")
 
-within_two = int((ledger["accuracy_drop"].abs() <= 0.02).sum())
+headline_bar = -coverage["clean_accuracy_drop_bar_headline"]
+second_bar = -coverage["clean_accuracy_drop_bar"]
+within_headline = int((ledger["accuracy_drop"].abs() <= headline_bar).sum())
 largest_drops = shown.sort_values("accuracy_drop", ascending=False).head(2)
+past_headline = ledger[(ledger["asr_class"] == "clears") & ~ledger["successful_2pt"].astype(bool)]
 """),
     said(r"""
-    A backdoor that costs clean accuracy would be caught by a user noticing the model is worse, so an attack is only meaningful if it keeps accuracy. {within_two} of the {len(ledger)} cells sit within 2 points of their dataset's benign model (`clean_accuracy_benign`, the declared benign reference of `configs/psbd_basis.json`). The largest drops among the cells that did not collapse are {" and ".join(f"`{f}` ({100 * d:.1f} points)" for f, d in zip(largest_drops["folder_name"], largest_drops["accuracy_drop"]))}. The paper keeps the SIG model and flags the cost, and the ledger records a 5-point bar as `successful_5pt` beside the ASR class. The figure does not show whether the triggered decision rests on the trigger, the question the TaCT figure answers.
+    A backdoor that costs clean accuracy would be caught by a user noticing the model is worse, so an attack is only meaningful if it keeps accuracy. {within_headline} of the {len(ledger)} cells sit within {100 * headline_bar:.0f} points of their dataset's benign model (`clean_accuracy_benign`, the declared benign reference of `configs/psbd_basis.json`). The largest drops among the cells that did not collapse are {" and ".join(f"`{f}` ({100 * d:.1f} points)" for f, d in zip(largest_drops["folder_name"], largest_drops["accuracy_drop"]))}. Every result is computed over the cells that clear the ASR bar within {100 * headline_bar:.0f} points (`successful_2pt`), and every headline number is also given at {100 * second_bar:.0f} points (`successful_5pt`). The headline bar leaves out {word_list([f"`{f}` ({100 * d:.1f} points)" for f, d in zip(past_headline["folder_name"], past_headline["accuracy_drop"])])}. The figure does not show whether the triggered decision rests on the trigger, the question the TaCT figure answers.
     """),
     code(r"""
 tact = ledger[ledger["attack"] == "tact"].sort_values(["asr_class", "folder_name"]).copy()

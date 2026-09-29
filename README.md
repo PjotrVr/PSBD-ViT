@@ -15,25 +15,29 @@ SIG and are declared out of the panel in `configs/psbd_basis.json`.
 **The paper is the record.** `paper/` holds the draft, its generated tables and its
 figures, all built from `results/` by `scripts/paper/`. No number in it is typed by
 hand. Every number below is a macro in `paper/headline.tex` from the build of
-2026-09-24, and `scripts/check_stale_numbers.py` fails when this file quotes an
+2026-09-29, and `scripts/check_stale_numbers.py` fails when this file quotes an
 earlier build. `docs/open-questions.md` lists what the evidence does not yet support.
 
 ## The result
 
 Where the perturbation goes decides how well the method works. Masking whole tokens
-at the input of every attention block (PSBD-TM) reaches a mean AUROC of **0.953** at
-the adaptive 0.8 rule against **0.888** for PSBD-RD, dropout on the residual stream
+at the input of every attention block (PSBD-TM) reaches a mean AUROC of **0.963** at
+the adaptive 0.8 rule against **0.885** for PSBD-RD, dropout on the residual stream
 after both adds, which is our adaptation of the placement the original paper used on
-ConvNets. That is a paired gain of **+0.065** with a 95% bootstrap interval of
-[+0.012, +0.123] over the 57 models that carry both placements (`\HeadlineAurocAdaptive`,
+ConvNets. That is a paired gain of **+0.078** with a 95% bootstrap interval of
+[+0.026, +0.135] over the 54 models that carry both placements (`\HeadlineAurocAdaptive`,
 `\PublishedAurocAdaptive`, `\HeadlineGainAdaptiveAuroc`). The gain is largest where
-poisoning is lowest, +0.150 at 1% against -0.015 at 10%, which is the regime a
-defender cares about most. PSBD-TM transfers to Swin-S at 0.969 over 80 models.
+poisoning is lowest, +0.150 at 1% against +0.012 at 10% (`\GainsHighestRate`), which is the regime a
+defender cares about most. PSBD-TM transfers to Swin-S at 0.973 over 63 models
+(`\SwinRecommendedAurocAdaptive`). At the 5-point clean-accuracy bar the ViT numbers
+read 0.962 against 0.887, a gain of +0.075 [+0.026, +0.129] over 56 models
+(`\HeadlineAurocAdaptiveFivePoint`, `\PublishedAurocAdaptiveFivePoint`,
+`\HeadlineGainAdaptiveAurocFivePoint`).
 
 Position and operator both matter. Holding the site fixed at the attention input and
-swapping token masking for Gaussian noise costs **0.183** AUROC at the matched 0.6
+swapping token masking for Gaussian noise costs **0.188** AUROC at the matched 0.6
 rule (`\GaussianMinusTokenMaskAttentionNorm`). Holding the operator fixed and moving
-from the attention input to the MLP input costs **0.110**
+from the attention input to the MLP input costs **0.114**
 (`\AttentionInputMinusMlpInputTokenMask`). The project's founding claim, that dropout
 before the residual add beats dropout after it, is **refuted**: pre minus post reads
 -0.009 [-0.036, +0.015] at the adaptive rule (`\PreMinusPostAdaptive`,
@@ -50,7 +54,7 @@ absorbs 0.179 of a Gaussian disturbance and none of a token mask.
 
 The original paper's account, that perturbation shifts clean predictions toward the
 attacker's target class, holds on ViT for BadNets, BPP, LF and WaNet and is absent
-for Blend, SIG and TaCT, whose excess over the benign reference stays under 0.02 on
+for Blend and TaCT, whose excess over the benign reference stays under 0.02 on
 every dataset (`\ShiftToTargetNoDriftAttacks`). Detection works in both groups, so
 that account describes some attacks rather than the statistic's mechanism. An
 earlier headline of +0.258 for `gain_scale` at `mlp_norm_out` stays **withdrawn**
@@ -68,13 +72,19 @@ counts `paper/headline.tex` carries as `\PanelCells*`.
 | TaCT, clean source class mapped to the target with no trigger | 8 |
 | below the attack success bar of 0.85 | 30 |
 | clearing the bar | 59 |
-| of those, carrying both headline placements | 57 |
+| of those, clean accuracy within 2 points of the benign model (`successful_2pt`) | 56 |
+| of those, carrying both headline placements | 54 |
 
-The headline reads on those 57. 2 of them invert under PSBD-TM, WaNet and SIG on
-CIFAR-10 at 10% poisoning, and the lowest reads 0.418 (`\HeadlineFloorAuroc`). The 2
-clearing cells without a sweep (`vit_gtsrb_tact_0_01_cos`,
-`vit_gtsrb_lc_0_05_tl1_adv`) and 6 multi-source TaCT retrains are queued on GPU, so
-every panel number moves when they land. Adaptive-Blend never clears the attack
+A model counts in the results only when it is a successful backdoor at the 2-point
+clean-accuracy bar the literature uses (`\PanelCellsSuccessful`). The 3 that clear the
+attack success bar but lose more clean accuracy are left out (`\PanelCellsFailingCleanBarNames`):
+SIG at 10% on CIFAR-10, the only ViT SIG model, so SIG is absent from every ViT result,
+and WaNet at 5% on CIFAR-10 and at 10% on GTSRB. At the 5-point bar 58 succeed
+(`\PanelCellsSuccessfulFivePoint`). Swin-S follows the same panel rule and bar. The
+headline reads on those 54. 1 of them inverts under PSBD-TM, WaNet on CIFAR-10 at 10%
+poisoning, at 0.459 (`\HeadlineFloorAuroc`). The 2 successful cells without a sweep
+(`vit_gtsrb_tact_0_01_cos`, `vit_gtsrb_lc_0_05_tl1_adv`) and 6 multi-source TaCT
+retrains are queued on GPU, so every panel number moves when they land. Adaptive-Blend never clears the attack
 success bar at any rate, so no Adaptive-Blend model enters the detection numbers
 despite being the 1 attack in the set built to evade this kind of detector.
 

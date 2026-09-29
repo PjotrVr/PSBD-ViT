@@ -151,10 +151,15 @@ show_diagram("data_flow")
     md(r"""
     ## The model panel
 
-    A detection number is a mean over models, so the first thing to know is which models. `scripts/coverage_ledger.py` writes 1 record per trained checkpoint to `results/coverage/coverage.json`, and `scripts.paper._common.load_coverage` keeps the 4 datasets the paper reports (CIFAR-10, CIFAR-100, GTSRB and Tiny ImageNet, the `panel.datasets` of `configs/psbd_basis.json`). Each record carries an `asr_class`. `clears` means ASR at least 0.85. `below_bar` means the attack did not implant. `diverged` means clean accuracy fell below half the benign reference, a collapsed model. `source_mapped` marks TaCT models whose clean source class is already sent to another class with no trigger, so the ASR measures a class mapping rather than a trigger, and the ledger excludes them.
+    A detection number is a mean over models, so the first thing to know is which models. `scripts/coverage_ledger.py` writes 1 record per trained checkpoint to `results/coverage/coverage.json`, and `scripts.paper._common.load_coverage` keeps the 4 datasets the paper reports (CIFAR-10, CIFAR-100, GTSRB and Tiny ImageNet, the `panel.datasets` of `configs/psbd_basis.json`). Each record carries an `asr_class`. `clears` means ASR at least 0.85. `below_bar` means the attack did not implant. `diverged` means clean accuracy fell below half the benign reference, a collapsed model. `source_mapped` marks TaCT models whose clean source class is already sent to another class with no trigger, so the ASR measures a class mapping rather than a trigger, and the ledger excludes them. A `clears` model is counted in the results only when it is also a successful backdoor, `successful_2pt`: its clean accuracy is within the headline bar (`clean_accuracy_drop_bar_headline` of `configs/psbd_basis.json`, the bar the literature uses) of the benign model trained on the same data, because a backdoor that costs more accuracy than that would be noticed without any detector.
     """),
     code(r"""
-from scripts.paper._common import clearing_cells, dataset_label, load_coverage
+from scripts.paper._common import (
+    clearing_cells,
+    dataset_label,
+    implanted_cells,
+    load_coverage,
+)
 from scripts.paper._style import legend_above
 
 coverage = load_coverage("results")
@@ -176,23 +181,25 @@ legend_above(figure, [axis], columns=4)
 plt.show()
 
 total_cells = len(ledger)
-clearing = len(clearing_cells(coverage))
+clearing = len(implanted_cells(coverage))
+successful = len(clearing_cells(coverage))
 source_mapped = int((ledger["asr_class"] == "source_mapped").sum())
 assert str(total_cells) == macro("panel", "PanelCellsTotal")
 assert str(clearing) == macro("panel", "PanelCellsClearing")
+assert str(successful) == macro("panel", "PanelCellsSuccessful")
 assert str(source_mapped) == macro("panel", "PanelCellsSourceMapped")
 print(f"ledger written {coverage['generated_at']}")
 print(f"{total_cells} panel cells, {clearing} clear the {coverage['asr_bar']} bar, "
-      f"{source_mapped} source-mapped TaCT cells excluded")
+      f"{successful} of them successful, {source_mapped} source-mapped TaCT cells excluded")
 counts.assign(total=counts.sum(axis=1))
 """),
     said(r"""
-    The ledger holds {total_cells} ViT-B/16 cells on the {len(counts)} panel datasets, and {clearing} clear the bar. The asserts above hold the counts to the macros `\PanelCellsTotal`, `\PanelCellsClearing` and `\PanelCellsSourceMapped` of `paper/tables/panel.macros.json`, written by `scripts/paper/tab_panel.py`, so the figure and the paper cannot disagree without this cell failing. The figure does not show which attacks and rates the cells hold, which `data-and-attacks.ipynb` breaks out. It also does not show the Swin-S models, which have no ledger of their own and are read by `swin-and-robustness.ipynb`. The next question is what PSBD scores on the clearing cells.
+    The ledger holds {total_cells} ViT-B/16 cells on the {len(counts)} panel datasets, and {clearing} clear the bar. {successful} of those keep their clean accuracy within {macro("panel", "PanelCleanBarPoints")} points of the benign model and are the models every result is computed over, and the {clearing - successful} left out are {macro("panel", "PanelCellsFailingCleanBarNames").replace(chr(92) + "%", "%")}. The asserts above hold the counts to the macros `\PanelCellsTotal`, `\PanelCellsClearing`, `\PanelCellsSuccessful` and `\PanelCellsSourceMapped` of `paper/tables/panel.macros.json`, written by `scripts/paper/tab_panel.py`, so the figure and the paper cannot disagree without this cell failing. The figure does not show which attacks and rates the cells hold, which `data-and-attacks.ipynb` breaks out. It also does not show the Swin-S models, which have no ledger of their own and are read by `swin-and-robustness.ipynb`. The next question is what PSBD scores on the successful cells.
     """),
     md(r"""
     ## The headline in 1 figure
 
-    The headline panel is every clearing cell on which both named placements reached the adaptive rule and PSBD-TM also reached the matched rule, `scripts.paper.tab_staircase.panel_cells`, the same common-coverage filter `scripts/paper/tab_headline.py` applies. Each point below is 1 model, AUROC at the adaptive rule and the 25% quantile on the fractional PSU, PSBD-RD on the x axis and PSBD-TM on the y axis. A point above the diagonal is a model where PSBD-TM separates better.
+    The headline panel is every successful cell on which both named placements reached the adaptive rule and PSBD-TM also reached the matched rule, `scripts.paper.tab_staircase.panel_cells`, the same common-coverage filter `scripts/paper/tab_headline.py` applies. Each point below is 1 model, AUROC at the adaptive rule and the 25% quantile on the fractional PSU, PSBD-RD on the x axis and PSBD-TM on the y axis. A point above the diagonal is a model where PSBD-TM separates better.
     """),
     code(r"""
 from cli.compare_detectors import psbd_values

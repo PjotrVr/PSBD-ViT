@@ -17,8 +17,10 @@ import math
 import os
 import random
 import statistics
+from types import SimpleNamespace
 
 from defenses.decision import HEADLINE_QUANTILE
+from scripts.coverage_ledger import build_ledger, retarget_declaration
 from utils.provenance import current_git_commit, utc_timestamp
 
 PAPER_DIR = "paper"
@@ -88,18 +90,25 @@ def load_coverage(results_dir: str) -> dict:
     return coverage
 
 
-def excluded_folders(results_dir: str) -> set[str]:
-    """Checkpoints the ledger rules out as not a backdoor: diverged or source-mapped.
+def excluded_folders(results_dir: str, success: str | None = None) -> set[str]:
+    """Checkpoints the ledger rules out of the results: not a backdoor, or not a successful one.
 
-    A mechanism experiment picks its checkpoints by name, so it can hold a model
-    the panel later excluded. Its generator drops these before plotting.
+    Diverged and source-mapped models are not trigger backdoors. A model whose
+    attack clears the ASR bar but costs more clean accuracy than the success bar
+    allows is a backdoor a defender could spot by accuracy alone, so the panel
+    leaves it out too. A mechanism experiment picks its checkpoints by name, so it
+    can hold a model the panel excludes, and its generator drops these before
+    plotting. A model below the ASR bar is not listed, since a mechanism
+    experiment may read it on purpose as a failed implant.
     """
+    success = success or HEADLINE_SUCCESS
     path = os.path.join(results_dir, "coverage", "coverage.json")
     coverage = load_json(path) or {"cells": []}
     excluded = {
         cell["folder_name"]
         for cell in coverage["cells"]
         if cell.get("asr_class") in ("diverged", "source_mapped")
+        or (cell.get("asr_class") == "clears" and not cell.get(success))
     }
     return excluded
 
@@ -111,10 +120,75 @@ def load_declaration(path: str) -> dict:
     return declaration
 
 
-def clearing_cells(coverage: dict) -> list[dict]:
-    """The panel cells whose attack implanted, the only cells a detection number spans."""
+def swin_coverage(
+    results_dir: str, checkpoints_dir: str, declaration_path: str = DEFAULT_DECLARATION
+) -> dict:
+    """The Swin coverage ledger: the ViT panel rule and verdicts applied to Swin-S.
+
+    The declaration's panel rule (datasets, poison rates, label modes, canonical
+    variants and targets, excluded folder tokens) is retargeted to Swin with the
+    benign Swin-S references by scripts.coverage_ledger.retarget_declaration, and
+    the ledger's own build_ledger judges every cell, so clearing_cells means the
+    same thing on both architectures. Built in memory and never written, since
+    results/coverage_swin/ predates the Swin benign references.
+    """
+    declaration = load_declaration(declaration_path)
+    ledger_args = SimpleNamespace(
+        checkpoints_dir=checkpoints_dir,
+        results_dir=results_dir,
+        out_dir=os.path.join(results_dir, "coverage_swin"),
+        declaration=f"{declaration_path} (retargeted to swin)",
+    )
+    coverage = build_ledger(ledger_args, retarget_declaration(declaration, "swin"))
+    coverage["cells"] = [
+        cell for cell in coverage["cells"] if cell["dataset"] in PANEL_DATASETS
+    ]
+    return coverage
+
+
+def implanted_cells(coverage: dict) -> list[dict]:
+    """The cells whose attack clears the ASR bar, whatever it cost in clean accuracy.
+
+    The implantation count the ledger macros report. No detection number spans
+    this population, clearing_cells is the panel.
+    """
     cells = [cell for cell in coverage["cells"] if cell.get("asr_class") == "clears"]
     return cells
+
+
+def clearing_cells(coverage: dict, success: str | None = None) -> list[dict]:
+    """The panel: cells whose attack is a successful backdoor, the only cells a result spans.
+
+    A cell is successful when it clears the ASR bar (not diverged, not
+    source-mapped) and its clean accuracy is within the success bar of its benign
+    reference, the ledger's successful_2pt verdict by default. Pass
+    SECOND_SUCCESS for the 5-point panel every number is also given at. Raises
+    when the ledger predates the verdicts, since a missing verdict would read as
+    an empty panel.
+    """
+    success = success or HEADLINE_SUCCESS
+    unjudged = [
+        cell["folder_name"] for cell in coverage["cells"] if success not in cell
+    ]
+    if unjudged:
+        raise SystemExit(
+            f"{len(unjudged)} ledger cells carry no {success} verdict, "
+            "run scripts/coverage_ledger.py first"
+        )
+    cells = [cell for cell in coverage["cells"] if cell[success]]
+    return cells
+
+
+def second_bar_macros(macros: dict[str, tuple[str, str]]) -> dict[str, tuple[str, str]]:
+    """Macros read on the 5-point panel, renamed with the bar so they sit beside the headline ones."""
+    renamed = {
+        f"{name}_{SECOND_BAR_POINTS}_point": (
+            value,
+            f"at the {SECOND_BAR_POINTS}-point clean-accuracy bar, {meaning}",
+        )
+        for name, (value, meaning) in macros.items()
+    }
+    return renamed
 
 
 def load_psbd_metrics(results_dir: str, folder: str) -> dict | None:
@@ -412,6 +486,32 @@ def _panel_datasets() -> tuple[str, ...]:
 
 # The datasets the paper reports, in the order every table lists them.
 PANEL_DATASETS = _panel_datasets()
+
+
+def _success_bar_points(bar_key: str) -> int:
+    declaration = load_json(
+        os.path.join(
+            os.path.dirname(
+                os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+            ),
+            DEFAULT_DECLARATION,
+        )
+    )
+    bar = (declaration or {}).get(bar_key)
+    if bar is None:
+        raise ValueError(f"{DEFAULT_DECLARATION} declares no {bar_key}")
+    points = round(-bar * 100)
+    return points
+
+
+# The ledger verdict every result is computed over (the 2-point clean-accuracy
+# bar the literature uses) and the looser verdict every number is also given at.
+# The bars themselves live in the declaration, their width in points is read
+# from it for captions and macro names.
+HEADLINE_SUCCESS = "successful_2pt"
+SECOND_SUCCESS = "successful_5pt"
+HEADLINE_BAR_POINTS = _success_bar_points("clean_accuracy_drop_bar_headline")
+SECOND_BAR_POINTS = _success_bar_points("clean_accuracy_drop_bar")
 
 
 def build_parser_with_checkpoints(description: str) -> argparse.ArgumentParser:

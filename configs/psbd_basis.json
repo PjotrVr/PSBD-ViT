@@ -18,6 +18,14 @@
   "asr_bar": 0.85,
   "clean_accuracy_drop_bar": -0.05,
   "clean_accuracy_drop_bar_headline": -0.02,
+  "_asr_audit_overrides_comment": "An ASR measured on a cache built with the wrong trigger admits a model the bar should not. swin_cifar10_sig_0_05 was trained at SIG amplitude 0.1 while its cached baseline, and the 0.954 ASR its args.json carries, were built at 0.157. At the training amplitude its ASR is 0.743 on 300 rows (0.721 in its July checkpoints metrics.json), below asr_bar, see docs/audits/2026-09-29-experiment-audit.md. scripts/coverage_ledger.classify_cell reads the ASR listed here in place of the sidecar's, so the model is below the bar on every reader until its baseline is rebuilt at the training amplitude and this entry is removed.",
+  "asr_audit_overrides": {
+    "swin_cifar10_sig_0_05": {
+      "asr": 0.743,
+      "rows": 300,
+      "source": "docs/audits/2026-09-29-experiment-audit.md"
+    }
+  },
   "_success_bars_comment": "A cell is a successful backdoor when its asr_class is clears (ASR at or above asr_bar, not diverged, not source-mapped) and its clean accuracy is at most the bar below its benign reference. The headline bar is 2 points (clean_accuracy_drop_bar_headline) and every number is also given at the 5-point bar (clean_accuracy_drop_bar). scripts/coverage_ledger.py writes both verdicts per cell as successful_2pt and successful_5pt and leaves asr_class as it was.",
   "panel": {
     "architecture": "vit",

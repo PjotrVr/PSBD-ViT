@@ -1,5 +1,7 @@
 # H40: Per-sample attention entropy as detection feature
 
+> Superseded on 2026-09-29: the panel numbers below were read before the results moved to the successful backdoors at the 2-point clean-accuracy bar (the 57-model panel and earlier). They are kept as they were measured. The current values are the macros in `paper/headline.tex`, and `.claude/CLAUDE.md` and `README.md` state them.
+
 **Status: REFUTED as stated.** Attention entropy in the 3 backdoor heads (L5H0,
 L5H10, L6H3) does not separate backdoor from clean samples for most attacks
 (AUROC 0.48 to 0.54, indistinguishable from random). The exception is blend,

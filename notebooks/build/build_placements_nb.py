@@ -546,7 +546,7 @@ md(r"""
 
 **Question.** Which models and which cached numbers do the sweep steps read?
 
-The ViT panel is `scripts.detector_doc_results.placement_panel`: the models of the coverage ledger `results/coverage/coverage.json` whose attack clears the success bar, restricted to CIFAR-10, CIFAR-100, GTSRB and Tiny ImageNet, with the diverged and source-mapped models of `scripts.paper._common.excluded_folders` removed. A source-mapped model is a TaCT model whose poison rate reached its source class's share of the training set, so it sends the whole source class to the target with no trigger and is not a backdoor detection problem. For each model the cell reads `results/<folder>/psbd_metrics.json` and, through `placement_readings`, the headline AUROC of every placement at each rate rule. Variant caches (a second mask seed, a pass count other than 3, the model's own dropout switched on) are left out. The Swin panel is `scripts.paper.tab_swin.swin_cells`, which the paper uses. The ResNet control is the 2 models of `experiments/resnet_control/`. These are the same functions `docs/placement-rationale.md`'s generated ledger is written by, so the notebook and the doc cannot disagree.
+The ViT panel is `scripts.detector_doc_results.placement_panel`: the models of the coverage ledger `results/coverage/coverage.json` that are successful backdoors (`successful_2pt`: attack success at the bar and clean accuracy within the headline bar of the benign model, `scripts.paper._common.clearing_cells`), restricted to CIFAR-10, CIFAR-100, GTSRB and Tiny ImageNet, with every model of `scripts.paper._common.excluded_folders` (diverged, source-mapped or past the clean-accuracy bar) removed. A source-mapped model is a TaCT model whose poison rate reached its source class's share of the training set, so it sends the whole source class to the target with no trigger and is not a backdoor detection problem. For each model the cell reads `results/<folder>/psbd_metrics.json` and, through `placement_readings`, the headline AUROC of every placement at each rate rule. Variant caches (a second mask seed, a pass count other than 3, the model's own dropout switched on) are left out. The Swin panel is `scripts.paper.tab_swin.swin_cells`, which the paper uses and which judges every Swin model with the same ledger verdicts. The ResNet control is the 2 models of `experiments/resnet_control/`. These are the same functions `docs/placement-rationale.md`'s generated ledger is written by, so the notebook and the doc cannot disagree.
 
 A **paired gain** of placement A over placement B is the mean over models of A's AUROC minus B's AUROC on the same model, over the models carrying both, with a 95% interval from 5000 bootstrap resamples of the models (`scripts.paper._common.bootstrap_ci`, seed 0). Pairing matters because some placements were swept on a subset of the panel only, and a difference of 2 means over different models compares different problems.
 """)
@@ -556,7 +556,7 @@ vit_cells = placement_panel("results")
 vit_reports = {cell["folder_name"]: load_psbd_metrics("results", cell["folder_name"]) for cell in vit_cells}
 vit_reports = {folder: report for folder, report in vit_reports.items() if report}
 vit = {rule: placement_readings(vit_reports, rule) for rule in PLACEMENT_RULES}
-# A clearing model whose sweep has not landed has no cache and reads nothing, so
+# A successful model whose sweep has not landed has no cache and reads nothing, so
 # it is dropped from every count below as well.
 vit_cells = [cell for cell in vit_cells if cell["folder_name"] in vit_reports]
 cell_of = {cell["folder_name"]: cell for cell in vit_cells}
@@ -651,7 +651,7 @@ for name, value in checks.items():
 """)
 
 md(r"""
-**How to read the comparison figures.** Each has 1 row per placement. The left panel's bars are the mean one-sided AUROC over the models the placement was read on, blue for the adaptive rule and orange hatched for the matched rule, with the model count n beside each bar. The dotted line at 0.5 is chance. The right panel is the number to compare: the paired gain over PSBD-RD, circles for the adaptive rule and squares for the matched rule, with 95% intervals. An interval that crosses the solid line at 0 is not a difference. The figures do not show per-attack or per-rate structure, and a mean over n = 37 models is not directly comparable with a mean over n = 57, which is why the right panel pairs.
+**How to read the comparison figures.** Each has 1 row per placement. The left panel's bars are the mean one-sided AUROC over the models the placement was read on, blue for the adaptive rule and orange hatched for the matched rule, with the model count n beside each bar. The dotted line at 0.5 is chance. The right panel is the number to compare: the paired gain over PSBD-RD, circles for the adaptive rule and squares for the matched rule, with 95% intervals. An interval that crosses the solid line at 0 is not a difference. The figures do not show per-attack or per-rate structure, and a mean over a placement swept on a subset of the models is not directly comparable with a mean over the whole panel, which is why the right panel pairs.
 """)
 
 md(r"""

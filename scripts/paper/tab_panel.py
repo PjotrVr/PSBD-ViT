@@ -1,11 +1,14 @@
 """T1: the ViT panel, attack success and clean accuracy by dataset, attack and rate.
 
 Reads results/coverage/coverage.json only, no psbd_metrics.json. Every declared
-cell appears, so a reader can see which cells the 0.85 ASR bar excludes rather
-than finding them silently missing. A cell clearing the bar prints its attack
-success rate and clean accuracy together. A cell below the bar prints only its
-attack success rate, marked with a dagger, since its clean accuracy is not the
-number that explains the cell's absence from every other table in this paper.
+cell appears, so a reader can see which cells the ASR bar and the headline
+clean-accuracy bar exclude rather than finding them silently missing. A
+successful cell prints its attack success rate and clean accuracy together. A
+cell below the ASR bar prints only its attack success rate, marked with a
+dagger, since its clean accuracy is not the number that explains the cell's
+absence from every other table in this paper. A cell that clears the ASR bar
+but loses more clean accuracy than the headline bar allows prints both, marked
+with a section sign, since there the clean accuracy is the reason.
 
     PYTHONPATH=. python scripts/paper/tab_panel.py \
         --results-dir /path/to/results --paper-dir paper
@@ -18,11 +21,18 @@ sys.path.insert(0, os.getcwd())
 
 from defenses.decision import EASY_ATTACKS, HARD_ATTACKS  # noqa: E402
 from scripts.paper._common import (  # noqa: E402
+    HEADLINE_BAR_POINTS,
+    HEADLINE_SUCCESS,
     PANEL_DATASETS,
+    SECOND_BAR_POINTS,
+    SECOND_SUCCESS,
     attack_label,
+    clearing_cells,
+    implanted_cells,
     build_parser,
     dataset_label,
     load_coverage,
+    word_list,
     write_macros,
     write_table,
 )
@@ -59,7 +69,8 @@ def cell_text(cell: dict | None) -> str:
     clean_accuracy = cell.get("clean_accuracy")
     if clean_accuracy is None:
         return f"{asr:.3f} / --"
-    return f"{asr:.3f} / {clean_accuracy:.3f}"
+    mark = "" if cell[HEADLINE_SUCCESS] else "$^\\S$"
+    return f"{asr:.3f} / {clean_accuracy:.3f}{mark}"
 
 
 def panel_rows(
@@ -97,7 +108,10 @@ def main() -> None:
     coverage = load_coverage(args.results_dir)
     cells = coverage["cells"]
     asr_bar = coverage["asr_bar"]
-    clearing = [cell for cell in cells if cell["asr_class"] == "clears"]
+    clearing = implanted_cells(coverage)
+    successful = clearing_cells(coverage)
+    second = clearing_cells(coverage, SECOND_SUCCESS)
+    failing = [cell for cell in clearing if not cell[HEADLINE_SUCCESS]]
 
     datasets = DATASET_ORDER
     attacks = attack_order(cells)
@@ -115,12 +129,16 @@ def main() -> None:
         inputs=[coverage_path],
         caption=(
             f"The ViT panel, from results/coverage/coverage.json: {len(clearing)} of "
-            f"{len(cells)} declared models clear the attack success bar {asr_bar:.2f} "
-            "and carry every table in this paper. A model that clears prints attack "
-            "success rate over clean accuracy. A model below the bar prints only its "
-            r"attack success rate, marked $^\dagger$, so its exclusion stays visible. "
-            r"$^\ddagger$ marks a TaCT model that maps its whole source class to the "
-            "target without the trigger, excluded because it is not a trigger backdoor."
+            f"{len(cells)} declared models clear the attack success bar {asr_bar:.2f}, "
+            f"and the {len(successful)} of them whose clean accuracy is within "
+            f"{HEADLINE_BAR_POINTS} points of the benign model carry every table in "
+            "this paper. A model that clears prints attack success rate over clean "
+            "accuracy. A model below the bar prints only its attack success rate, "
+            r"marked $^\dagger$, so its exclusion stays visible. $^\S$ marks a model "
+            f"that clears but loses more than {HEADLINE_BAR_POINTS} points of clean "
+            r"accuracy. $^\ddagger$ marks a TaCT model that maps its whole source "
+            "class to the target without the trigger, excluded because it is not a "
+            "trigger backdoor."
         ),
         label="tab:panel",
         header=["dataset", "attack", *RATE_HEADERS],
@@ -149,6 +167,51 @@ def main() -> None:
             str(len(clearing)),
             "cells in the ViT panel clearing the attack success bar",
         ),
+        "panel_cells_successful": (
+            str(len(successful)),
+            "cells in the ViT panel that are successful backdoors, clearing the "
+            f"attack success bar with clean accuracy within {HEADLINE_BAR_POINTS} "
+            "points of the benign model, the population every result spans",
+        ),
+        "panel_cells_successful_five_point": (
+            str(len(second)),
+            "cells in the ViT panel clearing the attack success bar with clean "
+            f"accuracy within {SECOND_BAR_POINTS} points of the benign model",
+        ),
+        "panel_cells_failing_clean_bar": (
+            str(len(failing)),
+            "cells clearing the attack success bar that lose more than "
+            f"{HEADLINE_BAR_POINTS} points of clean accuracy, excluded from every "
+            "result",
+        ),
+        "panel_cells_failing_clean_bar_five_point": (
+            str(len(clearing) - len(second)),
+            "cells clearing the attack success bar that lose more than "
+            f"{SECOND_BAR_POINTS} points of clean accuracy",
+        ),
+        "panel_cells_failing_clean_bar_names": (
+            word_list(
+                [
+                    f"{attack_label(cell['attack'])} at "
+                    f"{cell['poison_rate'] * 100:g}\\% on {dataset_label(cell['dataset'])}"
+                    for cell in sorted(failing, key=lambda cell: cell["folder_name"])
+                ]
+            ),
+            "the cells clearing the attack success bar that lose more than "
+            f"{HEADLINE_BAR_POINTS} points of clean accuracy, as a phrase",
+        ),
+        "panel_clean_bar_points": (
+            str(HEADLINE_BAR_POINTS),
+            "the headline clean-accuracy bar, in points below the benign model",
+        ),
+        "panel_clean_bar_points_second": (
+            str(SECOND_BAR_POINTS),
+            "the second clean-accuracy bar every number is also given at, in points",
+        ),
+        "panel_attacks_successful": (
+            str(len({cell["attack"] for cell in successful})),
+            "attacks with at least 1 successful cell",
+        ),
         "panel_cells_total": (
             str(len(cells)),
             "cells the ViT panel declares, clearing and below the bar together",
@@ -169,7 +232,10 @@ def main() -> None:
         [coverage_path],
         macros,
     )
-    print(f"panel: {len(clearing)}/{len(cells)} cells clear, {len(datasets)} datasets")
+    print(
+        f"panel: {len(clearing)}/{len(cells)} cells clear, {len(successful)} "
+        f"successful, {len(datasets)} datasets"
+    )
 
 
 if __name__ == "__main__":

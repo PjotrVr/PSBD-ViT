@@ -40,7 +40,7 @@ from scripts.paper.tab_depth_bands import (
     md(r"""
     ## Why the matched rule
 
-    The adaptive rule picks the smallest rate whose clean-validation predictions shift at the adaptive target (`ADAPTIVE_SHIFT_TARGET`). A band perturbs 4 of the 12 blocks, so on many models no rate on the ladder shifts the predictions that often, and the adaptive rule returns nothing. The matched rule reads every placement at the rate whose clean-validation shift ratio is closest to `PLACEMENT_MATCH_TARGET`, which a band reaches on every model it was swept on, so the comparison rests on the whole swept panel and every band is compared at the same measured disturbance of the clean model. The figure counts, per band, the clearing models swept and the models on which each rule found a rate.
+    The adaptive rule picks the smallest rate whose clean-validation predictions shift at the adaptive target (`ADAPTIVE_SHIFT_TARGET`). A band perturbs 4 of the 12 blocks, so on many models no rate on the ladder shifts the predictions that often, and the adaptive rule returns nothing. The matched rule reads every placement at the rate whose clean-validation shift ratio is closest to `PLACEMENT_MATCH_TARGET`, which a band reaches on every model it was swept on, so the comparison rests on the whole swept panel and every band is compared at the same measured disturbance of the clean model. The figure counts, per band, the successful models swept and the models on which each rule found a rate.
     """),
     code(r"""
 assert INPUT_SIDE_ALL == RECOMMENDED_PLACEMENT
@@ -78,10 +78,10 @@ positions = np.arange(len(reach))  # (family and band rows,)
 for offset, column in enumerate(reach.columns):
     axis.bar(positions + (offset - 1) * 0.26, reach[column], width=0.26, label=column)
 axis.set_xticks(positions, labels=[f"{f.split(',')[0]}\n{b}" for f, b in reach.index], fontsize=6.5)
-axis.set_ylabel("clearing models")
+axis.set_ylabel("successful models")
 legend_above(figure, [axis], columns=3)
 plt.show()
-print(f"{len(cells)} clearing models, threshold at the {HEADLINE_QUANTILE:.0%} clean-validation quantile")
+print(f"{len(cells)} successful models, threshold at the {HEADLINE_QUANTILE:.0%} clean-validation quantile")
 token_reach = reach.loc["token mask, attention input"]
 residual_reach = reach.loc["dropout, before both adds"]
 adaptive_column = f"adaptive {ADAPTIVE_SHIFT_TARGET} reached"
@@ -89,7 +89,7 @@ matched_column = f"matched {PLACEMENT_MATCH_TARGET} reached"
 reach
 """),
     said(r"""
-    Every band of both families was swept on {int(token_reach["swept"].min())} of the {len(cells)} clearing models, the others being cells still queued. For token masking the adaptive rule finds a rate on {word_list([f"{int(token_reach.loc[b, adaptive_column])} for {b}" for b in list(BANDS)[1:]])}, while the matched rule reaches every band on {int(token_reach[matched_column].min())} models. Masking 4 blocks disturbs the clean model little, because a token hidden in 1 block still delivers its content from the stream in the next, the same fact `mechanism.ipynb` measured for the trigger. The residual bands reach the adaptive target far more often ({word_list([f"{int(residual_reach.loc[b, adaptive_column])} for {b}" for b in list(RESIDUAL_BANDS)[1:]])}), since dropout on the stream is not repaired downstream. At the adaptive rule the band comparison would therefore be taken over different, easier subsets, as `placement-walk.ipynb` showed. The matched rule avoids that.
+    Every band of both families was swept on {int(token_reach["swept"].min())} of the {len(cells)} successful models, the others being cells still queued. For token masking the adaptive rule finds a rate on {word_list([f"{int(token_reach.loc[b, adaptive_column])} for {b}" for b in list(BANDS)[1:]])}, while the matched rule reaches every band on {int(token_reach[matched_column].min())} models. Masking 4 blocks disturbs the clean model little, because a token hidden in 1 block still delivers its content from the stream in the next, the same fact `mechanism.ipynb` measured for the trigger. The residual bands reach the adaptive target far more often ({word_list([f"{int(residual_reach.loc[b, adaptive_column])} for {b}" for b in list(RESIDUAL_BANDS)[1:]])}), since dropout on the stream is not repaired downstream. At the adaptive rule the band comparison would therefore be taken over different, easier subsets, as `placement-walk.ipynb` showed. The matched rule avoids that.
     """),
     md(r"""
     ## Paired band readings

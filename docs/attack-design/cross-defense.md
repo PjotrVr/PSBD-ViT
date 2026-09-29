@@ -1,5 +1,7 @@
 # Can 1 adaptive attack break a whole family of defenses?
 
+> Superseded on 2026-09-29: the panel numbers below were read before the results moved to the successful backdoors at the 2-point clean-accuracy bar (the 57-model panel and earlier). They are kept as they were measured. The current values are the macros in `paper/headline.tex`, and `.claude/CLAUDE.md` and `README.md` state them.
+
 A red-team analysis, written against our own defense. The question is not whether
 some attacker somewhere can evade PSBD. H25 already settled that. The question is
 whether there exists **1 training-time objective** that defeats many defenses at

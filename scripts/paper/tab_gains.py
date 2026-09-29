@@ -31,6 +31,7 @@ from scripts.paper._common import (  # noqa: E402
     ci_text,
     dataset_label,
     fmt,
+    clearing_cells,
     load_coverage,
     load_declaration,
     load_psbd_metrics,
@@ -187,10 +188,10 @@ def strong_attack_macros(paired: list[dict]) -> dict:
 def main() -> None:
     args = build_parser(__doc__).parse_args()
     coverage = load_coverage(args.results_dir)
-    cells = [cell for cell in coverage["cells"] if cell.get("asr_class") == "clears"]
+    cells = clearing_cells(coverage)
     paired = paired_cells(args.results_dir, cells)
     inputs = [
-        f"{args.results_dir}/coverage/coverage.json ({len(cells)} clearing cells)",
+        f"{args.results_dir}/coverage/coverage.json ({len(cells)} successful cells)",
         f"{args.results_dir}/*/psbd_metrics.json",
     ]
 

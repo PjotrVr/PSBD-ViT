@@ -1,10 +1,10 @@
 {
   "generator": "scripts/paper/mech_causal.py",
   "inputs": [
-    "results/_experiments/why_token_masking_works/summary.json (39 models)"
+    "results/_experiments/why_token_masking_works/<folder>.json (28 panel models)"
   ],
-  "written_at": "2026-09-29T16:16:07.219965+00:00",
-  "git_commit": "2e59453ac935840c88040509aab36fb7e2c4ac3d-dirty",
+  "written_at": "2026-09-29T17:56:08.924748+00:00",
+  "git_commit": "b2d32cf11708d5de965d3e13604c863a3ad9b493-dirty",
   "macros": {
     "CausalMaskAllOneTwo": {
       "value": "0.002",
@@ -84,58 +84,62 @@
     },
     "CausalVisibleBlendTrigger": {
       "value": "0.95",
-      "meaning": "blend trigger effect retained with 0.3 of tokens visible"
+      "meaning": "blend trigger effect retained with 0.3 of tokens visible, over 4 models"
     },
     "CausalVisibleBlendClean": {
       "value": "0.26",
-      "meaning": "blend clean accuracy retained with 0.3 of tokens visible"
+      "meaning": "blend clean accuracy retained with 0.3 of tokens visible, over 4 models"
     },
     "CausalVisibleBppTrigger": {
       "value": "0.94",
-      "meaning": "bpp trigger effect retained with 0.3 of tokens visible"
+      "meaning": "bpp trigger effect retained with 0.3 of tokens visible, over 4 models"
     },
     "CausalVisibleBppClean": {
       "value": "0.20",
-      "meaning": "bpp clean accuracy retained with 0.3 of tokens visible"
+      "meaning": "bpp clean accuracy retained with 0.3 of tokens visible, over 4 models"
     },
     "CausalVisibleLfTrigger": {
       "value": "0.90",
-      "meaning": "lf trigger effect retained with 0.3 of tokens visible"
+      "meaning": "lf trigger effect retained with 0.3 of tokens visible, over 4 models"
     },
     "CausalVisibleLfClean": {
       "value": "0.20",
-      "meaning": "lf clean accuracy retained with 0.3 of tokens visible"
+      "meaning": "lf clean accuracy retained with 0.3 of tokens visible, over 4 models"
     },
     "CausalVisibleSigTrigger": {
-      "value": "0.91",
-      "meaning": "sig trigger effect retained with 0.3 of tokens visible"
+      "value": "--",
+      "meaning": "sig trigger effect retained with 0.3 of tokens visible, over 0 models"
     },
     "CausalVisibleSigClean": {
-      "value": "0.52",
-      "meaning": "sig clean accuracy retained with 0.3 of tokens visible"
+      "value": "--",
+      "meaning": "sig clean accuracy retained with 0.3 of tokens visible, over 0 models"
     },
     "CausalVisibleWanetTrigger": {
-      "value": "0.18",
-      "meaning": "wanet trigger effect retained with 0.3 of tokens visible"
+      "value": "0.09",
+      "meaning": "wanet trigger effect retained with 0.3 of tokens visible, over 1 models"
     },
     "CausalVisibleWanetClean": {
-      "value": "0.11",
-      "meaning": "wanet clean accuracy retained with 0.3 of tokens visible"
+      "value": "0.07",
+      "meaning": "wanet clean accuracy retained with 0.3 of tokens visible, over 1 models"
+    },
+    "CausalVisibleGlobalAttacks": {
+      "value": "Blend, BPP and LF",
+      "meaning": "the global-trigger attacks other than WaNet with a panel model in the legibility test"
     },
     "CausalVisibleGlobalTriggerMin": {
       "value": "0.90",
-      "meaning": "lowest trigger effect retained by Blend, BPP, LF and SIG"
+      "meaning": "lowest trigger effect retained by Blend, BPP and LF"
     },
     "CausalVisibleGlobalTriggerMax": {
       "value": "0.95",
-      "meaning": "highest trigger effect retained by Blend, BPP, LF and SIG"
+      "meaning": "highest trigger effect retained by Blend, BPP and LF"
     },
     "CausalVisibleGlobalCleanMin": {
       "value": "0.20",
       "meaning": "lowest clean accuracy retained on those models"
     },
     "CausalVisibleGlobalCleanMax": {
-      "value": "0.52",
+      "value": "0.26",
       "meaning": "highest clean accuracy retained on those models"
     },
     "CausalVisibleShare": {

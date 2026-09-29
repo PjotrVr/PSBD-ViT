@@ -1,9 +1,8 @@
 """Histograms of the fractional PSU statistic, where PSBD-TM separates and where it does not.
 
 3 cells where before_attention_norm_token_mask (PSBD-TM, RECOMMENDED_PLACEMENT)
-clears cleanly sit beside 3 cells where a backdoor implanted but the detector
-reads near chance, so the same figure carries both regimes rather than only the
-flattering regime. Every panel reads the cache cli.sweep wrote under
+clears cleanly sit beside the 3 successful panel cells where it reads lowest,
+so the same figure carries both regimes rather than only the flattering regime. Every panel reads the cache cli.sweep wrote under
 results/<folder>/psbd/ at the rate cli.analyze's select_rate_adaptively chose
 for this placement (psbd_metrics.json's adaptive_rate, target
 ADAPTIVE_SHIFT_TARGET 0.8), and the fractional PSU per sample comes from
@@ -40,11 +39,15 @@ from defenses.decision import (  # noqa: E402
     threshold_at_quantile,
 )
 from defenses.scores import psu_ratio_from_cache  # noqa: E402
+from cli.compare_detectors import psbd_values  # noqa: E402
 from scripts.paper._common import (  # noqa: E402
+    HEADLINE_KEY,
     attack_label,
     build_parser,
+    clearing_cells,
     dataset_label,
     figure_sidecar,
+    load_coverage,
     load_psbd_metrics,
 )
 
@@ -54,17 +57,29 @@ CLEAN_COLOUR = style.PALETTE[0]
 BACKDOOR_COLOUR = style.PALETTE[1]
 THRESHOLD_COLOUR = "black"
 
-# (folder, row) with row 0 3 cells PSBD-TM clears and row 1 its 3 weakest
-# panel cells: cifar10 wanet and cifar10 sig at 10% both invert, and cifar10 bpp
-# at 5% is the weakest that does not.
-PANELS = (
-    ("vit_cifar100_badnet_a2o_0_01", 0),
-    ("vit_gtsrb_bpp_0_05", 0),
-    ("vit_tiny_blend_0_1", 0),
-    ("vit_cifar10_wanet_0_1", 1),
-    ("vit_cifar10_sig_0_1", 1),
-    ("vit_cifar10_bpp_0_05", 1),
+# The top row: 3 cells PSBD-TM clears, picked by hand to span a patch, a
+# sample-specific and a blended trigger. The bottom row is not picked: it is the
+# 3 successful panel cells with the lowest PSBD-TM AUROC at the adaptive rule,
+# read by weakest_panel_cells, so a model leaving the panel cannot stay on it.
+STRONG_PANELS = (
+    "vit_cifar100_badnet_a2o_0_01",
+    "vit_gtsrb_bpp_0_05",
+    "vit_tiny_blend_0_1",
 )
+WEAK_PANEL_COUNT = 3
+
+
+def weakest_panel_cells(results_dir: str, count: int) -> list[str]:
+    """The successful cells with the lowest PSBD-TM AUROC at the adaptive rule, lowest first."""
+    readings = []
+    for cell in clearing_cells(load_coverage(results_dir)):
+        report = load_psbd_metrics(results_dir, cell["folder_name"])
+        values = psbd_values(report, RECOMMENDED_PLACEMENT, "adaptive")
+        if values is None:
+            continue
+        readings.append((values[HEADLINE_KEY]["auroc"], cell["folder_name"]))
+    weakest = [folder for _, folder in sorted(readings)[:count]]
+    return weakest
 
 
 def panel_data(results_dir: str, folder: str) -> dict:
@@ -214,7 +229,10 @@ def sidecar_plotted(panels: list[dict]) -> dict:
 def main() -> None:
     args = build_parser(__doc__).parse_args()
 
-    panels = [panel_data(args.results_dir, folder) for folder, _row in PANELS]
+    folders = list(STRONG_PANELS) + weakest_panel_cells(
+        args.results_dir, WEAK_PANEL_COUNT
+    )
+    panels = [panel_data(args.results_dir, folder) for folder in folders]
     figure_path = write_figure(args.paper_dir, panels)
 
     figure_sidecar(

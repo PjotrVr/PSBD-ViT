@@ -1848,10 +1848,15 @@ DETECTORS_RESULTS_BLOCK_END = "<!-- results:end -->"
 def detectors_panel_cells(
     coverage: dict, declaration: dict, include_sam: bool
 ) -> list[dict]:
-    """The cells a table covers: attacks that cleared the ASR bar, plus the benign references."""
+    """The cells a table covers: the successful backdoors, plus the benign references.
+
+    A successful backdoor clears the ASR bar with clean accuracy within the
+    headline bar of its benign reference, the ledger's successful_2pt verdict and
+    the population every paper result spans.
+    """
     cells = []
     for cell in coverage["cells"]:
-        if cell.get("asr_class") != "clears":
+        if not cell.get("successful_2pt"):
             continue
         if "sam_rho" in cell["folder_name"] and not include_sam:
             continue

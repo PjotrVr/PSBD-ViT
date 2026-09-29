@@ -234,7 +234,7 @@ def draw_panel(ax, k_values, pilot_agg, all_cells_agg, metric, ylabel):
     """1 panel: what each extra pass buys, as the change from a single pass.
 
     The 2 series are different populations, the long curve being the cells that
-    carry a k = 20 cache and the short one every primary clearing cell, so their
+    carry a k = 20 cache and the short one every primary successful cell, so their
     absolute levels differ for reasons that have nothing to do with k.
     Plotting them together on an absolute axis invites the reader to read that gap
     as an effect of sampling. The question the figure answers is what an extra pass
@@ -333,7 +333,7 @@ def pass_macros(pilot_agg: dict, all_cells_agg: dict, n_pilot: int, n_all: int) 
     the figure is that their absolute levels are not comparable.
     """
     macros = {
-        "pass_all_cells": (str(n_all), "primary clearing cells with k up to 3"),
+        "pass_all_cells": (str(n_all), "primary successful cells with k up to 3"),
         "pass_pilot_cells": (str(n_pilot), "cells whose sweep reached k = 20"),
     }
     for population, aggregated, k_values in (
@@ -380,7 +380,7 @@ def main() -> None:
             all_cells_per_cell[folder] = record
     all_cells_agg = aggregate(all_cells_per_cell, BASE_K_VALUES)
 
-    # Every primary clearing cell that has a k = 20 cache contributes, so the
+    # Every primary successful cell that has a k = 20 cache contributes, so the
     # curve grows as the sweep does without this file being edited.
     candidates = [
         folder
@@ -400,7 +400,7 @@ def main() -> None:
     pilot_agg = aggregate(pilot_per_cell, ALL_K_VALUES)
 
     print(
-        f"{len(all_cells_per_cell)} of {len(primary_folders)} primary clearing cells "
+        f"{len(all_cells_per_cell)} of {len(primary_folders)} primary successful cells "
         f"carry k<=3 readings. {len(pilot_per_cell)} of {len(candidates)} cells with "
         "a k=20 cache contribute the long curve"
     )
@@ -447,7 +447,7 @@ def main() -> None:
         generator=GENERATOR,
         inputs=[
             f"{args.results_dir}/<folder>/psbd_metrics.json "
-            f"({len(all_cells_per_cell)} clearing cells)",
+            f"({len(all_cells_per_cell)} successful cells)",
             f"{args.results_dir}/<folder>/psbd/{RECOMMENDED_PLACEMENT}/rate_*_"
             "{validation,clean,backdoor}.pt",
             f"{args.results_dir}/<folder>/psbd/{RECOMMENDED_PLACEMENT}_k20/rate_*_"

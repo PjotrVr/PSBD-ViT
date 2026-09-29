@@ -69,7 +69,7 @@ def adaptive_auroc(report: dict, placement: str) -> float | None:
 
 
 def read_models(results_dir: str, placements: list[str]) -> list[dict]:
-    """Every clearing model's adaptive AUROC at PSBD-TM and each candidate."""
+    """Every successful model's adaptive AUROC at PSBD-TM and each candidate."""
     models = []
     for cell in clearing_cells(load_coverage(results_dir)):
         report = load_psbd_metrics(results_dir, cell["folder_name"])
@@ -131,7 +131,8 @@ def main() -> None:
         group = [model for model in models if model["attack"] == attack]
         macros[f"best_residual_{attack}_auroc"] = (
             fmt(mean_or_none([model["auroc"][best] for model in group])),
-            f"mean AUROC of the best residual placement on {attack}",
+            f"mean AUROC of the best residual placement on {attack}, over "
+            f"{len(group)} models, a dash when none is in the panel",
         )
     inputs = [
         args.declaration,

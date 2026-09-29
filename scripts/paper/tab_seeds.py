@@ -158,7 +158,7 @@ def main() -> None:
         ),
         "seed_cells": (
             str(len(cells)),
-            "clearing cells with 3 training seeds at both placements",
+            "successful cells with 3 training seeds at both placements",
         ),
         "seed_sd_recommended": (
             fmt(

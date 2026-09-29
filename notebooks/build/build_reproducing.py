@@ -51,7 +51,7 @@ print(f"         generator {sample['generator']}, inputs {sample['inputs']}")
     md(r"""
     ## The coverage ledger
 
-    `results/coverage/coverage.json` is the single source of which models exist, which of them the attack implanted on and how much of the basis each carries. `scripts.paper._common.load_coverage` keeps the panel datasets. A model enters a detection table only if its ASR reaches the declared bar, `asr_class == "clears"`. A model whose clean accuracy fell below half the benign reference is `diverged`, and a TaCT model whose clean source class is already sent elsewhere is `source_mapped`, both excluded whatever their ASR reads. The ledger also records clean-accuracy bars (`successful_2pt`, `successful_5pt`), which the paper reports beside the ASR class rather than filtering on.
+    `results/coverage/coverage.json` is the single source of which models exist, which of them the attack implanted on and how much of the basis each carries. `scripts.paper._common.load_coverage` keeps the panel datasets. `asr_class == "clears"` marks a model whose ASR reaches the declared bar, the implantation count. A model whose clean accuracy fell below half the benign reference is `diverged`, and a TaCT model whose clean source class is already sent elsewhere is `source_mapped`, both excluded whatever their ASR reads. A model enters a detection table only if it is a successful backdoor, `successful_2pt`: it clears the ASR bar and keeps its clean accuracy within the headline bar of its benign reference. `scripts.paper._common.clearing_cells` returns exactly these, and `successful_5pt` is the looser bar every headline number is also given at.
     """),
     code(r"""
 coverage = load_coverage("results")
@@ -59,27 +59,29 @@ ledger = pd.DataFrame(coverage["cells"])
 by_class = ledger["asr_class"].value_counts()
 assert str(len(ledger)) == macro("panel", "PanelCellsTotal")
 assert str(by_class["clears"]) == macro("panel", "PanelCellsClearing")
+assert str(int(ledger["successful_2pt"].sum())) == macro("panel", "PanelCellsSuccessful")
+assert str(int(ledger["successful_5pt"].sum())) == macro("panel", "PanelCellsSuccessfulFivePoint")
 assert str(by_class["source_mapped"]) == macro("panel", "PanelCellsSourceMapped")
 print(f"ledger generated {coverage['generated_at']}, declaration {coverage['declaration']}, basis of {coverage['basis_size']} placements")
 print(f"models in the panel ledger: {len(ledger)}")
 print(by_class.to_string())
 
-clearing = ledger[ledger["asr_class"] == "clears"]
+clearing = ledger[ledger["successful_2pt"].astype(bool)]
 figure, axis = plt.subplots(figsize=(6.4, 3.0))
 bins = np.arange(-0.5, coverage["basis_size"] + 1.5)
 axis.hist(clearing["n_basis_covered"], bins=bins, color="#009E73", label="fully swept")
 axis.hist(clearing["n_basis_partial"], bins=bins, color="#E69F00", alpha=0.6, label="partly swept")
 axis.axvline(coverage["basis_size"], color="black", lw=0.8, ls="--")
-axis.set_xlabel(f"basis placements per clearing model, of {coverage['basis_size']}")
-axis.set_ylabel("clearing models")
+axis.set_xlabel(f"basis placements per successful model, of {coverage['basis_size']}")
+axis.set_ylabel("successful models")
 axis.legend()
 plt.show()
-print(f"clearing models with all {coverage['basis_size']} basis placements fully swept: "
+print(f"successful models with all {coverage['basis_size']} basis placements fully swept: "
       f"{int((clearing['n_basis_covered'] >= coverage['basis_size']).sum())} of {len(clearing)}")
 fully_swept = int((clearing["n_basis_covered"] >= coverage["basis_size"]).sum())
 """),
     said(r"""
-    The panel holds {len(ledger)} ViT-B/16 cells: {by_class["clears"]} clear the bar, {by_class["source_mapped"]} are source-mapped TaCT and {by_class.get("diverged", 0)} diverged. These are the counts `start-here.ipynb` drew and the macros `\PanelCellsTotal`, `\PanelCellsClearing` and `\PanelCellsSourceMapped` print. The histogram shows how much of the {coverage["basis_size"]}-placement basis each clearing model carries. A placement is fully swept when every declared rate has all 3 splits on disk, and partly swept when some rates are missing. {fully_swept} of the {len(clearing)} carry every placement fully swept, and the rest are cells whose sweeps were still queued (below). Where a placement's ladder never reaches a rule's shift target the model has no reading for it, so every placement mean in the paper is averaged over the models it covers, which is why the tables print an n beside every mean and why cross-placement comparisons are always paired. The ledger's `gaps` list names every missing (model, placement, rate). The figure does not show which placements are missing where, which the `gaps` list and `results/coverage/COVERAGE.md` do.
+    The panel holds {len(ledger)} ViT-B/16 cells: {by_class["clears"]} clear the bar, {by_class["source_mapped"]} are source-mapped TaCT and {by_class.get("diverged", 0)} diverged. Of the {by_class["clears"]} that clear, {len(clearing)} are successful backdoors at the {macro("panel", "PanelCleanBarPoints")}-point clean-accuracy bar and {macro("panel", "PanelCellsSuccessfulFivePoint")} at the {macro("panel", "PanelCleanBarPointsSecond")}-point bar. The {macro("panel", "PanelCellsFailingCleanBar")} left out by the headline bar are {macro("panel", "PanelCellsFailingCleanBarNames").replace(chr(92) + "%", "%")}. These are the counts `start-here.ipynb` drew and the macros `\PanelCellsTotal`, `\PanelCellsClearing`, `\PanelCellsSuccessful` and `\PanelCellsSourceMapped` print. The histogram shows how much of the {coverage["basis_size"]}-placement basis each successful model carries. A placement is fully swept when every declared rate has all 3 splits on disk, and partly swept when some rates are missing. {fully_swept} of the {len(clearing)} carry every placement fully swept, and the rest are cells whose sweeps were still queued (below). Where a placement's ladder never reaches a rule's shift target the model has no reading for it, so every placement mean in the paper is averaged over the models it covers, which is why the tables print an n beside every mean and why cross-placement comparisons are always paired. The ledger's `gaps` list names every missing (model, placement, rate). The figure does not show which placements are missing where, which the `gaps` list and `results/coverage/COVERAGE.md` do.
     """),
     md(r"""
     ## Kinds of mistakes this pipeline has already made
@@ -161,8 +163,8 @@ from scripts.paper.tab_staircase import panel_cells
 panel = panel_cells("results", coverage)
 panel_folders = {cell["folder_name"] for cell in panel}
 missing = sorted(set(clearing["folder_name"]) - panel_folders)
-print(f"{len(panel_folders)} of {len(clearing)} clearing cells are in the headline panel")
-print("clearing cells outside it:", missing)
+print(f"{len(panel_folders)} of {len(clearing)} successful cells are in the headline panel")
+print("successful cells outside it:", missing)
 multi_source = sorted(path.split("/")[1] for path in glob.glob("checkpoints/vit_*_src*/args.json"))
 print("multi-source TaCT checkpoints on disk:", multi_source or "none yet")
 """),

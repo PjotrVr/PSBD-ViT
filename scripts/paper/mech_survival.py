@@ -333,14 +333,20 @@ def survival_macros(records: list[dict], grouped: dict) -> dict:
                 fmt(group_mean(grouped, attacks, key, "auroc")),
                 f"mean AUROC of {name} at the adaptive rule, {group} triggers",
             )
-        for attack, attack_records in grouped.items():
+        # Every attack the order names gets its macros, so an attack with no
+        # successful model left prints the empty-population dash instead of
+        # leaving the paper an undefined macro.
+        for attack in ATTACK_ORDER:
+            attack_records = grouped.get(attack, [])
             macros[f"survival_{key}_{attack}_triggered"] = (
                 fmt(adaptive_mean(attack_records, key, "triggered"), places=2),
-                f"mean share of triggered {attack} predictions that change under {name}",
+                f"mean share of triggered {attack} predictions that change under "
+                f"{name}, over {len(attack_records)} models",
             )
             macros[f"survival_{key}_{attack}_auroc"] = (
                 fmt(adaptive_mean(attack_records, key, "auroc")),
-                f"mean AUROC of {name} at the adaptive rule on {attack}",
+                f"mean AUROC of {name} at the adaptive rule on {attack}, over "
+                f"{len(attack_records)} models",
             )
     return macros
 

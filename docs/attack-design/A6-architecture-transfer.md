@@ -1,5 +1,7 @@
 # A6. Does an attack designed against ViT transfer to a ConvNet
 
+> Superseded on 2026-09-29: the panel numbers below were read before the results moved to the successful backdoors at the 2-point clean-accuracy bar (the 57-model panel and earlier). They are kept as they were measured. The current values are the macros in `paper/headline.tex`, and `.claude/CLAUDE.md` and `README.md` state them.
+
 **Rank 6 by damage, rank 1 by value.** This is the file to read if only 1 gets
 read. The answer is not a hedge: **confidence matching is architecture
 independent and curvature matching is architecture specific**, and the reason is

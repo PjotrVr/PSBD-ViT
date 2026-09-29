@@ -26,6 +26,7 @@ from scripts.paper._common import (  # noqa: E402
     OKABE_ITO,
     attack_label,
     build_parser,
+    excluded_folders,
     figure_sidecar,
     fmt,
     experiment_artifact,
@@ -50,11 +51,12 @@ CRYSTALLISED = 0.5
 def neuron_records(results_dir: str) -> dict[str, dict]:
     """attack to record, ViT checkpoints outside the SAM set only."""
     records = {}
+    excluded = excluded_folders(results_dir)
     for path in sorted(
         glob.glob(os.path.join(results_dir, "vit_*", "backdoor_neurons.json"))
     ):
         folder = os.path.basename(os.path.dirname(path))
-        if not is_panel_folder(folder):
+        if not is_panel_folder(folder) or folder in excluded:
             continue
         record = load_json(path)
         records[record["attack"]] = record
@@ -70,10 +72,11 @@ def main() -> None:
         args.results_dir, "backdoor_neurons", "direction_persistence.json"
     )
     records = neuron_records(args.results_dir)
+    excluded = excluded_folders(args.results_dir)
     ablation = [
         row
         for row in load_json(ablation_path) or []
-        if is_panel_folder(row["folder_name"])
+        if is_panel_folder(row["folder_name"]) and row["folder_name"] not in excluded
     ]
     persistence = load_json(persistence_path) or []
     inputs = [

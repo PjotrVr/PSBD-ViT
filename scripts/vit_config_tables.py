@@ -135,7 +135,8 @@ def build(args):
 
     measured = {}
     for folder, cell in cells.items():
-        if cell["asr_class"] != "clears":
+        # The ledger's successful_2pt verdict, the panel every result spans.
+        if not cell.get("successful_2pt"):
             continue
         row = measure_cell(folder, args.placement, args.results_dir, args.shift_target)
         if row:
@@ -199,7 +200,7 @@ def build(args):
                 for folder, cell in cells.items()
                 if cell["dataset"] == dataset
                 and cell["poison_rate"] == rate
-                and cell["asr_class"] == "clears"
+                and cell.get("successful_2pt")
             ]
             w(f"## {dataset}, poison rate {rate:.0%}")
             w("")

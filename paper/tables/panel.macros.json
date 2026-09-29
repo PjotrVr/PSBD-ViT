@@ -3,12 +3,44 @@
   "inputs": [
     "results/coverage/coverage.json"
   ],
-  "written_at": "2026-09-29T16:30:55.324864+00:00",
-  "git_commit": "19488b81358b06040ba96f361d5061b2981f1f25-dirty",
+  "written_at": "2026-09-29T18:09:57.931625+00:00",
+  "git_commit": "d73d3277d007fd75b3a4166a7911b1e07a2761b7-dirty",
   "macros": {
     "PanelCellsClearing": {
       "value": "59",
       "meaning": "cells in the ViT panel clearing the attack success bar"
+    },
+    "PanelCellsSuccessful": {
+      "value": "56",
+      "meaning": "cells in the ViT panel that are successful backdoors, clearing the attack success bar with clean accuracy within 2 points of the benign model, the population every result spans"
+    },
+    "PanelCellsSuccessfulFivePoint": {
+      "value": "58",
+      "meaning": "cells in the ViT panel clearing the attack success bar with clean accuracy within 5 points of the benign model"
+    },
+    "PanelCellsFailingCleanBar": {
+      "value": "3",
+      "meaning": "cells clearing the attack success bar that lose more than 2 points of clean accuracy, excluded from every result"
+    },
+    "PanelCellsFailingCleanBarFivePoint": {
+      "value": "1",
+      "meaning": "cells clearing the attack success bar that lose more than 5 points of clean accuracy"
+    },
+    "PanelCellsFailingCleanBarNames": {
+      "value": "SIG at 10\\% on CIFAR-10, WaNet at 5\\% on CIFAR-10 and WaNet at 10\\% on GTSRB",
+      "meaning": "the cells clearing the attack success bar that lose more than 2 points of clean accuracy, as a phrase"
+    },
+    "PanelCleanBarPoints": {
+      "value": "2",
+      "meaning": "the headline clean-accuracy bar, in points below the benign model"
+    },
+    "PanelCleanBarPointsSecond": {
+      "value": "5",
+      "meaning": "the second clean-accuracy bar every number is also given at, in points"
+    },
+    "PanelAttacksSuccessful": {
+      "value": "7",
+      "meaning": "attacks with at least 1 successful cell"
     },
     "PanelCellsTotal": {
       "value": "98",

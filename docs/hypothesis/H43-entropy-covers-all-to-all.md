@@ -1,5 +1,7 @@
 # H43: the case PSBD cannot cover is covered by its own discarded tensor
 
+> Superseded on 2026-09-29: the panel numbers below were read before the results moved to the successful backdoors at the 2-point clean-accuracy bar (the 57-model panel and earlier). They are kept as they were measured. The current values are the macros in `paper/headline.tex`, and `.claude/CLAUDE.md` and `README.md` state them.
+
 **Status: SUPPORTED, and the defense half is now closed.** Predictive entropy reaches
 mean AUROC **0.761** on all-to-all where PSBD reaches **0.411**, with benign controls at
 chance. A label-free, parameter-free rule selects between them and gains **+0.045** mean

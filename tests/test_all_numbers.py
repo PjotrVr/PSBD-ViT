@@ -5,9 +5,8 @@ psbd_metrics.json holds 2 detection blocks per rate, absolute PSU under
 the second. A row that took the first, or a rate other than the one the rule
 chose, would print a plausible number that no paper table contains.
 
-The Swin models the paper reads outside the panel rule are judged by the
-ledger's own divergence, source-mapping and success rules, so a verdict means
-the same thing on every row.
+The Swin models are the ViT panel rule applied to Swin by the ledger's own
+build_ledger, so a verdict means the same thing on every row.
 """
 
 from scripts import all_numbers
@@ -75,58 +74,17 @@ def test_a_ladder_that_never_reaches_the_target_is_a_row_without_metrics():
     assert reading["auroc"] is None
 
 
-def selected_swin(folder: str) -> dict:
-    selected = {
-        "folder": folder,
-        "dataset": "cifar10",
-        "attack": "tact",
-        "poison_rate": 0.005,
-        "asr": 0.99,
+def test_swin_models_are_the_panel_cells_of_the_paper_datasets():
+    """The Swin rows are the ViT panel rule applied to Swin, nothing read outside it."""
+    ledger = {
+        "cells": [
+            {"folder_name": "swin_cifar10_blend_0_1", "dataset": "cifar10"},
+            {"folder_name": "swin_svhn_sig_0_1", "dataset": "svhn"},
+        ]
     }
-    return selected
 
+    models = all_numbers.swin_models(ledger)
 
-def extras_with(monkeypatch, source_accuracy: float | None) -> dict:
-    folder = "swin_cifar10_tact_0_005"
-    monkeypatch.setattr(
-        all_numbers, "swin_cells", lambda *arguments: [selected_swin(folder)]
-    )
-    monkeypatch.setattr(
-        all_numbers,
-        "read_metadata",
-        lambda *arguments: {"clean_accuracy": 0.95, "label_mode": "all_to_one"},
-    )
-    monkeypatch.setattr(
-        all_numbers, "source_class_accuracy", lambda *arguments: source_accuracy
-    )
-    declaration = {
-        "asr_bar": 0.85,
-        "clean_accuracy_drop_bar_headline": -0.02,
-        "clean_accuracy_drop_bar": -0.05,
-    }
-    ledger = {"cells": [], "benign_reference_accuracy": {"cifar10": 0.96}}
-    (extra,) = all_numbers.swin_paper_extras(
-        "results", "checkpoints", declaration, ledger
-    )
-    return extra
-
-
-def test_a_swin_extra_that_maps_its_source_class_is_not_a_success(monkeypatch):
-    """The paper's Swin selection reads models outside the panel rule.
-
-    Each is judged by the ledger's own rules, so a TaCT extra whose clean source
-    class is sent to the target reads source_mapped and never successful.
-    """
-    extra = extras_with(monkeypatch, source_accuracy=0.1)
-
-    assert extra["asr_class"] == "source_mapped"
-    assert extra["source_mapped"] is True
-    assert (extra["successful_2pt"], extra["successful_5pt"]) == (False, False)
-    assert extra["in_panel"] is False
-
-
-def test_a_swin_extra_with_a_real_backdoor_succeeds_within_the_bars(monkeypatch):
-    extra = extras_with(monkeypatch, source_accuracy=0.9)
-
-    assert extra["asr_class"] == "clears"
-    assert (extra["successful_2pt"], extra["successful_5pt"]) == (True, True)
+    assert [model["folder_name"] for model in models] == ["swin_cifar10_blend_0_1"]
+    assert all(model["in_panel"] for model in models)
+    assert all(model["architecture"] == "swin" for model in models)

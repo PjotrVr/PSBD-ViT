@@ -21,19 +21,22 @@ cells = [
 import glob
 
 from defenses.decision import ADAPTIVE_SHIFT_TARGET, PUBLISHED_PLACEMENT, RECOMMENDED_PLACEMENT
+from experiments.why_token_masking_works.measure import read_model_records, summarize
 from scripts.paper._common import (
     attack_label,
     clearing_cells,
     excluded_folders,
     fmt,
+    implanted_cells,
     load_coverage,
     load_json,
+    word_list,
 )
 from scripts.paper._style import attack_color, legend_above
 
 EXCLUDED = excluded_folders("results")
 PATCH_ATTACKS = ("badnet_a2o", "tact")
-print(f"{len(EXCLUDED)} checkpoints excluded as not a trigger backdoor: {sorted(EXCLUDED)}")
+print(f"{len(EXCLUDED)} checkpoints excluded as not a successful trigger backdoor: {sorted(EXCLUDED)}")
 """
     ),
     md(r"""
@@ -87,7 +90,7 @@ survival.round(3)
     said(r"""
     Each line is 1 attack, averaged over its panel models at every swept rate, with the clean validation shift ratio on the x axis and the triggered shift ratio on the y axis. The vertical line is the adaptive target, so where a line crosses it is where the rule reads. A line near the floor means triggered predictions survive the perturbation that moves {ADAPTIVE_SHIFT_TARGET:.0%} of clean ones, which is exactly what makes PSU separate. On the left, PSBD-TM changes {survival.loc["BadNets", "PSBD-TM triggered changed"]:.2f} of BadNets triggered predictions at the adaptive rate against {survival_all["PSBD-TM"]["clean"]:.2f} of clean predictions, and Blend, LF and BPP change at most {survival.loc[global_rows, "PSBD-TM triggered changed"].max():.2f}. On the right, PSBD-RD changes {survival.loc["BadNets", "PSBD-RD triggered changed"]:.2f} of BadNets triggered predictions, while the global triggers change at most {survival.loc[global_rows, "PSBD-RD triggered changed"].max():.2f}. The same clean shift is reached at very different rates, {survival_all["PSBD-TM"]["rate"]:.2f} for PSBD-TM and {survival_all["PSBD-RD"]["rate"]:.2f} for PSBD-RD on average (`\SurvivalTmRate`, `\SurvivalRdRate`).
 
-    The {survival.loc["TaCT", "models"]} trigger-conditional TaCT models are the exception on the left. Their triggered predictions change often under PSBD-TM ({survival.loc["TaCT", "PSBD-TM triggered changed"]:.2f}) and PSBD-TM still scores {survival.loc["TaCT", "PSBD-TM AUROC"]:.3f} on them, because the clean source-class predictions change even more. The single SIG model changes {survival.loc["SIG", "PSBD-TM triggered changed"]:.2f} of its triggered predictions under PSBD-TM, which is why PSBD-TM reads {survival.loc["SIG", "PSBD-TM AUROC"]:.3f} there. The figure does not say why a patch trigger survives token masking and not residual dropout, which the rest of the notebook works out.
+    The {survival.loc["TaCT", "models"]} trigger-conditional TaCT models are the exception on the left. Their triggered predictions change often under PSBD-TM ({survival.loc["TaCT", "PSBD-TM triggered changed"]:.2f}) and PSBD-TM still scores {survival.loc["TaCT", "PSBD-TM AUROC"]:.3f} on them, because the clean source-class predictions change even more. The figure does not say why a patch trigger survives token masking and not residual dropout, which the rest of the notebook works out.
     """),
     md(r"""
     ## 2. The depth at which the trigger is written
@@ -170,7 +173,7 @@ ablation_frame.round(3)
     md(r"""
     ## 4. Which tokens carry the decision, and when the class token reads them
 
-    **Activation patching** runs the clean image and the triggered image, overwrites a group of tokens in the triggered run with their clean values at 1 block, and measures the recovery, the share of the clean prediction that comes back (1 means the clean answer is fully restored). 3 groups are patched: the trigger's own tokens, the class token and a random group of the trigger's size as the null. `results/<folder>/activation_patching.json` carries it for every clearing model, and `scripts/paper/mech_activation_patching.py` averages it per attack at the residual-stream site.
+    **Activation patching** runs the clean image and the triggered image, overwrites a group of tokens in the triggered run with their clean values at 1 block, and measures the recovery, the share of the clean prediction that comes back (1 means the clean answer is fully restored). 3 groups are patched: the trigger's own tokens, the class token and a random group of the trigger's size as the null. `results/<folder>/activation_patching.json` carries it for every successful model, and `scripts/paper/mech_activation_patching.py` averages it per attack at the residual-stream site.
     """),
     code(r"""
 from scripts.paper import mech_activation_patching as patching
@@ -203,7 +206,7 @@ for axis in axes[:, 0]:
 legend_above(figure, list(axes.flat[:len(attacks)]), columns=3)
 figure.tight_layout()
 plt.show()
-print(f"{patch_count} clearing models carry activation_patching.json")
+print(f"{patch_count} successful models carry activation_patching.json")
 badnet_last_full = patching.last_full_layer(curves["badnet_a2o"])
 badnet_crossover = patching.crossover_layer(curves["badnet_a2o"])
 tact_last_full = patching.last_full_layer(curves["tact"])
@@ -250,12 +253,17 @@ print("excluded folders removed by mech_routing.all_folders:", sorted(f for f in
     md(r"""
     ## 5. The causal test of why token masking works
 
-    `experiments/why_token_masking_works/` tested 4 hypotheses with deterministic and recorded masks on the panel models, and `results/_experiments/why_token_masking_works/summary.json` holds the result (`scripts/paper/mech_causal.py` turns it into the `\Causal*` macros). The models are grouped as BadNets, trigger-conditional TaCT and, kept here as a contrast, source-mapped TaCT, whose triggered predictions are carried by the source class rather than the trigger. **Triggered kept** is the share of triggered images still sent to the target among those the unperturbed model sends there, and **clean kept** the share of clean images keeping their unperturbed class.
+    `experiments/why_token_masking_works/` tested 4 hypotheses with deterministic and recorded masks on the panel models, and `results/_experiments/why_token_masking_works/<folder>.json` holds 1 record per model (`scripts/paper/mech_causal.py` summarizes the panel models among them into the `\Causal*` macros, and the cell below summarizes the same records with the source-mapped TaCT models kept as a contrast). The models are grouped as BadNets, trigger-conditional TaCT and, kept here as a contrast, source-mapped TaCT, whose triggered predictions are carried by the source class rather than the trigger. **Triggered kept** is the share of triggered images still sent to the target among those the unperturbed model sends there, and **clean kept** the share of clean images keeping their unperturbed class.
 
     Part A masks the trigger's own tokens at the attention input, deterministically, in chosen blocks only, with the class token never masked.
     """),
     code(r"""
-causal = load_json("results/_experiments/why_token_masking_works/summary.json")
+# The paper's Causal* macros summarize the panel models only
+# (scripts/paper/mech_causal.py). Here the source-mapped TaCT models stay in as
+# the contrast group, and the models the clean-accuracy bar removes are dropped
+# as in the paper, with the experiment's own summarize.
+failing_bar = {cell["folder_name"] for cell in implanted_cells(load_coverage("results")) if not cell["successful_2pt"]}
+causal = summarize([record for record in read_model_records("results/_experiments/why_token_masking_works") if record["folder"] not in failing_bar])
 masking = causal["deterministic_masking"]
 rows_shown = ["all_12", "blocks_1_4", "blocks_5_8", "blocks_9_12", "last_1", "last_2", "last_4", "first_8", "random_all_12"]
 row_labels = ["all 12", "blocks 1 to 4", "blocks 5 to 8", "blocks 9 to 12", "last 1", "last 2", "last 4", "first 8", "random tokens, all 12"]
@@ -359,7 +367,7 @@ rd_ratio = rd_bad["all_tokens"]["triggered_kept"] / rd_bad["all_tokens"]["clean_
     code(r"""
 visible = causal["visible_subsets"]
 fractions = ["1.0", "0.6", "0.3", "0.1"]
-shown_groups = ["badnet_a2o", "tact_trigger_conditional", "blend", "bpp", "lf", "sig", "wanet"]
+shown_groups = [group for group in ("badnet_a2o", "tact_trigger_conditional", "blend", "bpp", "lf", "sig", "wanet") if group in visible]
 figure, (trigger_axis, clean_axis) = plt.subplots(1, 2, figsize=(10.0, 3.6), sharey=True)
 for group in shown_groups:
     color = attack_color(group.removesuffix("_trigger_conditional"))
@@ -378,9 +386,11 @@ legend_above(figure, [trigger_axis], columns=4)
 plt.show()
 for attack in ("Blend", "Bpp", "Lf", "Sig", "Wanet"):
     group = attack.lower()
-    assert f"{visible[group]['0.3']['excess_retention']:.2f}" == macro("causal", f"CausalVisible{attack}Trigger"), attack
+    shown = f"{visible[group]['0.3']['excess_retention']:.2f}" if group in visible else "--"
+    assert shown == macro("causal", f"CausalVisible{attack}Trigger"), attack
 print("visible-subset readings at f = 0.3 match \\CausalVisible*Trigger in paper/tables/causal.macros.json")
-global_groups = ["blend", "bpp", "lf", "sig"]
+global_groups = [group for group in ("blend", "bpp", "lf", "sig") if group in visible]
+global_words = word_list([attack_label(group) for group in global_groups])
 global_trigger_kept = [visible[g]["0.3"]["excess_retention"] for g in global_groups]
 global_clean_kept = [visible[g]["0.3"]["clean_accuracy_retention"] for g in global_groups]
 wanet_trigger_kept = visible["wanet"]["0.3"]["excess_retention"]
@@ -389,7 +399,7 @@ hidden = causal["visible_subsets_patch_by_trigger_visibility"]
 hidden_retention = sorted({round(hidden[f]["trigger_hidden"]["excess_retention"], 3) for f in hidden if "trigger_hidden" in hidden[f]})
 """),
     said(r"""
-    Solid lines are the patch triggers, dashed the global ones. With 30% of tokens visible Blend, BPP, LF and SIG keep {min(global_trigger_kept):.2f} to {max(global_trigger_kept):.2f} of their trigger effect while clean accuracy keeps only {min(global_clean_kept):.2f} to {max(global_clean_kept):.2f} (`\CausalVisibleGlobalTriggerMin` to `Max`), so a global trigger stays legible from almost any subset of tokens, and that is why every placement detects it. WaNet keeps {wanet_trigger_kept:.2f} of its trigger against {wanet_clean_kept:.2f} of its clean accuracy, the 1 global trigger that behaves like content, which is why token masking has no edge on WaNet. BadNets retains more trigger than clean accuracy only while some trigger token stays visible, and on the patch models the draws that hid every trigger token retain {word_list([f"{v:.3f}" for v in hidden_retention])}. The subsets are fixed across blocks here, unlike PSBD-TM's per-block draws, so this part measures legibility, not the detector.
+    Solid lines are the patch triggers, dashed the global ones. With 30% of tokens visible {global_words} keep {min(global_trigger_kept):.2f} to {max(global_trigger_kept):.2f} of their trigger effect while clean accuracy keeps only {min(global_clean_kept):.2f} to {max(global_clean_kept):.2f} (`\CausalVisibleGlobalTriggerMin` to `Max`), so a global trigger stays legible from almost any subset of tokens, and that is why every placement detects it. WaNet keeps {wanet_trigger_kept:.2f} of its trigger against {wanet_clean_kept:.2f} of its clean accuracy, the 1 global trigger that behaves like content, which is why token masking has no edge on WaNet. BadNets retains more trigger than clean accuracy only while some trigger token stays visible, and on the patch models the draws that hid every trigger token retain {word_list([f"{v:.3f}" for v in hidden_retention])}. The subsets are fixed across blocks here, unlike PSBD-TM's per-block draws, so this part measures legibility, not the detector.
     """),
     md(r"""
     ## 6. Why masking beats noise at the same position

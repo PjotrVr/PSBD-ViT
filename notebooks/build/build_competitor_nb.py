@@ -116,7 +116,7 @@ $$
 
 AUROC is **one-sided**: it is computed on the scores as the detector returns them and never flipped, so a value under 0.5 means the detector ordered the 2 populations the wrong way round. PSBD-TM and PSBD-RD are read at the **adaptive rule**, the smallest perturbation rate whose clean validation images change their prediction in 80% of perturbed passes, which a defender can apply without any triggered data.
 
-**The panel.** `scripts.detector_doc_results.comparison_cells` returns the models of the paper's detector comparison: the ViT-B/16 models in `results/coverage/coverage.json` whose attack success clears the bar, on CIFAR-10, CIFAR-100, GTSRB and Tiny ImageNet, excluding models that diverged in training or whose TaCT poisoning mapped the whole source class to the target, and keeping only those every 1 of the 13 defenses has scored. `collect_readings` then reads every record. The table shows how many panel models each attack and poison rate contributes, and every per-attack figure below carries those counts.
+**The panel.** `scripts.detector_doc_results.comparison_cells` returns the models of the paper's detector comparison: the ViT-B/16 models in `results/coverage/coverage.json` that are successful backdoors (attack success at the bar and clean accuracy within the headline bar of the benign model, the ledger's `successful_2pt`), on CIFAR-10, CIFAR-100, GTSRB and Tiny ImageNet, excluding models that diverged in training or whose TaCT poisoning mapped the whole source class to the target, and keeping only those every 1 of the 13 defenses has scored. `collect_readings` then reads every record. The table shows how many panel models each attack and poison rate contributes, and every per-attack figure below carries those counts.
 """)
 
 code(r"""
@@ -234,7 +234,7 @@ per_attack_figure(["confidence"], "Confidence against PSBD-TM and PSBD-RD, per a
 """)
 
 md(r"""
-**What it proves.** Confidence alone separates some attacks on some datasets and falls below chance on many models, most visibly where clean predictions are already near certain. PSBD-TM beats it on every attack except the single SIG model, where PSBD-TM itself inverts. **What it does not.** It says nothing about attacks trained to keep the triggered prediction's confidence low, which are designed against exactly this signal. **Next question.** Does perturbing the input rather than just reading the output add information?
+**What it proves.** Confidence alone separates some attacks on some datasets and falls below chance on many models, most visibly where clean predictions are already near certain. PSBD-TM beats it on every attack of the panel. **What it does not.** It says nothing about attacks trained to keep the triggered prediction's confidence low, which are designed against exactly this signal. **Next question.** Does perturbing the input rather than just reading the output add information?
 """)
 
 md(r"""
@@ -377,7 +377,7 @@ per_attack_figure(["cd_l"], "CD-L against PSBD-TM and PSBD-RD, per attack")
 """)
 
 md(r"""
-**What it proves.** CD-L is strong on BadNets and BPP and weak on LF, WaNet, SIG and TaCT: a whole-image trigger gives the mask no small region to collapse onto, and TaCT's trigger needs its source object in the mask too. It costs 251 forward-equivalents per input, the most of any defense. BPP is also a whole-image trigger, and CD-L's success on it is not explained here. **What it does not.** The port runs its 100 steps in bfloat16, validated against float32 on 1 model only. **Next question.** Instead of the input, can a detector read the model's internal features directly?
+**What it proves.** CD-L is strong on BadNets and BPP and weak on LF, WaNet and TaCT: a whole-image trigger gives the mask no small region to collapse onto, and TaCT's trigger needs its source object in the mask too. It costs 251 forward-equivalents per input, the most of any defense. BPP is also a whole-image trigger, and CD-L's success on it is not explained here. **What it does not.** The port runs its 100 steps in bfloat16, validated against float32 on 1 model only. **Next question.** Instead of the input, can a detector read the model's internal features directly?
 """)
 
 md(r"""
@@ -413,7 +413,7 @@ per_attack_figure(["beatrix"], "Beatrix against PSBD-TM and PSBD-RD, per attack"
 """)
 
 md(r"""
-**What it proves.** Beatrix is third of the 13 defenses on the panel and the best of all on CIFAR-10, and it separates TaCT and the single SIG model almost perfectly. It fails on WaNet, whose warp moves every token a little. Its weakness is the class budget: on Tiny ImageNet the shared split leaves about 10 references per class, so the bands are read off very few images (`docs/detectors/beatrix.md` gives the per-dataset means). **What it does not.** The feature layer is fixed at block 9 by analogy with the paper's ResNet hook, and no other layer was swept. **Next question.** Can the depth at which a triggered image's features change class be used directly?
+**What it proves.** Beatrix is third of the 13 defenses on the panel and the best of all on CIFAR-10, and it separates TaCT almost perfectly. It fails on WaNet, whose warp moves every token a little. Its weakness is the class budget: on Tiny ImageNet the shared split leaves about 10 references per class, so the bands are read off very few images (`docs/detectors/beatrix.md` gives the per-dataset means). **What it does not.** The feature layer is fixed at block 9 by analogy with the paper's ResNet hook, and no other layer was swept. **Next question.** Can the depth at which a triggered image's features change class be used directly?
 """)
 
 md(r"""
@@ -450,7 +450,7 @@ per_attack_figure(["ted"], "TED against PSBD-TM and PSBD-RD, per attack")
 """)
 
 md(r"""
-**What it proves.** TED is fifth of 13, never falls below chance and is near perfect on TaCT and SIG, the attacks whose early-layer features stay with the source class. Like Beatrix it is weakest on Tiny ImageNet, where the shared split leaves few stored images per class. **What it does not.** The outlier model differs from the reference's, so its numbers are not the paper's. **Next question.** Can the region that drives the prediction be located and tested directly?
+**What it proves.** TED is fourth of 13, just above PSBD-RD, never falls below chance and is near perfect on TaCT, whose early-layer features stay with the source class. Like Beatrix it is weakest on Tiny ImageNet, where the shared split leaves few stored images per class. **What it does not.** The outlier model differs from the reference's, so its numbers are not the paper's. **Next question.** Can the region that drives the prediction be located and tested directly?
 """)
 
 md(r"""
@@ -475,7 +475,7 @@ per_attack_figure(["sentinet"], "SentiNet against PSBD-TM and PSBD-RD, per attac
 """)
 
 md(r"""
-**What it proves.** SentiNet is last and below chance on most panel models, lowest on TaCT and SIG. The established part of the explanation is that Grad-CAM on these ViTs does not point at the trigger (`docs/runs/2026-09-10-detector-smoke.md`), so the transplanted region carries part of the object, not the trigger. That explains a reading near chance, not below it (Q23 of `docs/open-questions.md`). A candidate explanation for the sign, not yet measured, is that `fooled` counts against the input's predicted label: a triggered input is predicted as the target while its transplanted region shows the source object, so it fools fewer clean images than a clean input's region does. **What it does not.** It does not test an attention-based mask, the natural ViT variant, which was never built. **Next question.** How do all 13 defenses compare once each has been seen?
+**What it proves.** SentiNet is last and below chance on most panel models, lowest on TaCT. The established part of the explanation is that Grad-CAM on these ViTs does not point at the trigger (`docs/runs/2026-09-10-detector-smoke.md`), so the transplanted region carries part of the object, not the trigger. That explains a reading near chance, not below it (Q23 of `docs/open-questions.md`). A candidate explanation for the sign, not yet measured, is that `fooled` counts against the input's predicted label: a triggered input is predicted as the target while its transplanted region shows the source object, so it fools fewer clean images than a clean input's region does. **What it does not.** It does not test an attention-based mask, the natural ViT variant, which was never built. **Next question.** How do all 13 defenses compare once each has been seen?
 """)
 
 md(r"""
@@ -547,7 +547,7 @@ print(f"best competitor here: {best}, in the paper: {paper_macros['DetectorsAuro
 """)
 
 md(r"""
-**What it proves.** On this panel PSBD-TM has the highest mean AUROC, and the calibrated IBD-PSC is the closest competitor with a paired gap whose interval sits just above 0, which the paper reports as a narrow lead. Beatrix, PSBD-RD and TED follow. Several competitors fall below chance on many models, which a one-sided AUROC shows and a two-sided one would hide. Accuracy and cost are unrelated: the 2 most expensive defenses, CD-L and SentiNet, are in the lower half. **What it does not.** A mean over 57 models weights the attacks by how many models each contributes, and 4 attacks contribute 12 models each while SIG contributes 1. Every competitor is a port adapted to ViT, and each page in `docs/detectors/` lists how far the port departs from its paper.
+**What it proves.** On this panel PSBD-TM has the highest mean AUROC, and the calibrated IBD-PSC is the closest competitor with a paired gap whose interval sits just above 0, which the paper reports as a narrow lead. Beatrix, TED and PSBD-RD follow. Several competitors fall below chance on many models, which a one-sided AUROC shows and a two-sided one would hide. Accuracy and cost are unrelated: the 2 most expensive defenses, CD-L and SentiNet, are in the lower half. **What it does not.** A mean over the compared models weights the attacks by how many models each contributes, and 4 attacks contribute 12 models each while SIG contributes 1. Every competitor is a port adapted to ViT, and each page in `docs/detectors/` lists how far the port departs from its paper.
 """)
 
 md(r"""

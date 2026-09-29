@@ -59,7 +59,12 @@ The diagrams under `figures/` are TikZ sources compiled by `figures/render.py`
 11. `backdoor-manifestation.ipynb`. How each attack shows up inside the network.
 12. `why-psbd-works.ipynb`, `why-psbd-works-general.ipynb` and
     `why-psbd-tm.ipynb`. The explanation of the detector in general and of
-    PSBD-TM in particular.
+    PSBD-TM in particular. `why-psbd-works-general.ipynb` tests margin,
+    backdoor-direction dominance, token redundancy, low dimension and flatness
+    per attack category on ViT-B/16 and Swin-S, gives the explanations that do
+    not hold (confidence, MC-dropout uncertainty, out of distribution, trigger
+    neurons, neuron bias, an easy target class) their own step and ends on a
+    grid of verdicts. It reads the JSON of `experiments/why_psbd_works/` only.
 13. `competitor-defenses.ipynb`. The 11 ported detectors, what each does and how
     each was checked against its reference: the idea, a figure of what each
     perturbs or reads, the source of its scoring function, its score

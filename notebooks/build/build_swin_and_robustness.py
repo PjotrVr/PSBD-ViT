@@ -42,7 +42,7 @@ show_diagram("swin_windows")
     md(r"""
     ## The Swin models
 
-    Swin has no coverage ledger of its own, so `tab_swin.swin_cells` scans `results/swin_*` directly and keeps the panel-shaped folders whose training sidecar records an ASR at the declared bar, dropping a TaCT model whose clean source class is already mapped away, the ViT ledger's rule applied to Swin. Swin was trained on the same panel datasets with the same recipe as ViT.
+    Swin follows exactly the ViT panel rule. `scripts.paper._common.swin_coverage` retargets the declaration of `configs/psbd_basis.json` to Swin-S (the same datasets, poison rates, canonical variants and excluded folder tokens, with the benign Swin-S model as each dataset's reference) and builds the coverage ledger in memory with the ledger's own verdicts, and `tab_swin.swin_cells` keeps the successful backdoors (`successful_2pt`) that carry a PSBD cache. So a 0.5% model, a Label-Consistent model without its adversarial bases, or a diverged, source-mapped or clean-accuracy-failing Swin model is not read. Swin was trained on the same panel datasets with the same recipe as ViT.
     """),
     code(r"""
 from scripts.paper import tab_swin
@@ -50,13 +50,13 @@ from scripts.paper import tab_swin
 swin = tab_swin.swin_cells("results", "checkpoints", declaration["asr_bar"])
 assert str(len(swin)) == macro("swin", "SwinCells")
 swin_frame = pd.DataFrame([{k: c[k] for k in ("folder", "dataset", "attack", "poison_rate", "asr")} for c in swin])
-print(f"{len(swin)} implanted Swin-S models above the {declaration['asr_bar']} bar")
+print(f"{len(swin)} successful Swin-S models, above the {declaration['asr_bar']} bar and within the clean-accuracy bar")
 vit_clearing_count = len(clearing_cells_of(load_coverage("results")))
 swin_only_more = [attack_label(a) for a in sorted(swin_frame["attack"].unique()) if (swin_frame["attack"] == a).sum() > sum(c["attack"] == a for c in clearing_cells_of(load_coverage("results")))]
 swin_frame.assign(dataset=swin_frame["dataset"].map(dataset_label), attack=swin_frame["attack"].map(attack_label)).groupby(["attack", "dataset"]).size().unstack(fill_value=0)
 """),
     said(r"""
-    {len(swin)} Swin models cleared the bar (`\SwinCells`) against {vit_clearing_count} ViT models, and {word_list(swin_only_more)} implant on more Swin models than ViT models. The composition differs from the ViT panel, so a mean over Swin and a mean over ViT answer slightly different questions, which the paired scatter further down avoids.
+    {len(swin)} Swin models are successful backdoors (`\SwinCells`) against {vit_clearing_count} ViT models, and {word_list(swin_only_more)} implant on more Swin models than ViT models. The composition differs from the ViT panel, so a mean over Swin and a mean over ViT answer slightly different questions, which the paired scatter further down avoids.
     """),
     md(r"""
     ## Placements on Swin
@@ -117,7 +117,7 @@ gains.round(3)
     md(r"""
     ## Swin against ViT on the same attack cells
 
-    A Swin folder and a ViT folder with the same dataset, attack and rate are the same attack trained into 2 architectures. The scatter pairs them, 1 point per cell present and clearing in both, so each point compares the architectures on identical poisoning.
+    A Swin folder and a ViT folder with the same dataset, attack and rate are the same attack trained into 2 architectures. The scatter pairs them, 1 point per cell present and successful in both, so each point compares the architectures on identical poisoning.
     """),
     code(r"""
 from cli.compare_detectors import psbd_values
@@ -219,6 +219,15 @@ evasive.round(3)
     """),
     code(r"""
 union_record = load_json("results/_experiments/probe_union/probe_union.json")
+# The record was written over the ASR-only panel, so its summaries are recomputed
+# on the successful models by the paper generator's own restrict_to_panel.
+from scripts.paper.tab_probe_union import restrict_to_panel
+from scripts.paper._common import BOOTSTRAP_RESAMPLES, BOOTSTRAP_SEED
+union_panel = {cell["folder_name"] for cell in clearing_cells_of(load_coverage("results"))}
+restricted = restrict_to_panel(union_record, union_panel, BOOTSTRAP_RESAMPLES, BOOTSTRAP_SEED)
+for key, block in restricted.items():
+    block["summary"]["placements"] = union_record["probe_sets"][key]["summary"]["placements"]
+union_record = {**union_record, "probe_sets": restricted}
 set_labels = {
     "psbd_tm": "PSBD-TM alone",
     "psbd_tm_rd": "PSBD-TM + PSBD-RD",
@@ -263,12 +272,10 @@ wanet = union_record["wanet_cifar10"]
 print(f"WaNet 10% CIFAR-10: PSBD-TM {wanet['psbd_tm']['auroc']:.3f}, PSBD-TM + PSBD-RD {wanet['psbd_tm_rd']['auroc']:.3f}")
 alone = union_summary.loc["PSBD-TM alone", "AUROC"]
 assert (union_summary["AUROC"] >= alone - 1e-9).all(), "the reading says no union falls below PSBD-TM alone"
-sig_row = union_record["probe_sets"]["psbd_tm_rd"]["per_model"]
-sig_union = next(m["auroc"] for m in sig_row if m["attack"] == "sig")
 union_summary.round(3)
 """),
     said(r"""
-    Every union reads at least as high as PSBD-TM alone ({alone:.3f}) on the {union_summary.loc["PSBD-TM alone", "models"]} ordinary models, so hardening against an adaptive attacker costs nothing in AUROC. PSBD-TM plus PSBD-RD gains {macro("probe_union", "ProbeUnionTmRdGain")} with an interval of {macro("probe_union", "ProbeUnionTmRdGainCi").replace("$-$", "−")} (`\ProbeUnionTmRdGain`). The scatter shows where: it lifts WaNet at 10% on CIFAR-10 from {wanet["psbd_tm"]["auroc"]:.3f} to {wanet["psbd_tm_rd"]["auroc"]:.3f} and the SIG model to {sig_union:.3f}, the 2 cells where PSBD-TM inverts and PSBD-RD is strong, and leaves the rest near the diagonal. The figure does not show the union's FPR, which rises with the number of probes at a fixed per-probe quantile.
+    Every union reads at least as high as PSBD-TM alone ({alone:.3f}) on the {union_summary.loc["PSBD-TM alone", "models"]} ordinary models, so hardening against an adaptive attacker costs nothing in AUROC. PSBD-TM plus PSBD-RD gains {macro("probe_union", "ProbeUnionTmRdGain")} with an interval of {macro("probe_union", "ProbeUnionTmRdGainCi").replace("$-$", "−")} (`\ProbeUnionTmRdGain`). The scatter shows where: it lifts WaNet at 10% on CIFAR-10 from {wanet["psbd_tm"]["auroc"]:.3f} to {wanet["psbd_tm_rd"]["auroc"]:.3f}, the cell where PSBD-TM inverts and PSBD-RD is strong, and leaves the rest near the diagonal. The figure does not show the union's FPR, which rises with the number of probes at a fixed per-probe quantile.
     """),
     md(r"""
     ## Forward passes and their cost

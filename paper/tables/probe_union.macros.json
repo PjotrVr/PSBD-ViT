@@ -1,49 +1,50 @@
 {
   "generator": "scripts/paper/tab_probe_union.py",
   "inputs": [
-    "results/_experiments/probe_union/probe_union.json"
+    "results/_experiments/probe_union/probe_union.json",
+    "results/coverage/coverage.json (56 successful cells)"
   ],
-  "written_at": "2026-09-29T16:31:13.837456+00:00",
-  "git_commit": "19488b81358b06040ba96f361d5061b2981f1f25-dirty",
+  "written_at": "2026-09-29T18:10:18.199395+00:00",
+  "git_commit": "d73d3277d007fd75b3a4166a7911b1e07a2761b7-dirty",
   "macros": {
     "ProbeUnionAllBasisGain": {
-      "value": "+0.024",
+      "value": "+0.016",
       "meaning": "paired AUROC gain of the union of every fully swept placement over PSBD-TM"
     },
     "ProbeUnionSigCifarOneZeroTmRd": {
-      "value": "0.908",
-      "meaning": "PSBD-TM + PSBD-RD union on SIG at 10% on CIFAR-10, the other inverted cell"
+      "value": "--",
+      "meaning": "PSBD-TM + PSBD-RD union on SIG at 10% on CIFAR-10, the other inverted cell, a dash when that model is not in the panel"
     },
     "ProbeUnionThreeProbeAuroc": {
-      "value": "0.967",
+      "value": "0.970",
       "meaning": "mean AUROC of the 3-probe union of the adaptive section on the ordinary models"
     },
     "ProbeUnionThreeProbeN": {
-      "value": "57",
+      "value": "54",
       "meaning": "models holding all 3 probes of the adaptive section"
     },
     "ProbeUnionTmBranchGain": {
-      "value": "+0.021",
+      "value": "+0.012",
       "meaning": "paired AUROC gain of the PSBD-TM + branch-output union over PSBD-TM alone"
     },
     "ProbeUnionTmBranchAuroc": {
-      "value": "0.973",
+      "value": "0.975",
       "meaning": "mean AUROC of the PSBD-TM + branch-output union"
     },
     "ProbeUnionNModels": {
-      "value": "57",
+      "value": "54",
       "meaning": "backdoored ViT-B/16 models the probe-union check reads, the models with both headline placements"
     },
     "ProbeUnionPsbdTmAuroc": {
-      "value": "0.953",
+      "value": "0.963",
       "meaning": "mean AUROC of PSBD-TM alone over the models the probe-union check reads"
     },
     "ProbeUnionTmRdGain": {
-      "value": "+0.017",
+      "value": "+0.008",
       "meaning": "paired AUROC gain of the PSBD-TM + PSBD-RD union over PSBD-TM alone"
     },
     "ProbeUnionTmRdGainCi": {
-      "value": "[$-$0.005, +0.044]",
+      "value": "[$-$0.009, +0.029]",
       "meaning": "95% bootstrap interval of that gain"
     },
     "ProbeUnionWanetCifarOneZeroTm": {

@@ -3,16 +3,16 @@
   "inputs": [
     "results/<folder>/psbd_metrics.json"
   ],
-  "written_at": "2026-09-29T16:20:58.525840+00:00",
-  "git_commit": "2e59453ac935840c88040509aab36fb7e2c4ac3d-dirty",
+  "written_at": "2026-09-29T18:00:44.726814+00:00",
+  "git_commit": "b2d32cf11708d5de965d3e13604c863a3ad9b493-dirty",
   "macros": {
     "ShiftToTargetShareAll": {
-      "value": "0.197",
+      "value": "0.183",
       "meaning": "A1: mean target-class share of shifted clean predictions, all clearing cells, recommended placement, matched-0.6 rate rule"
     },
     "ShiftToTargetExcessAll": {
-      "value": "+0.196 [+0.125, +0.274]",
-      "meaning": "A1: mean paired excess over the matched-dataset benign reference, all clearing cells, matched-0.6 rate rule, 95% bootstrap interval"
+      "value": "+0.182 [+0.112, +0.256]",
+      "meaning": "A1: mean paired excess over the matched-dataset benign reference, all successful cells, matched-0.6 rate rule, 95% bootstrap interval"
     },
     "ShiftToTargetBenignShare": {
       "value": "0.002",
@@ -23,7 +23,7 @@
       "meaning": "A1: target-class share on vit_cifar100_badnet_a2o_0_01, recommended placement, adaptive-0.8 rate rule"
     },
     "ShiftToTargetNoDriftAttacks": {
-      "value": "Blend, SIG and TaCT",
+      "value": "Blend and TaCT",
       "meaning": "attacks whose excess stays under 0.02 on every dataset"
     },
     "ShiftToTargetDriftAttacks": {
@@ -31,11 +31,11 @@
       "meaning": "attacks with an excess of at least the floor on some dataset"
     },
     "ShiftToTargetLargestCell": {
-      "value": "WaNet on GTSRB",
+      "value": "BadNets on GTSRB",
       "meaning": "the attack and dataset with the largest mean excess"
     },
     "ShiftToTargetLargestExcess": {
-      "value": "+0.996",
+      "value": "+0.793",
       "meaning": "the largest mean excess over any attack and dataset"
     },
     "ShiftToTargetNoDriftFloor": {

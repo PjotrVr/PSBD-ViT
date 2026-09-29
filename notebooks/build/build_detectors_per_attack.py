@@ -4,7 +4,7 @@ cells = [
     md(r"""
     # AUROC of every defense per attack
 
-    The paper's detector comparison ranks every defense by 1 mean AUROC over the compared models, and a single mean hides which attacks each defense handles. This notebook breaks the same comparison out by attack, by dataset and by model. It reads the population `scripts/paper/tab_detectors.py` builds its tables from, the clearing models that carry a reading from every defense, through the generator's own `fully_covered` and `cell_readings`. PSBD-TM and PSBD-RD are read at the adaptive rate rule and the headline quantile on the fractional PSU, the same quantile the competitor records under `results/<folder>/detectors/<name>_metrics.json` were scored at by `cli.baselines`, on exactly the same splits. It reads cached JSON only and runs in about 30 seconds.
+    The paper's detector comparison ranks every defense by 1 mean AUROC over the compared models, and a single mean hides which attacks each defense handles. This notebook breaks the same comparison out by attack, by dataset and by model. It reads the population `scripts/paper/tab_detectors.py` builds its tables from, the successful models that carry a reading from every defense, through the generator's own `fully_covered` and `cell_readings`. PSBD-TM and PSBD-RD are read at the adaptive rate rule and the headline quantile on the fractional PSU, the same quantile the competitor records under `results/<folder>/detectors/<name>_metrics.json` were scored at by `cli.baselines`, on exactly the same splits. It reads cached JSON only and runs in about 30 seconds.
     """),
     md(r"""
     ## The competitor detectors
@@ -51,7 +51,7 @@ from scripts.paper.tab_detectors import RULE, build_rows, cell_readings, columns
     md(r"""
     ## The compared models
 
-    A column mean over whichever models that column happens to cover would make the columns incomparable, so the generator keeps only the clearing models every defense scored. The same filter runs here.
+    A column mean over whichever models that column happens to cover would make the columns incomparable, so the generator keeps only the successful models every defense scored. The same filter runs here.
     """),
     code(r"""
 coverage = load_coverage("results")
@@ -59,12 +59,12 @@ clearing = clearing_cells(coverage)
 compared = fully_covered("results", clearing)
 assert str(len(compared)) == macro("detectors", "DetectorsComparedModels")
 
-print(f"{len(compared)} of {len(clearing)} clearing models carry a reading from every defense")
+print(f"{len(compared)} of {len(clearing)} successful models carry a reading from every defense")
 print(f"PSBD-TM is {RECOMMENDED_PLACEMENT}, PSBD-RD is {PUBLISHED_PLACEMENT}")
 print(f"rate rule {RULE}, threshold at the {HEADLINE_QUANTILE:.0%} clean-validation quantile")
 """),
     said(r"""
-    The {len(compared)} compared models are the clearing models with every defense scored, and the {len(clearing) - len(compared)} clearing models outside them are the ones still waiting for their sweeps, so every number below is on the same models as `start-here.ipynb`'s headline scatter.
+    The {len(compared)} compared models are the successful models with every defense scored, and the {len(clearing) - len(compared)} successful models outside them are the ones still waiting for their sweeps, so every number below is on the same models as `start-here.ipynb`'s headline scatter.
     """),
     code(r"""
 # The paper's column headers carry TeX marks for the 2 registered variants, which

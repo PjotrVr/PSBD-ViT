@@ -28,6 +28,7 @@ from scripts.paper._common import (  # noqa: E402
     number_word,
     POSITION_WORDS,
     build_parser,
+    excluded_folders,
     fmt,
     is_panel_folder,
     load_json,
@@ -52,9 +53,10 @@ OPERATORS = ("token_mask", "channel_mask", "gaussian")
 def records(results_dir: str) -> dict[str, list[dict]]:
     """The absorption rows of every panel-shaped model that carries them."""
     found = {}
+    excluded = excluded_folders(results_dir)
     for path in sorted(glob.glob(os.path.join(results_dir, "*", RECORD))):
         folder = os.path.basename(os.path.dirname(path))
-        if not is_panel_folder(folder) or "benign" in folder:
+        if not is_panel_folder(folder) or "benign" in folder or folder in excluded:
             continue
         payload = load_json(path)
         if payload is None or not payload.get("rows"):

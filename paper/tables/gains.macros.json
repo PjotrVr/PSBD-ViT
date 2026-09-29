@@ -1,18 +1,18 @@
 {
   "generator": "scripts/paper/tab_gains.py",
   "inputs": [
-    "results/coverage/coverage.json (59 clearing cells)",
+    "results/coverage/coverage.json (56 successful cells)",
     "results/*/psbd_metrics.json"
   ],
-  "written_at": "2026-09-29T16:28:51.690524+00:00",
-  "git_commit": "19488b81358b06040ba96f361d5061b2981f1f25-dirty",
+  "written_at": "2026-09-29T18:07:57.686917+00:00",
+  "git_commit": "c6325b925e68b12d75a1f415faa829e94c9b986b-dirty",
   "macros": {
     "GainsModels": {
-      "value": "57",
+      "value": "54",
       "meaning": "models carrying both compared placements"
     },
     "GainsAll": {
-      "value": "+0.065",
+      "value": "+0.078",
       "meaning": "mean paired AUROC gain over every compared model at the adaptive rule"
     },
     "GainsLowestRate": {
@@ -24,19 +24,19 @@
       "meaning": "models at 1% poisoning"
     },
     "GainsHighestRate": {
-      "value": "$-$0.015",
+      "value": "+0.012",
       "meaning": "mean paired gain at 10% poisoning"
     },
     "GainsHighestRateN": {
-      "value": "20",
+      "value": "18",
       "meaning": "models at 10% poisoning"
     },
     "GainsLeaveOneAttackOut": {
-      "value": "+0.007",
+      "value": "+0.021",
       "meaning": "smallest mean gain left after dropping any single attack"
     },
     "GainsLeaveOneAttackOutLow": {
-      "value": "$-$0.039",
+      "value": "$-$0.022",
       "meaning": "lower bootstrap bound of gains_leave_one_attack_out"
     },
     "GainsLeaveOneAttackOutAttack": {
@@ -56,31 +56,31 @@
       "meaning": "mean paired gain on CIFAR-100 over 12 models"
     },
     "GainsCifarOneZero": {
-      "value": "+0.047",
-      "meaning": "mean paired gain on CIFAR-10 over 17 models"
+      "value": "+0.088",
+      "meaning": "mean paired gain on CIFAR-10 over 15 models"
     },
     "GainsGtsrb": {
-      "value": "+0.119",
-      "meaning": "mean paired gain on GTSRB over 14 models"
+      "value": "+0.129",
+      "meaning": "mean paired gain on GTSRB over 13 models"
     },
     "GainsTiny": {
       "value": "+0.012",
       "meaning": "mean paired gain on Tiny ImageNet over 14 models"
     },
     "GainsSelectionHalfN": {
-      "value": "31",
+      "value": "28",
       "meaning": "models on the selection half"
     },
     "GainsSelectionHalfOurs": {
-      "value": "0.932",
+      "value": "0.949",
       "meaning": "mean AUROC of the recommended placement on the selection half"
     },
     "GainsSelectionHalfTwin": {
-      "value": "0.957",
+      "value": "0.967",
       "meaning": "mean AUROC of the branch-output twin on the selection half"
     },
     "GainsSelectionHalfTwinGap": {
-      "value": "$-$0.025",
+      "value": "$-$0.018",
       "meaning": "paired AUROC gap, recommended minus twin, on the selection half"
     },
     "GainsReportHalfN": {

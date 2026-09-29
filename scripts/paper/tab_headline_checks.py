@@ -78,7 +78,7 @@ def main() -> None:
         coverage_path,
         f"{args.results_dir}/<folder>/psbd_metrics.json ({len(cells)} cells)",
     ]
-    # A clearing cell enters a detection table only once its sweep has landed.
+    # A successful cell enters a detection table only once its sweep has landed.
     cached = [
         cell
         for cell in cells
@@ -161,7 +161,7 @@ def main() -> None:
     macros = {
         "panel_cells_cached": (
             str(len(cached)),
-            "clearing cells whose sweep has landed and that carry the recommended placement",
+            "successful cells whose sweep has landed and that carry the recommended placement",
         ),
         "panel_cells_diverged": (
             str(diverged),
@@ -169,11 +169,11 @@ def main() -> None:
         ),
         "panel_cells_awaiting_sweep": (
             str(len(clearing_cells(coverage)) - len(cached)),
-            "clearing cells whose PSBD sweep has not landed",
+            "successful cells whose PSBD sweep has not landed",
         ),
         "panel_datasets_cached": (
             str(len({cell["dataset"] for cell in cached})),
-            "datasets among the clearing cells whose sweep has landed",
+            "datasets among the successful cells whose sweep has landed",
         ),
         "panel_attacks_declared": (
             str(len({cell["attack"] for cell in coverage["cells"]})),

@@ -58,6 +58,10 @@ DECIMAL_MACROS = (
     "GainsHighestRate",
     "SwinRecommendedAurocAdaptive",
     "SwinPublishedAurocAdaptive",
+    "HeadlineFloorAuroc",
+    "DetectorsAurocMargin",
+    "DetectorsAurocMarginLow",
+    "DetectorsAurocMarginHigh",
 )
 COUNT_MACROS = (
     "PanelCellsTotal",
@@ -66,6 +70,9 @@ COUNT_MACROS = (
     "GainsModels",
     "SwinRecommendedN",
     "SwinCells",
+    "PanelCellsSuccessful",
+    "HeadlinePairedCells",
+    "DetectorsComparedModels",
 )
 # The macros the headline paragraphs of .claude/CLAUDE.md print in bold.
 CLAUDE_BOLD_MACROS = (
@@ -74,9 +81,18 @@ CLAUDE_BOLD_MACROS = (
     "PanelCellsDiverged",
     "PanelCellsSourceMapped",
     "PanelCellsCached",
+    "PanelCellsSuccessful",
+    "PanelCellsFailingCleanBar",
+    "PanelCleanBarPoints",
     "HeadlineAurocAdaptive",
     "PublishedAurocAdaptive",
     "HeadlineGainAdaptiveAuroc",
+    "PanelCleanBarPointsSecond",
+    "PanelCellsSuccessfulFivePoint",
+    "HeadlinePairedCellsFivePoint",
+    "HeadlineAurocAdaptiveFivePoint",
+    "PublishedAurocAdaptiveFivePoint",
+    "HeadlineGainAdaptiveAurocFivePoint",
     "GainsLowestRate",
     "GainsHighestRate",
     "HeadlineFloorAuroc",
@@ -247,7 +263,7 @@ def document_lines(path: str) -> list[str]:
     with open(path, encoding="utf-8") as handle:
         text = handle.read()
     if not path.endswith(".ipynb"):
-        markdown_lines = text.splitlines()
+        markdown_lines = blank_generated_blocks(text.splitlines())
         return markdown_lines
     notebook = json.loads(text)
     lines = []
@@ -258,6 +274,29 @@ def document_lines(path: str) -> list[str]:
             rendered = output.get("data", {}).get("text/markdown", [])
             lines.extend("".join(rendered).splitlines())
     return lines
+
+
+GENERATED_BEGIN = "<!-- results:begin -->"
+GENERATED_END = "<!-- results:end -->"
+
+
+def blank_generated_blocks(lines: list[str]) -> list[str]:
+    """The lines with every generated results block emptied, line numbers kept.
+
+    scripts/detector_doc_results.py rewrites these blocks from the records on
+    every run, so a number inside one is current by construction, and its table
+    rows hold hundreds of per-model and per-placement readings that can equal an
+    old headline mean by coincidence.
+    """
+    kept = []
+    inside = False
+    for line in lines:
+        if GENERATED_BEGIN in line:
+            inside = True
+        kept.append("" if inside else line)
+        if GENERATED_END in line:
+            inside = False
+    return kept
 
 
 def carries_superseded_status(lines: list[str]) -> bool:

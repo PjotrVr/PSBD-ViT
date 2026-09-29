@@ -1,5 +1,7 @@
 # Evaluation standards for a security machine learning paper
 
+> Superseded on 2026-09-29: the panel numbers below were read before the results moved to the successful backdoors at the 2-point clean-accuracy bar (the 57-model panel and earlier). They are kept as they were measured. The current values are the macros in `paper/headline.tex`, and `.claude/CLAUDE.md` and `README.md` state them.
+
 What the methodology literature asks of an empirical detection paper, and where
 PSBD-ViT currently stands against each item. The subject is experimental
 validity rather than paper structure. Every rule below carries the URL it came

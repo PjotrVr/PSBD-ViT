@@ -6,10 +6,9 @@ paper can be recomputed with a filter and a mean, and any model the paper leaves
 out can be looked up with the reason it was left out.
 
 Models. Every ViT panel cell of the 4 paper datasets the coverage ledger lists,
-implanted or not, the Swin cells the same panel rule selects (built in memory by
-the ledger's own build_ledger, since results/coverage_swin/ predates the Swin
-benign references), the Swin models scripts/paper/tab_swin.py reads outside that
-rule (in_panel False) and the benign reference of each dataset and architecture.
+implanted or not, the Swin cells the same panel rule selects
+(scripts.paper._common.swin_coverage, the population scripts/paper/tab_swin.py
+reads) and the benign reference of each dataset and architecture.
 Each model carries its ledger verdicts: asr_class, diverged, source_mapped and
 the 2 success verdicts successful_2pt and successful_5pt. SIG models carry an
 audit_note and are kept, since their trigger amplitude is under audit.
@@ -36,7 +35,6 @@ import argparse
 import csv
 import json
 import os
-from types import SimpleNamespace
 
 from cli.compare_detectors import detector_values, psbd_rate, psbd_values
 from defenses.decision import (
@@ -46,15 +44,9 @@ from defenses.decision import (
 )
 from detectors import DETECTOR_NAMES
 from scripts.coverage_ledger import (
-    SOURCE_MAPPED_ACCURACY,
     SUCCESS_BARS,
-    build_ledger,
-    classify_divergence,
     clean_accuracy_of,
-    read_metadata,
     retarget_declaration,
-    source_class_accuracy,
-    success_verdicts,
 )
 from scripts.paper._common import (
     HEADLINE_KEY,
@@ -63,8 +55,8 @@ from scripts.paper._common import (
     load_declaration,
     load_psbd_metrics,
     rate_row,
+    swin_coverage,
 )
-from scripts.paper.tab_swin import swin_cells
 from utils.provenance import current_git_commit, utc_timestamp
 
 DEFAULT_OUT_DIR = os.path.join("results", "all_numbers")
@@ -169,88 +161,14 @@ def vit_models(results_dir: str) -> list[dict]:
     return models
 
 
-def swin_ledger(results_dir: str, checkpoints_dir: str, declaration: dict) -> dict:
-    """The Swin coverage ledger, built in memory and never written.
-
-    The ViT panel rule applied to Swin, with Swin's own benign references, so the
-    diverged, source-mapped and success verdicts mean the same thing on both
-    architectures. results/coverage_swin/ predates the Swin benign references
-    and stays as it is.
-    """
-    ledger_args = SimpleNamespace(
-        checkpoints_dir=checkpoints_dir,
-        results_dir=results_dir,
-        out_dir=os.path.join(results_dir, "coverage_swin"),
-        declaration="configs/psbd_basis.json (retargeted to swin)",
-    )
-    ledger = build_ledger(ledger_args, retarget_declaration(declaration, "swin"))
-    return ledger
-
-
 def swin_models(ledger: dict) -> list[dict]:
-    """Every Swin panel cell of the paper datasets."""
+    """Every Swin panel cell of the paper datasets, the ViT panel rule applied to Swin."""
     models = [
         model_record(cell, "swin", "attack", in_panel=True)
         for cell in ledger["cells"]
         if cell["dataset"] in PANEL_DATASETS
     ]
     return models
-
-
-def swin_paper_extras(
-    results_dir: str,
-    checkpoints_dir: str,
-    declaration: dict,
-    ledger: dict,
-) -> list[dict]:
-    """Swin models scripts/paper/tab_swin.py reads that the panel rule does not select.
-
-    tab_swin selects by folder tokens and ASR alone, so it also reads Swin runs
-    at a 0.5% poison rate and Label-Consistent runs without the adversarial bases.
-    They are kept with in_panel False so every Swin number in the paper can be
-    recomputed from this table and every panel number can leave them out.
-    """
-    panel = {cell["folder_name"] for cell in ledger["cells"]}
-    benign = ledger["benign_reference_accuracy"]
-    extras = []
-    for selected in swin_cells(results_dir, checkpoints_dir, declaration["asr_bar"]):
-        folder = selected["folder"]
-        if folder in panel:
-            continue
-        metadata = read_metadata(checkpoints_dir, folder) or {}
-        reference = benign.get(selected["dataset"])
-        accuracy = metadata.get("clean_accuracy")
-        cell = {
-            **{field: metadata.get(field) for field in MODEL_FIELDS},
-            "folder_name": folder,
-            "dataset": selected["dataset"],
-            "attack": selected["attack"],
-            "poison_rate": selected["poison_rate"],
-            "asr": selected["asr"],
-            "clean_accuracy_benign": reference,
-            "clean_accuracy_drop": None
-            if accuracy is None or reference is None
-            else accuracy - reference,
-        }
-        # The ledger's own rules, in the ledger's order: divergence overrides
-        # everything, then source mapping, so an extra reads exactly as a panel
-        # cell with the same numbers would.
-        cell["source_class_accuracy"] = source_class_accuracy(
-            checkpoints_dir, results_dir, cell
-        )
-        cell["source_mapped"] = (
-            cell["source_class_accuracy"] is not None
-            and cell["source_class_accuracy"] < SOURCE_MAPPED_ACCURACY
-        )
-        cell["diverged"] = classify_divergence(cell, reference)
-        cell["asr_class"] = "clears"
-        if cell["source_mapped"]:
-            cell["asr_class"] = "source_mapped"
-        if cell["diverged"]:
-            cell["asr_class"] = "diverged"
-        cell.update(success_verdicts(cell, declaration))
-        extras.append(model_record(cell, "swin", "attack", in_panel=False))
-    return extras
 
 
 def benign_models(
@@ -433,12 +351,11 @@ def main() -> None:
     args = parse_args()
     declaration = load_declaration(args.declaration)
 
-    swin = swin_ledger(args.results_dir, args.checkpoints_dir, declaration)
+    swin = swin_coverage(args.results_dir, args.checkpoints_dir, args.declaration)
 
     models = (
         vit_models(args.results_dir)
         + swin_models(swin)
-        + swin_paper_extras(args.results_dir, args.checkpoints_dir, declaration, swin)
         + benign_models(args.results_dir, args.checkpoints_dir, declaration)
     )
     rows = [row for model in models for row in model_rows(args.results_dir, model)]

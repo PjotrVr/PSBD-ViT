@@ -237,7 +237,7 @@ A detection number on a model whose attack never implanted measures nothing, so 
 | {HEADLINE_NAME} | implanted and $\\Delta CA \\ge$ {HEADLINE_BAR}, the headline success definition | `successful_2pt` |
 | {SECOND_NAME} | implanted and $\\Delta CA \\ge$ {SECOND_BAR} | `successful_5pt` |
 
-The paper's generators still select on `asr_class` alone, so the paper's headline panel is the implanted population restricted to the models carrying every defense. Every figure and table below is given for all 3 populations.
+The paper's generators select on `successful_2pt` (`scripts.paper._common.clearing_cells`), so the paper's headline panel is the {HEADLINE_NAME} population restricted to the models carrying every defense, and its second-bar macros (suffix `FivePoint`) read the {SECOND_NAME} population the same way. Every figure and table below is given for all 3 populations.
 
 ## Population sizes and the models each bar leaves out
 
@@ -336,7 +336,7 @@ headline_means = dataset_means[HEADLINE_NAME]
 leaders = {dataset: headline_means.loc[dataset, list(DETECTOR_NAMES)].idxmax() for dataset in headline_means.index}
 competitor_leads = [dataset for dataset in headline_means.index if headline_means.loc[dataset, leaders[dataset]] > headline_means.loc[dataset, "PSBD-TM"]]
 say(f'''
-On the headline population the gain of PSBD-TM over PSBD-RD per dataset at {low_rate:.0%} is {word_list([f"{headline_gains.loc[dataset, low_rate]:+.2f} on {dataset_label(dataset)}" for dataset in headline_gains.index])}. At {high_rate:.0%} it is {word_list([f"{headline_gains.loc[dataset, high_rate]:+.2f} on {dataset_label(dataset)}" for dataset in headline_gains.index])}. A competitor's mean AUROC exceeds PSBD-TM's on {word_list(list(f"{dataset_label(dataset)} ({SHORT[leaders[dataset]]} {headline_means.loc[dataset, leaders[dataset]]:.2f} against {headline_means.loc[dataset, 'PSBD-TM']:.2f})" for dataset in competitor_leads)) or "no dataset"}, so the paper's 1st rank is a mean over datasets and not a lead on each. The paper's own sentence on this reads the leaders off the implanted population: `DetectorsAurocDatasetsOthersLead` is "{macro("DetectorsAurocDatasetsOthersLead")}". The next section puts numbers and intervals on these comparisons.
+On the headline population the gain of PSBD-TM over PSBD-RD per dataset at {low_rate:.0%} is {word_list([f"{headline_gains.loc[dataset, low_rate]:+.2f} on {dataset_label(dataset)}" for dataset in headline_gains.index])}. At {high_rate:.0%} it is {word_list([f"{headline_gains.loc[dataset, high_rate]:+.2f} on {dataset_label(dataset)}" for dataset in headline_gains.index])}. A competitor's mean AUROC exceeds PSBD-TM's on {word_list(list(f"{dataset_label(dataset)} ({SHORT[leaders[dataset]]} {headline_means.loc[dataset, leaders[dataset]]:.2f} against {headline_means.loc[dataset, 'PSBD-TM']:.2f})" for dataset in competitor_leads)) or "no dataset"}, so the paper's 1st rank is a mean over datasets and not a lead on each. The paper's own sentence on this reads the leaders off the same population: `DetectorsAurocDatasetsOthersLead` is "{macro("DetectorsAurocDatasetsOthersLead")}". The next section puts numbers and intervals on these comparisons.
 ''')
 """)
 
@@ -420,8 +420,9 @@ shrinking = all(values == sorted(values, reverse=True) for values in gain_series
 gain_by_rate = "; ".join(f"{name}: " + word_list(list(f"{value:+.3f}" for value in values)) for name, values in gain_series.items()).replace("; ", ", then ")
 implanted_row = comparison.loc["implanted, all rates"]
 headline_row = comparison.loc[f"{HEADLINE_NAME}, all rates"]
+second_row = comparison.loc[f"{SECOND_NAME}, all rates"]
 say(f'''
-The implanted row reproduces the paper's headline: PSBD-TM {implanted_row["PSBD-TM"]:.3f} (macro `HeadlineAurocAdaptive` {macro("HeadlineAurocAdaptive")}), PSBD-RD {implanted_row["PSBD-RD"]:.3f} (`PublishedAurocAdaptive` {macro("PublishedAurocAdaptive")}), a gain of {implanted_row["TM - RD"]} (`HeadlineGainAdaptiveAuroc` {macro("HeadlineGainAdaptiveAuroc")} [{macro("HeadlineGainAdaptiveAurocLow")}, {macro("HeadlineGainAdaptiveAurocHigh")}]) and a margin of {implanted_row["TM - competitor"]} over {implanted_row["best competitor"]} (`DetectorsAurocMargin` {macro("DetectorsAurocMargin")} [{macro("DetectorsAurocMarginLow")}, {macro("DetectorsAurocMarginHigh")}]), on {implanted_row["n"]} models. On the headline population, {headline_row["n"]} models, PSBD-TM reads {headline_row["PSBD-TM"]:.3f} and PSBD-RD {headline_row["PSBD-RD"]:.3f}, a gain of {headline_row["TM - RD"]} and a margin of {headline_row["TM - competitor"]} over {headline_row["best competitor"]}. These are the numbers under the stricter success definition. The gain of PSBD-TM over PSBD-RD {"falls" if shrinking else "does not fall"} from the lowest to the highest poison rate in every population ({gain_by_rate}). The scatter shows the same per model: most points sit on the diagonal against both PSBD-RD and IBD-PSC cal, and the mean is carried by a few models far above it. The next section asks how every other PSBD placement compares.
+The {HEADLINE_NAME} row reproduces the paper's headline: PSBD-TM {headline_row["PSBD-TM"]:.3f} (macro `HeadlineAurocAdaptive` {macro("HeadlineAurocAdaptive")}), PSBD-RD {headline_row["PSBD-RD"]:.3f} (`PublishedAurocAdaptive` {macro("PublishedAurocAdaptive")}), a gain of {headline_row["TM - RD"]} (`HeadlineGainAdaptiveAuroc` {macro("HeadlineGainAdaptiveAuroc")} [{macro("HeadlineGainAdaptiveAurocLow")}, {macro("HeadlineGainAdaptiveAurocHigh")}]) and a margin of {headline_row["TM - competitor"]} over {headline_row["best competitor"]} (`DetectorsAurocMargin` {macro("DetectorsAurocMargin")} [{macro("DetectorsAurocMarginLow")}, {macro("DetectorsAurocMarginHigh")}]), on {headline_row["n"]} models. The {SECOND_NAME} row reproduces the second-bar macros: PSBD-TM {second_row["PSBD-TM"]:.3f} (`HeadlineAurocAdaptiveFivePoint` {macro("HeadlineAurocAdaptiveFivePoint")}), PSBD-RD {second_row["PSBD-RD"]:.3f} (`PublishedAurocAdaptiveFivePoint` {macro("PublishedAurocAdaptiveFivePoint")}), a gain of {second_row["TM - RD"]} (`HeadlineGainAdaptiveAurocFivePoint` {macro("HeadlineGainAdaptiveAurocFivePoint")}) and a margin of {second_row["TM - competitor"]} (`DetectorsAurocMarginFivePoint` {macro("DetectorsAurocMarginFivePoint")}), on {second_row["n"]} models. On the implanted population, {implanted_row["n"]} models whatever their clean accuracy, PSBD-TM reads {implanted_row["PSBD-TM"]:.3f} and PSBD-RD {implanted_row["PSBD-RD"]:.3f}, a gain of {implanted_row["TM - RD"]} and a margin of {implanted_row["TM - competitor"]} over {implanted_row["best competitor"]}. The gain of PSBD-TM over PSBD-RD {"falls" if shrinking else "does not fall"} from the lowest to the highest poison rate in every population ({gain_by_rate}). The scatter shows the same per model: most points sit on the diagonal against both PSBD-RD and IBD-PSC cal, and the mean is carried by a few models far above it. The next section asks how every other PSBD placement compares.
 ''')
 """)
 
@@ -470,41 +471,21 @@ code(r"""
 swin_models = models[models.architecture == "swin"].copy()
 swin_meta = swin_models.set_index("folder_name")
 swin_rows = rows[(rows.architecture == "swin") & (rows.kind == "attack") & (rows.status == "scored")]
-swin_panel = swin_models[swin_models.in_panel]
-extras = swin_models[(~swin_models.in_panel) & (swin_models.kind == "attack")]
+swin_panel = swin_models[swin_models.in_panel & (swin_models.kind == "attack")]
 swin_populations = {
-    "panel rule, implanted": set(swin_panel[swin_panel.asr_class == "clears"].folder_name),
-    f"panel rule, {HEADLINE_NAME}": set(swin_panel[swin_panel.successful_2pt.astype(bool)].folder_name),
-    f"panel rule, {SECOND_NAME}": set(swin_panel[swin_panel.successful_5pt.astype(bool)].folder_name),
-    "paper selection": set(swin_panel[swin_panel.asr_class == "clears"].folder_name) | set(extras[extras.asr_class == "clears"].folder_name),
+    "implanted": set(swin_panel[swin_panel.asr_class == "clears"].folder_name),
+    HEADLINE_NAME: set(swin_panel[swin_panel.successful_2pt.astype(bool)].folder_name),
+    SECOND_NAME: set(swin_panel[swin_panel.successful_5pt.astype(bool)].folder_name),
 }
+swin_failing = swin_panel[(swin_panel.asr_class == "clears") & ~swin_panel.successful_2pt.astype(bool)]
+swin_failing_words = word_list(list(f"`{row.folder_name}` (clean accuracy {row.clean_accuracy_drop:+.3f} against the benign model)" for row in swin_failing.itertuples()))
 say(f'''
 ## Swin-S
 
-Swin-S is the second architecture, used to test whether the placement ranking transfers. No detector records exist for Swin, so only PSBD placements are compared. 2 Swin selections are shown because the paper's Swin table and the ViT panel rule select different models.
+Swin-S is the second architecture, used to test whether the placement ranking transfers. No detector records exist for Swin, so only PSBD placements are compared. Swin follows exactly the ViT panel rule: `scripts.paper._common.swin_coverage` applies the declaration to the Swin checkpoints with Swin's own benign references and builds the ledger in memory with the same `asr_class` and success verdicts, and `scripts/paper/tab_swin.py` reads its {HEADLINE_NAME} models. The rule holds {len(swin_panel)} Swin models, {word_list(list(f"{count} `{name}`" for name, count in swin_panel.asr_class.value_counts().items()))}, and the headline bar leaves out {swin_failing_words}.
 
-- **Panel rule**: the ViT declaration applied to Swin checkpoints with Swin's own benign references, built in memory by `scripts/all_numbers.py` through the ledger's `build_ledger`, with the same `asr_class` and success verdicts. It holds {len(swin_panel)} models, {word_list(list(f"{count} `{name}`" for name, count in swin_panel.asr_class.value_counts().items()))}.
-- **Paper selection**: what `scripts/paper/tab_swin.py` reads, every Swin folder with no excluded folder token whose ASR clears {declaration["asr_bar"]} and that is not source-mapped. It adds {len(extras)} models the panel rule leaves out, listed below with the reason. It has no divergence or clean-accuracy check of its own. `scripts/all_numbers.py` judges them by the ledger's rules anyway.
-
-The paper's Swin macros are `SwinRecommendedAurocAdaptive` {macro("SwinRecommendedAurocAdaptive")} over `SwinRecommendedN` {macro("SwinRecommendedN")} models and `SwinPublishedAurocAdaptive` {macro("SwinPublishedAurocAdaptive")} over `SwinCells` {macro("SwinCells")}, both on the paper selection.
+The paper's Swin macros are `SwinRecommendedAurocAdaptive` {macro("SwinRecommendedAurocAdaptive")} over `SwinRecommendedN` {macro("SwinRecommendedN")} models and `SwinPublishedAurocAdaptive` {macro("SwinPublishedAurocAdaptive")} over `SwinCells` {macro("SwinCells")}, on the {HEADLINE_NAME} population, and `SwinRecommendedAurocAdaptiveFivePoint` {macro("SwinRecommendedAurocAdaptiveFivePoint")} on the {SECOND_NAME} one.
 ''')
-
-
-def off_panel_reason(model):
-    reasons = []
-    if model.poison_rate not in RATES:
-        reasons.append(f"a poison rate of {model.poison_rate:.1%}, outside the panel rates")
-    required = declaration["panel"]["canonical_variants"].get(model.attack)
-    if required is not None and required not in model.folder_name:
-        reasons.append(f"no `{required}` suffix, so not the canonical {attack_label(model.attack)} variant")
-    canonical_target = declaration["panel"]["canonical_targets"].get(model.dataset, {}).get(model.label_mode)
-    if canonical_target is not None and model.target_label != canonical_target:
-        reasons.append(f"target class {int(model.target_label)} instead of the canonical {canonical_target}")
-    reason = " and ".join(reasons)
-    return reason
-
-
-display(pd.DataFrame({"model": extras.folder_name, "ASR": extras.asr, "clean accuracy drop": extras.clean_accuracy_drop, "asr_class": extras.asr_class, "why the panel rule leaves it out": extras.apply(off_panel_reason, axis=1), "audit": extras.audit_note}).set_index("model"))
 
 summary = []
 for name, folders in swin_populations.items():
@@ -520,7 +501,7 @@ display(swin_summary)
 
 code(r"""
 figure, axes = plt.subplots(1, 2, figsize=(10, 3.4))
-for axis, name in zip(axes, (f"panel rule, {HEADLINE_NAME}", "paper selection")):
+for axis, name in zip(axes, (HEADLINE_NAME, SECOND_NAME)):
     folders = swin_populations[name]
     subset = swin_rows[swin_rows.folder_name.isin(folders) & swin_rows.defense.isin(["PSBD-TM", "PSBD-RD"])]
     subset = subset.assign(poison_rate=[swin_meta.poison_rate[folder] for folder in subset.folder_name])
@@ -528,19 +509,18 @@ for axis, name in zip(axes, (f"panel rule, {HEADLINE_NAME}", "paper selection"))
     means = means.reindex([attack for attack in ATTACK_ORDER if attack in means.index])
     means = means[sorted(means.columns, key=lambda column: (column[0] != "PSBD-TM", column[1]))]
     counts = subset.groupby("attack").folder_name.nunique()
-    means.columns = [f"{'TM' if defense == 'PSBD-TM' else 'RD'} {rate:.1%}" for defense, rate in means.columns]
+    means.columns = [f"{'TM' if defense == 'PSBD-TM' else 'RD'} {rate:.0%}" for defense, rate in means.columns]
     draw_heatmap(axis, means, counts, attack_label, f"Swin-S, {name}")
 plt.tight_layout()
 plt.show()
 
-paper_row = swin_summary.loc["paper selection"]
-panel_row = swin_summary.loc[f"panel rule, {HEADLINE_NAME}"]
-tm_missing = sorted(set(swin_rows[swin_rows.folder_name.isin(swin_populations["paper selection"]) & (swin_rows.defense == "PSBD-RD")].folder_name) - set(swin_rows[swin_rows.defense == "PSBD-TM"].folder_name))
-extra_reasons = extras.apply(off_panel_reason, axis=1).value_counts()
+headline_swin = swin_summary.loc[HEADLINE_NAME]
+second_swin = swin_summary.loc[SECOND_NAME]
+tm_missing = sorted(set(swin_rows[swin_rows.folder_name.isin(swin_populations[HEADLINE_NAME]) & (swin_rows.defense == "PSBD-RD")].folder_name) - set(swin_rows[swin_rows.defense == "PSBD-TM"].folder_name))
 say(f'''
-The summary table reproduces the paper's Swin numbers on the paper selection, PSBD-TM {paper_row["PSBD-TM"]:.3f} over {paper_row["PSBD-TM n"]} models and PSBD-RD {paper_row["PSBD-RD"]:.3f} over {paper_row["PSBD-RD n"]}, and gives the panel rule numbers beside them: on the Swin headline population PSBD-TM reads {panel_row["PSBD-TM"]:.3f}, PSBD-RD {panel_row["PSBD-RD"]:.3f} and the paired gain {panel_row["TM - RD"]}, against {paper_row["TM - RD"]} on the paper selection. The extras the paper reads outside the panel rule break down as {word_list(list(f"{count} with {reason}" for reason, count in extra_reasons.items()))}. A clean-label GTSRB model at target class 0 is capped at that class's share of the training set, so its runs at different requested rates train the identical poisoned set (`docs/clean-label-rate-caps.md`).
+The summary table reproduces the paper's Swin numbers on the {HEADLINE_NAME} population, PSBD-TM {headline_swin["PSBD-TM"]:.3f} over {headline_swin["PSBD-TM n"]} models and PSBD-RD {headline_swin["PSBD-RD"]:.3f} over {headline_swin["PSBD-RD n"]}, a paired gain of {headline_swin["TM - RD"]}, and gives the {SECOND_NAME} population beside it, PSBD-TM {second_swin["PSBD-TM"]:.3f} and a paired gain of {second_swin["TM - RD"]}.
 
-The heatmaps give the mean AUROC per attack for PSBD-TM and PSBD-RD at each poison rate, with the number of models per attack in the row label, for the Swin headline population and the paper selection. The blank TM cells matter: PSBD-TM has no reading on {len(tm_missing)} Swin models of the paper selection ({word_list(list(f"`{folder}`" for folder in tm_missing))}), which is why the paper reads PSBD-TM and PSBD-RD over different counts, and the paired gain is taken over the models carrying both. What the figures do not show is a competitor comparison, which no Swin detector run exists for.
+The heatmaps give the mean AUROC per attack for PSBD-TM and PSBD-RD at each poison rate, with the number of models per attack in the row label, for the 2 success populations. The blank TM cells matter: PSBD-TM has no reading on {len(tm_missing)} successful Swin models ({word_list(list(f"`{folder}`" for folder in tm_missing))}), because the ladder never reaches the adaptive shift target there, which is why the paper reads PSBD-TM and PSBD-RD over different counts, and the paired gain is taken over the models carrying both. What the figures do not show is a competitor comparison, which no Swin detector run exists for.
 ''')
 """)
 
@@ -604,7 +584,7 @@ code(r"""
 say('''
 ### Swin-S, every model
 
-Every Swin model the panel rule or the paper selection reads, with PSBD-TM and PSBD-RD at both rules. `in_panel` is false for the models only the paper selection reads.
+Every Swin model the panel rule selects, with PSBD-TM and PSBD-RD at both rules and its ledger verdicts.
 ''')
 swin_wide = swin_rows[swin_rows.defense.isin(OURS)].pivot(index="folder_name", columns="defense", values=["auroc", f"tpr_q{BUDGETS[0]:.2f}", f"tpr_q{BUDGETS[1]:.2f}"])
 swin_wide.columns = [f"{defense} {field}" for field, defense in swin_wide.columns]

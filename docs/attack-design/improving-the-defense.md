@@ -1,5 +1,7 @@
 # Improving the defense, 5 probes the basis does not contain
 
+> Superseded on 2026-09-29: the panel numbers below were read before the results moved to the successful backdoors at the 2-point clean-accuracy bar (the 57-model panel and earlier). They are kept as they were measured. The current values are the macros in `paper/headline.tex`, and `.claude/CLAUDE.md` and `README.md` state them.
+
 Written 2026-09-23, after reading the operator and position registries against the
 mechanism the paper argues for. The paper's account is that a backdoor in a ViT is
 1 direction in the residual stream, written in the last third of the network and

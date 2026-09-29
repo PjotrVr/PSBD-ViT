@@ -1,5 +1,7 @@
 # Perturbations
 
+> Superseded on 2026-09-29: the panel numbers below were read before the results moved to the successful backdoors at the 2-point clean-accuracy bar (the 57-model panel and earlier). They are kept as they were measured. The current values are the macros in `paper/headline.tex`, and `.claude/CLAUDE.md` and `README.md` state them.
+
 What PSBD injects, where it injects it and what each choice turned out to
 measure. Every number here is read from `paper/tables/basis_ranking.tex` and
 `paper/tables/staircase_operators.tex` of the 2026-09-24 build, over the 57 clearing

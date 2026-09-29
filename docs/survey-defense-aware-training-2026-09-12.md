@@ -1,5 +1,7 @@
 # Training-time ideas for perturbation-consistency detection at low poisoning rates, 2026-09-12
 
+> Superseded on 2026-09-29: the panel numbers below were read before the results moved to the successful backdoors at the 2-point clean-accuracy bar (the 57-model panel and earlier). They are kept as they were measured. The current values are the macros in `paper/headline.tex`, and `.claude/CLAUDE.md` and `README.md` state them.
+
 PSBD (Li, Chen, Liu, Wang, CVPR 2025, [arXiv:2406.05826](https://arxiv.org/abs/2406.05826)) reads a
 model twice, once with dropout off and once with dropout on, and flags an input whose prediction
 barely moves under that perturbation. On our ViT adaptation it works at 5% and 10% poisoning and

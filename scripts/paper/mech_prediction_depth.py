@@ -2,7 +2,7 @@
 
 depth_soft reads every block through the network's own final LayerNorm and
 head and averages the lens probability of the final answer over depth, 1
-forward pass, no perturbation, no rate to pick. Every clearing cell carries a
+forward pass, no perturbation, no rate to pick. Every successful cell carries a
 prediction_depth.json, so the comparison against the recommended placement at
 the adaptive rule is paired within cell on the same splits. AUROC at the
 headline quantile and TPR at the smallest budget are both read, since the
@@ -170,15 +170,15 @@ def main() -> None:
     macros = {
         "depth_cells": (
             str(everything["n"]),
-            "clearing cells carrying both prediction depth and the recommended placement",
+            "successful cells carrying both prediction depth and the recommended placement",
         ),
         "depth_auroc_all": (
             fmt(mean_or_none([c["m"]["depth_auroc"] for c in cells])),
-            "mean AUROC of prediction depth over the clearing cells",
+            "mean AUROC of prediction depth over the successful cells",
         ),
         "depth_minus_psbd_auroc": (
             fmt(everything["auroc_delta"], signed=True),
-            "mean paired AUROC delta, prediction depth minus PSBD, all clearing cells",
+            "mean paired AUROC delta, prediction depth minus PSBD, all successful cells",
         ),
         "depth_minus_psbd_auroc_ci": (
             ci_text(*everything["auroc_ci"]),
@@ -186,7 +186,7 @@ def main() -> None:
         ),
         "depth_minus_psbd_tpr": (
             fmt(everything["tpr_delta"], signed=True),
-            "mean paired low-budget TPR delta, prediction depth minus PSBD, all clearing cells",
+            "mean paired low-budget TPR delta, prediction depth minus PSBD, all successful cells",
         ),
         "depth_minus_psbd_tpr_ci": (
             ci_text(*everything["tpr_ci"]),
@@ -209,7 +209,7 @@ def main() -> None:
                 sum(1 for c in cells if c["m"]["depth_tpr"] > c["m"]["psbd_tpr"]),
                 places=0,
             ),
-            "clearing cells where prediction depth beats PSBD at the low budget",
+            "successful cells where prediction depth beats PSBD at the low budget",
         ),
         "depth_benign_auroc": (
             fmt(mean_or_none(benign)),

@@ -2,17 +2,17 @@
   "generator": "scripts/paper/tab_best_residual.py",
   "inputs": [
     "configs/psbd_basis.json",
-    "results/<folder>/psbd_metrics.json (57 models)"
+    "results/<folder>/psbd_metrics.json (54 models)"
   ],
-  "written_at": "2026-09-29T16:23:55.107615+00:00",
-  "git_commit": "6a0fd842453396d3ad4de50fcc4c150f1549237f-dirty",
+  "written_at": "2026-09-29T18:03:15.416773+00:00",
+  "git_commit": "b2d32cf11708d5de965d3e13604c863a3ad9b493-dirty",
   "macros": {
     "BestResidualCandidates": {
       "value": "8",
       "meaning": "residual placements, token masks excluded, present on every headline model"
     },
     "BestResidualModels": {
-      "value": "57",
+      "value": "54",
       "meaning": "models behind the comparison"
     },
     "BestResidualName": {
@@ -20,36 +20,36 @@
       "meaning": "the best residual placement"
     },
     "BestResidualAuroc": {
-      "value": "0.916",
+      "value": "0.915",
       "meaning": "its mean AUROC at the adaptive rule"
     },
     "BestResidualGain": {
-      "value": "+0.037",
+      "value": "+0.048",
       "meaning": "mean paired AUROC gain of PSBD-TM over the best residual placement"
     },
     "BestResidualGainLow": {
-      "value": "$-$0.006",
+      "value": "+0.008",
       "meaning": "lower bound of the 95% bootstrap interval on that gain"
     },
     "BestResidualGainHigh": {
-      "value": "+0.083",
+      "value": "+0.092",
       "meaning": "upper bound of the 95% bootstrap interval on that gain"
     },
     "BestResidualBadnetATwooAuroc": {
       "value": "0.857",
-      "meaning": "mean AUROC of the best residual placement on badnet_a2o"
+      "meaning": "mean AUROC of the best residual placement on badnet_a2o, over 12 models, a dash when none is in the panel"
     },
     "BestResidualTactAuroc": {
       "value": "0.715",
-      "meaning": "mean AUROC of the best residual placement on tact"
+      "meaning": "mean AUROC of the best residual placement on tact, over 3 models, a dash when none is in the panel"
     },
     "BestResidualWanetAuroc": {
       "value": "0.951",
-      "meaning": "mean AUROC of the best residual placement on wanet"
+      "meaning": "mean AUROC of the best residual placement on wanet, over 3 models, a dash when none is in the panel"
     },
     "BestResidualSigAuroc": {
-      "value": "0.907",
-      "meaning": "mean AUROC of the best residual placement on sig"
+      "value": "--",
+      "meaning": "mean AUROC of the best residual placement on sig, over 0 models, a dash when none is in the panel"
     }
   }
 }

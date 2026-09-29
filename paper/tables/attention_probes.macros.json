@@ -1,15 +1,15 @@
 {
   "generator": "scripts/paper/tab_attention.py",
   "inputs": [
-    "results/coverage/coverage.json (59 clearing cells)",
+    "results/coverage/coverage.json (56 successful cells)",
     "results/*/psbd_metrics.json"
   ],
-  "written_at": "2026-09-29T16:23:27.985836+00:00",
-  "git_commit": "6a0fd842453396d3ad4de50fcc4c150f1549237f-dirty",
+  "written_at": "2026-09-29T18:02:59.947131+00:00",
+  "git_commit": "b2d32cf11708d5de965d3e13604c863a3ad9b493-dirty",
   "macros": {
     "AttentionProbesTotal": {
       "value": "19",
-      "meaning": "attention-side probes measured on at least 5 clearing models"
+      "meaning": "attention-side probes measured on at least 5 successful models"
     },
     "AttentionProbesInBasis": {
       "value": "11",
@@ -36,15 +36,15 @@
       "meaning": "probes outside the basis whose mean AUROC exceeds the recommended placement"
     },
     "AttentionHeadMaskAuroc": {
-      "value": "0.896",
+      "value": "0.899",
       "meaning": "mean AUROC of masking whole attention heads at the adaptive rule"
     },
     "AttentionHeadMaskN": {
-      "value": "37",
-      "meaning": "clearing models carrying the head-masking probe"
+      "value": "36",
+      "meaning": "successful models carrying the head-masking probe"
     },
     "AttentionHeadMaskTprTen": {
-      "value": "0.74",
+      "value": "0.75",
       "meaning": "mean TPR of head masking at a 10% false-positive budget"
     }
   }

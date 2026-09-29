@@ -1,8 +1,12 @@
 """Swin-S: what the cached Swin sweeps say about the placements the paper argues.
 
-Swin has no coverage ledger of its own, so this reads every panel-shaped swin_*
-folder with a psbd_metrics.json, keeps the cells whose sidecar attack success
-clears the declared bar, and reports 4 artifacts.
+The Swin population is the ViT panel rule applied to Swin-S
+(scripts.paper._common.swin_coverage): the declared datasets, poison rates,
+canonical variants and excluded tokens, judged by the coverage ledger's own
+verdicts against the benign Swin-S references. The cells that are successful
+backdoors at the 2-point bar and carry a psbd_metrics.json are read, the
+headline numbers are also given on the 5-point panel, and this reports 4
+artifacts.
 
     swin_main         the placements that carry the argument, with paired gains
     swin_attacks      1 row per attack and rate, grouped by dataset
@@ -31,21 +35,21 @@ import sys
 sys.path.insert(0, os.getcwd())
 
 from cli.compare_detectors import psbd_values  # noqa: E402
-from scripts.coverage_ledger import (  # noqa: E402
-    SOURCE_MAPPED_ACCURACY,
-    source_class_accuracy,
-)
 from defenses.decision import PUBLISHED_PLACEMENT, RECOMMENDED_PLACEMENT  # noqa: E402
 from scripts.paper._common import (  # noqa: E402
     HEADLINE_KEY,
+    HEADLINE_SUCCESS,
+    SECOND_SUCCESS,
+    HEADLINE_BAR_POINTS,
+    second_bar_macros,
     attack_label,
     bootstrap_ci,
     build_parser_with_checkpoints,
+    clearing_cells,
+    implanted_cells,
     ci_text,
     dataset_label,
     fmt,
-    is_panel_folder,
-    load_args_json,
     load_declaration,
     load_psbd_metrics,
     mean_or_none,
@@ -53,6 +57,7 @@ from scripts.paper._common import (  # noqa: E402
     provenance_comment,
     split_by_dataset,
     split_placement,
+    swin_coverage,
     word_list,
     write_macros,
     write_table,
@@ -88,39 +93,44 @@ BODY_PLACEMENTS = (
 MIN_CELLS_FOR_ROW = 5
 
 
-def swin_cells(results_dir: str, checkpoints_dir: str, asr_bar: float) -> list[dict]:
-    """Swin folders that are panel-shaped, carry metrics and whose attack implanted."""
+def swin_cells(
+    results_dir: str,
+    checkpoints_dir: str,
+    asr_bar: float | None = None,
+    success: str | None = HEADLINE_SUCCESS,
+) -> list[dict]:
+    """The Swin panel cells that carry PSBD metrics, each with its ledger verdicts.
+
+    The population is scripts.paper._common.swin_coverage, the ViT panel rule
+    applied to Swin, so the datasets, rates, canonical variants, excluded tokens
+    and verdicts match the ViT panel. success names the verdict a cell must carry,
+    the 2-point one by default and SECOND_SUCCESS for the 5-point panel. None
+    keeps every cell that clears the ASR bar, for a reader that reports the
+    clean-accuracy failures itself. asr_bar is the declaration's and is checked
+    rather than applied, so a caller cannot read Swin at another bar.
+    """
+    coverage = swin_coverage(results_dir, checkpoints_dir)
+    if asr_bar is not None and asr_bar != coverage["asr_bar"]:
+        raise ValueError(
+            f"swin_cells reads the declared ASR bar {coverage['asr_bar']}, not {asr_bar}"
+        )
+    selected = (
+        implanted_cells(coverage)
+        if success is None
+        else clearing_cells(coverage, success)
+    )
+    cells = cells_with_reports(results_dir, selected)
+    return cells
+
+
+def cells_with_reports(results_dir: str, selected: list[dict]) -> list[dict]:
+    """Ledger cells joined to their psbd_metrics.json, a cell without one left out."""
     cells = []
-    for path in sorted(
-        glob.glob(os.path.join(results_dir, "swin_*", "psbd_metrics.json"))
-    ):
-        folder = os.path.basename(os.path.dirname(path))
-        if not is_panel_folder(folder) or "benign" in folder:
+    for cell in selected:
+        report = load_psbd_metrics(results_dir, cell["folder_name"])
+        if report is None:
             continue
-        sidecar = load_args_json(checkpoints_dir, folder) or {}
-        asr = sidecar.get("asr")
-        if asr is None or asr < asr_bar:
-            continue
-        report = load_psbd_metrics(results_dir, folder)
-        # The ViT ledger's source-mapped rule, applied to Swin: a TaCT model that
-        # sends its clean source class to the target is not a trigger backdoor.
-        accuracy = source_class_accuracy(
-            checkpoints_dir,
-            results_dir,
-            {"folder_name": folder, "attack": report["attack"]},
-        )
-        if accuracy is not None and accuracy < SOURCE_MAPPED_ACCURACY:
-            continue
-        cells.append(
-            {
-                "folder": folder,
-                "dataset": report["dataset"],
-                "attack": report["attack"],
-                "poison_rate": report["poison_rate"],
-                "asr": asr,
-                "report": report,
-            }
-        )
+        cells.append({**cell, "folder": cell["folder_name"], "report": report})
     return cells
 
 
@@ -380,7 +390,7 @@ def floor_macros(cells: list[dict]) -> dict[str, tuple[str, str]]:
             "lowest single-model AUROC of the recommended placement on Swin",
         ),
         "swin_recommended_floor_cell": (
-            f"{attack_label(worst_cell['attack'])} at {worst_cell['poison_rate'] * 100:g}\% on {dataset_label(worst_cell['dataset'])}",
+            f"{attack_label(worst_cell['attack'])} at {worst_cell['poison_rate'] * 100:g}\\% on {dataset_label(worst_cell['dataset'])}",
             "the Swin cell holding swin_recommended_floor",
         ),
         "swin_recommended_below_chance": (
@@ -480,12 +490,57 @@ def write_attack_tables(args, rows: list[list[str]], inputs: list[str]) -> None:
         handle.write("\n".join(lines) + "\n")
 
 
+def headline_swin_macros(cells: list[dict], args) -> dict:
+    """The Swin numbers the headline quotes, read on 1 population of cells."""
+    recommended = collect(
+        cells, RECOMMENDED_PLACEMENT, HEADLINE_RULE, HEADLINE_KEY, "auroc"
+    )
+    published = collect(
+        cells, PUBLISHED_PLACEMENT, HEADLINE_RULE, HEADLINE_KEY, "auroc"
+    )
+    deltas = paired_gain(
+        cells, RECOMMENDED_PLACEMENT, PUBLISHED_PLACEMENT, HEADLINE_RULE
+    )
+    low, high = bootstrap_ci(deltas, args.bootstrap, args.seed)
+    macros = {
+        "swin_cells": (str(len(cells)), "Swin cells that are successful backdoors"),
+        "swin_recommended_auroc_adaptive": (
+            fmt(mean_or_none(recommended)),
+            "Swin mean AUROC of the recommended placement at the adaptive rule "
+            f"over {len(recommended)} cells",
+        ),
+        "swin_published_auroc_adaptive": (
+            fmt(mean_or_none(published)),
+            "Swin mean AUROC of the published placement at the adaptive rule "
+            f"over {len(published)} cells",
+        ),
+        "swin_gain_recommended_minus_published": (
+            fmt(mean_or_none(deltas), signed=True),
+            f"Swin paired AUROC gain of recommended over published over {len(deltas)} cells",
+        ),
+        "swin_gain_recommended_minus_published_low": (
+            fmt(low, signed=True),
+            "lower bootstrap bound of the Swin paired gain",
+        ),
+        "swin_gain_recommended_minus_published_high": (
+            fmt(high, signed=True),
+            "upper bootstrap bound of the Swin paired gain",
+        ),
+    }
+    return macros
+
+
 def main() -> None:
     args = build_parser_with_checkpoints(__doc__).parse_args()
     declaration = load_declaration(args.declaration)
-    cells = swin_cells(args.results_dir, args.checkpoints_dir, declaration["asr_bar"])
+    coverage = swin_coverage(args.results_dir, args.checkpoints_dir, args.declaration)
+    implanted = cells_with_reports(args.results_dir, implanted_cells(coverage))
+    cells = [cell for cell in implanted if cell[HEADLINE_SUCCESS]]
+    second_cells = [cell for cell in implanted if cell[SECOND_SUCCESS]]
     inputs = [
-        f"{args.results_dir}/swin_*/psbd_metrics.json ({len(cells)} implanted cells)",
+        f"{args.declaration} (panel rule retargeted to swin, "
+        f"{len(coverage['cells'])} panel cells)",
+        f"{args.results_dir}/swin_*/psbd_metrics.json ({len(cells)} successful cells)",
         f"{args.checkpoints_dir}/swin_*/args.json",
     ]
     by_dataset = collections.Counter(cell["dataset"] for cell in cells)
@@ -508,7 +563,9 @@ def main() -> None:
             "budgets at the adaptive rule, with the paired AUROC gain over dropout "
             "after both residual adds and its 95\\% bootstrap interval over the cells "
             f"carrying both placements. Models are {len(cells)} Swin-S checkpoints "
-            f"whose attack success clears {declaration['asr_bar']:g}, {scope}."
+            f"the ViT panel rule selects whose attack success clears "
+            f"{declaration['asr_bar']:g} with clean accuracy within "
+            f"{HEADLINE_BAR_POINTS} points of the benign Swin-S model, {scope}."
         ),
         label="tab:swin-main",
         header=[
@@ -552,21 +609,45 @@ def main() -> None:
     macros = {
         "swin_cells": (
             str(len(cells)),
-            "Swin cells whose attack cleared the bar and carry PSBD metrics",
+            "Swin cells that are successful backdoors (ASR bar and "
+            f"{HEADLINE_BAR_POINTS}-point clean-accuracy bar) and carry PSBD metrics",
+        ),
+        "swin_cells_implanted": (
+            str(len(implanted)),
+            "Swin cells whose attack cleared the ASR bar and carry PSBD metrics, "
+            "whatever their clean accuracy",
+        ),
+        "swin_panel_cells_total": (
+            str(len(coverage["cells"])),
+            "cells the ViT panel rule selects on Swin-S, clearing or not",
+        ),
+        "swin_panel_cells_successful": (
+            str(len(clearing_cells(coverage))),
+            "Swin panel cells that are successful backdoors at the headline bar, "
+            "carrying a sweep or not",
+        ),
+        "swin_panel_cells_awaiting_sweep": (
+            str(len(clearing_cells(coverage)) - len(cells)),
+            "successful Swin panel cells without a psbd_metrics.json",
+        ),
+        "swin_cells_failing_clean_bar": (
+            str(len(implanted) - len(cells)),
+            "implanted Swin cells left out because clean accuracy fell more than "
+            f"{HEADLINE_BAR_POINTS} points below the benign Swin model",
         ),
         "swin_datasets": (
             str(len(by_dataset)),
-            "datasets with at least 1 implanted Swin cell",
+            "datasets with at least 1 successful Swin cell",
         ),
         "swin_placements_reported": (
             str(len(full_rows(stats))),
-            f"Swin placements with at least {MIN_CELLS_FOR_ROW} implanted cells",
+            f"Swin placements with at least {MIN_CELLS_FOR_ROW} successful cells",
         ),
     }
     for dataset, count in sorted(by_dataset.items()):
         macros[f"swin_cells_{dataset}"] = (
             str(count),
-            f"implanted Swin cells on {dataset_label(dataset)}",
+            f"successful Swin cells on {dataset_label(dataset)}",
         )
 
     gain_rows = []
@@ -678,6 +759,8 @@ def main() -> None:
         fmt(published.get("mean")),
         f"Swin mean AUROC of the published placement at the adaptive rule over {published.get('n', 0)} cells",
     )
+
+    macros.update(second_bar_macros(headline_swin_macros(second_cells, args)))
 
     write_macros(
         os.path.join(args.paper_dir, "tables", "swin.macros.json"),

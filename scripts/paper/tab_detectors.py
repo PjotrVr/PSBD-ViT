@@ -38,7 +38,10 @@ from scripts.paper._common import (  # noqa: E402
     dataset_label,
     detector_label,
     fmt,
+    SECOND_SUCCESS,
+    clearing_cells,
     load_coverage,
+    second_bar_macros,
     load_json,
     load_psbd_metrics,
     mean_or_none,
@@ -407,11 +410,14 @@ def fully_covered(results_dir: str, cells: list[dict]) -> list[dict]:
 def main() -> None:
     args = build_parser(__doc__).parse_args()
     coverage = load_coverage(args.results_dir)
-    clearing = [cell for cell in coverage["cells"] if cell.get("asr_class") == "clears"]
+    clearing = clearing_cells(coverage)
     cells = fully_covered(args.results_dir, clearing)
+    second_cells = fully_covered(
+        args.results_dir, clearing_cells(coverage, SECOND_SUCCESS)
+    )
     inputs = [
         f"{args.results_dir}/coverage/coverage.json "
-        f"({len(cells)} of {len(clearing)} clearing cells carry every defense)",
+        f"({len(cells)} of {len(clearing)} successful cells carry every defense)",
         f"{args.results_dir}/*/detectors/*_metrics.json",
         f"{args.results_dir}/*/psbd_metrics.json",
     ]
@@ -441,6 +447,21 @@ def main() -> None:
         macros.update(
             margin_interval_macros(stem, overall, readings, args.bootstrap, args.seed)
         )
+        # The same ranking and margin on the 5-point panel, macros only.
+        _, second_overall, _, second_readings = build_rows(
+            args.results_dir, second_cells, key, field
+        )
+        second = {
+            "detectors_compared_models": (
+                str(len(second_cells)),
+                "backdoored models in the detector comparison",
+            ),
+            **metric_macros(stem, second_overall),
+            **margin_interval_macros(
+                stem, second_overall, second_readings, args.bootstrap, args.seed
+            ),
+        }
+        macros.update(second_bar_macros(second))
         if stem == "auroc":
             macros.update(leader_macros(dataset_means))
             # The body carries only the per-dataset means. They are transposed, 1

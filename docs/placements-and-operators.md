@@ -1,5 +1,7 @@
 # Placements and operators: what we tested, what we found and how it maps to Swin
 
+> Superseded on 2026-09-29: the panel numbers below were read before the results moved to the successful backdoors at the 2-point clean-accuracy bar (the 57-model panel and earlier). They are kept as they were measured. The current values are the macros in `paper/headline.tex`, and `.claude/CLAUDE.md` and `README.md` state them.
+
 A **placement** in this project is 2 independent choices, and the cache directory name is
 just the 2 concatenated:
 

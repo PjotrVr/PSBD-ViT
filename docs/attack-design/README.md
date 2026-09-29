@@ -1,5 +1,7 @@
 # Red team: the strongest attacks we can build against our own detector
 
+> Superseded on 2026-09-29: the panel numbers below were read before the results moved to the successful backdoors at the 2-point clean-accuracy bar (the 57-model panel and earlier). They are kept as they were measured. The current values are the macros in `paper/headline.tex`, and `.claude/CLAUDE.md` and `README.md` state them.
+
 Written so that the adaptive attack section of the paper is ours rather than a
 reviewer's. Every attack below is designed against **this** project's defense as
 it currently stands: a per-input, test time detector that reads prediction shift

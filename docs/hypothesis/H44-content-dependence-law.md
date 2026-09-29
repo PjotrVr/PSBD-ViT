@@ -1,5 +1,7 @@
 # H44: PSBD's failure is a continuous law in content dependence, and it is a free attack
 
+> Superseded on 2026-09-29: the panel numbers below were read before the results moved to the successful backdoors at the 2-point clean-accuracy bar (the 57-model panel and earlier). They are kept as they were measured. The current values are the macros in `paper/headline.tex`, and `.claude/CLAUDE.md` and `README.md` state them.
+
 **Status: SUPPORTED as a measurement, but the FRAMING IS ANTICIPATED by A2X (AAAI 2026),
 which sweeps the same knob. See the prior-art section immediately below before citing any
 of this as novel.** On GTSRB at

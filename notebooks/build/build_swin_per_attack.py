@@ -4,7 +4,7 @@ cells = [
     md(r"""
     # Swin-S per attack
 
-    Swin-S restricts attention to shifted windows and has no class token, so a trigger's tokens reach the decision through a different route than in ViT-B/16. The paper reports a mean over every implanted Swin model (`swin-and-robustness.ipynb`), and this notebook breaks it out by attack and by dataset, then sets the per-attack gain beside ViT's. It compares PSBD-TM against PSBD-RD on the models `scripts/paper/tab_swin.py` reads, the panel-shaped `results/swin_*` folders whose attack success clears the declared bar, at the adaptive rate rule and the headline quantile on the fractional PSU. It reads cached JSON only and runs in about 30 seconds.
+    Swin-S restricts attention to shifted windows and has no class token, so a trigger's tokens reach the decision through a different route than in ViT-B/16. The paper reports a mean over every implanted Swin model (`swin-and-robustness.ipynb`), and this notebook breaks it out by attack and by dataset, then sets the per-attack gain beside ViT's. It compares PSBD-TM against PSBD-RD on the models `scripts/paper/tab_swin.py` reads, the Swin models the ViT panel rule selects that are successful backdoors, at the adaptive rate rule and the headline quantile on the fractional PSU. It reads cached JSON only and runs in about 30 seconds.
     """),
     code(
         SETUP
@@ -30,7 +30,7 @@ show_diagram("swin_windows", width=900)
     md(r"""
     ## The Swin models
 
-    Swin has no coverage ledger of its own, so the generator's `swin_cells` scans the folders directly and keeps the ones whose training sidecar (`checkpoints/<folder>/args.json`) records an attack success above the bar in `configs/psbd_basis.json`, and drops a TaCT model whose clean source class is already mapped away.
+    Swin follows exactly the ViT panel rule: `scripts.paper._common.swin_coverage` applies the declaration of `configs/psbd_basis.json` to the Swin checkpoints with the benign Swin-S references and the coverage ledger's own verdicts, and the generator's `swin_cells` keeps the successful backdoors (`successful_2pt`) that carry a PSBD cache, so a model at a rate outside the panel, a non-canonical variant, a source-mapped TaCT model or a model that lost more clean accuracy than the headline bar allows is not read.
     """),
     code(r"""
 declaration = load_declaration("configs/psbd_basis.json")
@@ -182,7 +182,7 @@ no_vit_row = sorted(set(per_attack.index) - set(vit_gain.index))
 both.reindex(attacks).round(3)
 """),
     said(r"""
-    BadNets gains on both architectures ({both.loc["BadNets", "Swin gain"]:+.3f} on Swin, {both.loc["BadNets", "ViT gain"]:+.3f} on ViT), the patch-trigger effect `mechanism.ipynb` traced on ViT. The architectures part, with Swin favoring PSBD-TM by more than 0.05, on {word_list(parted)}. On ViT PSBD-RD detects WaNet best of every defense (`detectors-per-attack.ipynb`, gain {both.loc["WaNet", "ViT gain"]:+.3f} here) and PSBD-TM inverts on SIG ({both.loc["SIG", "ViT gain"]:+.3f}), while on Swin the WaNet gain is {both.loc["WaNet", "Swin gain"]:+.3f} and the SIG gain {both.loc["SIG", "Swin gain"]:+.3f}. {word_list(no_swin_row)} {"has" if len(no_swin_row) == 1 else "have"} no Swin row (above), and {word_list(no_vit_row)} {"has" if len(no_vit_row) == 1 else "have"} no ViT row because {"it does" if len(no_vit_row) == 1 else "they do"} not clear the ViT headline panel. With few models on WaNet, SIG and TaCT the intervals are wide or undefined, so the architecture difference on those attacks is an observation, not a settled result.
+    BadNets gains on both architectures ({both.loc["BadNets", "Swin gain"]:+.3f} on Swin, {both.loc["BadNets", "ViT gain"]:+.3f} on ViT), the patch-trigger effect `mechanism.ipynb` traced on ViT. The architectures part, with Swin favoring PSBD-TM by more than 0.05, on {word_list(parted)}. On ViT PSBD-RD detects WaNet best of every defense (`detectors-per-attack.ipynb`, gain {both.loc["WaNet", "ViT gain"]:+.3f} here), while on Swin the WaNet gain is {both.loc["WaNet", "Swin gain"]:+.3f}. No SIG model is a successful backdoor on either architecture, so SIG has no row. {word_list(no_swin_row)} {"has" if len(no_swin_row) == 1 else "have"} no Swin row (above), and {word_list(no_vit_row)} {"has" if len(no_vit_row) == 1 else "have"} no ViT row because {"it does" if len(no_vit_row) == 1 else "they do"} not clear the ViT headline panel. With few models on WaNet and TaCT the intervals are wide or undefined, so the architecture difference on those attacks is an observation, not a settled result.
     """),
 ]
 

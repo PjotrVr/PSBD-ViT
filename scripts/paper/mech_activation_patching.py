@@ -1,6 +1,6 @@
 """Activation patching across the panel: where in depth the backdoor is causally located.
 
-Every clearing cell carries an activation_patching.json with the normalized
+Every successful cell carries an activation_patching.json with the normalized
 recovery of the clean answer when 1 token group at 1 layer is patched from the
 clean run into the triggered run. Recovery near 1 at a (layer, group) means the
 backdoor was carried there and nowhere else at that depth. This averages the
@@ -250,7 +250,7 @@ def main() -> None:
     macros = {
         "patching_cells": (
             str(sum(map(len, by_attack.values()))),
-            "clearing cells with activation patching",
+            "successful cells with activation patching",
         ),
         "patching_early_layers": (
             f"1 to {EARLY_LAST_LAYER}",

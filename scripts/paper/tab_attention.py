@@ -32,6 +32,7 @@ from scripts.paper._common import (  # noqa: E402
     HEADLINE_KEY,
     build_parser,
     fmt,
+    clearing_cells,
     load_coverage,
     load_declaration,
     load_psbd_metrics,
@@ -71,7 +72,7 @@ def is_plain_attention_probe(placement: str) -> bool:
 
 
 def readings(results_dir: str, folders: list[str]) -> dict[str, dict[str, list[float]]]:
-    """Per attention probe, every clearing model's AUROC and TPR at both budgets."""
+    """Per attention probe, every successful model's AUROC and TPR at both budgets."""
     found: dict[str, dict[str, list[float]]] = collections.defaultdict(
         lambda: {"auroc": [], TPR_KEYS[0]: [], TPR_KEYS[1]: []}
     )
@@ -101,11 +102,7 @@ def main() -> None:
     declaration = load_declaration(args.declaration)
     declared = {entry["id"] for entry in declaration["basis"]}
     coverage = load_coverage(args.results_dir)
-    folders = [
-        cell["folder_name"]
-        for cell in coverage["cells"]
-        if cell.get("asr_class") == "clears"
-    ]
+    folders = [cell["folder_name"] for cell in clearing_cells(coverage)]
     found = readings(args.results_dir, folders)
 
     ordered = sorted(
@@ -129,7 +126,7 @@ def main() -> None:
         )
 
     inputs = [
-        f"{args.results_dir}/coverage/coverage.json ({len(folders)} clearing cells)",
+        f"{args.results_dir}/coverage/coverage.json ({len(folders)} successful cells)",
         f"{args.results_dir}/*/psbd_metrics.json",
     ]
     write_table(
@@ -155,7 +152,7 @@ def main() -> None:
     macros = {
         "attention_probes_total": (
             str(len(ordered)),
-            f"attention-side probes measured on at least {MIN_CELLS} clearing models",
+            f"attention-side probes measured on at least {MIN_CELLS} successful models",
         ),
         "attention_probes_in_basis": (
             str(len(inside)),
@@ -196,7 +193,7 @@ def main() -> None:
         )
         macros["attention_head_mask_n"] = (
             str(len(head["auroc"])),
-            "clearing models carrying the head-masking probe",
+            "successful models carrying the head-masking probe",
         )
         macros["attention_head_mask_tpr_ten"] = (
             fmt(mean_or_none(head[TPR_KEYS[0]]), places=2),

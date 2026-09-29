@@ -6,19 +6,21 @@ hand, so a number in a detector doc always traces back to a record under
 `results/<folder>/detectors/` and to the PSBD cache beside it.
 
 The population is the paper's detector comparison, read through the same
-functions `scripts/paper/tab_detectors.py` uses: the clearing models of the
-coverage ledger that carry a reading from every defense. A block therefore
+functions `scripts/paper/tab_detectors.py` uses: the successful models of the
+coverage ledger (attack success at the bar, clean accuracy within the headline
+bar of the benign model) that carry a reading from every defense. A block therefore
 reports the same models the paper's tables report, and its means match the
 paper's columns.
 
 `docs/detectors/README.md` carries 1 more block, the composition of that panel:
-how many ledger models clear, which clearing models lack a defense's reading and
-are therefore left out, which models the ledger excludes as diverged or as
-source-mapped TaCT, and how the compared models spread over attacks, rates and
+how many ledger models clear and how many of them are successful, which
+successful models lack a defense's reading and are therefore left out, which
+models the ledger excludes as diverged, as source-mapped TaCT or as past the
+clean-accuracy bar, and how the compared models spread over attacks, rates and
 datasets.
 
 `docs/placement-rationale.md` carries the last block, the placement ledger: every
-PSBD placement cached on the clearing ViT models with its mean AUROC at the
+PSBD placement cached on the successful ViT models with its mean AUROC at the
 adaptive and the matched rate rule and its paired gain over PSBD-RD, the same
 placements on Swin-S and the ResNet-18 control. The placement doc argues from
 those tables, so they are generated here from `psbd_metrics.json` like every
@@ -67,7 +69,10 @@ from detectors import (  # noqa: E402
 from scripts.paper._common import (  # noqa: E402
     BOOTSTRAP_RESAMPLES,
     BOOTSTRAP_SEED,
+    HEADLINE_BAR_POINTS,
     HEADLINE_KEY,
+    SECOND_BAR_POINTS,
+    SECOND_SUCCESS,
     attack_label,
     bootstrap_ci,
     clearing_cells,
@@ -168,7 +173,7 @@ def main() -> None:
 
 
 def comparison_cells(results_dir: str) -> list[dict]:
-    """The paper's detector comparison: clearing models that every defense scored.
+    """The paper's detector comparison: successful models that every defense scored.
 
     Ordered by dataset, then attack and rate, the order tab_detectors.build_rows
     walks, so a seeded bootstrap here resamples the same sequence the paper's
@@ -178,8 +183,9 @@ def comparison_cells(results_dir: str) -> list[dict]:
     clearing = clearing_cells(coverage)
     cells = fully_covered(results_dir, clearing)
 
-    # clearing_cells keeps only "clears", so a diverged or source-mapped model
-    # cannot be here. The check makes that dependence explicit rather than assumed.
+    # clearing_cells keeps only successful models, so a diverged, source-mapped
+    # or clean-accuracy-failing model cannot be here. The check makes that
+    # dependence explicit rather than assumed.
     leaked = {cell["folder_name"] for cell in cells} & excluded_folders(results_dir)
     if leaked:
         raise SystemExit(f"excluded models reached the panel: {sorted(leaked)}")
@@ -212,7 +218,7 @@ def panel_block(results_dir: str, cells: list[dict]) -> list[str]:
         "|---|---|---|",
     ]
     meanings = {
-        "clears": "attack success at or above the bar, clean accuracy intact",
+        "clears": "attack success at or above the bar",
         "below_bar": "the attack did not implant strongly enough",
         "diverged": "clean accuracy below half the benign reference, excluded",
         "source_mapped": (
@@ -224,11 +230,28 @@ def panel_block(results_dir: str, cells: list[dict]) -> list[str]:
         lines.append(f"| `{name}` | {classes[name]} | {meanings.get(name, '')} |")
     lines.append("")
 
+    successful = {cell["folder_name"] for cell in clearing}
+    failing = [
+        cell
+        for cell in ledger
+        if cell.get("asr_class") == "clears" and cell["folder_name"] not in successful
+    ]
+    second = clearing_cells(coverage, SECOND_SUCCESS)
+    failing_names = ", ".join(f"`{cell['folder_name']}`" for cell in failing)
+    lines += [
+        f"{len(clearing)} of the {classes['clears']} `clears` models are successful "
+        f"backdoors, with clean accuracy within {HEADLINE_BAR_POINTS} points of the "
+        f"benign model ({len(second)} within {SECOND_BAR_POINTS} points). The "
+        f"{len(failing)} left out by the clean-accuracy bar: "
+        f"{failing_names}.",
+        "",
+    ]
+
     left_out = [cell for cell in clearing if cell["folder_name"] not in compared]
     lines += [
-        f"{len(compared)} of the {len(clearing)} clearing models carry a reading "
+        f"{len(compared)} of the {len(clearing)} successful models carry a reading "
         "from all 13 defenses and form the panel every results block reports. "
-        "The clearing models left out, and the defenses they lack, are listed "
+        "The successful models left out, and the defenses they lack, are listed "
         "below.",
         "",
         "| left out | defenses without a reading |",
@@ -246,7 +269,8 @@ def panel_block(results_dir: str, cells: list[dict]) -> list[str]:
 
     excluded = sorted(excluded_folders(results_dir))
     lines += [
-        "Models the ledger excludes as diverged or source-mapped, which no block "
+        "Models the ledger excludes as diverged, source-mapped or past the "
+        "clean-accuracy bar, which no block "
         f"reads: {', '.join(f'`{name}`' for name in excluded)}.",
         "",
     ]
@@ -292,7 +316,7 @@ def docs_and_detectors() -> dict[str, list[str]]:
 
 
 def missing_defenses(results_dir: str, cell: dict) -> list[str]:
-    """The defenses, PSBD columns first, with no reading on 1 clearing model."""
+    """The defenses, PSBD columns first, with no reading on 1 successful model."""
     report = load_psbd_metrics(results_dir, cell["folder_name"]) or {}
     missing = [
         column
@@ -397,7 +421,7 @@ def provenance_lines(cells: list[dict], results_dir: str) -> list[str]:
         f"`{results_dir}/coverage/coverage.json`, every "
         f"`{results_dir}/<folder>/detectors/<name>_metrics.json` and every "
         f"`{results_dir}/<folder>/psbd_metrics.json` of the {len(cells)} backdoored "
-        "ViT-B/16 models the paper's detector comparison uses, the clearing models "
+        "ViT-B/16 models the paper's detector comparison uses, the successful models "
         "that carry a reading from every defense. PSBD-TM and PSBD-RD are read at "
         f"the {RULE} rate rule, every threshold is the clean-validation quantile "
         f"named in the column and AUROC is the one-sided area at the "
@@ -657,7 +681,7 @@ def write_blocks(docs_dir: str, blocks: dict[str, list[str]], dry_run: bool) -> 
 
 
 def placement_panel(results_dir: str) -> list[dict]:
-    """The clearing ViT models that PSBD placements are read on, excluded ones removed."""
+    """The successful ViT models that PSBD placements are read on, excluded ones removed."""
     coverage = load_coverage(results_dir)
     excluded = excluded_folders(results_dir)
     cells = [
@@ -800,8 +824,9 @@ def placement_block(args: argparse.Namespace) -> list[str]:
         "at the same rule, so the matched gain differs from the paper's headline "
         "matched gain, which reads PSBD-RD at the adaptive rule.",
         "",
-        f"ViT-B/16. The {len(reports)} clearing models of the coverage ledger with a "
-        "PSBD cache, diverged and source-mapped models excluded. The n columns "
+        f"ViT-B/16. The {len(reports)} successful models of the coverage ledger with "
+        "a PSBD cache, diverged, source-mapped and clean-accuracy-failing models "
+        "excluded. The n columns "
         "differ between rows because some placements were swept on a subset only, "
         "so compare 2 rows through their paired gains rather than their means.",
         "",
@@ -809,8 +834,10 @@ def placement_block(args: argparse.Namespace) -> list[str]:
     lines += placement_table(vit, args, PUBLISHED_PLACEMENT)
     lines += [
         f"Swin-S. The {len(swin_reports)} Swin models `scripts/paper/tab_swin.py` "
-        "reads: panel-shaped folders whose sidecar attack success clears the bar, "
-        "source-mapped TaCT removed. Swin has 24 blocks, so its bands are 1 to 8, "
+        "reads: the ViT panel rule applied to Swin-S "
+        "(`scripts.paper._common.swin_coverage`), the models that are successful "
+        f"backdoors with clean accuracy within {HEADLINE_BAR_POINTS} points of the "
+        "benign Swin-S model and carry a PSBD cache. Swin has 24 blocks, so its bands are 1 to 8, "
         "9 to 16 and 17 to 24.",
         "",
     ]

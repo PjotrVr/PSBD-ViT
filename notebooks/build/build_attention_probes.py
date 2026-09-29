@@ -41,7 +41,7 @@ print("attention-side positions read by tab_attention:", ATTENTION_POSITIONS)
     md(r"""
     ## Probe means
 
-    The generator's own `readings` collects every clearing model's AUROC and its TPR at the 10% and 20% quantiles for each attention probe. Coverage is uneven, since the probes outside the basis were swept on a subset of the panel, so the means in this table are not paired.
+    The generator's own `readings` collects every successful model's AUROC and its TPR at the 10% and 20% quantiles for each attention probe. Coverage is uneven, since the probes outside the basis were swept on a subset of the panel, so the means in this table are not paired.
     """),
     code(r"""
 declaration = load_declaration("configs/psbd_basis.json")
@@ -70,7 +70,7 @@ assert str(len(probes)) == macro("attention_probes", "AttentionProbesTotal")
 assert str(int(probes["in basis"].sum())) == macro("attention_probes", "AttentionProbesInBasis")
 outside_best = probes[~probes["in basis"]].iloc[0]
 assert fmt(outside_best["AUROC"]) == macro("attention_probes", "AttentionProbesBestOutside")
-print(f"{len(folders)} clearing models, rule {RULE}, threshold at the {HEADLINE_QUANTILE:.0%} quantile")
+print(f"{len(folders)} successful models, rule {RULE}, threshold at the {HEADLINE_QUANTILE:.0%} quantile")
 print(f"{len(probes)} attention probes with at least {MIN_CELLS} models, {probes['in basis'].sum()} in the basis")
 probes.drop(columns="placement").round(3)
 """),
@@ -144,7 +144,7 @@ plt.show()
     md(r"""
     ## The strongest probes per attack
 
-    A probe that trails PSBD-TM on average could still lead on the attacks PSBD-TM handles worst. The heatmap reads the highest-ranked probes carried by at least 30 models, averaged per attack over the clearing models carrying each probe.
+    A probe that trails PSBD-TM on average could still lead on the attacks PSBD-TM handles worst. The heatmap reads the highest-ranked probes carried by at least 30 models, averaged per attack over the successful models carrying each probe.
     """),
     code(r"""
 attack_of = {cell["folder_name"]: cell["attack"] for cell in clearing_cells(load_coverage("results"))}
@@ -174,7 +174,7 @@ missing_cells = {probe: sorted(per_attack.index[per_attack[probe].isna()]) for p
 tm_col, twin_col = top["probe"].iloc[0], placement_words(twin_id)
 """),
     said(r"""
-    The small numbers are the models behind each cell. Among the columns, {word_list([f"'{p}' has no reading on {word_list(a)}" for p, a in missing_cells.items()])}, so those columns have gaps. On Blend and LF every probe reads at least {per_attack.loc[["Blend", "LF"]].min().min():.2f}. On BadNets the 2 token masks on the attention branch read {per_attack.loc["BadNets", tm_col]:.2f} and {per_attack.loc["BadNets", twin_col]:.2f}, and the other probes between {per_attack.loc["BadNets"].drop([tm_col, twin_col]).min():.2f} and {per_attack.loc["BadNets"].drop([tm_col, twin_col]).max():.2f}. The patching record of `mechanism.ipynb` says the BadNets decision sits in the trigger's own tokens until the late blocks, which fits a whole-token mask on the branch doing best, but no experiment here isolates why masking after the norm or a single head does worse. The twin reads {per_attack.loc["SIG", twin_col]:.2f} on SIG against {per_attack.loc["SIG", tm_col]:.2f} for PSBD-TM, and {per_attack.loc["WaNet", twin_col]:.2f} on WaNet against {per_attack.loc["WaNet", tm_col]:.2f}. The heatmap does not pair the columns, so a column with fewer models is not directly comparable to its neighbor, and the paired gaps above remain the deciding comparison.
+    The small numbers are the models behind each cell. Among the columns, {word_list([f"'{p}' has no reading on {word_list(a)}" for p, a in missing_cells.items()])}, so those columns have gaps. On Blend and LF every probe reads at least {per_attack.loc[["Blend", "LF"]].min().min():.2f}. On BadNets the 2 token masks on the attention branch read {per_attack.loc["BadNets", tm_col]:.2f} and {per_attack.loc["BadNets", twin_col]:.2f}, and the other probes between {per_attack.loc["BadNets"].drop([tm_col, twin_col]).min():.2f} and {per_attack.loc["BadNets"].drop([tm_col, twin_col]).max():.2f}. The patching record of `mechanism.ipynb` says the BadNets decision sits in the trigger's own tokens until the late blocks, which fits a whole-token mask on the branch doing best, but no experiment here isolates why masking after the norm or a single head does worse. The twin reads {per_attack.loc["WaNet", twin_col]:.2f} on WaNet against {per_attack.loc["WaNet", tm_col]:.2f}. The heatmap does not pair the columns, so a column with fewer models is not directly comparable to its neighbor, and the paired gaps above remain the deciding comparison.
     """),
     md(r"""
     ## PSBD-TM against its twin

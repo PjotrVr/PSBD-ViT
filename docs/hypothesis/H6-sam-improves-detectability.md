@@ -1,5 +1,7 @@
 # H6: SAM training makes backdoors more detectable
 
+> Superseded on 2026-09-29: the panel numbers below were read before the results moved to the successful backdoors at the 2-point clean-accuracy bar (the 57-model panel and earlier). They are kept as they were measured. The current values are the macros in `paper/headline.tex`, and `.claude/CLAUDE.md` and `README.md` state them.
+
 **Status, 2026-09-11: PARTIALLY SUPPORTED for the recommended placement, at
 10 percent poisoning, and unsettled below it.** SAM does amplify the
 trigger's footprint on the class token, and the recommended token mask

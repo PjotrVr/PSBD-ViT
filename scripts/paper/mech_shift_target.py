@@ -3,7 +3,7 @@
 The neuron-bias account of PSBD says a backdoored model's decision boundary is
 warped toward the attacker's target class everywhere, so a clean image whose
 prediction moves under dropout should preferentially move onto that class. This
-reads clean_shift_to_target_fraction from every clearing cell's psbd_metrics.json
+reads clean_shift_to_target_fraction from every successful cell's psbd_metrics.json
 at the recommended placement, compares it to the uniform expectation 1/num_classes
 and to the same measurement on the matched-dataset benign reference, and reports
 the excess as a paired statistic (backdoored minus benign, matched by dataset).
@@ -159,7 +159,7 @@ def rate_curve(report: dict, placement: str) -> list[dict]:
 def collect_cell_records(
     results_dir: str, cells: list[dict], benign_reports: dict
 ) -> list[dict]:
-    """Per clearing cell: attack, dataset, both rules' readings, paired benign readings."""
+    """Per successful cell: attack, dataset, both rules' readings, paired benign readings."""
     records = []
     for cell in cells:
         report = load_psbd_metrics(results_dir, cell["folder_name"])
@@ -300,7 +300,7 @@ def write_shift_target_table(args, records: list[dict]) -> None:
         path=path,
         generator=GENERATOR,
         inputs=[
-            f"{args.results_dir}/<folder>/psbd_metrics.json (65 clearing cells, 4 benign)"
+            f"{args.results_dir}/<folder>/psbd_metrics.json (the successful cells and the benign references)"
         ],
         caption=(
             "A1: target-class share of shifted clean predictions at the token\\_mask "
@@ -361,7 +361,7 @@ def write_dataset_table(args, records: list[dict]) -> None:
         path=path,
         generator=GENERATOR,
         inputs=[
-            f"{args.results_dir}/<folder>/psbd_metrics.json (65 clearing cells, 4 benign)"
+            f"{args.results_dir}/<folder>/psbd_metrics.json (the successful cells and the benign references)"
         ],
         caption=(
             "Share of shifted clean predictions that land on the target class under "
@@ -582,7 +582,7 @@ def write_shift_target_macros(args, records: list[dict], benign_reports: dict) -
         "shift_to_target_excess_all": (
             excess,
             "A1: mean paired excess over the matched-dataset benign reference, all "
-            "clearing cells, matched-0.6 rate rule, 95% bootstrap interval",
+            "successful cells, matched-0.6 rate rule, 95% bootstrap interval",
         ),
         "shift_to_target_benign_share": (
             fmt(statistics.mean(benign_shares)),
@@ -624,7 +624,9 @@ def main() -> None:
     benign_reports = {k: v for k, v in benign_reports.items() if v is not None}
 
     records = collect_cell_records(args.results_dir, cells, benign_reports)
-    print(f"{len(records)} of {len(cells)} clearing cells carry a complete A1 reading")
+    print(
+        f"{len(records)} of {len(cells)} successful cells carry a complete A1 reading"
+    )
 
     write_shift_target_table(args, records)
     write_dataset_table(args, records)

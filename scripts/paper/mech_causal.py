@@ -1,8 +1,11 @@
 """Why a patch trigger survives PSBD-TM and not PSBD-RD, and how legible each trigger is.
 
-Reads the record experiments/why_token_masking_works/measure.py writes and turns
-it into macros and 1 appendix table. Nothing is computed here beyond picking
-fields out of that record.
+Reads the per-model records experiments/why_token_masking_works/measure.py
+writes, keeps the models the panel keeps (scripts.paper._common.excluded_folders
+drops the diverged, source-mapped and clean-accuracy failures), summarizes them
+with the experiment's own summarize and turns that into macros and 1 appendix
+table. The experiment's summary.json spans every model it ran on, so it is not
+read.
 
 - Masking only the trigger's tokens at the attention input, in chosen blocks,
   against the same number of random tokens.
@@ -21,10 +24,16 @@ import sys
 
 sys.path.insert(0, os.getcwd())
 
+from experiments.why_token_masking_works.measure import (  # noqa: E402
+    read_model_records,
+    summarize,
+)
 from scripts.paper._common import (  # noqa: E402
+    attack_label,
     build_parser,
+    excluded_folders,
     fmt,
-    load_json,
+    word_list,
     write_macros,
     write_table,
 )
@@ -52,14 +61,19 @@ DROPOUT_ROWS = (
 
 
 def load_record(results_dir: str) -> dict:
-    path = os.path.join(
-        results_dir, "_experiments", "why_token_masking_works", "summary.json"
-    )
-    record = load_json(path)
-    if record is None:
+    """The experiment's summary over the per-model records of panel models only."""
+    directory = os.path.join(results_dir, "_experiments", "why_token_masking_works")
+    if not os.path.isdir(directory):
         raise SystemExit(
-            f"{path} does not exist, run experiments/why_token_masking_works/measure.py"
+            f"{directory} does not exist, run experiments/why_token_masking_works/measure.py"
         )
+    excluded = excluded_folders(results_dir)
+    records = [
+        record
+        for record in read_model_records(directory)
+        if record["folder"] not in excluded
+    ]
+    record = summarize(records)
     return record
 
 
@@ -140,33 +154,42 @@ def dropout_macros(record: dict) -> dict:
 def visibility_macros(record: dict) -> dict:
     subsets = record["visible_subsets"]
     macros = {}
+    # An attack with no panel model left prints the empty-population dash.
     for attack in GLOBAL_ATTACKS:
-        reading = subsets[attack][VISIBLE_SHARE]
+        reading = subsets.get(attack, {}).get(VISIBLE_SHARE, {})
+        models = reading.get("models", 0)
         macros[f"causal_visible_{attack}_trigger"] = (
-            fmt(reading["excess_retention"], places=2),
-            f"{attack} trigger effect retained with {VISIBLE_SHARE} of tokens visible",
+            fmt(reading.get("excess_retention"), places=2),
+            f"{attack} trigger effect retained with {VISIBLE_SHARE} of tokens "
+            f"visible, over {models} models",
         )
         macros[f"causal_visible_{attack}_clean"] = (
-            fmt(reading["clean_accuracy_retention"], places=2),
-            f"{attack} clean accuracy retained with {VISIBLE_SHARE} of tokens visible",
+            fmt(reading.get("clean_accuracy_retention"), places=2),
+            f"{attack} clean accuracy retained with {VISIBLE_SHARE} of tokens "
+            f"visible, over {models} models",
         )
+    legible = [
+        attack for attack in GLOBAL_ATTACKS if attack != "wanet" and attack in subsets
+    ]
+    legible_words = word_list([attack_label(attack) for attack in legible])
     per_trigger = [
-        subsets[attack][VISIBLE_SHARE]["excess_retention"]
-        for attack in GLOBAL_ATTACKS
-        if attack != "wanet"
+        subsets[attack][VISIBLE_SHARE]["excess_retention"] for attack in legible
     ]
     per_clean = [
-        subsets[attack][VISIBLE_SHARE]["clean_accuracy_retention"]
-        for attack in GLOBAL_ATTACKS
-        if attack != "wanet"
+        subsets[attack][VISIBLE_SHARE]["clean_accuracy_retention"] for attack in legible
     ]
+    macros["causal_visible_global_attacks"] = (
+        legible_words,
+        "the global-trigger attacks other than WaNet with a panel model in the "
+        "legibility test",
+    )
     macros["causal_visible_global_trigger_min"] = (
         fmt(min(per_trigger), places=2),
-        "lowest trigger effect retained by Blend, BPP, LF and SIG",
+        f"lowest trigger effect retained by {legible_words}",
     )
     macros["causal_visible_global_trigger_max"] = (
         fmt(max(per_trigger), places=2),
-        "highest trigger effect retained by Blend, BPP, LF and SIG",
+        f"highest trigger effect retained by {legible_words}",
     )
     macros["causal_visible_global_clean_min"] = (
         fmt(min(per_clean), places=2),
@@ -217,8 +240,8 @@ def main() -> None:
     args = build_parser(__doc__).parse_args()
     record = load_record(args.results_dir)
     inputs = [
-        "results/_experiments/why_token_masking_works/summary.json "
-        f"({record['models']} models)"
+        "results/_experiments/why_token_masking_works/<folder>.json "
+        f"({record['models']} panel models)"
     ]
     macros = {}
     for builder in (

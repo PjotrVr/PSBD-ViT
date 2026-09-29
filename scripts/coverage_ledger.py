@@ -334,8 +334,9 @@ def classify_by_asr(cell: dict, asr_bar: float) -> str:
 # The success definition every number is given at, 1 verdict per clean-accuracy
 # bar, each naming the declaration field that holds its bar. The headline bar
 # tolerates a 2 point clean-accuracy drop against the benign reference and the
-# second bar 5 points. asr_class stays as it is beside them, since the paper
-# generators select on it.
+# second bar 5 points. asr_class stays as it is beside them, since it is the
+# implantation count, while the paper generators select on successful_2pt
+# (scripts.paper._common.clearing_cells).
 SUCCESS_BARS = {
     "successful_2pt": "clean_accuracy_drop_bar_headline",
     "successful_5pt": "clean_accuracy_drop_bar",
@@ -357,6 +358,55 @@ def success_verdicts(cell: dict, declaration: dict) -> dict[str, bool]:
         for field, bar_key in SUCCESS_BARS.items()
     }
     return verdicts
+
+
+def classify_cell(
+    cell: dict,
+    reference: float | None,
+    declaration: dict,
+    checkpoints_dir: str,
+    results_dir: str,
+) -> None:
+    """Every ledger verdict on 1 cell, written into it in place.
+
+    Needs the cell's folder_name, dataset, attack, asr and clean_accuracy. An
+    entry in the declaration's asr_audit_overrides replaces asr first. Adds
+    asr_class, clean_accuracy_benign, clean_accuracy_drop, diverged,
+    source_class_accuracy, source_mapped and the success verdicts. The ViT ledger
+    and every Swin reader call this 1 function, so a verdict means the same thing
+    on both architectures.
+    """
+    # An audited ASR replaces the sidecar's when the sidecar was measured on a
+    # cache built with a trigger the model was not trained on.
+    audit = declaration.get("asr_audit_overrides", {}).get(cell["folder_name"])
+    if audit is not None:
+        cell["asr"] = audit["asr"]
+        cell["asr_source"] = audit["source"]
+    cell["asr_class"] = classify_by_asr(cell, declaration["asr_bar"])
+    cell["clean_accuracy_benign"] = reference
+    cell["clean_accuracy_drop"] = (
+        None
+        if reference is None or cell["clean_accuracy"] is None
+        else cell["clean_accuracy"] - reference
+    )
+    # A collapsed run can carry an ASR above the bar, since a model predicting
+    # 1 class scores every triggered image as that class, so the divergence
+    # verdict overrides the ASR class rather than sitting beside it.
+    cell["diverged"] = classify_divergence(cell, reference)
+    if cell["diverged"]:
+        cell["asr_class"] = "diverged"
+    cell["source_class_accuracy"] = source_class_accuracy(
+        checkpoints_dir, results_dir, cell
+    )
+    cell["source_mapped"] = (
+        cell["source_class_accuracy"] is not None
+        and cell["source_class_accuracy"] < SOURCE_MAPPED_ACCURACY
+    )
+    # Like divergence, a source-mapped cell clears the ASR bar for a reason
+    # that is not a backdoor, so the verdict overrides the ASR class.
+    if cell["source_mapped"] and not cell["diverged"]:
+        cell["asr_class"] = "source_mapped"
+    cell.update(success_verdicts(cell, declaration))
 
 
 def stale_splits(coverage_dir: str) -> set:
@@ -404,33 +454,14 @@ def build_ledger(args, declaration: dict) -> dict:
             for entry in basis
             if cached.get(entry["id"]) and set(entry["rates"]) - cached[entry["id"]]
         )
-        cell["asr_class"] = classify_by_asr(cell, declaration["asr_bar"])
         cell["stale_split"] = cell["folder_name"] in stale
-        reference = benign.get(cell["dataset"])
-        cell["clean_accuracy_benign"] = reference
-        cell["clean_accuracy_drop"] = (
-            None
-            if reference is None or cell["clean_accuracy"] is None
-            else cell["clean_accuracy"] - reference
+        classify_cell(
+            cell,
+            benign.get(cell["dataset"]),
+            declaration,
+            args.checkpoints_dir,
+            args.results_dir,
         )
-        # A collapsed run can carry an ASR above the bar, since a model predicting
-        # 1 class scores every triggered image as that class, so the divergence
-        # verdict overrides the ASR class rather than sitting beside it.
-        cell["diverged"] = classify_divergence(cell, reference)
-        if cell["diverged"]:
-            cell["asr_class"] = "diverged"
-        cell["source_class_accuracy"] = source_class_accuracy(
-            args.checkpoints_dir, args.results_dir, cell
-        )
-        cell["source_mapped"] = (
-            cell["source_class_accuracy"] is not None
-            and cell["source_class_accuracy"] < SOURCE_MAPPED_ACCURACY
-        )
-        # Like divergence, a source-mapped cell clears the ASR bar for a reason
-        # that is not a backdoor, so the verdict overrides the ASR class.
-        if cell["source_mapped"] and not cell["diverged"]:
-            cell["asr_class"] = "source_mapped"
-        cell.update(success_verdicts(cell, declaration))
         rows.extend(cell_rows)
         gaps.extend(gaps_for_cell(cell, cached, basis, panel))
 
@@ -589,8 +620,10 @@ def render_markdown(ledger: dict, declaration: dict) -> str:
         "",
         "## Attack strength",
         "",
-        f"A cell is a valid attack at ASR >= {ledger['asr_bar']} and "
-        f"dCA >= {ledger['clean_accuracy_drop_bar']}.",
+        f"A cell is a successful backdoor at ASR >= {ledger['asr_bar']} and "
+        f"dCA >= {ledger['clean_accuracy_drop_bar_headline']}, the panel every "
+        f"result is computed over. Every number is also given at dCA >= "
+        f"{ledger['clean_accuracy_drop_bar']}.",
         "",
         "| cell | ASR | CA | dCA | basis | verdict |",
         "|---|---:|---:|---:|---:|---|",
@@ -608,9 +641,10 @@ def render_markdown(ledger: dict, declaration: dict) -> str:
             else f"{cell['clean_accuracy_drop']:+.3f}"
         )
         verdict = "DIVERGED" if cell.get("diverged") else cell["asr_class"]
-        if verdict == "clears" and cell["clean_accuracy_drop"] is not None:
-            if cell["clean_accuracy_drop"] < ledger["clean_accuracy_drop_bar"]:
-                verdict = "clears ASR, FAILS dCA"
+        if verdict == "clears" and not cell["successful_5pt"]:
+            verdict = "clears ASR, FAILS both dCA bars"
+        elif verdict == "clears" and not cell["successful_2pt"]:
+            verdict = "clears ASR, FAILS the headline dCA bar"
         parts.append(
             f"| `{cell['folder_name']}` | {asr} | {accuracy} | {drop} | "
             f"{cell['n_basis_covered']}/{ledger['basis_size']} | {verdict} |"

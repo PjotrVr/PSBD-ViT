@@ -8,7 +8,7 @@ the trigger tokens' norm rank among patches and the max-over-median patch-norm
 ratio. sink_anatomy.json gives the takeover fraction, how much of the class
 token's attention mass is restored by other tokens when the trigger's are masked.
 The routing records exist at the highest panel rate only, the artifact and sink
-records on every clearing cell.
+records on every successful cell.
 
     PYTHONPATH=. python scripts/paper/mech_routing.py \\
         --results-dir /path/to/results --paper-dir paper

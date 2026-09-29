@@ -138,7 +138,7 @@ def main() -> None:
         macros[macro_stem] = (
             fmt(mean, signed=True),
             f"mean paired AUROC delta at the matched 0.6 rate, {label}, "
-            f"over the {len(deltas)} cells it covers of the {len(cells)} clearing cells",
+            f"over the {len(deltas)} cells it covers of the {len(cells)} successful cells",
         )
         macros[f"{macro_stem}_low"] = (
             fmt(low, signed=True),

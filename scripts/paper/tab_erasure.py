@@ -25,6 +25,7 @@ sys.path.insert(0, os.getcwd())
 from scripts.paper._common import (  # noqa: E402
     attack_label,
     build_parser,
+    excluded_folders,
     dataset_label,
     fmt,
     mean_or_none,
@@ -37,10 +38,17 @@ SLUG = "whole_network_erasure"
 
 
 def load_reports(results_dir: str) -> list[dict]:
-    """Every erasure record on disk, in whatever order glob returns them."""
+    """Every erasure record on disk whose checkpoint the panel keeps.
+
+    The file is named for its checkpoint, and a checkpoint the ledger excludes
+    (diverged, source-mapped or past the clean-accuracy bar) is skipped.
+    """
     pattern = os.path.join(results_dir, "_experiments", SLUG, "*.json")
+    excluded = excluded_folders(results_dir)
     reports = []
     for path in sorted(glob.glob(pattern)):
+        if os.path.basename(path)[: -len(".json")] in excluded:
+            continue
         with open(path) as handle:
             reports.append(json.load(handle))
     return reports

@@ -1,5 +1,7 @@
 # H14: PSBD and STRIP fuse into something better than either
 
+> Superseded on 2026-09-29: the panel numbers below were read before the results moved to the successful backdoors at the 2-point clean-accuracy bar (the 57-model panel and earlier). They are kept as they were measured. The current values are the macros in `paper/headline.tex`, and `.claude/CLAUDE.md` and `README.md` state them.
+
 **Status: SUPPORTED.** Rank-fusion by the more suspicious verdict recovers **93.1% of
 the oracle-max** with no oracle, at mean TPR 0.614 at 1% FPR against 0.507 for STRIP
 and 0.379 for PSBD.

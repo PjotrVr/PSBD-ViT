@@ -9,8 +9,8 @@
     "configs/psbd_basis.json",
     "checkpoints/<benign reference>/args.json"
   ],
-  "written_at": "2026-09-29T16:09:38.170606+00:00",
-  "git_commit": "2e59453ac935840c88040509aab36fb7e2c4ac3d-dirty",
+  "written_at": "2026-09-29T17:51:40.548221+00:00",
+  "git_commit": "b2d32cf11708d5de965d3e13604c863a3ad9b493-dirty",
   "macros": {
     "AdaptiveShiftTarget": {
       "value": "0.8",
@@ -61,8 +61,12 @@
       "meaning": "attack success rate a cell must reach to enter a detection table"
     },
     "CleanDropBar": {
+      "value": "$-$0.02",
+      "meaning": "the clean-accuracy drop a cell may show against its benign reference, the headline success bar every result is computed at"
+    },
+    "CleanDropBarSecond": {
       "value": "$-$0.05",
-      "meaning": "the clean-accuracy drop a cell may show against its benign reference"
+      "meaning": "the looser clean-accuracy drop every headline number is also given at"
     },
     "PanelRates": {
       "value": "1\\%, 5\\% and 10\\%",

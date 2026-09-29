@@ -3,69 +3,69 @@
   "inputs": [
     "results/coverage/coverage.json",
     "configs/psbd_basis.json",
-    "results/<folder>/psbd_metrics.json (59 cells)"
+    "results/<folder>/psbd_metrics.json (56 cells)"
   ],
-  "written_at": "2026-09-29T16:04:22.953746+00:00",
-  "git_commit": "2e59453ac935840c88040509aab36fb7e2c4ac3d-dirty",
+  "written_at": "2026-09-29T18:15:28.275738+00:00",
+  "git_commit": "d73d3277d007fd75b3a4166a7911b1e07a2761b7-dirty",
   "macros": {
     "FamilyGapDropoutMatched": {
-      "value": "$-$0.080",
-      "meaning": "mean paired AUROC gap, input-side minus residual-adjacent, dropout at every position, at the matched rule, over the 57 cells it covers"
+      "value": "$-$0.076",
+      "meaning": "mean paired AUROC gap, input-side minus residual-adjacent, dropout at every position, at the matched rule, over the 54 cells it covers"
     },
     "FamilyGapDropoutMatchedLow": {
-      "value": "$-$0.098",
+      "value": "$-$0.094",
       "meaning": "lower bound of the 95% bootstrap interval on family_gap_dropout_matched"
     },
     "FamilyGapDropoutMatchedHigh": {
-      "value": "$-$0.061",
+      "value": "$-$0.058",
       "meaning": "upper bound of the 95% bootstrap interval on family_gap_dropout_matched"
     },
     "FamilyGapDropoutAdaptive": {
-      "value": "$-$0.019",
-      "meaning": "mean paired AUROC gap, input-side minus residual-adjacent, dropout at every position, at the adaptive rule, over the 57 cells it covers"
+      "value": "$-$0.018",
+      "meaning": "mean paired AUROC gap, input-side minus residual-adjacent, dropout at every position, at the adaptive rule, over the 54 cells it covers"
     },
     "FamilyGapDropoutAdaptiveLow": {
       "value": "$-$0.038",
       "meaning": "lower bound of the 95% bootstrap interval on family_gap_dropout_adaptive"
     },
     "FamilyGapDropoutAdaptiveHigh": {
-      "value": "+0.001",
+      "value": "+0.002",
       "meaning": "upper bound of the 95% bootstrap interval on family_gap_dropout_adaptive"
     },
     "FamilyGapMatched": {
-      "value": "+0.006",
-      "meaning": "mean paired AUROC gap, input-side minus residual-adjacent, token_mask at every position, at the matched 0.6 rate, over the 57 cells it covers"
+      "value": "$-$0.000",
+      "meaning": "mean paired AUROC gap, input-side minus residual-adjacent, token_mask at every position, at the matched 0.6 rate, over the 54 cells it covers"
     },
     "FamilyGapMatchedLow": {
-      "value": "$-$0.011",
+      "value": "$-$0.016",
       "meaning": "lower bound of the 95% bootstrap interval on family_gap_matched"
     },
     "FamilyGapMatchedHigh": {
-      "value": "+0.026",
+      "value": "+0.017",
       "meaning": "upper bound of the 95% bootstrap interval on family_gap_matched"
     },
     "FamilyGapAdaptive": {
-      "value": "+0.026",
-      "meaning": "mean paired AUROC gap, input-side minus residual-adjacent, token_mask at every position, at the adaptive 0.8 rate, over the 57 cells it covers"
+      "value": "+0.029",
+      "meaning": "mean paired AUROC gap, input-side minus residual-adjacent, token_mask at every position, at the adaptive 0.8 rate, over the 54 cells it covers"
     },
     "FamilyGapAdaptiveLow": {
-      "value": "$-$0.003",
+      "value": "$-$0.002",
       "meaning": "lower bound of the 95% bootstrap interval on family_gap_adaptive"
     },
     "FamilyGapAdaptiveHigh": {
-      "value": "+0.058",
+      "value": "+0.062",
       "meaning": "upper bound of the 95% bootstrap interval on family_gap_adaptive"
     },
     "FamilyGapConfoundedMatched": {
-      "value": "$-$0.040",
-      "meaning": "mean paired AUROC gap under the basis file's operator-mixing family tags, at the matched 0.6 rate, over the 57 cells it covers"
+      "value": "$-$0.038",
+      "meaning": "mean paired AUROC gap under the basis file's operator-mixing family tags, at the matched 0.6 rate, over the 54 cells it covers"
     },
     "FamilyGapConfoundedMatchedLow": {
-      "value": "$-$0.059",
+      "value": "$-$0.058",
       "meaning": "lower bound of the 95% bootstrap interval on family_gap_confounded_matched"
     },
     "FamilyGapConfoundedMatchedHigh": {
-      "value": "$-$0.020",
+      "value": "$-$0.018",
       "meaning": "upper bound of the 95% bootstrap interval on family_gap_confounded_matched"
     },
     "FamilyGapLocal": {
@@ -81,19 +81,19 @@
       "meaning": "upper bound of the 95% bootstrap interval on family_gap_local"
     },
     "FamilyGapGlobal": {
-      "value": "+0.013",
-      "meaning": "mean paired token_mask family gap at the matched 0.6 rate, global-trigger cells only, over the 42 cells it covers"
+      "value": "+0.005",
+      "meaning": "mean paired token_mask family gap at the matched 0.6 rate, global-trigger cells only, over the 39 cells it covers"
     },
     "FamilyGapGlobalLow": {
-      "value": "$-$0.006",
+      "value": "$-$0.013",
       "meaning": "lower bound of the 95% bootstrap interval on family_gap_global"
     },
     "FamilyGapGlobalHigh": {
-      "value": "+0.036",
+      "value": "+0.025",
       "meaning": "upper bound of the 95% bootstrap interval on family_gap_global"
     },
     "FamilyGapMinLeaveOneAttackOut": {
-      "value": "+0.000",
+      "value": "$-$0.009",
       "meaning": "smallest mean matched-06 token_mask family gap over the leave-one-attack-out refits, the weakest the gap gets when any single attack is removed"
     }
   }

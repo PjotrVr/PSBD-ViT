@@ -135,8 +135,8 @@ statistic, read directly from the `psbd/` caches.
 | cifar100 blend 10% (control) | 0.5 | 0.9984 | 0.5 | 0.9987 | +0.0003 |
 
 The 2 CIFAR-10 cells reproduce the project's own documented inverted cells
-almost exactly: `paper/headline.tex` records a panel floor of 0.418 and 2
-inverted cells at cifar10 sig 10% and cifar10 wanet 10%, and this run's own
+almost exactly: `paper/headline.tex` records a panel floor of 0.459 at cifar10 wanet 10%
+(cifar10 sig 10% has since left the panel under the 2-point clean-accuracy bar with 0.418), and this run's own
 baseline caches read 0.4177 and 0.4587 for ViT there, matching
 `experiments/wanet_cifar10_audit/README.md`'s earlier finding that
 `before_attention_norm_token_mask` fails specifically on these 2 ViT
@@ -165,7 +165,7 @@ checkpoints is diverged or source-mapped. On the ViT side, CIFAR-10 SIG 10% and 
 Most of the reported WaNet and SIG gap is not a Swin structural advantage: it
 is the project's own already-documented ViT inversion on 2 CIFAR-10 cells,
 which this run reproduces almost to the fourth decimal (0.4177 and 0.4587
-against the panel's recorded 0.418 floor). Once those 2 cells are set aside,
+against the 0.418 of the SIG model that has since left the panel and the panel's recorded 0.459 floor). Once those 2 cells are set aside,
 the WaNet gap on CIFAR-100 (+0.084) and GTSRB (-0.029, ViT ahead) sits inside
 the 0.04 band the question already reports for local triggers, so there is no
 general Swin-beats-ViT effect on global triggers left to explain. Candidate

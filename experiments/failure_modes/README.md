@@ -1,5 +1,7 @@
 # Why token masking at the attention input fails on 2 models (E2)
 
+Superseded on 2026-09-29 for panel numbers: the numbers here were computed on the 57-model panel. Current values are in paper/headline.tex.
+
 ## Question
 
 `before_attention_norm_token_mask` (site A, `RECOMMENDED_PLACEMENT`) reads CIFAR-10

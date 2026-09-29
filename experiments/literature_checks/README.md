@@ -2,7 +2,7 @@
 
 ## Question
 
-The literature memo (`docs/why-psbd-works-literature.md`) turns every published and folk explanation of why PSBD works into a prediction on our models. 5 of those predictions can be checked from results already on disk, with no new forward pass. These scripts are those checks. They read `results/<folder>/psbd_metrics.json` and `results/<folder>/detectors/<name>_metrics.json` for the clearing cells of `scripts/paper/_common.py`, pick the rate with `select_rate_adaptively` at 0.8 and read AUROC at the 0.25 quantile of fractional PSU. That is the same population and the same canon as the paper. The scripts reproduce PSBD-TM 0.953 and PSBD-RD 0.888 over 57 models, which confirms it.
+The literature memo (`docs/why-psbd-works-literature.md`) turns every published and folk explanation of why PSBD works into a prediction on our models. 5 of those predictions can be checked from results already on disk, with no new forward pass. These scripts are those checks. They read `results/<folder>/psbd_metrics.json` and `results/<folder>/detectors/<name>_metrics.json` for the clearing cells of `scripts/paper/_common.py`, pick the rate with `select_rate_adaptively` at 0.8 and read AUROC at the 0.25 quantile of fractional PSU. That is the same population and the same canon as the paper. The scripts reproduce PSBD-TM 0.963 and PSBD-RD 0.885 over 54 models, which confirms it.
 
 ## Scripts
 

@@ -2,7 +2,7 @@
 
 ## Question
 
-`docs/why-psbd-works-theory.md` derives what each explanation of PSBD on ViT predicts as a number and checks each derivation against the cached results. These scripts are those checks. They read the cached per-pass tensors under `results/<folder>/psbd/` and `psbd_metrics.json` for the 57 clearing ViT models of `scripts/paper/_common.py`, and reproduce PSBD-TM 0.953, PSBD-RD 0.888 and the matched Gaussian minus token mask gap -0.183 as a population check.
+`docs/why-psbd-works-theory.md` derives what each explanation of PSBD on ViT predicts as a number and checks each derivation against the cached results. These scripts are those checks. They read the cached per-pass tensors under `results/<folder>/psbd/` and `psbd_metrics.json` for the 54 successful ViT models of `scripts/paper/_common.py`, and reproduce PSBD-TM 0.963, PSBD-RD 0.885 and the matched Gaussian minus token mask gap -0.188 as a population check.
 
 ## Scripts
 

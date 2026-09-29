@@ -2,6 +2,15 @@
 
 **Status: SUPPORTED.**
 
+> **Superseded on 2026-09-29:** the current values follow, each with its source, on the
+> 57-model ViT-B/16 panel of the 2026-09-24 build. On the 14 evasive ViT models the best
+> probe union reads mean AUROC 0.967 against 0.233 for the probed operator alone, with
+> TPR 0.97 at a realized FPR of 0.26 at the headline budget (`\AdaptiveVitUnion`,
+> `\AdaptiveVitProbedEvade`, `\AdaptiveVitUnionTpr`, `\AdaptiveVitUnionFpr`). On the 57
+> ordinary panel models the 3-probe union reads 0.967 (`\ProbeUnionThreeProbeAuroc`).
+> The per-cell counts below were not re-measured. The evidence below is the record of
+> the measurement that produced the verdict.
+
 Multi-probe AUROC 0.927 on evasive checkpoints (from single-probed 0.322),
 40/56 above 0.90, 51/56 above 0.80. The union of k independent probes recovers
 detection even when the attacker has collapsed the probed operator. At the

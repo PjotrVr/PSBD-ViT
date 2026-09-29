@@ -1,5 +1,13 @@
 # Why some attacks do not implant, and which of those are fixable
 
+> **Superseded on 2026-09-29:** the current values follow, each with its source. The
+> ledger now classifies 8 of the TaCT cells marked ok below as source-mapped, because
+> the model sends the clean source class to the target with no trigger, and excludes
+> them, and `vit_gtsrb_tact_0_01` as diverged (`\PanelCellsSourceMapped`,
+> `\PanelCellsDiverged`, `results/coverage/coverage.json`). The ViT panel keeps 59
+> clearing cells of 98 (`\PanelCellsClearing`, `\PanelCellsTotal`). The ASR table below
+> is the record of 2026-09-09 and was not re-read.
+
 A detection result on a cell whose attack never implanted is meaningless: there is no
 backdoor to detect. The panel's ASR bar of 0.85 exists to keep those cells out, and
 until now the cells below it were treated as a single undifferentiated pile of failures.

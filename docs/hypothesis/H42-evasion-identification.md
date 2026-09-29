@@ -2,6 +2,12 @@
 
 **Status: REFUTED.**
 
+> **Superseded on 2026-09-29:** the current values follow, each with its source, on the
+> 57-model ViT-B/16 panel of the 2026-09-24 build. The best probe union on the 14
+> evasive ViT models reads 0.967 (`\AdaptiveVitUnion`). The identification accuracies
+> below are from their own experiment and were not re-run. The evidence below is the
+> record of the measurement that produced the verdict.
+
 Defender-legal identification accuracy is 8.9% (validation PSU std) and 3.6%
 (validation PSU IQR), both below the 25% chance level for a 4-operator pool.
 The signal is dominated by inherent operator differences, not by the evasion.

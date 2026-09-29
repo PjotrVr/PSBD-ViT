@@ -1,8 +1,16 @@
 # CIFAR-10 and GTSRB Detection Tables (Completion)
 
-> **Superseded.** Written against the 48-cell panel. The current numbers are in
-> `paper/` and the panel accounting is in `results/coverage/COVERAGE.md`. Retained
-> for the record. Its numbers moved but its conclusions stand, these are per-cell tables from before the panel grew to 105 cells, so the mean AUROC figures here do not match the paper's headline values.
+> **Superseded on 2026-09-29:** the current values follow, each with its source. PSBD-TM
+> (`before_attention_norm_token_mask`) reads mean AUROC 0.953 against 0.888 for PSBD-RD
+> (`post_residual`), both at the adaptive 0.8 rule, a paired gain of +0.065 [+0.012,
+> +0.123] over the 57 clearing ViT-B/16 models that carry both, with 2 models below
+> chance and a floor of 0.418 (`paper/headline.tex`, `\HeadlineAurocAdaptive`,
+> `\PublishedAurocAdaptive`, `\HeadlineGainAdaptiveAuroc`, `\HeadlineFloorAuroc`). Per
+> dataset the paired gain is +0.047 on CIFAR-10 over 17 models, +0.088 on CIFAR-100 over
+> 12, +0.119 on GTSRB over 14 and +0.012 on Tiny ImageNet over 14 (`\GainsCifarOneZero`
+> and its 3 siblings), and the current per-model tables are
+> `paper/tables/results_rate_*.tex`. Written against the 48-cell panel and retained for
+> the record, so every number below this line is historical.
 
 These are the secondary datasets. CIFAR-10 is the most-studied dataset in backdoor detection literature and GTSRB is suspiciously easy (AUROC 0.998-1.000 at 1% for top configurations). Results here are for panel completion, not for primary claims. If the method fails on CIFAR-100 and Tiny, these results do not save it.
 
@@ -61,7 +69,7 @@ Benign control AUROC: 0.493
 | gain_scale @ mlp_norm_out | 0.906 | 0.833 | 0.901 | 0.880 |
 | token_mask @ before_attention_norm | 0.875 | 0.872 | 0.919 | 0.893 |
 
-Both configurations perform well. token_mask has higher mean AUROC across all rates. gain_scale has higher peak (0.996 on badnet at 1%) but worse WaNet (0.516 at 5%). CIFAR-10 does not discriminate between the two methods as sharply as CIFAR-100 does.
+Both configurations perform well. token_mask has higher mean AUROC across all rates. gain_scale has higher peak (0.996 on badnet at 1%) but worse WaNet (0.516 at 5%). CIFAR-10 does not discriminate between the 2 methods as sharply as CIFAR-100 does.
 
 ## GTSRB
 

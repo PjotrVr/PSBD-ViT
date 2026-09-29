@@ -1,10 +1,13 @@
 # ViT-B/16 detection panel
 
-> **Superseded.** Written against the 48-cell panel. The current numbers are in
-> `paper/` and the panel accounting is in `results/coverage/COVERAGE.md`. Retained
-> for the record. The recommended placement and its ranking against the
-> published ConvNet placement hold, but the per-cell AUROC figures below do not
-> match the 65-cell basis panel.
+> **Superseded on 2026-09-29:** the current values follow, each with its source. PSBD-TM
+> (`before_attention_norm_token_mask`) reads mean AUROC 0.953 against 0.888 for PSBD-RD
+> (`post_residual`), both at the adaptive 0.8 rule, a paired gain of +0.065 [+0.012,
+> +0.123] over the 57 clearing ViT-B/16 models that carry both, with 2 models below
+> chance and a floor of 0.418 (`paper/headline.tex`, `\HeadlineAurocAdaptive`,
+> `\PublishedAurocAdaptive`, `\HeadlineGainAdaptiveAuroc`, `\HeadlineFloorAuroc`). The
+> per-model figures below are historical. Written against the 48-cell panel and retained
+> for the record, so every number below this line is historical.
 
 `token_mask @ before_attention_norm`: whole patch tokens dropped from the
 residual stream entering attention in every one of the 12 encoder blocks,

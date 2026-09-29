@@ -4,6 +4,16 @@
 twice, in opposite directions.** On ViT the effect remains, in the weaker form
 recorded below.
 
+> **Superseded on 2026-09-29:** the current values follow, each with its source, on the
+> 57-model ViT-B/16 panel of the 2026-09-24 build. Token masking at the attention input
+> in blocks 9 to 12 is the top basis placement at the adaptive rule, 0.955 over the 25
+> models whose ladder reaches the target, and pre-residual dropout in blocks 9 to 12
+> reaches it on 40 of 57 at 0.921 (`paper/tables/basis_ranking.tex`). On Swin PSBD-TM
+> beats its twin at the attention branch output by +0.166 over the 44 selection-half
+> models (`\SwinSelectionHalfTwinGap`). The rate-selection reading below was not
+> re-measured. The evidence below is the record of the measurement that produced the
+> verdict.
+
 > **Correction history, 2026-08-14.** The Swin deployable difference was reported as
 > a firm result, then as firmly refuted and it is neither. Tracked as the stalled
 > Swin arm was [unblocked](../runs/2026-08-14-swin-batch-completion.md) and the panel

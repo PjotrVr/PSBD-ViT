@@ -1,8 +1,18 @@
 # Operator/Position Ranking
 
-> **Superseded.** Written against the 48-cell panel. The current numbers are in
-> `paper/` and the panel accounting is in `results/coverage/COVERAGE.md`. Retained
-> for the record. The ranking here names `token_mask @ before_attention_norm` best at mean AUROC 0.911 with a 0.632 floor, while the current panel reads 0.935 mean AUROC with a 0.418 floor and 2 inverted cells.
+> **Superseded on 2026-09-29:** the current values follow, each with its source. PSBD-TM
+> (`before_attention_norm_token_mask`) reads mean AUROC 0.953 against 0.888 for PSBD-RD
+> (`post_residual`), both at the adaptive 0.8 rule, a paired gain of +0.065 [+0.012,
+> +0.123] over the 57 clearing ViT-B/16 models that carry both, with 2 models below
+> chance and a floor of 0.418 (`paper/headline.tex`, `\HeadlineAurocAdaptive`,
+> `\PublishedAurocAdaptive`, `\HeadlineGainAdaptiveAuroc`, `\HeadlineFloorAuroc`). On
+> the adaptive-rule ranking of all 27 basis placements over those 57 models
+> (`paper/tables/basis_ranking.tex`) PSBD-TM is 2nd, behind token masking at the
+> attention input in blocks 9 to 12 only (0.955 over the 25 models whose ladder reaches
+> the target), and 1st at the matched rule (`\BasisRankRecommendedMatched`). The ranking
+> below, with PSBD-TM best at 0.911 and a 0.632 floor, is historical. Written against
+> the 48-cell panel and retained for the record, so every number below this line is
+> historical.
 
 27 operator/position combinations evaluated at full coverage: 4 datasets (CIFAR-10, CIFAR-100, GTSRB, Tiny ImageNet), 3 poison rates (1%, 5%, 10%), 5-attack panel (BadNet A2O, Blend, WaNet, LC, Adaptive Blend). Each combination has 48/48 required cells after excluding attacks that failed to implant.
 
@@ -55,7 +65,7 @@ Columns: Mean AUROC = mean across all 48 cells. AUROC @1% = mean across the ~11 
 | CIFAR-10 | 0.996 | 0.996 | -- | 0.725 |
 | GTSRB | 1.000 | 1.000 | -- | -- |
 
-Best single-position AUROC at 1%. Dominates CIFAR-100 (0.999 on badnet, 0.935 on lc). However, TPR@5%FPR on Tiny is 0.034 for badnet at 1%, meaning the ROC curve is steep only at high FPR. Two inversions (AUROC < 0.5) remain on GTSRB wanet cells.
+Best single-position AUROC at 1%. Dominates CIFAR-100 (0.999 on badnet, 0.935 on lc). However, TPR@5%FPR on Tiny is 0.034 for badnet at 1%, meaning the ROC curve is steep only at high FPR. 2 inversions (AUROC < 0.5) remain on GTSRB wanet cells.
 
 ### token_mask @ before_attention_norm (rank 4 at 1%, rank 1 on robustness)
 
@@ -77,7 +87,7 @@ Zero inversions across all 48 cells. Worst AUROC floor = 0.632. Consistent acros
 | CIFAR-10 | * | * | -- | * |
 | GTSRB | * | * | -- | -- |
 
-(*) These numbers come from the 27-position grid analysis, not individual defense_tables runs. Mean 1% AUROC = 0.928. One inversion.
+(*) These numbers come from the 27-position grid analysis, not individual defense_tables runs. Mean 1% AUROC = 0.928. 1 inversion.
 
 ### token_mask @ before_attention_residual (rank 3 at 1%)
 
@@ -94,7 +104,7 @@ The rank of each configuration varies across datasets. Spearman rho between data
 | GTSRB | 0.33 | 0.41 | 1.00 | 0.36 |
 | Tiny | 0.51 | 0.58 | 0.36 | 1.00 |
 
-Top-5 overlap between datasets is poor (0 to 2 of 5 shared). Each dataset has a different winner. The moderate correlation means the relative ordering of positions is partially preserved, but the best position for one dataset is not the best for another.
+Top-5 overlap between datasets is poor (0 to 2 of 5 shared). Each dataset has a different winner. The moderate correlation means the relative ordering of positions is partially preserved, but the best position for 1 dataset is not the best for another.
 
 ## Recommended deployment configuration
 

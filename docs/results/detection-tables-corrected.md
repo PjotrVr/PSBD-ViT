@@ -1,10 +1,16 @@
 # Detection tables, corrected thresholds
 
-> **Superseded.** Written against the 48-cell panel. The current numbers are in
-> `paper/` and the panel accounting is in `results/coverage/COVERAGE.md`. Retained
-> for the record. The 48/48 coverage this document reports predates the 105-cell rebuild, so its per-cell AUROC and TPR figures are not the current headline numbers, though the threshold-correction methodology it describes still stands.
+> **Superseded on 2026-09-29:** the current values follow, each with its source. PSBD-TM
+> (`before_attention_norm_token_mask`) reads mean AUROC 0.953 against 0.888 for PSBD-RD
+> (`post_residual`), both at the adaptive 0.8 rule, a paired gain of +0.065 [+0.012,
+> +0.123] over the 57 clearing ViT-B/16 models that carry both, with 2 models below
+> chance and a floor of 0.418 (`paper/headline.tex`, `\HeadlineAurocAdaptive`,
+> `\PublishedAurocAdaptive`, `\HeadlineGainAdaptiveAuroc`, `\HeadlineFloorAuroc`). The
+> threshold correction this document describes is the one the current code applies. Its
+> per-model figures are historical. Written against the 48-cell panel and retained for
+> the record, so every number below this line is historical.
 
-Regenerated 2026-09-07 after the audit. Two changes from the previous
+Regenerated 2026-09-07 after the audit. 2 changes from the previous
 version of these tables, both in `docs/audit-2026-09-07.md`:
 
 1. TPR is reported at a **deployable** threshold, the target-FPR quantile of the

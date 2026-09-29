@@ -1,5 +1,14 @@
 # Seed replication plan
 
+> **Superseded on 2026-09-29:** the current values follow, each with its source.
+> Replicates now exist: 14 clearing ViT cells carry 3 training seeds at both headline
+> placements, and 44 Swin seed-replicate checkpoints are on disk (`\SeedCells`,
+> `\SeedsPerCell`, `\SwinSeedReplicates`). Across those 14 cells the standard deviation
+> over seeds is 0.012 AUROC for PSBD-TM and 0.076 for PSBD-RD, the seed-averaged paired
+> gain is +0.128 and it changes sign across seeds on 4 cells (`\SeedSdRecommended`,
+> `\SeedSdPublished`, `\SeedGainMean`, `\SeedGainSignFlips`). The plan below was written
+> when every checkpoint was at seed 0, so its counts are historical.
+
 Every checkpoint in this project was trained at seed 0. There is no replicate
 anywhere: of 1438 checkpoints, 0 configurations have a second training run. So
 the seed to seed variance of every number reported is currently unmeasured, and

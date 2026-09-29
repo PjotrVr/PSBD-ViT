@@ -1,8 +1,14 @@
 # PSBD-ViT: final results at m = 1, and how to fix the weak cases
 
-> **Superseded.** Written against the 48-cell panel. The current numbers are in
-> `paper/` and the panel accounting is in `results/coverage/COVERAGE.md`. Retained
-> for the record. Its numbers moved but its conclusions stand.
+> **Superseded on 2026-09-29:** the current values follow, each with its source. PSBD-TM
+> (`before_attention_norm_token_mask`) reads mean AUROC 0.953 against 0.888 for PSBD-RD
+> (`post_residual`), both at the adaptive 0.8 rule, a paired gain of +0.065 [+0.012,
+> +0.123] over the 57 clearing ViT-B/16 models that carry both, with 2 models below
+> chance and a floor of 0.418 (`paper/headline.tex`, `\HeadlineAurocAdaptive`,
+> `\PublishedAurocAdaptive`, `\HeadlineGainAdaptiveAuroc`, `\HeadlineFloorAuroc`). At
+> the matched 0.6 rule PSBD-TM reads 0.936 over the same 57 models
+> (`\HeadlineAurocMatched`). Written against the 48-cell panel and retained for the
+> record, so every number below this line is historical.
 
 **Setting.** All-to-one and clean-label only, which is what PSBD itself does and what the
 literature reports: a fraction of images from every class is stamped with the trigger and
@@ -194,7 +200,7 @@ rate available to each placement:
 | `before_mlp_norm_token_mask` | **0.860** |
 | `before_attention_norm_token_mask` *(deployed)* | 0.830 |
 
-The weak cells could not show this, because `adaptive_blend`, `wanet` and `bpp` were
+The weak cells could not show this. `adaptive_blend`, `wanet` and `bpp` were
 retrained on 2026-09-08 and their caches were cleared, so they carry exactly **1**
 placement and their "best over placements" is the deployed placement by construction.
 

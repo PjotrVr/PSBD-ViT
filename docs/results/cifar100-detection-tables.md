@@ -1,8 +1,16 @@
 # CIFAR-100 Detection Tables
 
-> **Superseded.** Written against the 48-cell panel. The current numbers are in
-> `paper/` and the panel accounting is in `results/coverage/COVERAGE.md`. Retained
-> for the record. Its numbers moved but its conclusions stand, these are per-cell tables from before the panel grew to 105 cells, so the mean AUROC figures here do not match the paper's headline values.
+> **Superseded on 2026-09-29:** the current values follow, each with its source. PSBD-TM
+> (`before_attention_norm_token_mask`) reads mean AUROC 0.953 against 0.888 for PSBD-RD
+> (`post_residual`), both at the adaptive 0.8 rule, a paired gain of +0.065 [+0.012,
+> +0.123] over the 57 clearing ViT-B/16 models that carry both, with 2 models below
+> chance and a floor of 0.418 (`paper/headline.tex`, `\HeadlineAurocAdaptive`,
+> `\PublishedAurocAdaptive`, `\HeadlineGainAdaptiveAuroc`, `\HeadlineFloorAuroc`). Per
+> dataset the paired gain is +0.047 on CIFAR-10 over 17 models, +0.088 on CIFAR-100 over
+> 12, +0.119 on GTSRB over 14 and +0.012 on Tiny ImageNet over 14 (`\GainsCifarOneZero`
+> and its 3 siblings), and the current per-model tables are
+> `paper/tables/results_rate_*.tex`. Written against the 48-cell panel and retained for
+> the record, so every number below this line is historical.
 
 CIFAR-100 is the hardest dataset in the evaluation grid. It has 100 classes, making the decision boundary more fragile and the backdoor direction harder to isolate. Any method that works here is likely to generalize. Results that fail on CIFAR-100 are not publishable regardless of CIFAR-10/GTSRB performance.
 
@@ -58,7 +66,7 @@ Benign control AUROC: 0.501
 
 Mean AUROC at 1%: 0.945. Mean AUROC at 5%: 0.884. Mean AUROC at 10%: 0.954.
 
-gain_scale dominates CIFAR-100. At 1% it beats token_mask @ before_attention_norm by +0.039 on badnet, +0.047 on blend, +0.149 on lc, and +0.148 on adaptive_blend. The lc improvement is particularly notable: 0.935 vs 0.786, with TPR@5% going from 0.035 to 0.876. This is the IBD-PSC mechanism (LayerNorm scaling) which amplifies any direction that deviates from the learned statistics.
+gain_scale dominates CIFAR-100. At 1% it beats token_mask @ before_attention_norm by +0.039 on badnet, +0.047 on blend, +0.149 on lc and +0.148 on adaptive_blend. The lc improvement is particularly notable: 0.935 vs 0.786, with TPR@5% going from 0.035 to 0.876. This is the IBD-PSC mechanism (LayerNorm scaling) which amplifies any direction that deviates from the learned statistics.
 
 ## dropout @ pre_residual (PSBD paper's original position)
 
@@ -84,7 +92,7 @@ Benign control AUROC: 0.484
 
 Mean AUROC at 1%: 0.687. Mean AUROC at 5%: 0.766. Mean AUROC at 10%: 0.778.
 
-The PSBD paper's original position (dropout before the residual add) underperforms both token_mask and gain_scale on CIFAR-100. The gap is largest at 1%: 0.847 vs 0.960 (token_mask) or 0.999 (gain_scale) on badnet; 0.655 vs 0.945 or 0.992 on blend. This motivates the position search: the paper's ResNet results do not transfer to ViT at this position.
+The PSBD paper's original position (dropout before the residual add) underperforms both token_mask and gain_scale on CIFAR-100. The gap is largest at 1%: 0.847 vs 0.960 (token_mask) or 0.999 (gain_scale) on badnet. 0.655 vs 0.945 or 0.992 on blend. This motivates the position search: the paper's ResNet results do not transfer to ViT at this position.
 
 ## dropout @ before_attention_norm
 

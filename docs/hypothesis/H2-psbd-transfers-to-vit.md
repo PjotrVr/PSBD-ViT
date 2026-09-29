@@ -2,6 +2,12 @@
 
 **Status: SUPPORTED**
 
+> **Superseded on 2026-09-29:** the current values follow, each with its source, on the
+> 57-model ViT-B/16 panel of the 2026-09-24 build. PSBD-TM reads mean AUROC 0.953 over
+> the 57 backdoored panel models at the adaptive 0.8 rule (`\HeadlineAurocAdaptive`),
+> and PSU reads 0.505 on the benign references (`\ConfidenceNullBenignPsu`). The
+> evidence below is the record of the measurement that produced the verdict.
+
 ## Claim
 
 At its best placement, PSBD separates clean from triggered inputs on ViT-B/16 well

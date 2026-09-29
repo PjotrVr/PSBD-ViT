@@ -5,6 +5,17 @@ attacks (LC, adaptive_blend) but fails completely on strong attacks (badnet,
 blend). The discrepancy with H16's inference-time direction removal reveals the
 residual stream persistence mechanism.
 
+> **Superseded on 2026-09-29:** the current values follow, each with its source, on the
+> 57-model ViT-B/16 panel of the 2026-09-24 build and its records. Orthogonalizing every
+> residual-writing weight against the backdoor direction takes mean attack success from
+> 0.966 to 0.204 over 10 checkpoints at a clean-accuracy cost from 0.879 to 0.857, while
+> restricting the edit to blocks 10 and 11 leaves 0.960 and a random direction 0.967.
+> The largest attack success left after the whole-network edit is 1.000
+> (`\ErasureAsrBeforeMean`, `\ErasureAsrAfterAllWritesMean`,
+> `\ErasureCaAfterAllWritesMean`, `\ErasureAsrAfterBlocksOneZeroOneOneMean`,
+> `\ErasureAsrAfterRandomDirectionMean`, `\ErasureAsrAfterAllWritesMax`). The evidence
+> below is the record of the measurement that produced the verdict.
+
 Evidence: `experiments/removal_defenses/direction_erasure.py`, results in
 `results/direction_erasure.json`.
 

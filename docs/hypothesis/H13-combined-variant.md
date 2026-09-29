@@ -3,6 +3,12 @@
 **Status: SUPPORTED, and confirmed out of sample.** +0.110 mean AUROC on the
 derivation set (14/15), and **+0.151 on 2 held-out attacks (2/2)**.
 
+> **Superseded on 2026-09-29:** the current values follow, each with its source, on the
+> 57-model ViT-B/16 panel of the 2026-09-24 build. PSBD-TM gains +0.065 [+0.012, +0.123]
+> AUROC over PSBD-RD, both at the adaptive 0.8 rule, over 57 models
+> (`\HeadlineGainAdaptiveAuroc`). The combined variant below was not re-measured on that
+> panel. The evidence below is the record of the measurement that produced the verdict.
+
 > **Verified against the coverage confound, and clean.** H13 is a *paired*
 > comparison: 2 configurations scored on the same 15 checkpoints, reported as
 > per-checkpoint deltas and a win count. That construction is immune to the unequal

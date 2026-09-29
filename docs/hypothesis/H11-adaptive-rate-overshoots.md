@@ -3,6 +3,14 @@
 **Status: SUPPORTED.** 12 of 12 checkpoints (for the placements that matter), and the
 fix is free.
 
+> **Superseded on 2026-09-29:** the current values follow, each with its source, on the
+> 57-model ViT-B/16 panel of the 2026-09-24 build. PSBD-TM reads mean AUROC 0.938 at
+> clean shift ratio 0.6, 0.951 at 0.8 and 0.949 at 0.9 over the models whose ladder
+> reaches each (57, 57 and 44, `\LadderAurocAtZeroSix`, `\LadderAurocAtZeroEight`,
+> `\LadderAurocAtZeroNine`), so for the recommended placement the 0.8 target does not
+> overshoot. The overshoot below was measured on dropout placements in 2026-08. The
+> evidence below is the record of the measurement that produced the verdict.
+
 ## Claim
 
 PSBD selects its dropout rate by an adaptive rule: take the smallest `p` at which the

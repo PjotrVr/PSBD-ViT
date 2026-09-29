@@ -1,13 +1,20 @@
 # PSBD on Vision Transformers: Complete Results
 
-> **Superseded.** Written against the 48-cell panel, before the rebuild to
-> the 105-cell panel read on the 65 clearing cells (`paper/headline.tex`,
-> `results/coverage/COVERAGE.md`). The mechanism claim below, that gaussian
-> noise with no removal matches or beats all structured masks, is refuted:
-> gaussian minus token_mask at the same site is -0.206
-> (`docs/hypothesis/H23-gaussian-noise-control.md`). The numbers in section 1
-> are from the 48-cell era and do not match the current headline of +0.103 at
-> the matched rule. Retained for the record.
+> **Superseded on 2026-09-29:** the current values follow, each with its source. PSBD-TM
+> (`before_attention_norm_token_mask`) reads mean AUROC 0.953 against 0.888 for PSBD-RD
+> (`post_residual`), both at the adaptive 0.8 rule, a paired gain of +0.065 [+0.012,
+> +0.123] over the 57 clearing ViT-B/16 models that carry both, with 2 models below
+> chance and a floor of 0.418 (`paper/headline.tex`, `\HeadlineAurocAdaptive`,
+> `\PublishedAurocAdaptive`, `\HeadlineGainAdaptiveAuroc`, `\HeadlineFloorAuroc`). At
+> the matched 0.6 rule PSBD-TM reads 0.936 over the same 57 models
+> (`\HeadlineAurocMatched`). PSBD-TM at the matched rule over PSBD-RD at the adaptive
+> rule gains +0.048 (`\HeadlineGainMatchedAuroc`). Gaussian noise minus token masking at
+> the attention input is -0.183 [-0.237, -0.135] at the matched 0.6 rule
+> (`\GaussianMinusTokenMaskAttentionNorm`), which refutes the claim below that noise
+> with no removal matches every structured mask
+> (`docs/hypothesis/H23-gaussian-noise-control.md`). Section 1 is from the 48-cell
+> panel. Written against the 48-cell panel and retained for the record, so every number
+> below this line is historical.
 
 Prediction Shift Backdoor Detection (PSBD) adapted from ConvNets to ViT-B/16
 and Swin-S. The published ConvNet recipe (dropout after the residual add)

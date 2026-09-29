@@ -2,6 +2,16 @@
 
 **Status: SUPPORTED, causally. This is the account of why perturbing the attention input works.**
 
+> **Superseded on 2026-09-29:** the current values follow, each with its source, on the
+> 57-model ViT-B/16 panel of the 2026-09-24 build. Over the activation-patching record
+> of 57 models the BadNets trigger tokens recover 1.000 of the clean answer over layers
+> 1 to 6, the last layer they recover at least half is 10 and the class token recovers
+> 0.661 at layer 12 (`\PatchingBadnetEarlyTrigger`, `\PatchingBadnetLastFull`,
+> `\PatchingBadnetFinalCls`). The largest recovery any random token group reaches over
+> every attack and layer is 1.000 (`\PatchingRandomNullMax`). The figures below are
+> single-cell readings on GTSRB BadNets at 10%. The evidence below is the record of the
+> measurement that produced the verdict.
+
 ## The decomposition is exact
 
 The residual stream is linear, `h^(l+1) = h^l + a^l + m^l`, so the backdoor direction

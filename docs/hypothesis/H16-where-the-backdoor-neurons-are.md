@@ -6,6 +6,15 @@ channel ranking and the head-alignment Z rule). **The SAM sub-claim is REFUTED**
 the apparent effect was a LayerNorm artifact of the ablation, not a property of the
 model.
 
+> **Superseded on 2026-09-29:** the current values follow, each with its source, on the
+> 57-model ViT-B/16 panel of the 2026-09-24 build. Removing the rank-1 direction takes
+> all-to-one attack success to between 0.000 and 0.572 over the 4 checkpoints of the
+> causal ablation, at a clean-accuracy cost of at most 0.038, while a random direction
+> and the top-20 coordinates each leave at least 1.00 (`\AblationDirectionMinAsr`,
+> `\AblationDirectionMaxAsr`, `\AblationCleanAccuracyCost`,
+> `\AblationRandomDirectionMinAsr`, `\AblationTopCoordinatesMinAsr`). The evidence below
+> is the record of the measurement that produced the verdict.
+
 > **2 headline corrections. Both were caught by a control, and both were wrong in
 > the direction of a more exciting result, which is the pattern to watch for here.**
 >

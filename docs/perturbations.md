@@ -2,9 +2,10 @@
 
 What PSBD injects, where it injects it and what each choice turned out to
 measure. Every number here is read from `paper/tables/basis_ranking.tex` and
-`paper/tables/staircase_operators.tex`, regenerated on 2026-09-23 from the 69
-clearing panel cells at the adaptive 0.8 rule, fractional PSU, quantile 0.25.
-Regenerate before quoting: these move when the panel grows.
+`paper/tables/staircase_operators.tex` of the 2026-09-24 build, over the 57 clearing
+ViT-B/16 panel models that carry both headline placements, at the adaptive 0.8 rule,
+fractional PSU, quantile 0.25. A gain is the paired gain column of the staircase
+table. Regenerate before quoting: these move when the panel grows.
 
 ## The vocabulary, and why it has 2 axes
 
@@ -15,9 +16,9 @@ boundary inside every block. An **operator** is what gets injected there. A
 
 The 2 axes are kept separate because they do not reduce to each other. Holding
 the operator at token masking and moving from the attention input to the MLP
-input costs 0.101 AUROC, 0.927 against 0.826. Holding the position at the
-attention input and swapping token masking for channel masking costs 0.044, and
-for Gaussian noise 0.123. Neither axis explains the other, which is why the basis
+input costs 0.112 AUROC paired, 0.953 against 0.840. Holding the position at the
+attention input and swapping token masking for channel masking costs 0.032, and
+for Gaussian noise 0.114. Neither axis explains the other, which is why the basis
 is a grid rather than a list.
 
 `defenses/operators.py` holds the operators, `models/positions.py` holds the
@@ -42,14 +43,15 @@ ResNet basic block there is 1 natural place for it and the paper put it there.
 coordinate is 1 of the 768 numbers describing a token, so dropping 30% of them
 leaves every token present with a noisier description.
 
-**Measured.** 0.859 at the attention input, 0.826 at the MLP input, 0.818 after
+**Measured.** 0.902 at the attention input, 0.795 at the MLP input, 0.888 after
 both residual adds, which is the published placement and the paper's baseline.
-Its floor is 0.222 and it inverts on 12 cells.
+Its floor is 0.222 and it inverts on 5 models (`\PublishedFloorAuroc`,
+`\PublishedInversions`).
 
 **Why it is interesting.** It is the control that makes every other number
 meaningful, because it is what the published method does. It also shows that the
-site matters more than the operator's identity: the same dropout moves 0.041
-between the attention input and the residual stream.
+site matters more than the operator's identity: the same dropout moves 0.107
+between the attention input and the MLP input.
 
 ### Token masking
 
@@ -68,18 +70,21 @@ statistic would then measure a broken forward pass.
 is the unit attention routes, so masking a token removes it from every attention
 pattern of that block.
 
-**Measured.** 0.927 at the attention input, the best in the basis. 0.927 at the
-attention branch output, statistically its twin. 0.826 at the MLP input. 0.761 on
-the residual stream after the attention add, which is the worst token-mask
-reading and the 24th of 27 placements. Floor 0.418, which is the best floor of any
-placement, against 0.091 for channel masking at the same site.
+**Measured.** 0.953 at the attention input, 2nd of 27 behind the same operator
+restricted to blocks 9 to 12, which reaches the target on 25 models only. 0.951 at
+the attention branch output, statistically its twin at a paired -0.002 [-0.030,
++0.028]. 0.840 at the MLP input. 0.810 on the residual stream after the attention
+add, which is the worst token-mask reading and the 25th of 27 placements. Floor
+0.418 on 2 inverted models, WaNet and SIG on CIFAR-10 at 10%, against 0.537 for its
+twin and 0.579 for channel masking at the same site.
 
 **Why it is interesting.** It is the winner, and the reason it wins is the
 paper's mechanism. A backdoor direction is not aligned with any coordinate axis,
 so a coordinate-level perturbation cannot remove the shortcut while a token-level
-one can. The 3 readings 0.927, 0.826 and 0.761 are the same operator at 3 sites
-1 sublayer apart, and the spread between them is larger than the spread across
-operators at any single site.
+one can. The 3 readings 0.953, 0.840 and 0.810 are the same operator at 3 sites
+1 sublayer apart, and their spread of 0.143 is larger than the 0.114 spread across
+operators at the attention input (`\PositionRangeTokenMaskAdaptive`,
+`\OperatorRangeAttentionNormAdaptive`).
 
 ### Channel masking
 
@@ -89,13 +94,13 @@ Zero whole channels across all tokens, in groups.
 token's whole description, channel masking removes 1 coordinate of every token's
 description at once.
 
-**Measured.** 0.883 at the attention input against 0.927 for token masking, and a
-floor of 0.091 against 0.418.
+**Measured.** 0.921 at the attention input against 0.953 for token masking, a
+paired -0.032 [-0.061, -0.002], with a floor of 0.579 against 0.418.
 
 **Why it is interesting.** It is the cleanest test of the axis-alignment claim.
 If the backdoor lived in a few coordinates, removing whole coordinates would beat
-removing whole tokens. It does not, and the floor collapse says the failure is
-concentrated rather than uniform.
+removing whole tokens. It does not on the mean, although its floor is higher, so
+channel masking fails less badly on the models where token masking inverts.
 
 ### Gaussian noise
 
@@ -106,16 +111,16 @@ It removes no capacity, which is the point.
 removing information or from disturbing the activation at all. Noise is the
 no-removal control.
 
-**Measured, and this is the most interesting row in the table.** 0.804 at the
+**Measured, and this is the most interesting row in the table.** 0.839 at the
 attention input, which is before that sublayer's LayerNorm. 0.700 at the MLP
-input before its LayerNorm, on the 36 cells that carry it. 0.871 at the MLP input
-after its LayerNorm, on all 71.
+input before its LayerNorm, on the 36 models that carry it. 0.894 at the MLP input
+after its LayerNorm, on all 57.
 
 **Why it is interesting.** The 3 numbers are the LayerNorm. Noise injected before
 a normalization is renormalized away, so it arrives at the sublayer weakened, and
 it trails token masking at both sites where that happens. Noise injected after
-the normalization is not rescaled and it reads 0.871, above token masking at the
-same sublayer's input.
+the normalization is not rescaled and it reads 0.894, above token masking at the
+same sublayer's input (0.840).
 
 This is also the single correction the paper most needed. An earlier draft
 compared token masking before a LayerNorm against noise after one and read the
@@ -140,14 +145,14 @@ Multiply a LayerNorm's learned gain by a constant. Deterministic, so 1 forward
 pass is exact and a k sweep writes k identical rows. `DETERMINISTIC_OPERATORS`
 records that.
 
-**Measured.** 0.896 at the MLP norm output, 5th of 27, on 70 cells.
+**Measured.** 0.919 at the MLP norm output, 8th of 27, on 57 models.
 
 **Why it is interesting, and why it is handled carefully.** It carried an earlier
 headline of +0.258 which is **withdrawn**: it read the winner at a clean shift
 ratio of 0.95 to 0.98 and the baseline at 0.65 to 0.76, so the disturbance gap
-was the size of the reported effect. At a matched shift ratio it beats the
-published placement by -0.007. It is still 5th in the current ranking, which is a
-real result, and it is a member of the probe union.
+was the size of the reported effect. At a matched shift ratio the audit of
+2026-09-07 read it at -0.007 against the published placement. It is 8th in the
+current ranking, which is a real result. It is also a member of the probe union.
 
 ### Scale up
 
@@ -156,7 +161,7 @@ perturbation so that all 3 perturbation families, input, activation and
 parameter, sit in 1 registry. It cannot be built from a rate alone because it
 needs the dataset's normalization constants.
 
-**Measured.** 0.756, 26th of 27, the weakest measured placement.
+**Measured.** 0.743, 27th of 27, the weakest measured placement.
 
 **Why it is interesting.** It is the comparison that says the gain is not just
 "perturb something". An input-space perturbation of a published detector sits at
@@ -258,36 +263,41 @@ activation after them.
 
 ## Depth, and a warning about the depth-band rows
 
-A placement can be restricted to a band of blocks. Banding the winner to blocks 5
-to 8 reads 0.883 and to blocks 9 to 12 reads 0.893, against 0.927 for all 12, so
-banding the winner costs about 0.04. Banding the published residual dropout to
-blocks 5 to 8 reads 0.873 against 0.818 for all blocks, so banding it gains.
+A placement can be restricted to a band of blocks. At the matched 0.6 rule over
+57 models, banding the winner to blocks 5 to 8 costs 0.070 and to blocks 9 to 12
+costs 0.050 against all 12 (`\BandFiveEightMinusAllInputSide`,
+`\BandNineOneTwoMinusAllInputSide`). Banding the pre-residual dropout to blocks 5 to
+8 gains 0.051 against all blocks (`\BandFiveEightMinusAllResidual`), and at the
+adaptive rule it reads 0.916 against 0.878.
 
 **The warning.** The n column of the band rows is not the n of the all-blocks
-row. Blocks 1 to 4 ranks 3rd at 0.924 on **12 cells**, while the all-blocks row
-is 69. Differencing those 2 AUROC numbers is not a paired comparison and it
-understates the band's cost by a wide margin: on the 12 cells the band covers,
-the all-blocks placement reads 0.977 rather than its panel mean. Read the paired
-gain column, never the difference of the AUROC column. This is recorded as Q26 in
+row. Blocks 1 to 4 ranks 5th at 0.924 on **12 models**, while the all-blocks row
+is 57. Differencing those 2 AUROC numbers is not a paired comparison and it
+understates the band's cost: on the 12 models the band covers, the all-blocks
+placement reads 0.977 rather than its panel mean of 0.953, so the difference of
+means says -0.029 where the paired gain is -0.053
+(`experiments/doc_recomputes/band_subpanel.py`). Read the paired gain column,
+never the difference of the AUROC column. This is recorded as Q26 in
 `docs/open-questions.md`.
 
 ## What the ranking says, in 4 sentences
 
-Token masking at either side of the attention block is the top of the basis and
-its 2 readings are within 0.001 of each other. Moving the same operator to the
-MLP input costs 0.101 and moving it onto the residual stream costs 0.166, so
-position dominates. At a fixed position the operator still moves the score by up
-to 0.123, and which way it moves depends on the side of the LayerNorm rather than
-on the site. The winner's floor of 0.418 is the best in the basis by a margin,
-which matters more than its mean for a defender, because a placement with a mean
-of 0.883 and a floor of 0.091 fails completely somewhere.
+Token masking at either side of the attention block is the top of the basis over
+all 57 models and its 2 readings are within 0.002 of each other. Moving the same
+operator to the MLP input costs 0.112 and moving it onto the residual stream costs
+0.143, so position dominates. At a fixed position the operator still moves the
+score by up to 0.114, and which way it moves depends on the side of the LayerNorm
+rather than on the site. The winner's floor of 0.418 sits below several weaker
+placements, which matters for a defender, because its 2 inverted models are exactly
+where a union with PSBD-RD recovers 0.910 and 0.908 (`\ProbeUnionWanetCifarOneZeroTmRd`,
+`\ProbeUnionSigCifarOneZeroTmRd`).
 
 ## Holes
 
-- `dropout, attention output before the add` is in the declared basis with **n=0**.
-  It has never been swept on any cell, so the basis has 27 declared placements and
-  26 with a reading.
-- Gaussian at the MLP input before its LayerNorm has **n=36** against 71 for its
+- Every declared placement now has a reading. `dropout, attention output before the
+  add` read n=0 until the id was matched to its cache name (Q5 in
+  `docs/open-questions.md`) and reads 0.848 over 57 models now.
+- Gaussian at the MLP input before its LayerNorm has **n=36** against 57 for its
   after-norm counterpart, so the cleanest statement of the LayerNorm effect rests
   on about half the panel.
 - No position touches the attention map. The route the mechanism names is the one

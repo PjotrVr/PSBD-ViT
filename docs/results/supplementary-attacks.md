@@ -1,8 +1,16 @@
 # Supplementary Attack Detection: BPP and LF
 
-> **Superseded.** Written against the 48-cell panel. The current numbers are in
-> `paper/` and the panel accounting is in `results/coverage/COVERAGE.md`. Retained
-> for the record. The `gain_scale @ mlp_norm_out` section presents that placement as matching `token_mask @ before_attention_norm`, but the `gain_scale @ mlp_norm_out` headline is withdrawn, see `docs/audit-2026-09-07.md`.
+> **Superseded on 2026-09-29:** the current values follow, each with its source. PSBD-TM
+> (`before_attention_norm_token_mask`) reads mean AUROC 0.953 against 0.888 for PSBD-RD
+> (`post_residual`), both at the adaptive 0.8 rule, a paired gain of +0.065 [+0.012,
+> +0.123] over the 57 clearing ViT-B/16 models that carry both, with 2 models below
+> chance and a floor of 0.418 (`paper/headline.tex`, `\HeadlineAurocAdaptive`,
+> `\PublishedAurocAdaptive`, `\HeadlineGainAdaptiveAuroc`, `\HeadlineFloorAuroc`).
+> PSBD-TM reads 0.948 on BPP and 0.980 on LF (`\SurvivalTmBppAuroc`,
+> `\SurvivalTmLfAuroc`). The +0.258 `gain_scale @ mlp_norm_out` headline is withdrawn
+> (`docs/audit-2026-09-07.md`), so the section below that presents it as matching token
+> masking is historical. Written against the 48-cell panel and retained for the record,
+> so every number below this line is historical.
 
 BPP (Bit-level Perturbation Poisoning) and LF (Low-Frequency) are outside the 5-attack panel but have checkpoints and sweep data across CIFAR-100 and Tiny ImageNet. These results supplement the main tables.
 

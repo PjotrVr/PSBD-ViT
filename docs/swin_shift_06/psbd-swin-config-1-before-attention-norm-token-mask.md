@@ -1,8 +1,14 @@
 # PSBD-ViT: `before_attention_norm_token_mask`
 
-> **Superseded.** Written against the 48-cell panel. The current numbers are in
-> `paper/` and the panel accounting is in `results/coverage/COVERAGE.md`. Retained
-> for the record. Its numbers moved but its conclusions stand, this is a partial Swin sweep with many `--` cells still open, predating the full Swin panel that now backs `paper/`.
+> **Superseded on 2026-09-29:** the current values follow, each with its source. On
+> Swin-S PSBD-TM reads 0.969 over 80 models against 0.860 for PSBD-RD over 83, a paired
+> gain of +0.115 [+0.070, +0.162] over 80 (`\SwinRecommendedAurocAdaptive`,
+> `\SwinPublishedAurocAdaptive`, `\SwinGainRecommendedMinusPublished`). This is a
+> partial Swin sweep from before the Swin panel existed. These tables read each
+> placement at the rate whose clean shift ratio lands nearest the target, which is not
+> the canonical `select_rate_adaptively` rule, so they are not comparable to the
+> headline even on the same models. Written against the 48-cell panel and retained for
+> the record, so every number below this line is historical.
 
 The single placement `before_attention_norm_token_mask`.
 

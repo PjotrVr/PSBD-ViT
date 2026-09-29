@@ -2,6 +2,14 @@
 
 **Status: CONFIRMED.** Both parts of the claim hold.
 
+> **Superseded on 2026-09-29:** the current values follow, each with its source, on the
+> 57-model ViT-B/16 panel of the 2026-09-24 build. On the 14 evasive ViT models that
+> keep attack success above 0.9 the probed operator falls from 0.966 to 0.233 and the
+> unprobed operators read 0.893, at a mean clean-accuracy cost of 0.030
+> (`\AdaptiveVitProbedBase`, `\AdaptiveVitProbedEvade`, `\AdaptiveVitTransfer`,
+> `\AdaptiveVitCaCost`). The per-operator transfer figures below were not re-measured.
+> The evidence below is the record of the measurement that produced the verdict.
+
 Part 1 (evasion works): the attacker collapses probed AUROC from 0.952 to 0.322
 (mean delta -0.613), while preserving ASR (mean delta -0.004). The CA tax is
 real: mean -4.8 pts, exceeding the 2-point success criterion, so the evasion is

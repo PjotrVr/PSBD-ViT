@@ -1,8 +1,16 @@
 # Detection at Realistic Operating Points
 
-> **Superseded.** Written against the 48-cell panel. The current numbers are in
-> `paper/` and the panel accounting is in `results/coverage/COVERAGE.md`. Retained
-> for the record. The zero-inversion claim for `token_mask @ before_attention_norm` no longer holds, the current panel reports 2 inverted cells for that placement.
+> **Superseded on 2026-09-29:** the current values follow, each with its source. PSBD-TM
+> (`before_attention_norm_token_mask`) reads mean AUROC 0.953 against 0.888 for PSBD-RD
+> (`post_residual`), both at the adaptive 0.8 rule, a paired gain of +0.065 [+0.012,
+> +0.123] over the 57 clearing ViT-B/16 models that carry both, with 2 models below
+> chance and a floor of 0.418 (`paper/headline.tex`, `\HeadlineAurocAdaptive`,
+> `\PublishedAurocAdaptive`, `\HeadlineGainAdaptiveAuroc`, `\HeadlineFloorAuroc`). At
+> the q0.10 threshold PSBD-TM reads mean TPR 0.873 at a realized clean FPR of 0.093, and
+> 0.714 at the 1% budget (`\DetectorsTprOneZeroOurs`, `\RealizedFprOneZero`,
+> `\HeadlineTprAtOnePercent`). The zero-inversion claim below does not hold on the
+> current panel. Written against the 48-cell panel and retained for the record, so every
+> number below this line is historical.
 
 This report evaluates the detection system at practical false-positive rates (1%, 5%, 10%, 25%) rather than relying solely on AUROC. The question: if a defender sets a budget for how many clean samples they will wrongly flag, how many poisoned samples does the system catch?
 
@@ -12,9 +20,9 @@ For full per-cell tables and detailed analysis, see the [detailed companion](det
 
 ## Key findings
 
-**The system detects 7 of 9 evaluated attacks with TPR above 90% at 5% FPR on CIFAR-100 and Tiny ImageNet, at 5% and 10% poison rates.** The two exceptions are WaNet and Label-Consistent (LC), which are also the two attacks with the weakest implantation (lowest ASR).
+**The system detects 7 of 9 evaluated attacks with TPR above 90% at 5% FPR on CIFAR-100 and Tiny ImageNet, at 5% and 10% poison rates.** The 2 exceptions are WaNet and Label-Consistent (LC), which are also the 2 attacks with the weakest implantation (lowest ASR).
 
-**token_mask at before_attention_norm is the recommended deployment configuration.** It has the most uniform ROC curves, zero score inversions, and the highest worst-case TPR. gain_scale at mlp_norm_out produces higher peak AUROC but has degenerate ROC shapes (near-zero TPR at 1% FPR despite AUROC above 0.93) because its score distributions are bimodal.
+**token_mask at before_attention_norm is the recommended deployment configuration.** It has the most uniform ROC curves, zero score inversions and the highest worst-case TPR. gain_scale at mlp_norm_out produces higher peak AUROC but has degenerate ROC shapes (near-zero TPR at 1% FPR despite AUROC above 0.93) because its score distributions are bimodal.
 
 **Gaussian noise at before_mlp is a strong alternative** with the best TPR at 1% FPR on several cells, but it collapses on WaNet (0.543 AUROC on CIFAR-100 10%).
 
@@ -46,9 +54,9 @@ For full per-cell tables and detailed analysis, see the [detailed companion](det
 
 ### Failure modes
 
-Three situations produce low TPR even with decent AUROC:
+3 situations produce low TPR even with decent AUROC:
 
-1. **Bimodal score distributions (gain_scale on Tiny badnet_a2o).** AUROC 0.933 but TPR at 1% FPR = 0.005. The scores split into two clusters with overlapping tails. At strict FPR thresholds, the decision boundary sits between the clusters and misses the tail.
+1. **Bimodal score distributions (gain_scale on Tiny badnet_a2o).** AUROC 0.933 but TPR at 1% FPR = 0.005. The scores split into 2 clusters with overlapping tails. At strict FPR thresholds, the decision boundary sits between the clusters and misses the tail.
 
 2. **Weak implantation (WaNet at 5%, LC everywhere).** When ASR is below 0.8, the attack itself barely works, so the "poisoned" samples behave like clean samples and detection has nothing to find.
 
@@ -69,7 +77,7 @@ For token_mask on badnet_a2o CIFAR-100 5%:
 | 0.60 | 0.96 | 0.995 |
 | 0.80 | 0.99 | 0.953 |
 
-The curve follows a consistent pattern across all operators: low rate produces low AUROC (too little perturbation, clean and backdoor both unaffected), optimal is in the sigma 0.5 to 0.8 range, and very high rate produces lower AUROC (too much perturbation, both clean and backdoor are fully disrupted, converging to chance). The sigma-matching procedure at 0.6 automatically lands near the optimum.
+The curve follows a consistent pattern across all operators: low rate produces low AUROC (too little perturbation, clean and backdoor both unaffected), optimal is in the sigma 0.5 to 0.8 range and very high rate produces lower AUROC (too much perturbation, both clean and backdoor are fully disrupted, converging to chance). The sigma-matching procedure at 0.6 automatically lands near the optimum.
 
 For gain_scale, the effective scale parameter is different (multiplier on LayerNorm output), but the sigma curve has the same shape. For gaussian, the noise standard deviation maps to sigma the same way.
 
@@ -91,4 +99,4 @@ The largest SAM improvements appear on cells that are already easy (badnet_a2o a
 
 ## Next: adversarial attacker
 
-The numbers above assume a passive attacker who does not know about the detection system. An adaptive attacker who controls the training procedure could attempt to minimize PSU during training, making poisoned samples harder to detect. This is covered in a separate analysis: the attacker adds a regularization term that penalizes high PSU difference between clean and poisoned samples. The question is whether evasion against one perturbation operator (e.g., dropout) transfers to others (token_mask, gain_scale, gaussian). If it does not transfer, operator diversity provides defense in depth. Data from the evasion training runs will be analyzed when those PBS jobs complete.
+The numbers above assume a passive attacker who does not know about the detection system. An adaptive attacker who controls the training procedure could attempt to minimize PSU during training, making poisoned samples harder to detect. This is covered in a separate analysis: the attacker adds a regularization term that penalizes high PSU difference between clean and poisoned samples. The question is whether evasion against 1 perturbation operator (e.g., dropout) transfers to others (token_mask, gain_scale, gaussian). If it does not transfer, operator diversity provides defense in depth. Data from the evasion training runs will be analyzed when those PBS jobs complete.

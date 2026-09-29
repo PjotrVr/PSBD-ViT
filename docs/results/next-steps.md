@@ -1,8 +1,14 @@
 # Next Steps
 
-> **Superseded.** Written against the 48-cell panel. The current numbers are in
-> `paper/` and the panel accounting is in `results/coverage/COVERAGE.md`. Retained
-> for the record. The "best: 0.911 mean, 0 inversions" figure for the ViT recommended placement is superseded, the current panel reads 0.935 mean AUROC with 2 inverted cells for that placement.
+> **Superseded on 2026-09-29:** the current values follow, each with its source. PSBD-TM
+> (`before_attention_norm_token_mask`) reads mean AUROC 0.953 against 0.888 for PSBD-RD
+> (`post_residual`), both at the adaptive 0.8 rule, a paired gain of +0.065 [+0.012,
+> +0.123] over the 57 clearing ViT-B/16 models that carry both, with 2 models below
+> chance and a floor of 0.418 (`paper/headline.tex`, `\HeadlineAurocAdaptive`,
+> `\PublishedAurocAdaptive`, `\HeadlineGainAdaptiveAuroc`, `\HeadlineFloorAuroc`). The
+> figure "best: 0.911 mean, 0 inversions" below is historical. Written against the
+> 48-cell panel and retained for the record, so every number below this line is
+> historical.
 
 ## High priority (directly tests the theory)
 
@@ -15,19 +21,19 @@ finding is the layer-wise growth: 159x increase from layer 1 to 12, consistent
 across all 16 checkpoints. See [direction-norm-analysis.md](direction-norm-analysis.md).
 
 ### 2. Adaptive attacker transfer table (H25)
-**IN FLIGHT (jobs 1021980, 1021981 for CIFAR-10 pilot; 1021988 to 1021999 for
-the comprehensive matrix).** Three phases:
+**IN FLIGHT (jobs 1021980, 1021981 for CIFAR-10 pilot. 1021988 to 1021999 for
+the full matrix).** 3 phases:
 
 Phase 1 (job 1021980): Finish WaNet dropout training (walltime-killed at epoch 14),
-then sweep the two existing evade_l0 controls (`vit_cifar10_badnet_a2o_001_evade_l0`
+then sweep the 2 existing evade_l0 controls (`vit_cifar10_badnet_a2o_001_evade_l0`
 and `vit_cifar10_badnet_a2o_01_evade_l0`) with the full operator set: token_mask,
-gain_scale, gaussian, and dropout at multiple positions.
+gain_scale, gaussian and dropout at multiple positions.
 
 Phase 2 (job 1021981): Train lambda=1 and lambda=10 evasion models for badnet_a2o
 at 0.01 and 0.10 poison rates (4 new checkpoints), then sweep each with the full
 operator set.
 
-Phase 3 (jobs 1022004 to 1022123): Comprehensive adaptive attacker matrix.
+Phase 3 (jobs 1022004 to 1022123): Full adaptive attacker matrix.
 120 individual jobs (one per attack), covering all 10 attacks x 2 datasets
 (CIFAR-100, Tiny) x 3 poison rates (1%, 5%, 10%) x 2 architectures (ViT, Swin).
 Each model is trained with the hinge evasion penalty (lambda=1.0, 15 epochs)
@@ -38,12 +44,12 @@ against the best operator per architecture:
 
 After training, each checkpoint is swept with 4 operators to test transfer:
 the probed operator plus 3 transfer operators (dropout, gain_scale, gaussian
-for ViT; token_mask, gain_scale, pre_residual for Swin).
+for ViT. Token_mask, gain_scale, pre_residual for Swin).
 
 The key question: if an attacker evades the best operator, does the evasion
 transfer to other operators? If not, operator diversity is defense in depth.
 
-The PSBD paper (Appendix Section 7) claims the defender can simply increase the
+The PSBD paper (Appendix Section 7) claims the defender can increase the
 dropout rate to counter an adaptive attacker. Our test is harder: we use a
 smarter hinge penalty (vs their naive PSU minimization for all samples), compute
 every step (vs their every 50 iterations), and probe against the best operator
@@ -144,7 +150,7 @@ bugs found in the 2026-08-16 codebase audit (see codebase-audit-2026-08-16.md):
 v2 fixes: auto-calibrated probe rate (sigma=0.6 target), fractional PSU,
 eval mode for PSU computation, k=3 passes, increased walltime.
 
-One attack per job, lambda=1.0, 15 epochs, 4 transfer operators swept per
+1 attack per job, lambda=1.0, 15 epochs, 4 transfer operators swept per
 checkpoint.
 
 Evasion operator: token_mask @ before_attention_norm (ViT), dropout @

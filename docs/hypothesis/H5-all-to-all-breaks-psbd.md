@@ -4,6 +4,13 @@
 All-to-all is not undetectable. Its PSU signal is **inverted**, and once the sign is
 allowed to flip it is detected at AUROC 0.97, better than most attacks in the grid.
 
+> **Superseded on 2026-09-29:** the current values follow, each with its source. Over
+> the 12 all-to-all cells of the current record the one-sided PSU AUROC is 0.411 against
+> 0.891 on the all-to-one cells of the same record (`\ATwoaPsuAuroc`, `\ATwooPsuAuroc`).
+> The ledger in `docs/hypothesis/README.md` records the reversed sign as a diagnostic,
+> never as detection, so the 2-sided 0.97 below is a reading of 2026-09 and not a
+> detection result.
+
 ## Original claim
 
 PSBD's mechanism needs a single target class `y_t` that clean samples collapse onto

@@ -89,24 +89,29 @@ are not the same placement.
 | `both_sublayer_inputs` | `before_attention_norm` + `before_mlp_norm` | perturb both branch inputs |
 
 `pre_residual` versus `post_residual` is the comparison this project was founded on. It was
-**refuted**: measured at matched shift ratio the gap is +0.002, indistinguishable from noise
-(H1, H20).
+**refuted**: on the 57-model panel pre minus post reads -0.009 [-0.036, +0.015] at the
+adaptive rule and -0.009 [-0.048, +0.031] at the matched rule, indistinguishable from noise
+(`\PreMinusPostAdaptive`, `\PreMinusPostMatched`, H1, H20).
 
 ---
 
 # The operators
 
-| operator | what it does | verdict |
+The readings are mean AUROC at the adaptive 0.8 rule over the 57 clearing ViT-B/16 panel
+models, from `paper/tables/basis_ranking.tex` of the 2026-09-24 build, at the position
+named in each row.
+
+| operator | what it does | reading |
 |---|---|---|
-| `dropout` | `nn.Dropout`, element-wise, independent per token | the baseline, and still the best on average (0.859 over 773 cells) |
-| `token_mask` | zeroes **whole tokens**, all channels. CLS is never masked, since dropping the classifier's only read point destroys the prediction instead of perturbing it | 0.854. Best on patch triggers, worst on warps (H27) |
-| `channel_mask` | zeroes whole channel groups, **shared across tokens**, so a neuron is either alive for the sample or not | 0.792. **Refuted** as an improvement on dropout (H26) |
-| `head_mask` | zeroes whole attention heads, only meaningful at `attention_heads` | 0.835, but heads are redundant and the backdoor is not in them (H22, H35) |
-| `droppath` | zeroes a whole branch output, stochastic depth. The residual-native perturbation | 0.775. **Confirmed to lose**, including the prediction that it would (H21) |
-| `gaussian` | additive noise at the activation's own scale, **removes no capacity** | 0.788. The control that refuted the capacity-removal account (H23) |
+| `dropout` | `nn.Dropout`, element-wise, independent per token | the baseline. 0.902 at the attention input, 0.888 after both residual adds (PSBD-RD) |
+| `token_mask` | zeroes **whole tokens**, all channels. CLS is never masked, since dropping the classifier's only read point destroys the prediction instead of perturbing it | 0.953 at the attention input (PSBD-TM). 0.986 on patch triggers and 0.845 on WaNet (`\SurvivalTmPatchAuroc`, `\SurvivalTmWanetAuroc`, H27) |
+| `channel_mask` | zeroes whole channel groups, **shared across tokens**, so a neuron is either alive for the sample or not | 0.921 at the attention input, above dropout there and below token masking. H26's refutation was measured at 10% in 2026-08 |
+| `head_mask` | zeroes whole attention heads, only meaningful at `attention_heads` | 0.896 over the 37 models that carry it (`\AttentionHeadMaskAuroc`), but heads are redundant and the backdoor is not in them (H22, H35) |
+| `droppath` | zeroes a whole branch output, stochastic depth. The residual-native perturbation | outside the basis and not re-measured on the current panel. **Confirmed to lose** in 2026-08, including the prediction that it would (H21) |
+| `gaussian` | additive noise at the activation's own scale, **removes no capacity** | 0.839 at the attention input and 0.894 at the MLP input after its norm. The control that refuted the capacity-removal account (H23, H47) |
 | `rademacher` | additive ±1 noise, same covariance as gaussian, lower estimator variance | **implemented, never swept.** The one theoretically motivated operator still unmeasured |
-| `gain_scale` | amplifies a LayerNorm's output. IBD-PSC's perturbation, exact for LayerNorm since scaling gamma and beta together *is* scaling the output | 0.664, worst. **Deterministic**, so k=1 is exact |
-| `scale_up` | amplifies input pixels. SCALE-UP's perturbation | 0.789. **Deterministic** |
+| `gain_scale` | amplifies a LayerNorm's output. IBD-PSC's perturbation, exact for LayerNorm since scaling gamma and beta together *is* scaling the output | 0.919 at the MLP norm output, 8th of 27. **Deterministic**, so k=1 is exact |
+| `scale_up` | amplifies input pixels. SCALE-UP's perturbation | 0.743, last of 27. **Deterministic** |
 
 `gain_scale` and `scale_up` are deterministic: every Monte Carlo pass returns the same value,
 so PSU is exact at k=1 and a k>1 sweep writes k identical rows. Their shift ratio is a
@@ -118,22 +123,24 @@ across operators.
 # Do you need every layer, or only some?
 
 **No, and a band beats the full stack.** `pre_residual` swept over all 12 blocks against the
-same positions restricted to a 4-block band, on the 44 ViT cells carrying all 4:
+same positions restricted to a 4-block band, at the adaptive rule on the 57-model panel
+(`paper/tables/basis_ranking.tex`), and paired against all 12 blocks at the matched 0.6 rule
+(`\BandOneFourMinusAllResidual` and its 2 siblings):
 
-| block range | mean AUROC |
-|---|---|
-| blocks 1–4 (early) | 0.811 |
-| **all 12 blocks** | **0.881** |
-| blocks 9–12 (late) | 0.898 |
-| **blocks 5–8 (middle)** | **0.909** |
+| block range | n | mean AUROC, adaptive | paired gain against all 12, matched |
+|---|---|---|---|
+| blocks 1–4 (early) | 57 | 0.832 | -0.071 [-0.091, -0.051] |
+| **all 12 blocks** | 57 | **0.878** | |
+| blocks 9–12 (late) | 40 | 0.921 | +0.039 [-0.005, +0.080] |
+| **blocks 5–8 (middle)** | 57 | **0.916** | **+0.051 [+0.024, +0.079]** |
 
-Early blocks are clearly worse. A middle or late band is **better than perturbing
-everything**, which is not obvious: adding probes to the early blocks actively costs
-detection. This is consistent with H30's finding that the backdoor direction crystallizes at
+Early blocks are clearly worse. A middle band is **better than perturbing everything**,
+which is not obvious: adding probes to the early blocks actively costs detection. This is consistent with H30's finding that the backdoor direction crystallizes at
 layers 8 to 10, and with H10's band premise.
 
 **But blocks 5 to 8 must not be deployed**, and this is the important caveat. Ranked within
-poison rate it is 1st at 5% and 10% and **8th at 1%** (0.872). A defender may guess the
+poison rate on the 48-cell panel it was 1st at 5% and 10% and **8th at 1%** (0.872), a
+per-rate ranking not re-measured on the current panel. A defender may guess the
 attack but can never know the poison rate, so a configuration whose ranking depends on it is
 not a usable defense. The full-stack default is rate-stable. The band is not.
 
@@ -166,27 +173,29 @@ blocks** to ViT's 12, so its bands are 1 to 8, 9 to 16, 17 to 24.
 
 ## What Swin actually measures
 
-45 implanted Swin cells with sweeps:
+83 implanted Swin cells with sweeps, mean AUROC at the adaptive 0.8 rule over the cells whose
+ladder reaches the target (`paper/tables/swin_placements.tex` of the 2026-09-24 build):
 
 | configuration | n | AUROC |
 |---|---|---|
-| `before_attention` (dropout) | 14 | **0.931** |
-| `before_attention_norm_token_mask` | 13 | **0.913** |
-| `after_embedding` | 14 | 0.896 |
-| **`pre_residual_blocks_17_24`** (late band) | 35 | **0.889** |
-| `pre_residual` (all 24 blocks) | 42 | 0.847 |
-| `pre_residual_blocks_9_16` | 35 | 0.839 |
-| `pre_residual_blocks_1_8` (early band) | 35 | 0.847 |
+| `before_attention_norm_token_mask` | 80 | **0.969** |
+| **`pre_residual_blocks_17_24`** (late band) | 45 | **0.960** |
+| `before_attention` (dropout) | 80 | 0.900 |
+| `pre_residual_blocks_9_16` | 80 | 0.882 |
+| `after_embedding` | 80 | 0.862 |
+| `pre_residual_blocks_1_8` (early band) | 80 | 0.853 |
+| `pre_residual` (all 24 blocks) | 80 | 0.846 |
 
-**The depth-band finding replicates on Swin**: the late band (0.889) beats the full stack
-(0.847) by the same margin and in the same direction as ViT, and the early band is not
-better. 2 architectures, different block counts, same conclusion. Perturbing every block
-is not the right default, and the useful depth is late-middle.
+**The depth-band finding replicates on Swin**: the late band (0.960) beats the full stack
+(0.846), and the early band is not better. 2 architectures, different block counts, same
+conclusion. Perturbing every block is not the right default, and the useful depth is
+late-middle.
 
-The deployed configuration reads **0.913** on Swin against 0.869 on ViT, so nothing about the
-port is ViT-specific in a way that breaks.
+The deployed configuration reads **0.969** on Swin over 80 models against 0.953 on ViT over 57
+(`\SwinRecommendedAurocAdaptive`, `\HeadlineAurocAdaptive`), so nothing about the port is
+ViT-specific in a way that breaks.
 
-**Caveat on all Swin numbers:** coverage is uneven (n = 13 to 42 depending on the
-configuration) and every Swin comparison here is unbalanced. This project has already had 4
+**Caveat on all Swin numbers:** coverage is uneven (n = 45 to 80 in the table above) and the
+late band reaches the adaptive target on 45 cells only, so that comparison is unbalanced. This project has already had 4
 of 6 comparisons invert when rebalanced, so treat the Swin ordering as indicative, not
 settled.

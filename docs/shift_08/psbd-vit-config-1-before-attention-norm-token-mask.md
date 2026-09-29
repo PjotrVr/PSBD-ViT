@@ -1,8 +1,19 @@
 # PSBD-ViT: `before_attention_norm_token_mask`
 
-> **Superseded.** Written against the 48-cell panel. The current numbers are in
-> `paper/` and the panel accounting is in `results/coverage/COVERAGE.md`. Retained
-> for the record. Its numbers moved but its conclusions stand, this is the current recommended placement at the adaptive shift rate, and its ranking as the top configuration agrees with the current panel headline.
+> **Superseded on 2026-09-29:** the current values follow, each with its source. PSBD-TM
+> (`before_attention_norm_token_mask`) reads mean AUROC 0.953 against 0.888 for PSBD-RD
+> (`post_residual`), both at the adaptive 0.8 rule, a paired gain of +0.065 [+0.012,
+> +0.123] over the 57 clearing ViT-B/16 models that carry both, with 2 models below
+> chance and a floor of 0.418 (`paper/headline.tex`, `\HeadlineAurocAdaptive`,
+> `\PublishedAurocAdaptive`, `\HeadlineGainAdaptiveAuroc`, `\HeadlineFloorAuroc`). On
+> the adaptive-rule ranking of all 27 basis placements over those 57 models
+> (`paper/tables/basis_ranking.tex`) PSBD-TM is 2nd, behind token masking at the
+> attention input in blocks 9 to 12 only (0.955 over the 25 models whose ladder reaches
+> the target), and 1st at the matched rule (`\BasisRankRecommendedMatched`). These
+> tables read each placement at the rate whose clean shift ratio lands nearest the
+> target, which is not the canonical `select_rate_adaptively` rule, so they are not
+> comparable to the headline even on the same models. Written against the 48-cell panel
+> and retained for the record, so every number below this line is historical.
 
 The single placement `before_attention_norm_token_mask`.
 

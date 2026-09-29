@@ -1,8 +1,23 @@
 # Perturbation Families: Position vs Operator
 
-> **Superseded.** Written against the 48-cell panel. The current numbers are in
-> `paper/` and the panel accounting is in `results/coverage/COVERAGE.md`. Retained
-> for the record. The "position variance is 1.43x operator variance" reading and the family comparisons below are contradicted by the current panel, which finds gaussian minus token_mask at the same site is -0.206 and the input-side against residual-adjacent gap is +0.005, not the +0.054 implied here.
+> **Superseded on 2026-09-29:** the current values follow, each with its source. PSBD-TM
+> (`before_attention_norm_token_mask`) reads mean AUROC 0.953 against 0.888 for PSBD-RD
+> (`post_residual`), both at the adaptive 0.8 rule, a paired gain of +0.065 [+0.012,
+> +0.123] over the 57 clearing ViT-B/16 models that carry both, with 2 models below
+> chance and a floor of 0.418 (`paper/headline.tex`, `\HeadlineAurocAdaptive`,
+> `\PublishedAurocAdaptive`, `\HeadlineGainAdaptiveAuroc`, `\HeadlineFloorAuroc`).
+> Gaussian noise minus token masking at the attention input is -0.183 [-0.237, -0.135]
+> at the matched 0.6 rule (`\GaussianMinusTokenMaskAttentionNorm`). The
+> position-over-operator range ratio is 0.60 at the matched rule with Gaussian noise
+> included and 1.14 over the masking operators only
+> (`\PositionOverOperatorRatioMatched`, `\PositionOverOperatorRatioMasksMatched`). The
+> input-side against residual-adjacent gap is +0.006 [-0.011, +0.026] at the matched 0.6
+> rule and +0.026 [-0.003, +0.058] at the adaptive rule, token masking at every
+> position, over 57 models (`scripts/paper/tab_family_split.py` rerun on 2026-09-29, a
+> generator the paper build leaves out, so the value is not in `paper/headline.tex`).
+> The 1.43x reading and the family comparisons below are historical. Written against the
+> 48-cell panel and retained for the record, so every number below this line is
+> historical.
 
 Evidence for H28 prediction 4: at matched shift ratio (sigma), detection is more sensitive to WHERE the perturbation is applied than WHAT kind of perturbation is used. The operator sets the Jacobian, the position selects it.
 
@@ -11,7 +26,7 @@ Evidence for H28 prediction 4: at matched shift ratio (sigma), detection is more
 27 operator/position combinations, grouped into operator families and position groups. For each pair of configurations that share a position (or share an operator), we compare their AUROC across all 48 cells, matched at sigma >= 0.6.
 
 Operators (6): dropout, token_mask, channel_mask, gaussian, gain_scale, head_mask, droppath, scale_up.
-Positions (13): before_attention_norm, before_mlp, before_attention_residual, after_mlp_residual, before_attention, mlp_norm_out, and others.
+Positions (13): before_attention_norm, before_mlp, before_attention_residual, after_mlp_residual, before_attention, mlp_norm_out and others.
 
 ## Position variance > operator variance
 

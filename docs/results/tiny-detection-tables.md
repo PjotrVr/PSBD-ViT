@@ -1,14 +1,24 @@
 # Tiny ImageNet Detection Tables
 
-> **Superseded.** Written against the 48-cell panel. The current numbers are in
-> `paper/` and the panel accounting is in `results/coverage/COVERAGE.md`. Retained
-> for the record. Its numbers moved but its conclusions stand, the `gain_scale @ mlp_norm_out` row is the withdrawn +0.258 headline placement and the per-cell figures predate the 105-cell rebuild.
+> **Superseded on 2026-09-29:** the current values follow, each with its source. PSBD-TM
+> (`before_attention_norm_token_mask`) reads mean AUROC 0.953 against 0.888 for PSBD-RD
+> (`post_residual`), both at the adaptive 0.8 rule, a paired gain of +0.065 [+0.012,
+> +0.123] over the 57 clearing ViT-B/16 models that carry both, with 2 models below
+> chance and a floor of 0.418 (`paper/headline.tex`, `\HeadlineAurocAdaptive`,
+> `\PublishedAurocAdaptive`, `\HeadlineGainAdaptiveAuroc`, `\HeadlineFloorAuroc`). Per
+> dataset the paired gain is +0.047 on CIFAR-10 over 17 models, +0.088 on CIFAR-100 over
+> 12, +0.119 on GTSRB over 14 and +0.012 on Tiny ImageNet over 14 (`\GainsCifarOneZero`
+> and its 3 siblings), and the current per-model tables are
+> `paper/tables/results_rate_*.tex`. The +0.258 `gain_scale @ mlp_norm_out` headline is
+> withdrawn (`docs/audit-2026-09-07.md`), and its row below is that placement. Written
+> against the 48-cell panel and retained for the record, so every number below this line
+> is historical.
 
-Tiny ImageNet is the largest dataset in the evaluation grid (200 classes, 64x64 images). It is the most realistic proxy for real-world deployment. Together with CIFAR-100, it forms the primary evaluation pair: if the method does not work on these two, it is not publishable.
+Tiny ImageNet is the largest dataset in the evaluation grid (200 classes, 64x64 images). It is the most realistic proxy for real-world deployment. Together with CIFAR-100, it forms the primary evaluation pair: if the method does not work on these 2, it is not publishable.
 
 All numbers: fractional PSU, sigma-matched (sigma >= 0.6), one-sided (low PSU = poisoned). AUROC / TPR@5%FPR shown side by side.
 
-Three attacks fail to implant at 1% on Tiny: WaNet (ASR 0.379), LC (ASR 0.389), Adaptive Blend (ASR 0.431). These are excluded from the 1% rows.
+3 attacks fail to implant at 1% on Tiny: WaNet (ASR 0.379), LC (ASR 0.389), Adaptive Blend (ASR 0.431). These are excluded from the 1% rows.
 
 ## token_mask @ before_attention_norm (recommended configuration)
 
@@ -127,7 +137,7 @@ Dropout at the same position as token_mask: the operator swap from token_mask to
 | dropout @ pre_residual | 0.942 | 0.853 | 0.853 | 0.866 |
 | dropout @ before_attention_norm | 0.868 | 0.803 | 0.810 | 0.817 |
 
-token_mask @ before_attention_norm is the best configuration on Tiny, leading at all three poison rates. The gap over gain_scale is small in AUROC (0.004 at 1%) but large in TPR@5%FPR (0.343 vs 0.034 on badnet at 1%).
+token_mask @ before_attention_norm is the best configuration on Tiny, leading at all 3 poison rates. The gap over gain_scale is small in AUROC (0.004 at 1%) but large in TPR@5%FPR (0.343 vs 0.034 on badnet at 1%).
 
 The story reverses from CIFAR-100: on CIFAR-100, gain_scale leads by 0.096 AUROC at 1%. On Tiny, token_mask leads by 0.004. This dataset-dependence is why the recommended configuration is based on worst-case robustness rather than best-case performance.
 

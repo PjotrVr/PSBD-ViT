@@ -2,6 +2,13 @@
 
 **Status: SUPPORTED (full panel, 48/48 coverage).**
 
+> **Superseded on 2026-09-29:** the current values follow, each with its source, on the
+> 57-model ViT-B/16 panel of the 2026-09-24 build. At 1% poisoning PSBD-TM gains +0.150
+> over PSBD-RD over 17 models, and +0.100 over the 4 CIFAR-100 models at 1%, both at the
+> adaptive 0.8 rule (`\GainsLowestRate`, `\CifarOneZeroZeroOnePercentGain`). The
+> matched-rule +0.166 of the 48-cell panel below was not re-measured. The evidence below
+> is the record of the measurement that produced the verdict.
+
 The full panel has landed. Across 4 datasets, 3 poison rates and the 5-attack
 panel, switching from the founding placement (dropout @ pre_residual, refuted
 by H1) to either token_mask @ before_attention_norm or gain_scale @

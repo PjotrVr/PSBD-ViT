@@ -1,5 +1,14 @@
 # A3. Shared factor evasion: 1 objective that moves every probe at once
 
+> **Superseded on 2026-09-29:** the current values follow, each with its source. PSBD-TM
+> reads mean AUROC 0.953 against 0.888 for PSBD-RD at the adaptive 0.8 rule over the 57
+> clearing ViT-B/16 models carrying both, and 0.936 at the matched 0.6 rule
+> (`\HeadlineAurocAdaptive`, `\PublishedAurocAdaptive`, `\HeadlineAurocMatched`). On the
+> 14 evasive ViT models of the adaptive section the probed operator reads 0.233 and the
+> best probe union 0.967 (`\AdaptiveVitProbedEvade`, `\AdaptiveVitUnion`), so the 0.927
+> union baseline in the table below is the H41 reading of 2026-09 and was not
+> re-measured. The per-probe readings below are the record of their own runs.
+
 **Rank 3.** This is the attack against H41, and H41 is the paper's flagship
 security contribution. It targets the assumption the multi probe defense rests
 on, which is that $k$ probes impose $k$ constraints the attacker must satisfy

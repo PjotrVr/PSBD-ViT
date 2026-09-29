@@ -1,11 +1,21 @@
 # Adaptive Defender Protocol
 
-> **Superseded.** Written against the 48-cell panel. The current numbers are in
-> `paper/` and the panel accounting is in `results/coverage/COVERAGE.md`. Retained
-> for the record. Its numbers moved but its conclusions stand, the mean-rank ensemble AUROC figures (0.900, 0.897) here are from the 48-cell adaptive-attacker matrix, not the current 105-cell panel.
+> **Superseded on 2026-09-29:** the current values follow, each with its source. PSBD-TM
+> (`before_attention_norm_token_mask`) reads mean AUROC 0.953 against 0.888 for PSBD-RD
+> (`post_residual`), both at the adaptive 0.8 rule, a paired gain of +0.065 [+0.012,
+> +0.123] over the 57 clearing ViT-B/16 models that carry both, with 2 models below
+> chance and a floor of 0.418 (`paper/headline.tex`, `\HeadlineAurocAdaptive`,
+> `\PublishedAurocAdaptive`, `\HeadlineGainAdaptiveAuroc`, `\HeadlineFloorAuroc`).
+> Against the adaptive attacker the current record holds 14 evasive ViT models: the
+> probed operator falls from 0.966 to 0.233, the unprobed operators read 0.893 and the
+> best probe union 0.967 (`\AdaptiveVitProbedBase`, `\AdaptiveVitProbedEvade`,
+> `\AdaptiveVitTransfer`, `\AdaptiveVitUnion`). The mean-rank ensemble figures below
+> (0.900, 0.897) come from the 48-cell adaptive-attacker matrix and were not
+> re-measured. Written against the 48-cell panel and retained for the record, so every
+> number below this line is historical.
 
 How a defender should respond when the attacker knows PSBD and trains against
-it. Based on H25 (adaptive attacker), H41 (multi-probe defense), and the
+it. Based on H25 (adaptive attacker), H41 (multi-probe defense) and the
 forensic analysis in `experiments/adaptive_defender/analyze.py`.
 
 All figures below are the 2026-09-07 re-run with the corrected multi-probe
@@ -14,11 +24,11 @@ threshold rule. See "Superseded figures" at the end for what changed and why.
 ## The threat
 
 The adaptive attacker adds a hinge penalty to training that matches poisoned
-samples' PSU onto the clean distribution under one specific perturbation
+samples' PSU onto the clean distribution under 1 specific perturbation
 operator. This collapses that operator's AUROC from 0.952 to 0.322 while
 preserving ASR (mean delta -0.004) at a cost of 4.8 points CA.
 
-The evasion is probe-specific: the penalty optimizes against one Jacobian, and
+The evasion is probe-specific: the penalty optimizes against 1 Jacobian, and
 a different operator produces a different Jacobian. Transfer operators the
 attacker never saw still detect at mean AUROC 0.887.
 
@@ -33,7 +43,7 @@ the target-FPR quantile of its own clean-validation distribution.
 Mean-rank averaging failed (H17, `experiments/detector_ensemble/ensemble.py`): an inverted operator
 (post_residual at AUROC 0.194) actively poisoned the average, giving mean 0.897
 against 0.892 for the single best-known placement. Min-rank takes the most
-suspicious verdict, so an inverted operator simply never fires and contributes
+suspicious verdict, so an inverted operator never fires and contributes
 nothing.
 
 ### Results (56 evasive checkpoints with ASR > 0.9)
@@ -50,7 +60,7 @@ need to identify which operator was evaded.
 
 ### Detection at target FPR 0.25
 
-Two thresholding rules are reported, both defender-legal because both read
+2 thresholding rules are reported, both defender-legal because both read
 clean validation data only. Each number is labeled with the rule that
 produced it.
 
@@ -82,7 +92,7 @@ caches, so it is measured on an easier subset than the k=2 and k=3 rows.
 
 ## Can the defender identify the evaded operator?
 
-Four identification methods tested on 56 evasive checkpoints with ASR > 0.9:
+4 identification methods tested on 56 evasive checkpoints with ASR > 0.9:
 
 | Method | Accuracy | Defender-legal? |
 |---|---:|---|
@@ -173,7 +183,7 @@ with batch 48 and ViT-B/16, this would need 80+ GB (double the current
 gradient checkpointing and batch reduction.
 
 More importantly, different operators may require conflicting representation
-changes. Token_mask evasion spreads information across patches; gain_scale
+changes. Token_mask evasion spreads information across patches. Gain_scale
 evasion keeps the backdoor direction close to the clean manifold. Satisfying
 both simultaneously may be fundamentally harder than satisfying either alone.
 
@@ -183,7 +193,7 @@ survives, and (c) the remaining operators still detect.
 
 ## Superseded figures
 
-The first version of this page reported the numbers below. Two independent
+The first version of this page reported the numbers below. 2 independent
 changes moved them.
 
 The threshold rule was corrected. The old rule applied the Bonferroni quantile
@@ -214,7 +224,7 @@ with a per-sample draw and the numbers should be taken again once they land.
 | Lowest validation PSU IQR, accuracy | 3.6% (2/56) | 14.3% (8/56) | gaussian archive |
 | Mean-rank ensemble (H17) | 0.900 | 0.897 | joint-ranking leak removed |
 
-On the 42 checkpoints whose probe pool is unchanged between the two runs, AUROC
+On the 42 checkpoints whose probe pool is unchanged between the 2 runs, AUROC
 is bit-identical under the old rule, the calibrated rule and the bonferroni
 rule (0.9660 in all 3 cases), while TPR moves from 0.877 to 0.979 and FPR from
 0.070 to 0.253. That isolates the threshold fix to TPR and FPR exactly.
@@ -232,7 +242,7 @@ Raw data: `results/adaptive_defender_analysis.json` (120 rows, superseded run)
 Multi-probe data: `results/multi_probe_analysis.json` (120 rows, superseded run)
 Transfer data: `results/adaptive_attacker_analysis.json` (120 rows)
 
-The two superseded JSON files are the only remaining record of the k=4 probe
+The 2 superseded JSON files are the only remaining record of the k=4 probe
 pool, since the `before_mlp_gaussian` caches they were built from are now
 archived under `*_gaussian_batchstd`. Re-running either script with its default
 `--output` overwrites them, which is worth doing once the queued `psbd_gauss_*`

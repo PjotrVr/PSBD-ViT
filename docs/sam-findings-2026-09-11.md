@@ -1,5 +1,16 @@
 # SAM findings, 2026-09-11
 
+> **Superseded on 2026-09-29:** the current values follow, each with its source. SAM is
+> declared out of the paper's scope (`scripts/paper/build_all.py`, `NOT_IN_PAPER`), and
+> no SAM comparison was re-run on the current panel. PSBD-TM reads mean AUROC 0.953
+> against 0.888 for PSBD-RD at the adaptive 0.8 rule, a paired gain of +0.065 [+0.012,
+> +0.123] over the 57 clearing ViT-B/16 models carrying both, with 2 models below chance
+> and a floor of 0.418 (`paper/headline.tex`, `\HeadlineAurocAdaptive`,
+> `\PublishedAurocAdaptive`, `\HeadlineGainAdaptiveAuroc`). On Swin-S PSBD-TM reads
+> 0.969 over 80 models (`\SwinRecommendedAurocAdaptive`). The PSBD-TM baselines quoted
+> below, such as 0.945, are readings of 2026-09-11 on the SAM comparison's own models.
+> Every number below is the record of its date and was not re-measured.
+
 This is the current statement of what this project knows about sharpness aware
 minimization (SAM) and PSBD on ViT. It replaces every earlier SAM verdict dated
 2026-09-07 through 2026-09-10, all of which rested on an unmatched aggregate

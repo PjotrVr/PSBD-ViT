@@ -1,8 +1,19 @@
 # PSBD-ViT: merged top 2 (both_sublayer_inputs_token_mask + before_attention_norm_token_mask)
 
-> **Superseded.** Written against the 48-cell panel. The current numbers are in
-> `paper/` and the panel accounting is in `results/coverage/COVERAGE.md`. Retained
-> for the record. The fusion pairs `before_attention_norm_token_mask`, the current recommended placement, with `both_sublayer_inputs_token_mask`, which the current panel does not rank as a top placement, so the case for this specific fusion no longer holds.
+> **Superseded on 2026-09-29:** the current values follow, each with its source. PSBD-TM
+> (`before_attention_norm_token_mask`) reads mean AUROC 0.953 against 0.888 for PSBD-RD
+> (`post_residual`), both at the adaptive 0.8 rule, a paired gain of +0.065 [+0.012,
+> +0.123] over the 57 clearing ViT-B/16 models that carry both, with 2 models below
+> chance and a floor of 0.418 (`paper/headline.tex`, `\HeadlineAurocAdaptive`,
+> `\PublishedAurocAdaptive`, `\HeadlineGainAdaptiveAuroc`, `\HeadlineFloorAuroc`). The
+> fusion below pairs PSBD-TM with `both_sublayer_inputs_token_mask`, which ranks 4th of
+> 27 on the current panel, so the case for this fusion was not re-measured. The current
+> union of PSBD-TM with the attention branch output reads 0.973, +0.021 over PSBD-TM
+> alone (`\ProbeUnionTmBranchAuroc`, `\ProbeUnionTmBranchGain`). These tables read each
+> placement at the rate whose clean shift ratio lands nearest the target, which is not
+> the canonical `select_rate_adaptively` rule, so they are not comparable to the
+> headline even on the same models. Written against the 48-cell panel and retained for
+> the record, so every number below this line is historical.
 
 A **fused** configuration. Its members are swept separately and combined at the score
 level with the min-rank rule against the clean-validation reference, so a sample is

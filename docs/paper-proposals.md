@@ -1,11 +1,17 @@
 # What this project can claim, and how strongly
 
-> **Superseded.** Written against the 48-cell panel. The current numbers are in
-> `paper/` and the panel accounting is in `results/coverage/COVERAGE.md`. Retained
-> for the record. The mechanism claim it argues toward is now the settled
-> account (a backdoor direction routed through attention), but the numbers
-> supporting it below predate the H23 gaussian noise refutation and the 65-cell
-> basis panel.
+> **Superseded on 2026-09-29:** the current values follow, each with its source. PSBD-TM
+> (`before_attention_norm_token_mask`) reads mean AUROC 0.953 against 0.888 for PSBD-RD
+> (`post_residual`), both at the adaptive 0.8 rule, a paired gain of +0.065 [+0.012,
+> +0.123] over the 57 clearing ViT-B/16 models that carry both, with 2 models below
+> chance and a floor of 0.418 (`paper/headline.tex`, `\HeadlineAurocAdaptive`,
+> `\PublishedAurocAdaptive`, `\HeadlineGainAdaptiveAuroc`, `\HeadlineFloorAuroc`).
+> Gaussian noise minus token masking at the attention input is -0.183 [-0.237, -0.135]
+> at the matched 0.6 rule (`\GaussianMinusTokenMaskAttentionNorm`). The mechanism the
+> paper now argues is measured in `experiments/why_token_masking_works/`, and the
+> numbers below predate both the H23 refutation and the current panel. Written against
+> the 48-cell panel and retained for the record, so every number below this line is
+> historical.
 
 Written after a literature review found that the framing this project had been
 building toward is partly published already. Everything below is graded by how

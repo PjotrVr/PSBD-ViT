@@ -1,10 +1,18 @@
 # Detection at Realistic Operating Points: Full Tables
 
-> **Superseded.** Written against the 48-cell panel. The current numbers are in
-> `paper/` and the panel accounting is in `results/coverage/COVERAGE.md`. Retained
-> for the record. The claim of "zero score inversions" and a "highest worst-case floor (0.632 AUROC)" for the recommended placement is contradicted by the current panel, which reports a floor of 0.418 and 2 inverted cells.
+> **Superseded on 2026-09-29:** the current values follow, each with its source. PSBD-TM
+> (`before_attention_norm_token_mask`) reads mean AUROC 0.953 against 0.888 for PSBD-RD
+> (`post_residual`), both at the adaptive 0.8 rule, a paired gain of +0.065 [+0.012,
+> +0.123] over the 57 clearing ViT-B/16 models that carry both, with 2 models below
+> chance and a floor of 0.418 (`paper/headline.tex`, `\HeadlineAurocAdaptive`,
+> `\PublishedAurocAdaptive`, `\HeadlineGainAdaptiveAuroc`, `\HeadlineFloorAuroc`). At
+> the q0.10 threshold PSBD-TM reads mean TPR 0.873 at a realized clean FPR of 0.093, and
+> 0.714 at the 1% budget (`\DetectorsTprOneZeroOurs`, `\RealizedFprOneZero`,
+> `\HeadlineTprAtOnePercent`). The claims of zero inversions and a 0.632 floor below do
+> not hold on the current panel. Written against the 48-cell panel and retained for the
+> record, so every number below this line is historical.
 
-Companion to [detection-operating-points.md](detection-operating-points.md). Contains the raw TPR at FPR tables for every attack, every dataset, every poison rate, and all three evaluated configurations.
+Companion to [detection-operating-points.md](detection-operating-points.md). Contains the raw TPR at FPR tables for every attack, every dataset, every poison rate and all 3 evaluated configurations.
 
 All numbers: one-sided fractional PSU, sigma-matched at 0.6, ViT-B/16. ASR is computed from the PSBD baseline (clean-test accuracy of the backdoor trigger). Rows marked `(w)` have ASR below 0.8 (weak implantation). Rows with `--` had ASR below 0.5 (attack failed to implant) or no cached data at that position.
 
@@ -408,7 +416,7 @@ Even on this hard cell, peak AUROC is 0.996 at rate=0.70. The sigma=0.6 matcher 
 
 SAM does not consistently reduce or increase ASR on stable attacks (badnet_a2o, blend stay at or near 1.000). On unstable attacks, SAM creates unpredictable swings:
 
-- CIFAR-100 WaNet 5%: ASR drops from 0.650 (no SAM) to 0.007 (rho=0.1). The attack essentially fails to implant.
+- CIFAR-100 WaNet 5%: ASR drops from 0.650 (no SAM) to 0.007 (rho=0.1). The attack fails to implant.
 - CIFAR-100 LC 5%: ASR jumps from 0.002 (no SAM) to 0.889 (rho=0.2). The attack suddenly works.
 - Tiny adaptive_blend 10%: ASR jumps from 0.000 to 0.980 (rho=0.1). The attack that previously failed now succeeds.
 

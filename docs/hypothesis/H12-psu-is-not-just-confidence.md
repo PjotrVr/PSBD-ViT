@@ -3,6 +3,14 @@
 **Status: REFUTED.** And the test that refuted it produced a free improvement to the
 score.
 
+> **Superseded on 2026-09-29:** the current values follow, each with its source, on the
+> 57-model ViT-B/16 panel of the 2026-09-24 build and its records. In the
+> confidence-null record PSU reads mean AUROC 0.887 against 0.658 for max-softmax
+> confidence over 28 backdoored checkpoints, beating it on 20 and reading 0.505 on the benign
+> references (`\ConfidenceNullPsuAuroc`, `\ConfidenceNullAuroc`,
+> `\ConfidenceNullPsuWins`, `\ConfidenceNullBenignPsu`). The evidence below is the
+> record of the measurement that produced the verdict.
+
 ## Claim (the skeptical one)
 
 PSU is `P_c(x)` minus the mean dropout-perturbed `P_c(x)`. A sample starting near

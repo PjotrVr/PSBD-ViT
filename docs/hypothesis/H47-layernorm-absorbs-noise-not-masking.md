@@ -2,6 +2,17 @@
 
 **Status: SUPPORTED, and it closes H23's secondary prediction, open since the operator study.**
 
+> **Superseded on 2026-09-29:** the current values follow, each with its source, on the
+> 57-model ViT-B/16 panel of the 2026-09-24 build. The attention-input LayerNorm passes
+> 1.002 of a token mask disturbance and 0.821 of a Gaussian one, the MLP-input LayerNorm
+> 0.971 and 0.872 (`\AbsorptionAttentionInputTokenMaskSurvival` and its siblings). Token
+> masking minus noise is +0.183 at the attention input and -0.051 across the MLP norm at
+> the matched rule over 57 models (`\GaussianMinusTokenMaskAttentionNorm`,
+> `\GaussianMinusTokenMaskMlp`), and the position over operator range ratio is 0.60 with
+> noise included and 1.14 over the masks (`\PositionOverOperatorRatioMatched`,
+> `\PositionOverOperatorRatioMasksMatched`). The evidence below is the record of the
+> measurement that produced the verdict.
+
 ## The prediction, which has no free parameters
 
 A placement is a point in a block's read-write cycle, `x -> ln_1 -> attn -> +x -> ln_2 -> mlp -> +x`.

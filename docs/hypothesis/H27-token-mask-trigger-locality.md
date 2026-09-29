@@ -3,6 +3,14 @@
 **Status: prediction 1 SUPPORTED. Prediction 2 untested. 1 coverage gap that is
 itself a finding.**
 
+> **Superseded on 2026-09-29:** the current values follow, each with its source, on the
+> 57-model ViT-B/16 panel of the 2026-09-24 build. PSBD-TM reads mean AUROC 0.986 on
+> patch triggers and 0.941 on global triggers, 0.845 on WaNet, at the adaptive rule over
+> 57 models (`\SurvivalTmPatchAuroc`, `\SurvivalTmGlobalAuroc`,
+> `\SurvivalTmWanetAuroc`). Token masking at the attention input ranks 2nd of 27 basis
+> placements (`paper/tables/basis_ranking.tex`). The evidence below is the record of the
+> measurement that produced the verdict.
+
 ## Result
 
 `token_mask` is one of the strongest operators at 10%, taking 3 of the top 6

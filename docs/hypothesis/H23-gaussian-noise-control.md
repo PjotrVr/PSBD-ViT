@@ -4,6 +4,16 @@
 Additive noise is not worse than structured removal. It is competitive with the
 best mask operators and ahead of most of them.
 
+> **Superseded on 2026-09-29:** the current values follow, each with its source, on the
+> 57-model ViT-B/16 panel of the 2026-09-24 build. Gaussian noise minus token masking at
+> the attention input is -0.183 [-0.237, -0.135] and noise minus channel masking there
+> -0.103 [-0.144, -0.066] at the matched 0.6 rule over 57 models, while noise after the
+> MLP norm minus token masking before it is +0.051 [+0.015, +0.087]
+> (`\GaussianMinusTokenMaskAttentionNorm`, `\GaussianMinusChannelMaskAttentionNorm`,
+> `\GaussianMinusTokenMaskMlp`). At the adaptive rule noise at the attention input reads
+> 0.839 and ranks 21st of 27 (`paper/tables/basis_ranking.tex`). The evidence below is
+> the record of the measurement that produced the verdict.
+
 ## Result
 
 ViT CIFAR-10 at 10% poisoning, matched at clean-validation sigma >= 0.6, one-sided

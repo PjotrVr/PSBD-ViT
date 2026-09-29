@@ -1,5 +1,21 @@
 # Token masking at the attention input (A) against the attention branch output (B), ViT-B/16, 2026-09-11
 
+> **Superseded on 2026-09-29:** the current values follow, each with its source. PSBD-TM
+> reads mean AUROC 0.953 against 0.888 for PSBD-RD at the adaptive 0.8 rule, a paired
+> gain of +0.065 [+0.012, +0.123] over the 57 clearing ViT-B/16 models carrying both,
+> with 2 models below chance and a floor of 0.418 (`paper/headline.tex`,
+> `\HeadlineAurocAdaptive`, `\PublishedAurocAdaptive`, `\HeadlineGainAdaptiveAuroc`). On
+> Swin-S PSBD-TM reads 0.969 over 80 models (`\SwinRecommendedAurocAdaptive`). Token
+> masking at the attention branch output (B) reads 0.951 over the same 57 models, a
+> paired -0.002 [-0.030, +0.028] against the attention input (A), -0.025 on the 31
+> selection-half models and +0.034 on the 26 reporting-half models
+> (`paper/tables/basis_ranking.tex`,
+> `\StaircaseOperatorsBeforeAttentionResidualTokenMaskGain`,
+> `\GainsSelectionHalfTwinGap`, `\GainsReportHalfTwinGap`). On Swin A leads B by +0.136
+> [+0.086, +0.187] over 80 models (`\SwinGainRecommendedMinusTwin`). The tables below
+> include the TaCT models now excluded as source-mapped. Every number below is the
+> record of its date and was not re-measured.
+
 For the authors, not for the paper. Both placements are read at the rate the 0.8 clean shift rule selects for them, fractional PSU, threshold quantile 0.25 for AUROC, TPR at the 0.10 and 0.20 clean validation quantiles. CA is clean accuracy, the benign row is the reference model trained with the same recipe. Rows with ASR below 0.85 are marked with a dagger and are outside the paper's evaluation. A dash means no sweep for that placement.
 
 ## CIFAR-10, 1% poisoning

@@ -7,58 +7,76 @@ residual stream is the one obvious place to put that perturbation. A transformer
 block offers many places and many kinds of perturbation, and this project measures
 which choice works.
 
-Models are ViT-B/16 and Swin-S. The panel covers CIFAR-10, CIFAR-100, GTSRB, Tiny
-ImageNet, SVHN and EuroSAT against 10 backdoor attacks, including an adaptive
-attacker trained against the defense.
+Models are ViT-B/16 and Swin-S. The paper reads 4 datasets, CIFAR-10, CIFAR-100,
+GTSRB and Tiny ImageNet, against 10 backdoor attacks, including an adaptive
+attacker trained against the defense. SVHN and EuroSAT were trained only to host
+SIG and are declared out of the panel in `configs/psbd_basis.json`.
 
 **The paper is the record.** `paper/` holds the draft, its generated tables and its
 figures, all built from `results/` by `scripts/paper/`. No number in it is typed by
-hand. `docs/open-questions.md` lists what the evidence does not yet support.
+hand. Every number below is a macro in `paper/headline.tex` from the build of
+2026-09-24, and `scripts/check_stale_numbers.py` fails when this file quotes an
+earlier build. `docs/open-questions.md` lists what the evidence does not yet support.
 
 ## The result
 
-Where the perturbation goes decides whether the method works at all. Masking whole
-tokens at the input of every attention block reaches a mean AUROC of **0.935**
-against **0.832** for the placement the original paper used, dropout on the residual
-stream after the add. That is a paired gain of **+0.103** with a 95% bootstrap
-interval of [+0.048, +0.160] over the models that carry the full basis, and the gain
-grows as poisoning falls, which is the regime a defender cares about most.
+Where the perturbation goes decides how well the method works. Masking whole tokens
+at the input of every attention block (PSBD-TM) reaches a mean AUROC of **0.953** at
+the adaptive 0.8 rule against **0.888** for PSBD-RD, dropout on the residual stream
+after both adds, which is our adaptation of the placement the original paper used on
+ConvNets. That is a paired gain of **+0.065** with a 95% bootstrap interval of
+[+0.012, +0.123] over the 57 models that carry both placements (`\HeadlineAurocAdaptive`,
+`\PublishedAurocAdaptive`, `\HeadlineGainAdaptiveAuroc`). The gain is largest where
+poisoning is lowest, +0.150 at 1% against -0.015 at 10%, which is the regime a
+defender cares about most. PSBD-TM transfers to Swin-S at 0.969 over 80 models.
 
-Position and operator both matter and neither reduces to the other. Holding the site
-fixed and swapping token masking for Gaussian noise costs **0.206**. Holding the
-operator fixed and moving from the attention input to the MLP input costs **0.109**.
-The project's founding claim, that dropout before the residual add beats dropout
-after it, is **refuted** at matched shift ratio
-([H1](docs/hypothesis/H1-pre-beats-post.md)).
+Position and operator both matter. Holding the site fixed at the attention input and
+swapping token masking for Gaussian noise costs **0.183** AUROC at the matched 0.6
+rule (`\GaussianMinusTokenMaskAttentionNorm`). Holding the operator fixed and moving
+from the attention input to the MLP input costs **0.110**
+(`\AttentionInputMinusMlpInputTokenMask`). The project's founding claim, that dropout
+before the residual add beats dropout after it, is **refuted**: pre minus post reads
+-0.009 [-0.036, +0.015] at the adaptive rule (`\PreMinusPostAdaptive`,
+[H1](docs/hypothesis/H1-pre-beats-post.md)).
 
-The reason is mechanical. A backdoor in a ViT is 1 direction in the residual stream,
-written in the last third of the network and routed through attention from the
-trigger's own tokens to the class token. Removing whole tokens before attention
-removes that route. Noise at the same site is absorbed by the LayerNorm behind it.
+The reason is measured on the BadNets models (`experiments/why_token_masking_works/`).
+At its adaptive rate PSBD-TM changes 0.87 of clean predictions and 0.04 of triggered
+ones, where PSBD-RD changes 0.61 of the triggered ones. Masking only the trigger's
+tokens in every block leaves 0.002 of triggered predictions standing and masking as
+many random tokens leaves 1.000. Masking the trigger only in blocks 1 to 4 changes
+nothing, because a masked token keeps its entry in the residual stream, and the class
+token reads the trigger in blocks 9 to 12. The LayerNorm at the attention input
+absorbs 0.179 of a Gaussian disturbance and none of a token mask.
 
 The original paper's account, that perturbation shifts clean predictions toward the
-attacker's target class, holds on ViT only for local triggers on datasets with few
-classes. It is absent for global triggers such as Blend and TaCT, while detection
-works in both cases, so that account is attack dependent on ViT rather than the
-mechanism. An earlier headline of +0.258 for `gain_scale` at `mlp_norm_out` stays
-**withdrawn** ([the audit](docs/audit-2026-09-07.md)).
+attacker's target class, holds on ViT for BadNets, BPP, LF and WaNet and is absent
+for Blend, SIG and TaCT, whose excess over the benign reference stays under 0.02 on
+every dataset (`\ShiftToTargetNoDriftAttacks`). Detection works in both groups, so
+that account describes some attacks rather than the statistic's mechanism. An
+earlier headline of +0.258 for `gain_scale` at `mlp_norm_out` stays **withdrawn**
+([the audit](docs/audit-2026-09-07.md)).
 
 ### The panel, and what it excludes
 
-Read from `results/coverage/COVERAGE.md`, the tracked view of the coverage ledger.
+Read from `results/coverage/coverage.json` over the 4 panel datasets, the same
+counts `paper/headline.tex` carries as `\PanelCells*`.
 
 | | cells |
 |---|---:|
-| trained | 105 |
-| diverged, clean accuracy below half the benign reference | 3 |
-| below the attack success bar of 0.85 | 31 |
-| clearing the bar | 71 |
-| of those, carrying 18 or more basis placements | 65 |
+| declared | 98 |
+| diverged, clean accuracy below half the benign reference | 1 |
+| TaCT, clean source class mapped to the target with no trigger | 8 |
+| below the attack success bar of 0.85 | 30 |
+| clearing the bar | 59 |
+| of those, carrying both headline placements | 57 |
 
-The headline reads on those 65. 2 of them invert, both on CIFAR-10 at 10% poisoning.
-Adaptive-Blend never clears the attack success bar at any rate, so no Adaptive-Blend
-model enters the detection numbers despite being the 1 attack in the set built to
-evade this kind of detector.
+The headline reads on those 57. 2 of them invert under PSBD-TM, WaNet and SIG on
+CIFAR-10 at 10% poisoning, and the lowest reads 0.418 (`\HeadlineFloorAuroc`). The 2
+clearing cells without a sweep (`vit_gtsrb_tact_0_01_cos`,
+`vit_gtsrb_lc_0_05_tl1_adv`) and 6 multi-source TaCT retrains are queued on GPU, so
+every panel number moves when they land. Adaptive-Blend never clears the attack
+success bar at any rate, so no Adaptive-Blend model enters the detection numbers
+despite being the 1 attack in the set built to evade this kind of detector.
 
 ## Installation
 
@@ -269,7 +287,15 @@ There is no system LaTeX, so `pdflatex` and `latexmk` will not work.
 .venv/bin/ruff format <files> && .venv/bin/ruff check <files>
 .venv/bin/python scripts/prose_audit.py <paths>        # the style rules
 .venv/bin/python scripts/prose_audit.py --gate <paths> # exit 1 on any hit
+.venv/bin/python scripts/check_stale_numbers.py        # exit 1 on a superseded headline number
 ```
+
+`check_stale_numbers.py` collects every earlier value of the headline macros from the
+git history of `paper/headline.tex` and reports a tracked markdown file or notebook
+that still quotes one of them as current. A dated record is exempt once it opens
+with a `Superseded on <date>` status line. A match that is not a stale claim goes in
+`scripts/stale_numbers_allowlist.txt` with its reason. The same script holds the
+headline paragraphs of `.claude/CLAUDE.md` to the current macros.
 
 `prose_audit.py` reads Python comments and docstrings, markdown bodies and LaTeX
 sections, and checks the rules in `.claude/styles/`: no semicolons, no em dashes,
@@ -292,5 +318,6 @@ PYTHONPATH=. .venv/bin/jupyter lab
 `docs/` holds the working record: `docs/hypothesis/` has every pre-registered
 hypothesis with its verdict, `docs/runs/` has the training and sweep logs and
 `docs/detectors/` documents each port. Several documents under `docs/results/`
-predate the current panel and still quote the retired 48-cell numbers, so treat
-`paper/` as authoritative wherever the 2 disagree.
+predate the current panel. Each of them opens with a `Superseded on <date>` status
+line naming the current value and its source, so treat `paper/` as authoritative
+wherever the 2 disagree.

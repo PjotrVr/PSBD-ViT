@@ -1,5 +1,12 @@
 # Why PSBD fails on all-to-all, and a label-free way to know
 
+> **Superseded on 2026-09-29:** the current values follow, each with its source. Over
+> the 12 all-to-all cells of the current record PSU reads mean AUROC 0.411 and negative
+> entropy 0.761, against 0.891 and 0.408 on the all-to-one cells of the same record, and
+> entropy reads 0.506 on the benign references (`\ATwoaPsuAuroc`, `\ATwoaEntropyAuroc`,
+> `\ATwooPsuAuroc`, `\ATwooEntropyAuroc`, `\BenignEntropyAuroc`). The analysis below is
+> the record of 2026-09-07.
+
 Status: 2026-09-07. ViT evidence complete. **The ResNet-18 replication confirms the
 limitation belongs to the method, not to the ViT adaptation.**
 

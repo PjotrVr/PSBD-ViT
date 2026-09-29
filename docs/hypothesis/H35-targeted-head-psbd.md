@@ -7,6 +7,13 @@ or gaussian noise (0.950). Adding the 2 badnet-specific late heads brings the
 5-head mean to 0.60 with high variance across attacks (0.46 to 0.75). Targeted
 head masking is not a viable PSBD operator.
 
+> **Superseded on 2026-09-29:** the current values follow, each with its source, on the
+> 57-model ViT-B/16 panel of the 2026-09-24 build. The dropout reference of 0.911 below
+> is the 48-cell reading. PSBD-TM reads 0.953 over 57 models and whole-head masking
+> 0.896 over 37 (`\HeadlineAurocAdaptive`, `\AttentionHeadMaskAuroc`). The targeted-head
+> readings below are from their own experiment and were not re-run. The evidence below
+> is the record of the measurement that produced the verdict.
+
 Evidence: `experiments/head_profile/targeted_head_psbd.py`, results in
 `results/targeted_head_psbd.json`.
 

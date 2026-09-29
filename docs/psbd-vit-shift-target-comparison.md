@@ -1,5 +1,17 @@
 # Which clean-validation shift ratio should the tables be read at?
 
+> **Superseded on 2026-09-29:** the current values follow, each with its source. The
+> canon reads the deployable rule as `select_rate_adaptively` at 0.8 and compares
+> placements with `select_rate_at_matched_shift` at 0.6 (`defenses/decision.py`,
+> `configs/psbd_basis.json`). On the 57-model panel PSBD-TM reads 0.953 at the adaptive
+> rule and 0.936 at the matched rule (`\HeadlineAurocAdaptive`,
+> `\HeadlineAurocMatched`), its twin at the attention branch output 0.951, and their
+> union 0.973, +0.021 over PSBD-TM alone (`paper/tables/basis_ranking.tex`,
+> `\ProbeUnionTmBranchAuroc`, `\ProbeUnionTmBranchGain`). The comparison below was run
+> on 67 cells in 2026-09 and read each placement at the rate nearest the target rather
+> than at the canonical adaptive rule, so every number in it is historical. Its verdict,
+> report at 0.8, is the canon.
+
 2 different quantities were being used interchangeably in this repo, and they answer
 different questions.
 

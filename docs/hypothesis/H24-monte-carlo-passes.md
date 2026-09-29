@@ -3,6 +3,15 @@
 **Status: CONFIRMED, both predictions.** k = 20 was run and the gain is real and
 concentrated at low poison rate, exactly as predicted.
 
+> **Superseded on 2026-09-29:** the current values follow, each with its source, on the
+> 57-model ViT-B/16 panel of the 2026-09-24 build. On the 19 models swept to k = 20 in a
+> rebuild of `scripts/paper/fig_forward_passes.py` on 2026-09-29 the mean AUROC of
+> PSBD-TM moves from 0.975 at k = 3 to 0.977 at k = 20, a gain of +0.002 (the tracked
+> `\PassPilotCells` reads 17 and grows as k = 20 jobs land), and on all 57 models it
+> reads 0.941, 0.950 and 0.953 at k = 1, 2 and 3 (`\PassAllAurocKOne` to
+> `\PassAllAurocKThree`). The evidence below is the record of the measurement that
+> produced the verdict.
+
 ## Result of the paid half
 
 `before_attention_norm`, rate matched at clean-validation sigma >= 0.6, one-sided

@@ -88,7 +88,8 @@ Shows how `scripts/paper/build_all.py` regenerates every table and figure in
 `paper/` from `results/` in 1 pass, and how it refuses a chapter that
 carries a number no generator produced. Reads `results/coverage/coverage.json`
 to show the attack-success and clean-accuracy bar that decides which of the
-105 trained models enter a detection table, and works through 2 kinds of
+declared panel models, 98 in the build of 2026-09-24 (`\PanelCellsTotal`), enter a
+detection table, and works through 2 kinds of
 mistakes that have previously produced a wrong published number, a comparison
 between 2 placements read at unmatched disturbance and a stage-2 record
 left stale by a regenerated stage-1 cache, together with the checks now in
@@ -137,7 +138,8 @@ against the `results/` and `checkpoints/` on disk when they were committed,
 and the 4 figure notebooks did the same when they were added. Nothing was
 skipped or stubbed out. The one place a number in a notebook can drift from
 the paper's own published figure is the model count in `placement-walk`: the
-paper's headline table is frozen at a fixed commit, 65 models, while
+paper's headline table is frozen at a fixed commit, 57 models in the build of
+2026-09-24 (`\GainsModels`), while
 `results/` keeps growing between that commit and whenever the notebook next
 runs, so a later run can read a slightly larger set without the ranking
 changing. The notebook states this rather than pretending to match the frozen

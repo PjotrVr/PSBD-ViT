@@ -1,8 +1,14 @@
 # Negative Results
 
-> **Superseded.** Written against the 48-cell panel. The current numbers are in
-> `paper/` and the panel accounting is in `results/coverage/COVERAGE.md`. Retained
-> for the record. Its numbers moved but its conclusions stand, the p* and combined-position negative findings do not depend on the panel size that has since grown to 105 cells.
+> **Superseded on 2026-09-29:** the current values follow, each with its source. PSBD-TM
+> (`before_attention_norm_token_mask`) reads mean AUROC 0.953 against 0.888 for PSBD-RD
+> (`post_residual`), both at the adaptive 0.8 rule, a paired gain of +0.065 [+0.012,
+> +0.123] over the 57 clearing ViT-B/16 models that carry both, with 2 models below
+> chance and a floor of 0.418 (`paper/headline.tex`, `\HeadlineAurocAdaptive`,
+> `\PublishedAurocAdaptive`, `\HeadlineGainAdaptiveAuroc`, `\HeadlineFloorAuroc`). The
+> p* and combined-position negative findings below were not re-measured on the current
+> panel. Written against the 48-cell panel and retained for the record, so every number
+> below this line is historical.
 
 Documenting what did NOT work, so the reasoning is preserved and the same dead ends are not revisited.
 
@@ -32,7 +38,7 @@ Documenting what did NOT work, so the reasoning is preserved and the same dead e
 
 **Result.** Rank 13/27. Mean AUROC 0.839, mean 1% AUROC 0.797. Zero inversions (same as token_mask @ before_attention_norm) but 0.072 lower mean AUROC and 0.107 lower 1% AUROC.
 
-**Why.** The backdoor direction is non-axis-aligned in attention-head space (H16). Masking one head out of 12 removes 1/12 of each dimension of the representation. If the backdoor direction is evenly spread across heads, removing one head removes only 1/12 of the backdoor signal, which is too little to flip the prediction for low-confidence poisoned samples.
+**Why.** The backdoor direction is non-axis-aligned in attention-head space (H16). Masking 1 head out of 12 removes 1/12 of each dimension of the representation. If the backdoor direction is evenly spread across heads, removing 1 head removes only 1/12 of the backdoor signal, which is too little to flip the prediction for low-confidence poisoned samples.
 
 **Implication.** Head-level granularity is too coarse. Token masking at the computation input is more effective because it removes entire spatial patches, which can eliminate the trigger entirely for spatially concentrated attacks.
 
@@ -52,7 +58,7 @@ Documenting what did NOT work, so the reasoning is preserved and the same dead e
 
 **Why.** The Jacobian (and therefore the optimal perturbation site) depends on the learned weights, which vary with dataset complexity and the number of classes. A 100-class dataset learns different attention patterns from a 10-class one.
 
-**Implication.** Do not assume a position that wins on one dataset will win on another. Recommend configurations based on worst-case robustness (minimum AUROC floor, zero inversions) rather than best-case performance on one dataset.
+**Implication.** Do not assume a position that wins on one dataset will win on another. Recommend configurations based on worst-case robustness (minimum AUROC floor, zero inversions) rather than best-case performance on 1 dataset.
 
 ## 6. Prediction 3 refuted: input-side positions invert MORE, not less
 

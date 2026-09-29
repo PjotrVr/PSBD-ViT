@@ -1,8 +1,12 @@
 # Swin Transformer Detection Analysis
 
-> **Superseded.** Written against the 48-cell panel. The current numbers are in
-> `paper/` and the panel accounting is in `results/coverage/COVERAGE.md`. Retained
-> for the record. This is a provisional CIFAR-100-only Swin comparison from before the panel grew to its current size, so its mean AUROC figures for `token_mask @ before_attention_norm` should not be read against the paper's ViT headline of 0.935.
+> **Superseded on 2026-09-29:** the current values follow, each with its source. On
+> Swin-S PSBD-TM reads 0.969 over 80 models against 0.860 for PSBD-RD over 83, a paired
+> gain of +0.115 [+0.070, +0.162] over 80 (`\SwinRecommendedAurocAdaptive`,
+> `\SwinPublishedAurocAdaptive`, `\SwinGainRecommendedMinusPublished`). This document is
+> a provisional CIFAR-100-only Swin comparison from before the Swin panel existed.
+> Written against the 48-cell panel and retained for the record, so every number below
+> this line is historical.
 
 How well do the ViT findings transfer to Swin-S? Tested on CIFAR-100 with 3
 operators and 6 dropout positions. All numbers: fractional PSU, sigma-matched
@@ -10,7 +14,7 @@ operators and 6 dropout positions. All numbers: fractional PSU, sigma-matched
 
 **Status: PROVISIONAL, CIFAR-100 only.** The operator comparison is complete
 for CIFAR-100 (13 cells each for token_mask and gain_scale, 12 for dropout).
-Datasets beyond CIFAR-100, CIFAR-10, GTSRB, and Tiny are not yet tested for
+Datasets beyond CIFAR-100, CIFAR-10, GTSRB and Tiny are not yet tested for
 non-dropout operators on Swin.
 
 **Key finding: token_mask is the best operator on Swin, matching ViT.** The
@@ -20,7 +24,7 @@ avoids entirely.
 
 ## Operator comparison on CIFAR-100
 
-All three operators at their best positions, 13 required cells each (excluding
+All 3 operators at their best positions, 13 required cells each (excluding
 cells where the attack failed to implant):
 
 | Operator | Position | Cells | Mean AUROC | Min | Inversions |
@@ -34,7 +38,7 @@ Token_mask beats dropout by +0.130 mean AUROC on Swin, a larger gap than on ViT
 0.783 on badnet_a2o at 1% where token_mask scores 0.993, and dropout inverts on
 WaNet (0.258 and 0.294) where token_mask stays above chance (0.703 and 0.623).
 
-### Head-to-head: all three operators on matched cells
+### Head-to-head: all 3 operators on matched cells
 
 | Poison | Attack | token_mask | gain_scale | dropout |
 |---|---|---:|---:|---:|
@@ -54,7 +58,7 @@ WaNet (0.258 and 0.294) where token_mask stays above chance (0.703 and 0.623).
 
 Token_mask is the best operator on 10/13 cells. Gain_scale ties or beats on 3
 cells (lc at 1% and 10%, wanet at 5%). Dropout is best on 0 cells. The
-two dropout inversions on WaNet (0.258, 0.294) are the most severe failures in
+2 dropout inversions on WaNet (0.258, 0.294) are the most severe failures in
 the table.
 
 ### Updated recommendation
@@ -176,7 +180,7 @@ Same operator and position (dropout @ before_attention_norm) on CIFAR-100:
 | adaptive_blend 10% | 0.926 | 0.951 | +0.025 |
 
 Updated with sigma-matched rates. Swin outperforms ViT on 7/9 paired cells with
-dropout. The two exceptions are both WaNet, where Swin inverts worse than ViT
+dropout. The 2 exceptions are both WaNet, where Swin inverts worse than ViT
 (0.258 vs 0.505 at 5%, 0.294 vs 0.547 at 10%). The dropout operator is
 especially bad for WaNet on Swin: Swin's stochastic depth (active in training,
 identity in eval) may make the WaNet spatial deformation more entangled with the
@@ -191,7 +195,7 @@ whether WaNet inverts.
 WaNet is the hardest attack for all operators on both architectures. The best
 Swin result on WaNet (token_mask, 0.703 at 5%) is still substantially below
 the non-WaNet mean (0.958). WaNet's spatial deformation does not create a
-strong, localized backdoor direction; it distributes a small perturbation
+strong, localized backdoor direction. It distributes a small perturbation
 across all tokens, making it harder for any perturbation-based detector to
 separate.
 

@@ -4,6 +4,14 @@
 (static patch) and is reversed for the other 3. `pre_residual` is also not the
 best placement available: it ranks 4th of 11.
 
+> **Superseded on 2026-09-29:** the current values follow, each with its source, on the
+> 57-model ViT-B/16 panel of the 2026-09-24 build. Pre minus post dropout reads -0.009
+> [-0.036, +0.015] at the adaptive rule and -0.009 [-0.048, +0.031] at the matched rule
+> over 57 models (`\PreMinusPostAdaptive`, `\PreMinusPostMatched`). Pre-residual dropout
+> ranks 14th of the 27 basis placements at 0.878 and post-residual dropout 13th at 0.888
+> (`paper/tables/basis_ranking.tex`). The evidence below is the record of the
+> measurement that produced the verdict.
+
 ## Claim
 
 Placing PSBD's dropout on each transformer branch just before the residual add

@@ -48,9 +48,10 @@ removed from the test data, because that is a variant of P1 and P3 together.
 
 This project's analogue of a label is the poison membership of a test input,
 which is exact by construction, so the pitfall does not transfer directly. The
-prohibition does transfer to the attack-success bar. Removing 31 of 105 cells
-because the attack failed and 3 because training diverged is a defensible
-population restriction. `paper/sections/setup.tex` argues it, and it becomes a P2
+prohibition does transfer to the attack-success bar. Removing 30 of 98 cells
+because the attack failed, 1 because training diverged and 8 TaCT cells because the
+clean source class maps to the target with no trigger is a defensible population
+restriction (`\PanelCellsTotal` with `\PanelCellsDiverged` and `\PanelCellsSourceMapped`). `paper/sections/setup.tex` argues it, and it becomes a P2
 violation the moment the removed cells are not counted and characterized in
 the paper. The counts are there, the behavior of the detector on a weak or
 absent backdoor is not.
@@ -250,38 +251,38 @@ $$\text{precision} = \frac{\pi \cdot TPR}{\pi \cdot TPR + (1 - \pi) \cdot FPR}$$
 and the number of false alarms per true catch is $(1 - \pi) FPR / (\pi \cdot
 TPR)$. The 3 operating points below are this project's own measured values at
 the recommended placement under the adaptive 0.8 rule, read from
-`paper/headline.tex`: TPR 0.602 at the 1% budget
-(`\HeadlineTprAtOnePercent`), 0.766 at the 10% budget and 0.835 at the 20%
+`paper/headline.tex` of the 2026-09-24 build over 57 models: TPR 0.714 at the 1%
+budget (`\HeadlineTprAtOnePercent`), 0.873 at the 10% budget and 0.902 at the 20%
 budget (`\StaircaseOperatorsBeforeAttentionNormTokenMaskTprAtOneZeroPercent` and
-its 20% sibling).
+its 20% sibling). The false-positive rate is taken at its nominal budget.
 
 | prevalence of triggered inputs | precision at 1% budget | precision at 10% budget | precision at 20% budget | false alarms per catch at 20% |
 |---|---:|---:|---:|---:|
-| 0.5, the paired evaluation | 0.984 | 0.885 | 0.807 | 0.2 |
-| 0.1 | 0.870 | 0.460 | 0.317 | 2.2 |
-| 0.01 | 0.378 | 0.072 | 0.041 | 23.7 |
-| 0.001 | 0.057 | 0.008 | 0.004 | 239.3 |
-| 0.0001 | 0.006 | 0.001 | 0.000 | 2395.0 |
+| 0.5, the paired evaluation | 0.986 | 0.897 | 0.819 | 0.2 |
+| 0.1 | 0.888 | 0.492 | 0.334 | 2.0 |
+| 0.01 | 0.419 | 0.081 | 0.044 | 22.0 |
+| 0.001 | 0.067 | 0.009 | 0.004 | 221.5 |
+| 0.0001 | 0.007 | 0.001 | 0.000 | 2217.1 |
 
 The headline operating point is the third column. At the 1 to 1 prevalence the
-evaluation uses it reads a precision of 0.807, and at a prevalence of 1 triggered
+evaluation uses it reads a precision of 0.819, and at a prevalence of 1 triggered
 query in 1000 the same detector with the same TPR delivers a precision of 0.004,
-which is 239 clean inputs rejected for every triggered input caught. The drop is
+which is 221 clean inputs rejected for every triggered input caught. The drop is
 not a property of this detector. It is the identity above, and it is why
 Axelsson's conclusion inverts the usual ranking of TPR against FPR.
 
 The inverse direction is the number a deployer actually asks for. To reach a
 precision of 0.5 at a prevalence of 0.001, the false-positive rate must fall to
-8.4e-4 at the measured TPR of 0.835, which is 238 times tighter than the 20%
-budget and 12 times tighter than the smallest budget the sweep currently reads.
-To reach a precision of 0.9 at the same prevalence it must fall to 9.3e-5. A
+9.0e-4 at the measured TPR of 0.902, which is 222 times tighter than the 20%
+budget and 11 times tighter than the smallest budget the sweep currently reads.
+To reach a precision of 0.9 at the same prevalence it must fall to 1.0e-4. A
 1000-fold reduction in the false-positive rate is not a tuning exercise, and
 saying so plainly is stronger than reporting a number that implies otherwise.
 
 The workload framing that Arp et al. ask for is 1 sentence. At 100000
 queries a day and a prevalence of 0.001 the 20% budget rejects 19980 clean
-queries to catch 83 of the 100 triggered ones, while the 1% budget rejects 999
-to catch 60. That comparison is what lets a reader decide whether the extra 23
+queries to catch 90 of the 100 triggered ones, while the 1% budget rejects 999
+to catch 71. That comparison is what lets a reader decide whether the extra 19
 catches are worth the extra 18981 rejections, and no reader can compute it from
 AUROC.
 
@@ -312,7 +313,7 @@ a 1 to 1 pairing creates.
 
 That gives the defensible position for this project's chosen 3 metrics. AUROC is
 prevalence-free, which is the right property for the paper's actual question,
-because the paper compares 27 placements of a probe across 69 cells and asks
+because the paper compares 27 placements of a probe across 57 models and asks
 which perturbation separates poisoned from clean inputs better. A
 prevalence-dependent metric would make that comparison a function of an
 arbitrary chosen prevalence, and Arp et al.'s own caution about inflated
@@ -325,7 +326,8 @@ enough detail to reproduce it, which here is the quantile of 2000 clean
 validation scores with the quantile equal to the budget. Report the realized
 false-positive rate beside the nominal budget, per cell and as a spread, because
 a quantile of 2000 samples applied to a different sample gives a random variable
-and Q27 measures its range on this panel as 0.009 to 0.333. Say that the
+and Q27 measures its range on this panel as 0.009 to 0.288 at the headline quantile
+0.25. Say that the
 evaluation population is 1 clean input to 1 triggered input and that no reported
 number is a deployment precision. Give the base rate conversion once, as the
 table above, so a reader can move from the reported TPR and FPR to a precision
@@ -475,8 +477,8 @@ Testing Significance with Multiple Datasets", TACL 2017
 (https://aclanthology.org/Q17-1033/), whose companion practical protocol is Dror
 et al., "The Hitchhiker's Guide to Testing Statistical Significance in Natural
 Language Processing", ACL 2018 (https://aclanthology.org/P18-1128/). The
-replicability question is the one this panel actually asks: on how many of the 69
-cells does the placement win, rather than what is the mean gain. Reporting a
+replicability question is the one this panel actually asks: on how many of the 57
+models does the placement win, rather than what is the mean gain. Reporting a
 count of wins with FDR control beside the mean paired difference answers both.
 
 The reporting standard, as opposed to the mathematics, has 4 parts and they are
@@ -491,7 +493,8 @@ therefore shares resample indices at equal sample size, making Monte Carlo error
 common-mode rather than independent evidence. Report the coverage each number is
 read on, because Q26 records a table whose n column and AUROC column are over
 each placement's own coverage while the gain column is over the intersection, so
-differencing the printed AUROC column gives -0.052 against a true paired -0.063.
+differencing the printed AUROC column gives -0.029 against a true paired -0.053 for
+the blocks 1 to 4 band (`experiments/doc_recomputes/band_subpanel.py`).
 
 For a panel with cells excluded by a quality bar there is no single citation, and
 the 3 sources above combine into 1 requirement. Arp et al.'s prohibition on
@@ -499,12 +502,12 @@ removing uncertain instances from test data, TESSERACT's spatial constraint and
 the SoK's complaint about behavior when no backdoor is present all ask for the
 same artifact: a flow from every cell trained to every cell reported, with the
 reason for each exclusion, and a characterization of the excluded population.
-This project has the flow, 105 cells to 71 clearing the bar to 69 comparable to
-65 with the full basis, printed in `results/coverage/COVERAGE.md` and
-`paper/sections/setup.tex`, and does not have the characterization. The 31
-below-bar cells are models with a weak or absent backdoor, which is the false
-alarm case a deployer meets most often, and Q28 records 2 clearing cells where
-the deployable rule selects no rate at all.
+This project has the flow, 98 cells to 59 clearing the bar to 57 carrying both
+headline placements, with 1 diverged and 8 source-mapped TaCT cells excluded, printed
+in `results/coverage/COVERAGE.md` and `paper/sections/setup.tex`, and does not have
+the characterization. The 30 below-bar cells are models with a weak or absent
+backdoor, which is the false alarm case a deployer meets most often, and Q28 records
+the 3 Swin cells where the deployable rule selects no rate at all.
 
 ## Reproducibility and artifact standards
 
@@ -576,21 +579,21 @@ canonical entry in `docs/open-questions.md`, which this table does not restate.
 | Interval says what it is over, and is over models for a claim about models (Bouthillier, NeurIPS Q7) | yes, paired over models with 5000 resamples, stated in `paper/sections/setup.tex` | none |
 | Independent randomness per bootstrap interval | **no**, every interval reuses seed 0 | Q31. Seed per comparison. Costs no compute |
 | Table columns a reader can difference (matched coverage) | **no** | Q26. Print the paired gain and its own n, or restrict the AUROC column to the intersection |
-| The matched-shift comparison device is actually matched | **no**, off target by more than 0.10 in 34 of 71 cells | Q25. `interpolate_at_target_shift` exists and has no consumer outside the tests |
+| The matched-shift comparison device is actually matched | **no**, PSBD-RD is off target by more than 0.10 on 30 of 57 models | Q25. `interpolate_at_target_shift` exists and has no consumer outside the tests |
 | Realized false-positive rate reported beside the nominal budget (Arp P7, Carlini 2022) | **no**, `detection_report` returns `fpr` and no table in `paper/` prints it | Q27. Add a realized-FPR column with its spread. Costs no compute |
 | Tie artifacts at the threshold checked for the headline method | **no**, `threshold_diagnostics` is called only from `cli/baselines.py` and the tests | Call it for PSBD in `cli/analyze.py` and report `tie_share_at_threshold` |
-| TPR at a low budget of 1% or below reported (Carlini 2022, BaDExpert, STRIP) | **no**, the paper reports 10% and 20% only | Q17. `\HeadlineTprAtOnePercent` already reads 0.602 and `fig_shift_ladder.py` already uses the `q0.01` block. Promote it into the headline table |
+| TPR at a low budget of 1% or below reported (Carlini 2022, BaDExpert, STRIP) | **no**, the paper reports 10% and 20% only | Q17. `\HeadlineTprAtOnePercent` already reads 0.714 and `fig_shift_ladder.py` already uses the `q0.01` block. Promote it into the headline table |
 | Evaluation prevalence stated, and stated as not a deployment number (Arp P8, TESSERACT spatial) | **no** | Add 1 sentence naming the 1 to 1 pairing as a conditional |
 | Base rate conversion given so a reader can reach a deployment precision (Arp P8, Axelsson) | **no** | Add the prevalence table of this document to the setup or the limitations section |
 | Precision or AUPRC computed at all | **no**, `configs/psbd_basis.json` lists `auprc` in `required_metrics` and nothing in `defenses/` computes it | Add `auprc` and `achieved_fpr` to `detection_report`, or drop them from the declared protocol |
 | Bounded AUC or log-scale ROC for the low-FPR region (Arp P8, Carlini 2022) | **no** | Bound the AUC at the largest budget reported, or plot 1 log-scale ROC. The cached per-pass probabilities support both |
 | Deployment mode named, given a 20% rejection rate | **no** | Say whether the 20% point is offline triage or a human-in-the-loop filter |
 | Published method reimplemented and run on every cell (Arp P6) | yes, `post_residual` is swept per cell as its own baseline | none |
-| State-of-the-art competitors on the reported panel (Arp P6) | **no**, 3 GTSRB models with 500 validation images | Finish the `cli.baselines` run on the 69 comparable cells |
-| A simple baseline of unperturbed confidence or entropy (Arp P6) | **no**, the artifact is missing | Q8. Regenerate `results/psu_vs_confidence.json` on a GPU |
+| State-of-the-art competitors on the reported panel (Arp P6) | yes, 11 ported detectors on the 57 compared models, PSBD-TM 1st of 13 (`\DetectorsComparedModels`, `\DetectorsAurocRankOurs`) | none |
+| A simple baseline of unperturbed confidence or entropy (Arp P6) | yes, the confidence-null record over 28 checkpoints reads PSU 0.887 against 0.658 for confidence (`\ConfidenceNullPsuAuroc`, `\ConfidenceNullAuroc`), and `confidence` is a registered detector | none |
 | Benign-model control that can fail (Arp P4) | **no**, a benign model reads about 0.5 under either sign | Q22. Replace with the backdoored-model reading |
-| Behavior on models with a weak or absent backdoor reported (SoK, Arp P2) | **no**, the 31 below-bar cells are counted and not characterized | Read the detector on the below-bar cells and report the false alarm rate there |
-| Cells where the deployable rule selects nothing reported | **no** | Q28. 2 of 71 cells. 1 sentence in the limitations section |
+| Behavior on models with a weak or absent backdoor reported (SoK, Arp P2) | **no**, the 30 below-bar cells are counted and not characterized | Read the detector on the below-bar cells and report the false alarm rate there |
+| Cells where the deployable rule selects nothing reported | **no** | Q28. 0 of 57 ViT models and 3 Swin cells. 1 sentence in the limitations section |
 | Adaptive white-box attacker against the defense (Arp P10, Carlini 2019, Tramer) | yes, `paper/sections/robustness.tex`, PSBD-TM falls to 0.233 and the paper says so | none |
 | Adaptive attacker against the configuration the paper recommends deploying (Tramer, Veldanda pitfall 3) | **no**, the union of 3 probes is never attacked | Train the hinge-loss attacker against the min-rank union. Needs GPU |
 | Non-adaptive evasion, a trigger built to survive token masking | **no** | Already the mentor's standing request, shortlist at `literature/README-attack-survey-2026-09-23.md` |
@@ -602,10 +605,10 @@ canonical entry in `docs/open-questions.md`, which this table does not restate.
 | Detector runtime cost reported (SoK, Arp P9) | yes, forward passes and seconds per input in `paper/sections/appendix.tex` | none |
 | Total compute for the project reported (NeurIPS Q8) | **no**, per-model training time only | Sum the PBS accounting into 1 figure |
 | Dataset limits stated openly (Arp P1) | yes, first paragraph of `paper/sections/limitations.tex` | none |
-| A dataset outside the small-image regime (SoK) | **no**, 6 datasets all upscaled to 224 pixels | Out of scope for this deadline. State it as a boundary rather than fixing it |
+| A dataset outside the small-image regime (SoK) | **no**, 4 panel datasets, all upscaled to 224 pixels | Out of scope for this deadline. State it as a boundary rather than fixing it |
 | Multiple training seeds with dispersion (SoK, Bouthillier) | partly, 3 seeds on 14 cells moving PSBD-TM by 0.012 | Report the 14-cell seed spread beside the headline rather than only in the robustness section |
 | Every published number traceable to a clean commit (ACM, USENIX Available) | **no** | Q9, Q10, Q11, Q14. Regenerate all artifacts from 1 clean commit before submission |
-| Every artifact a table reads present on disk (USENIX Functional) | **no**, 2 records missing and 15 macros unregenerable | Q7, Q8. Needs GPU |
+| Every artifact a table reads present on disk (USENIX Functional) | yes, the 2 records Q7 and Q8 called missing had moved under `results/_experiments/` and `experiment_artifact` resolves them | none |
 | Archived release with a DOI or tag (ACM Available, USENIX Available) | unknown, not checked | Tag the submission commit and deposit on Zenodo |
 | Splits, hyperparameters and how they were chosen documented (NeurIPS Q6) | yes, `configs/psbd_basis.json` plus `app:protocol` | none |
 | Competitor ports cross-checked numerically against their reference (Arp P6) | yes, required by `CLAUDE.md` and present per detector | none |
@@ -616,24 +619,25 @@ canonical entry in `docs/open-questions.md`, which this table does not restate.
 `pair_clean_to_backdoor` is the correct control for isolating the trigger and it
 fixes the prevalence at 0.5, so every reported TPR and FPR is conditional on a
 population no deployment has. A reviewer who computes the table in the base rate
-section gets a precision of 0.004 at a prevalence of 0.001 and 239 false alarms
+section gets a precision of 0.004 at a prevalence of 0.001 and 221 false alarms
 per catch, and the paper currently gives that reviewer no sentence to land on.
 This is first because it is the cheapest to fix and the most damaging if a
 reviewer finds it before the authors state it.
 
-**2. Reporting a fixed-FPR number whose realized FPR is a 38-fold range.** The
+**2. Reporting a fixed-FPR number whose realized FPR is a 32-fold range.** The
 threshold is a quantile of 2000 validation scores and the false-positive rate is
-realized on a different sample, so Q27's measured span of 0.009 to 0.333 means
-the headline TPR at a 10% budget averages true-positive rates measured at
-false-positive rates from 1% to 33%. `detection_report` already returns the
+realized on a different sample, so Q27's measured span of 0.009 to 0.288 at the
+headline quantile 0.25 means a TPR at a fixed budget averages true-positive rates
+measured at different false-positive rates. At the 10% budget the realized rate
+spans 0.000 to 0.116 (`\RealizedFprOneZeroMin`, `\RealizedFprOneZeroMax`). `detection_report` already returns the
 realized `fpr` and no table prints it, so the paper asserts a matched comparison
 it has the data to show is unmatched. This is second because the defect is in the
 central number and the fix needs no compute.
 
 **3. A placement chosen on the models it is reported on.** `configs/psbd_basis.json`
 declares selection on CIFAR-10 and GTSRB and reporting on CIFAR-100 and Tiny, and
-Q20 shows the recommended placement loses -0.029 to its twin on the selection
-half and wins +0.028 on the reporting half, so the protocol applied literally
+Q20 shows the recommended placement loses -0.025 to its twin on the selection
+half and wins +0.034 on the reporting half, so the protocol applied literally
 picks the twin. Arp et al. name this as test snooping and rate it the second most
 prevalent pitfall in the field at 73%. It is third rather than first because the
 gain over the published placement survives every re-derivation in the audit, so

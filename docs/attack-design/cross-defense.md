@@ -138,7 +138,7 @@ So the family is unified, and H-A is right that it is unified. It is wrong about
 **what** unifies it. Each statistic is a functional of the restriction of `p` to the
 **orbit** of `(x, theta)` under `D`. It is not a functional of `p(x)`.
 
-`p(x)` enters in exactly one of 2 ways, and neither is one an attacker can exploit
+`p(x)` enters in exactly one of 2 ways, and neither is a way an attacker can exploit
 by matching a distribution:
 
 - as the **reference index** `c = C(x)` (PSBD, SCALE-UP, IBD-PSC, TeCo). This is an
@@ -342,7 +342,7 @@ pipeline for an attacker to remove.
 against it.** A backdoor parked at `P_c = 0.6` is by construction a low-margin
 prediction, so `Cons_{D_dep}(x_trig)` is low for any real channel. LSBA reports ASR
 on clean digital inputs only and never measures channel robustness, so its
-"essentially free" price tag is measured in the one place the cost does not appear.
+"free" price tag is measured in the one place the cost does not appear.
 Predicted, and testable on the checkpoints we would train anyway: an LSBA-style
 backdoor should lose far more ASR under JPEG, resize and Gaussian noise than a
 vanilla one, and the size of that gap is the honest price of evading the family.
@@ -530,7 +530,7 @@ So a triggered population that is perfectly and legitimately indistinguishable f
 clean target-class data would already read as strongly collapsed, because the
 denominator is the all-class population. The measure is substantially detecting
 "these inputs were all assigned to 1 class", which is a real backdoor signal but a
-much more mundane one than "the trigger induces an exotic low-dimensional geometry".
+much more mundane explanation than "the trigger induces an exotic low-dimensional geometry".
 
 2 consequences.
 
@@ -1111,7 +1111,10 @@ Blunt, as requested.
 
 - **H28 and `docs/theory-perturbation-consistency.md`:** PSBD, STRIP, SCALE-UP and
   IBD-PSC are 4 estimators of **1 quantity**, differing only in `Sigma` and where
-  they evaluate `H`. Position variance 1.43x operator variance, Kendall tau 0.700.
+  they evaluate `H`. Position variance read 1.43x operator variance with Kendall tau 0.700
+  on the 48-cell panel. On the 57-model panel the position over operator range ratio is
+  0.60 at the matched rule with Gaussian noise included and 1.14 over the masks
+  (`\PositionOverOperatorRatioMatched`, `\PositionOverOperatorRatioMasksMatched`).
 - **H41:** probe diversity is defense in depth, because an attacker who constrains 1
   probe leaves the others free.
 
@@ -1133,8 +1136,8 @@ document lists as genuinely new, at number 3.
 
 | claim | why it is safe |
 |---|---|
-| Position dominates operator, 1.43x variance ratio, Kendall tau 0.700 (H28) | A methodological claim about the design space. No adaptive attacker bears on it |
-| Gaussian noise matches the best structured masks at 0.950 (H23) | Same, and it is a statement about what the mechanism is not |
+| Position dominates operator, 1.43x variance ratio and Kendall tau 0.700 on the 48-cell panel (H28). On the 57-model panel the range ratio is 0.60 with noise included and 1.14 over the masks at the matched rule (`\PositionOverOperatorRatioMatched`, `\PositionOverOperatorRatioMasksMatched`), so the claim holds only among the masks | A methodological claim about the design space. No adaptive attacker bears on it |
+| Gaussian noise matched the best structured masks at 0.950 on the 2026-08 CIFAR-10 sweep (H23). On the 57-model panel noise at the attention input trails token masking there by 0.183 at the matched rule (`\GaussianMinusTokenMaskAttentionNorm`) and leads it only after the MLP norm (H47) | Same, and it is a statement about what the mechanism is not |
 | Structured, unit-aligned masking is a dead end (H18, H22, H26, H35) | 4 negative results plus a causal ablation |
 | PSBD's published neuron-bias mechanism is refuted, 0.0000 against 0.0100 (H7) | A negative result about a published **explanation**, not a robustness claim |
 | The rate rule overshoots on ViT, 12 of 12 (H11) | Tuning, not security |

@@ -1,16 +1,23 @@
 # Combined Position Test (both_sublayer_inputs)
 
-> **Superseded.** Written against the 48-cell panel. The current numbers are in
-> `paper/` and the panel accounting is in `results/coverage/COVERAGE.md`. Retained
-> for the record. The 48/48 coverage figure and the mean AUROC values here predate the 105-cell rebuild, and `both_sublayer_inputs` is not the current recommended placement.
+> **Superseded on 2026-09-29:** the current values follow, each with its source. PSBD-TM
+> (`before_attention_norm_token_mask`) reads mean AUROC 0.953 against 0.888 for PSBD-RD
+> (`post_residual`), both at the adaptive 0.8 rule, a paired gain of +0.065 [+0.012,
+> +0.123] over the 57 clearing ViT-B/16 models that carry both, with 2 models below
+> chance and a floor of 0.418 (`paper/headline.tex`, `\HeadlineAurocAdaptive`,
+> `\PublishedAurocAdaptive`, `\HeadlineGainAdaptiveAuroc`, `\HeadlineFloorAuroc`). Token
+> masking at both sublayer inputs, the placement tested here, reads 0.927 over the same
+> 57 models and ranks 4th of 27 (`paper/tables/basis_ranking.tex`). Written against the
+> 48-cell panel and retained for the record, so every number below this line is
+> historical.
 
 ## Hypothesis
 
-Both `before_attention_norm` and `before_mlp_norm` are computation inputs (one to the attention sublayer, one to the MLP sublayer). If the backdoor direction propagates through both sublayers, perturbing both inputs simultaneously should compound the detection signal by disrupting two distinct processing stages in each block.
+Both `before_attention_norm` and `before_mlp_norm` are computation inputs (one to the attention sublayer, one to the MLP sublayer). If the backdoor direction propagates through both sublayers, perturbing both inputs simultaneously should compound the detection signal by disrupting 2 distinct processing stages in each block.
 
 ## Configuration
 
-`both_sublayer_inputs` in `DROPOUT_CONFIGS` maps to `("before_attention_norm", "before_mlp_norm")`. Two perturbation sites per block instead of one. Tested with both dropout and token_mask operators, at 48/48 coverage across all 4 datasets, 3 poison rates, and the 5-attack panel.
+`both_sublayer_inputs` in `DROPOUT_CONFIGS` maps to `("before_attention_norm", "before_mlp_norm")`. 2 perturbation sites per block instead of one. Tested with both dropout and token_mask operators, at 48/48 coverage across all 4 datasets, 3 poison rates and the 5-attack panel.
 
 ## Result: NEGATIVE
 
@@ -72,7 +79,7 @@ Mean delta: -0.006 (near wash, slight losses on badnet).
 
 1. **The MLP norm input carries less backdoor signal.** Token masking at before_mlp_norm is equivalent to dropping tokens AFTER the attention sublayer has already mixed them. Attention is where token interactions happen, so by the time tokens reach the MLP input, the backdoor information has been spread across all tokens and is harder to disrupt with local masking.
 
-2. **Double perturbation at matched sigma means each site gets half the perturbation strength.** To reach the same sigma (shift ratio) with two sites instead of one, each site needs a lower perturbation rate. This means the effective perturbation at before_attention_norm (the useful site) is weaker than it would be alone.
+2. **Double perturbation at matched sigma means each site gets half the perturbation strength.** To reach the same sigma (shift ratio) with 2 sites instead of one, each site needs a lower perturbation rate. This means the effective perturbation at before_attention_norm (the useful site) is weaker than it would be alone.
 
 3. **On Tiny ImageNet, the combined position hurts most.** Tiny has 200 classes and lower overall confidence, so the reduced per-site perturbation strength matters more. The dilution effect is proportionally larger.
 
@@ -85,11 +92,11 @@ The same pattern holds with dropout instead of token_mask:
 | dropout @ before_attention_norm | 0.770 | 0.841 | 0.895 |
 | dropout @ both_sublayer_inputs | 0.815 | 0.888 | 0.915 |
 
-With dropout, the combined position is slightly better than the single position on both datasets. This reversal happens because dropout's unstructured removal is less sensitive to the dilution effect: random feature dropping at two sites does not split the effective rate the same way token masking does. However, both dropout configurations are far below token_mask, so this does not change the recommendation.
+With dropout, the combined position is slightly better than the single position on both datasets. This reversal happens because dropout's unstructured removal is less sensitive to the dilution effect: random feature dropping at 2 sites does not split the effective rate the same way token masking does. However, both dropout configurations are far below token_mask, so this does not change the recommendation.
 
 ## Verdict
 
-Do not combine positions. Use `before_attention_norm` alone with `token_mask`. The combination does not compound the signal; it dilutes it. The before_mlp_norm site adds noise without proportional information because it perturbs tokens after attention has already redistributed the backdoor evidence across the sequence.
+Do not combine positions. Use `before_attention_norm` alone with `token_mask`. The combination does not compound the signal. It dilutes it. The before_mlp_norm site adds noise without proportional information because it perturbs tokens after attention has already redistributed the backdoor evidence across the sequence.
 
 ## Source
 

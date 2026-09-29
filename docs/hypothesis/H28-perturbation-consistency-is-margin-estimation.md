@@ -10,6 +10,14 @@ p >= 0.200), but layer-wise growth is highly consistent (159x from layer 1 to
 12, all 16 checkpoints). See `docs/results/direction-norm-analysis.md`.
 Prediction 2 untested (needs coefficient extraction per operator).
 
+> **Superseded on 2026-09-29:** the current values follow, each with its source, on the
+> 57-model ViT-B/16 panel of the 2026-09-24 build. The position over operator range
+> ratio is 0.60 at the matched rule with Gaussian noise included, 1.14 over the masking
+> operators only, and 1.26 and 2.84 at the adaptive rule
+> (`\PositionOverOperatorRatioMatched` and its 3 siblings). The Kendall tau and
+> inversion shares below were not re-measured. The evidence below is the record of the
+> measurement that produced the verdict.
+
 > **Panel note.** The inversion evidence cited below (`badnet_a2o` at 1% reading
 > 0.194) is 1 attack. The asymmetry account predicts inversion wherever the
 > backdoor direction's coefficient is small, so it must be checked against

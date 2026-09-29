@@ -2,6 +2,13 @@
 
 **Status: REFUTED as stated. The consolation claim is PROVISIONAL.**
 
+> **Superseded on 2026-09-29:** the current values follow, each with its source, on the
+> 57-model ViT-B/16 panel of the 2026-09-24 build. At the adaptive rule over 57 models
+> channel masking reads 0.921 at the attention input against 0.902 for dropout there,
+> and 0.820 at the attention branch output against 0.848
+> (`paper/tables/basis_ranking.tex`). The evidence below is the record of the
+> measurement that produced the verdict.
+
 > The refutation is panel-backed: `channel_mask` loses to dropout at every matched
 > position, averaged over 8 attacks. That stands.
 >

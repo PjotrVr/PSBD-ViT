@@ -3,6 +3,16 @@
 **Status: PARTIALLY REFUTED, and the exception is the most important result in the
 ledger.**
 
+> **Superseded on 2026-09-29:** the current values follow, each with its source, on the
+> 57-model ViT-B/16 panel of the 2026-09-24 build and its records. Among clean
+> predictions that PSBD-TM shifts at the matched 0.6 rule, the target class takes a mean
+> share of 0.197 over all clearing models against 0.002 on the benign references, a
+> paired excess of +0.196 [+0.125, +0.274] (`\ShiftToTargetShareAll`,
+> `\ShiftToTargetBenignShare`, `\ShiftToTargetExcessAll`). The excess stays under 0.02
+> on every dataset for Blend, SIG and TaCT and reaches +0.996 for WaNet on GTSRB
+> (`\ShiftToTargetNoDriftAttacks`, `\ShiftToTargetLargestExcess`). The evidence below is
+> the record of the measurement that produced the verdict.
+
 ## Claim
 
 PSBD's central mechanistic observation on ResNet-18 is that among clean samples

@@ -1,5 +1,16 @@
 # Adaptive Attacker Analysis (H25)
 
+> **Superseded on 2026-09-29:** the current values follow, each with its source. On the
+> 14 evasive ViT models that keep attack success above 0.9 the probed operator falls
+> from 0.966 to 0.233, the unprobed operators read 0.893 and the best probe union 0.967
+> with TPR 0.97 at a realized FPR of 0.26, at a mean clean-accuracy cost of 0.030
+> (`\AdaptiveVitProbedBase`, `\AdaptiveVitProbedEvade`, `\AdaptiveVitTransfer`,
+> `\AdaptiveVitUnion`, `\AdaptiveVitUnionTpr`, `\AdaptiveVitUnionFpr`,
+> `\AdaptiveVitCaCost`). PSBD-TM reads 0.953 on the 57 ordinary panel models
+> (`\HeadlineAurocAdaptive`). The analysis below read every placement at the matched
+> sigma 0.6 rule on the 48-cell adaptive-attacker matrix, so every number in it is
+> historical.
+
 An attacker who trains against PSBD can evade the specific operator it trained against, but the evasion does not transfer to operators it has never seen. This is the core finding: operator diversity provides defense in depth.
 
 All numbers: fractional PSU, sigma-matched (sigma >= 0.6), one-sided (low PSU = poisoned). No max(AUROC, 1-AUROC).
@@ -15,7 +26,7 @@ All numbers: fractional PSU, sigma-matched (sigma >= 0.6), one-sided (low PSU = 
 
 ## Success criteria
 
-All three required simultaneously:
+All 3 required simultaneously:
 
 | Quantity | Requirement | Result |
 |---|---|---|
@@ -104,7 +115,7 @@ Blend at 1% and 5% resists the evasion more than other attacks (AUROC 0.680 and 
 
 ## Transfer table
 
-The central question: does evasion against one operator transfer to others?
+The central question: does evasion against 1 operator transfer to others?
 
 ### ViT CIFAR-100 (ASR > 0.9)
 
@@ -268,7 +279,7 @@ For the probed operator (token_mask on ViT CIFAR-100), checking AUROC at ALL swe
 | adaptive_blend 10% | 0.50 | 0.775 | 0.039 | 0.966 |
 | adaptive_blend 10% | 0.70 | 0.967 | 0.048 | 0.943 |
 
-For badnet, blend 10%, and adaptive_blend, the evasive model's AUROC is below 0.05 at every rate. The PSBD paper's suggestion (Appendix Section 7) that increasing the dropout rate counters the adaptive attacker does not hold for an attacker who trains against the operator family rather than a fixed rate.
+For badnet, blend 10% and adaptive_blend, the evasive model's AUROC is below 0.05 at every rate. The PSBD paper's suggestion (Appendix Section 7) that increasing the dropout rate counters the adaptive attacker does not hold for an attacker who trains against the operator family rather than a fixed rate.
 
 **Exception: blend at low poison rates.** Blend 1% peaks at 0.777 AUROC (rate 0.60) and blend 5% at 0.949 (rate 0.70). The evasion is partial because blend's distributed trigger interacts with every patch simultaneously, making the PSU harder to suppress without changing the model's response to the entire input. But even these partial evasions bring the probed AUROC down from 0.945/0.989 baseline.
 
@@ -282,7 +293,7 @@ For badnet, blend 10%, and adaptive_blend, the evasive model's AUROC is below 0.
 - **badnet_a2a at 1%**: ASR 0.01-0.51. All-to-all at 1% poison rate is too dilute.
 - **lc at various rates**: ASR 0.23-0.78. Clean-label struggles at low rates.
 
-The evasion penalty does not help or hurt these attacks; they fail for the same reasons they fail without evasion.
+The evasion penalty does not help or hurt these attacks. They fail for the same reasons they fail without evasion.
 
 ## Source
 

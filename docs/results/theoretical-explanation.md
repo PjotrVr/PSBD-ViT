@@ -1,12 +1,21 @@
 # Theoretical explanation: why the results make sense
 
-> **Superseded.** Written against the 48-cell panel. The current numbers are in
-> `paper/` and the panel accounting is in `results/coverage/COVERAGE.md`. Retained
-> for the record. The claim that input-side positions beat residual-adjacent positions by +0.054 because they are less likely to invert is refuted by the current panel, which reads +0.005 [-0.010, +0.023] once the operator is held fixed.
+> **Superseded on 2026-09-29:** the current values follow, each with its source. PSBD-TM
+> (`before_attention_norm_token_mask`) reads mean AUROC 0.953 against 0.888 for PSBD-RD
+> (`post_residual`), both at the adaptive 0.8 rule, a paired gain of +0.065 [+0.012,
+> +0.123] over the 57 clearing ViT-B/16 models that carry both, with 2 models below
+> chance and a floor of 0.418 (`paper/headline.tex`, `\HeadlineAurocAdaptive`,
+> `\PublishedAurocAdaptive`, `\HeadlineGainAdaptiveAuroc`, `\HeadlineFloorAuroc`). The
+> input-side against residual-adjacent gap is +0.006 [-0.011, +0.026] at the matched 0.6
+> rule and +0.026 [-0.003, +0.058] at the adaptive rule, token masking at every
+> position, over 57 models (`scripts/paper/tab_family_split.py` rerun on 2026-09-29, a
+> generator the paper build leaves out, so the value is not in `paper/headline.tex`),
+> which refutes the +0.054 below. Written against the 48-cell panel and retained for the
+> record, so every number below this line is historical.
 
 ## Core claim (H28: perturbation consistency is margin estimation)
 
-All perturbation-consistency backdoor detectors (PSBD, IBD-PSC, SCALE-UP, STRIP) are fundamentally one method: they measure the decision margin by applying perturbations and observing prediction stability. The perturbation operator only sets the Jacobian of the perturbation-to-logit mapping. The key equation is:
+All perturbation-consistency backdoor detectors (PSBD, IBD-PSC, SCALE-UP, STRIP) are fundamentally 1 method: they measure the decision margin by applying perturbations and observing prediction stability. The perturbation operator only sets the Jacobian of the perturbation-to-logit mapping. The key equation is:
 
 $$\text{PSU} = P_{\text{clean}}(y \mid x) - \mathbb{E}_{\text{perturbation}}[P(y \mid x_{\text{perturbed}})]$$
 

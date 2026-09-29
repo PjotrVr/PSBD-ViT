@@ -3,6 +3,15 @@
 **Status: the band premise is SUPPORTED (6/6). The onset-based selection rule is
 REFUTED by a pre-registered out-of-sample test, 0/2.**
 
+> **Superseded on 2026-09-29:** the current values follow, each with its source, on the
+> 57-model ViT-B/16 panel of the 2026-09-24 build. At the matched 0.6 rule over 57
+> models pre-residual dropout in blocks 5 to 8 beats all blocks by +0.051 [+0.024,
+> +0.079], blocks 9 to 12 by +0.039 [-0.005, +0.080] and blocks 1 to 4 loses by -0.071
+> [-0.091, -0.051]. Token masking at the attention input loses in every band, -0.117,
+> -0.070 and -0.050 for blocks 1 to 4, 5 to 8 and 9 to 12
+> (`\BandOneFourMinusAllResidual` and its 5 siblings). The evidence below is the record
+> of the measurement that produced the verdict.
+
 Restricting pre-residual dropout to a band of blocks always beats applying it to all
 12. But the onset layer does **not** predict which band (in either direction), and the
 rule that appeared to work was fitted to 4 points.

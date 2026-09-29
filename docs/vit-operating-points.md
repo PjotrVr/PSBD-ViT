@@ -1,8 +1,15 @@
 # ViT-B/16 detection at deployment operating points
 
-> **Superseded.** Written against the 48-cell panel. The current numbers are in
-> `paper/` and the panel accounting is in `results/coverage/COVERAGE.md`. Retained
-> for the record. Its numbers moved but its conclusions stand.
+> **Superseded on 2026-09-29:** the current values follow, each with its source. PSBD-TM
+> (`before_attention_norm_token_mask`) reads mean AUROC 0.953 against 0.888 for PSBD-RD
+> (`post_residual`), both at the adaptive 0.8 rule, a paired gain of +0.065 [+0.012,
+> +0.123] over the 57 clearing ViT-B/16 models that carry both, with 2 models below
+> chance and a floor of 0.418 (`paper/headline.tex`, `\HeadlineAurocAdaptive`,
+> `\PublishedAurocAdaptive`, `\HeadlineGainAdaptiveAuroc`, `\HeadlineFloorAuroc`). At
+> the q0.10 threshold PSBD-TM reads mean TPR 0.873 at a realized clean FPR of 0.093, and
+> 0.714 at the 1% budget (`\DetectorsTprOneZeroOurs`, `\RealizedFprOneZero`,
+> `\HeadlineTprAtOnePercent`). Written against the 48-cell panel and retained for the
+> record, so every number below this line is historical.
 
 `token_mask @ before_attention_norm`, the recommended configuration. Probe rate chosen
 per cell as the one whose clean-validation shift ratio is closest to 0.8. PSU variant

@@ -1,11 +1,17 @@
 # Perturbation consistency as curvature estimation
 
-> **Superseded.** Written against the 48-cell panel. The current numbers are in
-> `paper/` and the panel accounting is in `results/coverage/COVERAGE.md`. Retained
-> for the record. The Gaussian noise result it treats as the project's most
-> consequential finding (prediction 1, H23) is now recorded as a refutation of
-> a broader mechanism claim rather than a confirmation, so the framing of
-> "removal is not required" no longer carries the headline result.
+> **Superseded on 2026-09-29:** the current values follow, each with its source. PSBD-TM
+> (`before_attention_norm_token_mask`) reads mean AUROC 0.953 against 0.888 for PSBD-RD
+> (`post_residual`), both at the adaptive 0.8 rule, a paired gain of +0.065 [+0.012,
+> +0.123] over the 57 clearing ViT-B/16 models that carry both, with 2 models below
+> chance and a floor of 0.418 (`paper/headline.tex`, `\HeadlineAurocAdaptive`,
+> `\PublishedAurocAdaptive`, `\HeadlineGainAdaptiveAuroc`, `\HeadlineFloorAuroc`).
+> Gaussian noise minus token masking at the attention input is -0.183 [-0.237, -0.135]
+> at the matched 0.6 rule (`\GaussianMinusTokenMaskAttentionNorm`). The Gaussian noise
+> result this document treats as its most consequential finding (prediction 1, H23) is
+> recorded as a refutation of a broader mechanism claim, so its framing that removal is
+> not required no longer carries the headline. Written against the 48-cell panel and
+> retained for the record, so every number below this line is historical.
 
 The contribution this project can make that no prior paper makes is not a better
 detector. It is a statement about what the whole family of perturbation

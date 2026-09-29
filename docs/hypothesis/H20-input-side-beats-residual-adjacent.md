@@ -3,6 +3,16 @@
 **Status: SUPPORTED.** +0.054 deployable AUROC, 4.0 standard errors from zero, higher
 on 11 of 12 units, on a fully balanced panel.
 
+> **Superseded on 2026-09-29:** the current values follow, each with its source, on the
+> 57-model ViT-B/16 panel of the 2026-09-24 build. With token masking at every position
+> the input-side minus residual-adjacent gap is +0.006 [-0.011, +0.026] at the matched
+> 0.6 rule and +0.026 [-0.003, +0.058] at the adaptive rule over 57 models, and with
+> dropout at every position it is -0.080 [-0.098, -0.061] matched and -0.019 [-0.038,
+> +0.001] adaptive (`scripts/paper/tab_family_split.py` rerun on 2026-09-29, a generator
+> the paper build leaves out). Pre minus post dropout is -0.009 [-0.036, +0.015]
+> (`\PreMinusPostAdaptive`). The +0.054 below does not hold on the current panel. The
+> evidence below is the record of the measurement that produced the verdict.
+
 ## Claim
 
 This project was founded on a binary: dropout **before** the residual add

@@ -1,5 +1,13 @@
 # Breaking PSBD with a trigger rather than with a loss term
 
+> **Superseded on 2026-09-29:** the current values follow, each with its source. PSBD-TM
+> reads mean AUROC 0.953 against 0.888 for PSBD-RD at the adaptive 0.8 rule over the 57
+> clearing ViT-B/16 models carrying both, and 0.936 at the matched 0.6 rule
+> (`\HeadlineAurocAdaptive`, `\PublishedAurocAdaptive`, `\HeadlineAurocMatched`). The
+> measurements below were read on 2026-09-23 on the 71 clearing cells of that day, which
+> include SVHN, EuroSAT and the TaCT models now excluded as source-mapped, and were not
+> re-measured on the 57-model panel.
+
 The rest of `docs/attack-design/` attacks PSBD with an objective the attacker
 optimizes against the detector. This file asks the harder question: what does a
 backdoor have to be, as data and as a training rule, for prediction shift

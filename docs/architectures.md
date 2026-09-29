@@ -196,7 +196,7 @@ a perturbation injected after it is not.
   from `\ErasureAsrBeforeMean` to `\ErasureAsrAfterAllWritesMean`, editing only
   blocks 10 and 11 leaves `\ErasureAsrAfterBlocksOneZeroOneOneMean`, and Blend on
   CIFAR-100 survives. Dropout on the stream is the published PSBD placement and
-  it ranks 5 of 13 defenses on ViT (`\DetectorsAurocRankPublished`), because it
+  it ranks 4th of 13 defenses on ViT (`\DetectorsAurocRankPublished`), because it
   perturbs the class token itself on clean and triggered inputs alike.
 
 ### MLP and its hidden units

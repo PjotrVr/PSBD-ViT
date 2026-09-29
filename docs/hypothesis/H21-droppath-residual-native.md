@@ -2,6 +2,13 @@
 
 **Status: CONFIRMED, including the part that predicted it would lose.**
 
+> **Superseded on 2026-09-29:** the current values follow, each with its source, on the
+> 57-model ViT-B/16 panel of the 2026-09-24 build. DropPath is outside the basis and was
+> not re-measured. The comparison points below, dropout at the same position and the
+> best configuration of 2026-08, are historical. PSBD-TM reads 0.953 over 57 models at
+> the adaptive rule (`\HeadlineAurocAdaptive`). The evidence below is the record of the
+> measurement that produced the verdict.
+
 ## Result
 
 `droppath` / `before_attention_residual` scores 0.860 at 10% poisoning (matched

@@ -1,5 +1,18 @@
 # Best placement per attack, ViT-B/16, 2026-09-11
 
+> **Superseded on 2026-09-29:** the current values follow, each with its source. PSBD-TM
+> reads mean AUROC 0.953 against 0.888 for PSBD-RD at the adaptive 0.8 rule, a paired
+> gain of +0.065 [+0.012, +0.123] over the 57 clearing ViT-B/16 models carrying both,
+> with 2 models below chance and a floor of 0.418 (`paper/headline.tex`,
+> `\HeadlineAurocAdaptive`, `\PublishedAurocAdaptive`, `\HeadlineGainAdaptiveAuroc`). On
+> Swin-S PSBD-TM reads 0.969 over 80 models (`\SwinRecommendedAurocAdaptive`). Per
+> attack PSBD-TM reads 0.992 on BadNets, 0.978 on Blend, 0.948 on BPP, 0.980 on LF,
+> 0.962 on TaCT, 0.845 on WaNet and 0.418 on the 1 SIG model, against 0.712, 0.971,
+> 0.945, 0.974, 0.563, 0.956 and 0.919 for PSBD-RD (`\SurvivalTmBadnetATwooAuroc`,
+> `\SurvivalRdBadnetATwooAuroc` and their siblings). The TaCT section below includes the
+> models now excluded as source-mapped. Every number below is the record of its date and
+> was not re-measured.
+
 Read-only note for the authors, not for the paper. Models are the ViT-B/16 checkpoints on CIFAR-10, CIFAR-100, GTSRB and Tiny ImageNet whose attack success is at least 0.85. Every AUROC is the fractional PSU reading (the paper's statistic) at the rate the 0.8 shift ratio rule selects, the same field `scripts/paper/tab_headline.py` reads. Reach is the share of those models on which the placement's rate ladder reaches a clean validation shift ratio of 0.8 at all. A placement that never reaches it on a model is not read on that model, which is why n can be below the model count.
 
 ## BadNets (12 models)

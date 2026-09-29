@@ -1,8 +1,18 @@
 # Attack-Specific Analysis
 
-> **Superseded.** Written against the 48-cell panel. The current numbers are in
-> `paper/` and the panel accounting is in `results/coverage/COVERAGE.md`. Retained
-> for the record. 2 of its 3 "top 3 configurations" no longer hold, `gain_scale @ mlp_norm_out` is the withdrawn +0.258 headline and `dropout @ pre_residual` is the refuted founding placement, only `token_mask @ before_attention_norm` remains current.
+> **Superseded on 2026-09-29:** the current values follow, each with its source. PSBD-TM
+> (`before_attention_norm_token_mask`) reads mean AUROC 0.953 against 0.888 for PSBD-RD
+> (`post_residual`), both at the adaptive 0.8 rule, a paired gain of +0.065 [+0.012,
+> +0.123] over the 57 clearing ViT-B/16 models that carry both, with 2 models below
+> chance and a floor of 0.418 (`paper/headline.tex`, `\HeadlineAurocAdaptive`,
+> `\PublishedAurocAdaptive`, `\HeadlineGainAdaptiveAuroc`, `\HeadlineFloorAuroc`). Of
+> the 3 configurations compared below only `token_mask @ before_attention_norm` is
+> current. The +0.258 `gain_scale @ mlp_norm_out` headline is withdrawn
+> (`docs/audit-2026-09-07.md`) and `dropout @ pre_residual` is the refuted founding
+> placement (`docs/hypothesis/H1-pre-beats-post.md`). The current per-attack readings
+> are `\SurvivalTm*Auroc` and `\SurvivalRd*Auroc` in `paper/headline.tex`. Written
+> against the 48-cell panel and retained for the record, so every number below this line
+> is historical.
 
 Per-attack detection patterns across the top 3 configurations (token_mask @ before_attention_norm, gain_scale @ mlp_norm_out, dropout @ pre_residual) on CIFAR-100 and Tiny ImageNet.
 
@@ -61,7 +71,7 @@ Detection difficulty: hard. WaNet is consistently the hardest attack to detect a
 WaNet warps the entire image with a learned deformation field. Unlike BadNet or Blend, the trigger is not an additive patch or pattern but a global spatial transformation. This means the trigger is distributed across all patches and all frequencies.
 
 Key patterns:
-- **Does not implant at 1%.** On CIFAR-100 (ASR 0.044), Tiny (ASR 0.379), CIFAR-10 (ASR 0.123), and GTSRB (ASR 0.032), WaNet fails to implant a functional backdoor at 1% poison rate. The warping transformation is too subtle to override the clean features at this rate.
+- **Does not implant at 1%.** On CIFAR-100 (ASR 0.044), Tiny (ASR 0.379), CIFAR-10 (ASR 0.123) and GTSRB (ASR 0.032), WaNet fails to implant a functional backdoor at 1% poison rate. The warping transformation is too subtle to override the clean features at this rate.
 - **token_mask is the best operator.** Token masking at before_attention_norm achieves 0.900 AUROC on CIFAR-100 at 10% and 0.934/0.955 on Tiny at 5%/10%. Token masking disrupts the spatial coherence of the warping, which is its distinguishing feature.
 - **gain_scale struggles.** On GTSRB, gain_scale inverts on WaNet: 0.459 at 5%, 0.479 at 10%. The LayerNorm amplification mechanism does not distinguish WaNet's distributed deformation from clean image variation on GTSRB, where the images already have high spatial variability (traffic signs at various angles).
 - **dropout @ pre_residual is decent** (0.684 to 0.934 at 10% depending on dataset) because it disrupts the residual stream's representation of the warped spatial structure.

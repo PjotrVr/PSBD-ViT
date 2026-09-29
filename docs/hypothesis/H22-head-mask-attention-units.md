@@ -3,6 +3,12 @@
 **Status: REFUTED.** Attention heads are not a privileged unit for this statistic,
 and the early smoke number that looked promising did not survive the full sweep.
 
+> **Superseded on 2026-09-29:** the current values follow, each with its source, on the
+> 57-model ViT-B/16 panel of the 2026-09-24 build. Masking whole attention heads reads
+> mean AUROC 0.896 over the 37 clearing models that carry the probe, at the adaptive
+> rule (`\AttentionHeadMaskAuroc`), against 0.953 for PSBD-TM. The evidence below is the
+> record of the measurement that produced the verdict.
+
 ## Result
 
 `head_mask` / `attention_heads` scores **0.886** at 10% poisoning (matched sigma

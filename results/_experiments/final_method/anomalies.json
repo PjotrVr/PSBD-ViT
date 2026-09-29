@@ -1,0 +1,272 @@
+{
+  "experiment": "anomalies of the min rule at 1% FPR and of TaCT calibration",
+  "collapse_rule": {
+    "tpr_drop": 0.2,
+    "auroc_floor": 0.95
+  },
+  "collapses_on_panel": [
+    "vit_cifar100_blend_0_01",
+    "vit_cifar10_badnet_a2o_0_1",
+    "vit_cifar10_blend_0_05"
+  ],
+  "min_rule": [
+    {
+      "folder": "vit_cifar100_blend_0_01",
+      "rates": {
+        "before_attention_norm_token_mask": 0.5,
+        "pre_residual_blocks_5_8": 0.8
+      },
+      "validation_size": 2000,
+      "min_threshold_q0.01": 0.004999999888241291,
+      "tie_share_at_threshold": 0.0010000000474974513,
+      "validation_share_at_zero": 0.0010000000474974513,
+      "min_tpr_q0.01": 0.20606443285942078,
+      "min_realized_fpr_q0.01": 0.007327858358621597,
+      "min_tpr_q0.01_tiebroken": 0.23158559203147888,
+      "effective_quantile_anchor": 0.004999999888241291,
+      "effective_quantile_partner": 0.004999999888241291,
+      "anchor_alone_q0.01": {
+        "threshold": 0.3222227692604065,
+        "tpr": 0.5623499751091003
+      },
+      "anchor_alone_at_effective_quantile": {
+        "threshold": 0.09947333484888077,
+        "tpr": 0.23108023405075073
+      },
+      "partner_alone_q0.01_tpr": 0.002400505356490612,
+      "anchor_validation_psu_quantiles": {
+        "0.005": 0.09947333484888077,
+        "0.01": 0.3222227692604065,
+        "0.02": 0.5173430442810059
+      },
+      "anchor_backdoor_psu_quantiles": {
+        "0.1": 0.0542343445122242,
+        "0.5": 0.26486533880233765,
+        "0.9": 0.7969961762428284
+      }
+    },
+    {
+      "folder": "vit_cifar10_badnet_a2o_0_1",
+      "rates": {
+        "before_attention_norm_token_mask": 0.6,
+        "pre_residual_blocks_5_8": 0.9
+      },
+      "validation_size": 2000,
+      "min_threshold_q0.01": 0.005499999970197678,
+      "tie_share_at_threshold": 0.0010000000474974513,
+      "validation_share_at_zero": 0.0010000000474974513,
+      "min_tpr_q0.01": 0.0033333334140479565,
+      "min_realized_fpr_q0.01": 0.007499999832361937,
+      "min_tpr_q0.01_tiebroken": 0.004444444552063942,
+      "effective_quantile_anchor": 0.005499999970197678,
+      "effective_quantile_partner": 0.005499999970197678,
+      "anchor_alone_q0.01": {
+        "threshold": 0.04746262729167938,
+        "tpr": 0.4816666543483734
+      },
+      "anchor_alone_at_effective_quantile": {
+        "threshold": -0.09794041514396667,
+        "tpr": 0.0
+      },
+      "partner_alone_q0.01_tpr": 0.008194444701075554,
+      "anchor_validation_psu_quantiles": {
+        "0.005": -0.11467307060956955,
+        "0.01": 0.04746262729167938,
+        "0.02": 0.07520197331905365
+      },
+      "anchor_backdoor_psu_quantiles": {
+        "0.1": 0.008863082155585289,
+        "0.5": 0.05123179405927658,
+        "0.9": 0.23307852447032928
+      }
+    },
+    {
+      "folder": "vit_cifar10_blend_0_05",
+      "rates": {
+        "before_attention_norm_token_mask": 0.7,
+        "pre_residual_blocks_5_8": 0.8
+      },
+      "validation_size": 2000,
+      "min_threshold_q0.01": 0.007000000216066837,
+      "tie_share_at_threshold": 0.0010000000474974513,
+      "validation_share_at_zero": 0.0005000000237487257,
+      "min_tpr_q0.01": 0.05972222238779068,
+      "min_realized_fpr_q0.01": 0.009722222574055195,
+      "min_tpr_q0.01_tiebroken": 0.060555554926395416,
+      "effective_quantile_anchor": 0.007000000216066837,
+      "effective_quantile_partner": 0.007000000216066837,
+      "anchor_alone_q0.01": {
+        "threshold": 0.09628280997276306,
+        "tpr": 0.6401388645172119
+      },
+      "anchor_alone_at_effective_quantile": {
+        "threshold": -0.0031231576576828957,
+        "tpr": 0.0
+      },
+      "partner_alone_q0.01_tpr": 0.12819445133209229,
+      "anchor_validation_psu_quantiles": {
+        "0.005": -0.1382056623697281,
+        "0.01": 0.09628280997276306,
+        "0.02": 0.1843012571334839
+      },
+      "anchor_backdoor_psu_quantiles": {
+        "0.1": 0.0030415814835578203,
+        "0.5": 0.04408534616231918,
+        "0.9": 0.4149817228317261
+      }
+    }
+  ],
+  "tact": [
+    {
+      "folder": "vit_cifar10_tact_0_01",
+      "source_classes": [
+        1
+      ],
+      "rate": 0.8,
+      "n_source_validation": 204,
+      "n_backdoor": 796,
+      "psu_median": {
+        "validation_all": 0.8956853747367859,
+        "validation_source": 0.995197594165802,
+        "clean_paired_source": 0.995137095451355,
+        "backdoor": 0.9040517807006836
+      },
+      "by_fpr": {
+        "q0.01": {
+          "threshold_all_class": 0.515468418598175,
+          "tpr_all_class": 0.005025125574320555,
+          "realized_fpr_source_clean": 0.003768844297155738,
+          "realized_fpr_other_clean": 0.012770682573318481,
+          "threshold_source_only": 0.6560050249099731,
+          "tpr_source_only": 0.005025125574320555,
+          "realized_fpr_source_only": 0.01005025114864111,
+          "tpr_per_predicted_class": 0.0025125627871602774,
+          "realized_fpr_per_predicted_class": 0.006281407084316015
+        },
+        "q0.05": {
+          "threshold_all_class": 0.6412909626960754,
+          "tpr_all_class": 0.005025125574320555,
+          "realized_fpr_source_clean": 0.006281407084316015,
+          "realized_fpr_other_clean": 0.053720153868198395,
+          "threshold_source_only": 0.993553876876831,
+          "tpr_source_only": 1.0,
+          "realized_fpr_source_only": 0.06407035142183304,
+          "tpr_per_predicted_class": 0.007537688594311476,
+          "realized_fpr_per_predicted_class": 0.04522613063454628
+        },
+        "q0.10": {
+          "threshold_all_class": 0.7022226452827454,
+          "tpr_all_class": 0.005025125574320555,
+          "realized_fpr_source_clean": 0.013819095678627491,
+          "realized_fpr_other_clean": 0.10466407239437103,
+          "threshold_source_only": 0.9939676523208618,
+          "tpr_source_only": 1.0,
+          "realized_fpr_source_only": 0.10552763938903809,
+          "tpr_per_predicted_class": 0.01005025114864111,
+          "realized_fpr_per_predicted_class": 0.09170854091644287
+        }
+      }
+    },
+    {
+      "folder": "vit_cifar10_tact_0_05",
+      "source_classes": [
+        1
+      ],
+      "rate": 0.6,
+      "n_source_validation": 204,
+      "n_backdoor": 796,
+      "psu_median": {
+        "validation_all": 0.9416520595550537,
+        "validation_source": 0.9986933469772339,
+        "clean_paired_source": 0.9988365769386292,
+        "backdoor": 0.9719101786613464
+      },
+      "by_fpr": {
+        "q0.01": {
+          "threshold_all_class": 0.02429909259080887,
+          "tpr_all_class": 0.0,
+          "realized_fpr_source_clean": 0.005025125574320555,
+          "realized_fpr_other_clean": 0.01540810614824295,
+          "threshold_source_only": 0.941737174987793,
+          "tpr_source_only": 0.25628140568733215,
+          "realized_fpr_source_only": 0.017587939277291298,
+          "tpr_per_predicted_class": 0.30402010679244995,
+          "realized_fpr_per_predicted_class": 0.027638191357254982
+        },
+        "q0.05": {
+          "threshold_all_class": 0.18440060317516327,
+          "tpr_all_class": 0.0,
+          "realized_fpr_source_clean": 0.005025125574320555,
+          "realized_fpr_other_clean": 0.061493612825870514,
+          "threshold_source_only": 0.9898916482925415,
+          "tpr_source_only": 0.8643215894699097,
+          "realized_fpr_source_only": 0.05150753632187843,
+          "tpr_per_predicted_class": 0.4874371886253357,
+          "realized_fpr_per_predicted_class": 0.07788944989442825
+        },
+        "q0.10": {
+          "threshold_all_class": 0.3736487030982971,
+          "tpr_all_class": 0.0,
+          "realized_fpr_source_clean": 0.005025125574320555,
+          "realized_fpr_other_clean": 0.12048861384391785,
+          "threshold_source_only": 0.9960721731185913,
+          "tpr_source_only": 0.9849246144294739,
+          "realized_fpr_source_only": 0.12688441574573517,
+          "tpr_per_predicted_class": 0.5502512454986572,
+          "realized_fpr_per_predicted_class": 0.13944724202156067
+        }
+      }
+    },
+    {
+      "folder": "vit_gtsrb_tact_0_05",
+      "source_classes": [
+        1
+      ],
+      "rate": 0.5,
+      "n_source_validation": 115,
+      "n_backdoor": 605,
+      "psu_median": {
+        "validation_all": 0.966602623462677,
+        "validation_source": 0.9712520837783813,
+        "clean_paired_source": 0.9740511775016785,
+        "backdoor": 0.6268794536590576
+      },
+      "by_fpr": {
+        "q0.01": {
+          "threshold_all_class": 0.15014345943927765,
+          "tpr_all_class": 0.029752066358923912,
+          "realized_fpr_source_clean": 0.0,
+          "realized_fpr_other_clean": 0.013366583734750748,
+          "threshold_source_only": 0.8706933856010437,
+          "tpr_source_only": 0.8842975497245789,
+          "realized_fpr_source_only": 0.026446281000971794,
+          "tpr_per_predicted_class": 0.9752066135406494,
+          "realized_fpr_per_predicted_class": 0.026446281000971794
+        },
+        "q0.05": {
+          "threshold_all_class": 0.45390594005584717,
+          "tpr_all_class": 0.2297520637512207,
+          "realized_fpr_source_clean": 0.0,
+          "realized_fpr_other_clean": 0.056957606226205826,
+          "threshold_source_only": 0.9225460290908813,
+          "tpr_source_only": 0.9074380397796631,
+          "realized_fpr_source_only": 0.05289256200194359,
+          "tpr_per_predicted_class": 0.9768595099449158,
+          "realized_fpr_per_predicted_class": 0.05289256200194359
+        },
+        "q0.10": {
+          "threshold_all_class": 0.633348286151886,
+          "tpr_all_class": 0.5024793148040771,
+          "realized_fpr_source_clean": 0.0,
+          "realized_fpr_other_clean": 0.11471321433782578,
+          "threshold_source_only": 0.9361032843589783,
+          "tpr_source_only": 0.9140495657920837,
+          "realized_fpr_source_only": 0.09917355328798294,
+          "tpr_per_predicted_class": 0.9785124063491821,
+          "realized_fpr_per_predicted_class": 0.1008264496922493
+        }
+      }
+    }
+  ],
+  "wall_seconds": 4.356080621946603
+}

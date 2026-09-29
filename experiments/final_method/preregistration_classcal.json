@@ -1,0 +1,39 @@
+{
+  "written_at": "2026-09-29T22:05:30Z",
+  "written_before": "class_calibration.py read any panel model outside the development set",
+  "explored_on": "results/_experiments/final_method/class_calibration_dev.json, the 9 successful development models",
+  "disclosure": "anomalies.py had already read PSBD-TM alone on vit_cifar10_tact_0_05, outside the development set, with an unshrunk per-predicted-class threshold, before this rule was fixed.",
+  "rule": "Each probe's fractional PSU is calibrated against the clean validation images with the same unperturbed predicted class, shrunk toward the whole validation split with strength m images. Form class_percentile mixes the class CDF and the global CDF with weights n_c and m. Form class_z uses the shrunk class mean and variance. PSBD-TM alone uses its calibrated score, the final method takes the minimum or the average of the 2 calibrated scores. Every score is thresholded at a quantile of its own clean-validation values.",
+  "shrinkage": {
+    "class_percentile": 5,
+    "class_z": 5
+  },
+  "selection": "m maximizing PSBD-TM alone's mean TPR over 1%, 5% and 10% FPR on the development set, from the grid 5, 20, 50 and 200, ties to the larger m. Both forms chose 5, the edge of the grid.",
+  "confirmation_set": "rest: the 45 successful ViT panel models outside the development set, read once",
+  "predictions": [
+    {
+      "id": "CC-z-tm",
+      "text": "class_z raises PSBD-TM alone's mean TPR at each of 1%, 5% and 10% FPR over the global calibration, with the paired 95% interval excluding 0",
+      "key": "class_z/psbd_tm"
+    },
+    {
+      "id": "CC-z-final",
+      "text": "class_z raises the final method's mean TPR at each of 1%, 5% and 10% FPR under both the min and the average rule, with the paired 95% interval excluding 0",
+      "keys": ["class_z/final_min", "class_z/final_average"]
+    },
+    {
+      "id": "CC-no-harm",
+      "text": "under class_z no attack's mean TPR at 1% FPR falls by more than 0.02 for PSBD-TM alone, which is the test that the rule is more than a TaCT fix",
+      "key": "class_z/psbd_tm",
+      "bound": -0.02
+    },
+    {
+      "id": "CC-fpr",
+      "text": "under class_z the mean realized FPR stays within 0.005 of each nominal FPR for PSBD-TM alone",
+      "key": "class_z/psbd_tm",
+      "tolerance": 0.005
+    }
+  ],
+  "expected": "The development gains come from CIFAR-10 and GTSRB, where a predicted class holds 46 to 200 validation images. CIFAR-100 and Tiny ImageNet hold about 20 and 10, so the shrunk class calibration sits closer to the global one there and the gain should be smaller.",
+  "not_decided_here": "Whether class_percentile or class_z is preferred. The development set favors class_z for PSBD-TM alone and the average rule, and class_percentile hurts the average rule there."
+}

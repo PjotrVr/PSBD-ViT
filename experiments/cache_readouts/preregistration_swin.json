@@ -1,0 +1,34 @@
+{
+  "written_at": "2026-09-29T21:57:00Z",
+  "written_before": "any read of a triggered or clean-test score of the Swin-S middle band by experiments/final_method/fusion_readout.py",
+  "what_was_read_before": "Only clean-validation shift ratios, to count which Swin panel models hold a complete pre_residual_blocks_9_16 ladder and whether it reaches the adaptive target. 63 of the 65 successful Swin-S panel models (scripts.paper.tab_swin.swin_cells) hold the full 11-rate ladder from an earlier sweep, swin_cifar10_tact_0_01 and swin_cifar10_tact_0_05 do not. No detection number of the band was computed.",
+  "set": "swin_panel: scripts.paper.tab_swin.swin_cells(results, checkpoints), the successful_2pt Swin-S cells, read once after the 2 missing ladders are swept",
+  "method": {
+    "anchor": "before_attention_norm_token_mask at its adaptive rate",
+    "partner": "pre_residual_blocks_9_16 at its adaptive rate",
+    "band_reason": "Swin-S has 24 blocks in 4 stages of 2, 2, 18 and 2. cli.sweep --block-range indexes them 1 to 24 in forward order across stages (models.positions.resolve_targets), so the middle third is blocks 9 to 16, all inside stage 3 (features.5.4 to features.5.11). The ViT band pre_residual_blocks_5_8 is the middle third of 12 blocks.",
+    "rules": {
+      "min": "min of the 2 clean-validation percentiles (fusion_rules min_rank)",
+      "average": "mean of the 2 fractional PSUs (fusion_rules mean_psu)"
+    },
+    "reference": "PSBD-TM alone on the same models",
+    "thresholds": "quantile of each score's own clean-validation distribution, realized FPR read on the paired clean test split"
+  },
+  "predictions": [
+    {
+      "id": "SWIN-min-tpr",
+      "text": "under the min rule mean TPR at 1%, 5% and 10% nominal FPR is above PSBD-TM alone at each of the 3 FPRs",
+      "rule_name": "min_rank",
+      "fields": ["q0.01:tpr", "q0.05:tpr", "q0.10:tpr"],
+      "rule": "mean_difference_positive_at_every_field"
+    },
+    {
+      "id": "SWIN-average-tpr",
+      "text": "under the average rule mean TPR at 1%, 5% and 10% nominal FPR is above PSBD-TM alone at each of the 3 FPRs",
+      "rule_name": "mean_psu",
+      "fields": ["q0.01:tpr", "q0.05:tpr", "q0.10:tpr"],
+      "rule": "mean_difference_positive_at_every_field"
+    }
+  ],
+  "reporting": "Paired bootstrap 95% intervals over models (scripts.paper._common.bootstrap_ci, 5000 resamples, seed 0), AUROC beside TPR, per-attack means, and the models where a placement does not reach the adaptive target listed by name. A positive mean whose interval includes 0 is reported as not confirmed."
+}

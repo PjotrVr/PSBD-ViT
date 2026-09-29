@@ -43,7 +43,10 @@ from experiments.cache_readouts.shared import (  # noqa: E402
 from scripts.paper._common import OKABE_ITO, figure_sidecar, save_figure  # noqa: E402
 
 PSBD_TM = RECOMMENDED_PLACEMENT
+# The early band was added after the confirmation read, as a post-hoc
+# comparison of the 3 residual bands. It is not a pick.
 PARTNERS = {
+    "early_band": "pre_residual_blocks_1_4",
     "late_band": "pre_residual_blocks_9_12",
     "middle_band": "pre_residual_blocks_5_8",
     "psbd_rd": PUBLISHED_PLACEMENT,
@@ -297,7 +300,7 @@ def plot(summary, model_set, json_path):
     figure, axes = plt.subplots(
         len(HEADLINE_FPR_FIELDS),
         len(partners),
-        figsize=(16, 4 * len(HEADLINE_FPR_FIELDS)),
+        figsize=(5.5 * len(partners), 4 * len(HEADLINE_FPR_FIELDS)),
         sharey=True,
         squeeze=False,
     )

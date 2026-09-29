@@ -109,7 +109,7 @@ The scripts run on the login-node CPU and read only the caches. Wall time is eac
 |---|---|---|---|
 | `pass_statistics.py` | 15 | 47 | 84 |
 | `depth_bands.py` | 2 | 8 | 12 |
-| `fusion_rules.py` | 60 | 199 | 340 |
+| `fusion_rules.py` | 83 | 258 | 462 |
 
 ## Pre-registered picks
 
@@ -318,21 +318,27 @@ The coverage gap comes from the band itself. 15 of 54 panel models never reach t
 
 | set | rate rule | partner | models read | models missing |
 |---|---|---|---|---|
+| development set | adaptive | residual dropout, blocks 1 to 4 | 9 of 9 | 0 |
 | development set | adaptive | residual dropout, blocks 9 to 12 | 5 of 9 | 4 |
 | development set | adaptive | residual dropout, blocks 5 to 8 | 9 of 9 | 0 |
 | development set | adaptive | PSBD-RD | 9 of 9 | 0 |
+| development set | nearest | residual dropout, blocks 1 to 4 | 9 of 9 | 0 |
 | development set | nearest | residual dropout, blocks 9 to 12 | 9 of 9 | 0 |
 | development set | nearest | residual dropout, blocks 5 to 8 | 9 of 9 | 0 |
 | development set | nearest | PSBD-RD | 9 of 9 | 0 |
+| held-out confirmation set | adaptive | residual dropout, blocks 1 to 4 | 26 of 26 | 0 |
 | held-out confirmation set | adaptive | residual dropout, blocks 9 to 12 | 26 of 26 | 0 |
 | held-out confirmation set | adaptive | residual dropout, blocks 5 to 8 | 26 of 26 | 0 |
 | held-out confirmation set | adaptive | PSBD-RD | 26 of 26 | 0 |
+| held-out confirmation set | nearest | residual dropout, blocks 1 to 4 | 26 of 26 | 0 |
 | held-out confirmation set | nearest | residual dropout, blocks 9 to 12 | 26 of 26 | 0 |
 | held-out confirmation set | nearest | residual dropout, blocks 5 to 8 | 26 of 26 | 0 |
 | held-out confirmation set | nearest | PSBD-RD | 26 of 26 | 0 |
+| full panel | adaptive | residual dropout, blocks 1 to 4 | 54 of 54 | 0 |
 | full panel | adaptive | residual dropout, blocks 9 to 12 | 39 of 54 | 15 |
 | full panel | adaptive | residual dropout, blocks 5 to 8 | 54 of 54 | 0 |
 | full panel | adaptive | PSBD-RD | 54 of 54 | 0 |
+| full panel | nearest | residual dropout, blocks 1 to 4 | 54 of 54 | 0 |
 | full panel | nearest | residual dropout, blocks 9 to 12 | 54 of 54 | 0 |
 | full panel | nearest | residual dropout, blocks 5 to 8 | 54 of 54 | 0 |
 | full panel | nearest | PSBD-RD | 54 of 54 | 0 |
@@ -343,6 +349,12 @@ Each table reads `fusion_rules_<set>.json`, `summary.<rate rule>.<partner>.all.<
 
 | partner | rule | models | TPR 1% (minus PSBD-TM) | TPR 5% (minus PSBD-TM) | TPR 10% (minus PSBD-TM) | FPR 1% | FPR 5% | FPR 10% | AUROC | AUROC minus PSBD-TM | TPR 20% | FPR 20% |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|
+| residual dropout, blocks 1 to 4 | PSBD-TM alone | 26 of 26 | 0.791 (+0.000 [+0.000, +0.000]) | 0.946 (+0.000 [+0.000, +0.000]) | 0.970 (+0.000 [+0.000, +0.000]) | 0.011 | 0.051 | 0.100 | 0.978 | +0.000 [+0.000, +0.000] | 0.980 | 0.200 |
+| residual dropout, blocks 1 to 4 | mean of fractional PSU | 26 of 26 | 0.638 (-0.154 [-0.241, -0.081]) | 0.913 (-0.033 [-0.057, -0.012]) | 0.952 (-0.018 [-0.039, -0.003]) | 0.010 | 0.051 | 0.101 | 0.973 | -0.005 [-0.010, -0.001] | 0.974 | 0.200 |
+| residual dropout, blocks 1 to 4 | min-rank | 26 of 26 | 0.683 (-0.109 [-0.159, -0.065]) | 0.919 (-0.027 [-0.048, -0.009]) | 0.957 (-0.013 [-0.027, -0.001]) | 0.010 | 0.051 | 0.101 | 0.975 | -0.003 [-0.006, +0.000] | 0.978 | 0.200 |
+| residual dropout, blocks 1 to 4 | weighted min-rank 0.8 and 0.2 | 26 of 26 | 0.756 (-0.035 [-0.053, -0.019]) | 0.939 (-0.007 [-0.014, -0.001]) | 0.968 (-0.002 [-0.006, +0.001]) | 0.010 | 0.051 | 0.100 | 0.977 | -0.001 [-0.002, +0.000] | 0.980 | 0.200 |
+| residual dropout, blocks 1 to 4 | weighted min-rank 0.9 and 0.1 | 26 of 26 | 0.767 (-0.024 [-0.042, -0.010]) | 0.942 (-0.004 [-0.009, -0.001]) | 0.969 (-0.001 [-0.003, +0.000]) | 0.010 | 0.051 | 0.099 | 0.977 | -0.001 [-0.001, -0.000] | 0.980 | 0.200 |
+| residual dropout, blocks 1 to 4 | Fisher | 26 of 26 | 0.613 (-0.178 [-0.263, -0.104]) | 0.885 (-0.061 [-0.103, -0.026]) | 0.944 (-0.026 [-0.057, -0.004]) | 0.010 | 0.051 | 0.100 | 0.971 | -0.007 [-0.013, -0.002] | 0.975 | 0.201 |
 | residual dropout, blocks 9 to 12 | PSBD-TM alone | 26 of 26 | 0.791 (+0.000 [+0.000, +0.000]) | 0.946 (+0.000 [+0.000, +0.000]) | 0.970 (+0.000 [+0.000, +0.000]) | 0.011 | 0.051 | 0.100 | 0.978 | +0.000 [+0.000, +0.000] | 0.980 | 0.200 |
 | residual dropout, blocks 9 to 12 | mean of fractional PSU | 26 of 26 | 0.855 (+0.064 [+0.027, +0.120]) | 0.968 (+0.022 [+0.006, +0.043]) | 0.979 (+0.009 [+0.003, +0.016]) | 0.011 | 0.051 | 0.100 | 0.985 | +0.007 [+0.004, +0.011] | 0.983 | 0.200 |
 | residual dropout, blocks 9 to 12 | min-rank | 26 of 26 | 0.830 (+0.039 [-0.044, +0.128]) | 0.963 (+0.017 [-0.006, +0.044]) | 0.977 (+0.008 [-0.000, +0.016]) | 0.010 | 0.050 | 0.102 | 0.985 | +0.007 [+0.002, +0.012] | 0.984 | 0.200 |
@@ -366,6 +378,12 @@ Each table reads `fusion_rules_<set>.json`, `summary.<rate rule>.<partner>.all.<
 
 | partner | rule | models | TPR 1% (minus PSBD-TM) | TPR 5% (minus PSBD-TM) | TPR 10% (minus PSBD-TM) | FPR 1% | FPR 5% | FPR 10% | AUROC | AUROC minus PSBD-TM | TPR 20% | FPR 20% |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|
+| residual dropout, blocks 1 to 4 | PSBD-TM alone | 54 of 54 | 0.747 (+0.000 [+0.000, +0.000]) | 0.855 (+0.000 [+0.000, +0.000]) | 0.887 (+0.000 [+0.000, +0.000]) | 0.010 | 0.047 | 0.093 | 0.963 | +0.000 [+0.000, +0.000] | 0.916 | 0.186 |
+| residual dropout, blocks 1 to 4 | mean of fractional PSU | 54 of 54 | 0.634 (-0.113 [-0.172, -0.065]) | 0.823 (-0.032 [-0.060, -0.011]) | 0.877 (-0.010 [-0.023, -0.000]) | 0.010 | 0.047 | 0.094 | 0.962 | -0.001 [-0.009, +0.010] | 0.913 | 0.187 |
+| residual dropout, blocks 1 to 4 | min-rank | 54 of 54 | 0.672 (-0.076 [-0.110, -0.045]) | 0.838 (-0.017 [-0.032, -0.003]) | 0.875 (-0.012 [-0.028, +0.002]) | 0.009 | 0.047 | 0.093 | 0.956 | -0.007 [-0.031, +0.013] | 0.912 | 0.187 |
+| residual dropout, blocks 1 to 4 | weighted min-rank 0.8 and 0.2 | 54 of 54 | 0.723 (-0.024 [-0.039, -0.011]) | 0.852 (-0.003 [-0.010, +0.005]) | 0.885 (-0.002 [-0.008, +0.005]) | 0.009 | 0.046 | 0.093 | 0.965 | +0.002 [-0.001, +0.008] | 0.917 | 0.186 |
+| residual dropout, blocks 1 to 4 | weighted min-rank 0.9 and 0.1 | 54 of 54 | 0.734 (-0.013 [-0.023, -0.005]) | 0.853 (-0.002 [-0.006, +0.002]) | 0.887 (-0.000 [-0.004, +0.005]) | 0.010 | 0.046 | 0.092 | 0.964 | +0.001 [-0.001, +0.003] | 0.917 | 0.186 |
+| residual dropout, blocks 1 to 4 | Fisher | 54 of 54 | 0.617 (-0.130 [-0.181, -0.086]) | 0.819 (-0.036 [-0.061, -0.013]) | 0.868 (-0.019 [-0.041, +0.001]) | 0.010 | 0.048 | 0.093 | 0.956 | -0.007 [-0.022, +0.009] | 0.911 | 0.187 |
 | residual dropout, blocks 9 to 12 | PSBD-TM alone | 39 of 54 | 0.789 (+0.000 [+0.000, +0.000]) | 0.905 (+0.000 [+0.000, +0.000]) | 0.933 (+0.000 [+0.000, +0.000]) | 0.010 | 0.049 | 0.097 | 0.966 | +0.000 [+0.000, +0.000] | 0.957 | 0.195 |
 | residual dropout, blocks 9 to 12 | mean of fractional PSU | 39 of 54 | 0.833 (+0.044 [+0.018, +0.082]) | 0.921 (+0.016 [+0.004, +0.031]) | 0.941 (+0.008 [+0.003, +0.015]) | 0.010 | 0.049 | 0.097 | 0.979 | +0.013 [+0.004, +0.029] | 0.966 | 0.195 |
 | residual dropout, blocks 9 to 12 | min-rank | 39 of 54 | 0.832 (+0.043 [-0.020, +0.112]) | 0.934 (+0.029 [-0.005, +0.079]) | 0.954 (+0.021 [-0.010, +0.069]) | 0.010 | 0.049 | 0.098 | 0.983 | +0.017 [+0.003, +0.043] | 0.971 | 0.194 |
@@ -389,6 +407,12 @@ Each table reads `fusion_rules_<set>.json`, `summary.<rate rule>.<partner>.all.<
 
 | partner | rule | models | TPR 1% (minus PSBD-TM) | TPR 5% (minus PSBD-TM) | TPR 10% (minus PSBD-TM) | FPR 1% | FPR 5% | FPR 10% | AUROC | AUROC minus PSBD-TM | TPR 20% | FPR 20% |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|
+| residual dropout, blocks 1 to 4 | PSBD-TM alone | 54 of 54 | 0.747 (+0.000 [+0.000, +0.000]) | 0.855 (+0.000 [+0.000, +0.000]) | 0.887 (+0.000 [+0.000, +0.000]) | 0.010 | 0.047 | 0.093 | 0.963 | +0.000 [+0.000, +0.000] | 0.916 | 0.186 |
+| residual dropout, blocks 1 to 4 | mean of fractional PSU | 54 of 54 | 0.607 (-0.140 [-0.199, -0.090]) | 0.814 (-0.041 [-0.073, -0.015]) | 0.871 (-0.016 [-0.033, -0.000]) | 0.010 | 0.047 | 0.094 | 0.960 | -0.003 [-0.012, +0.009] | 0.910 | 0.188 |
+| residual dropout, blocks 1 to 4 | min-rank | 54 of 54 | 0.676 (-0.071 [-0.106, -0.041]) | 0.842 (-0.013 [-0.029, +0.004]) | 0.878 (-0.009 [-0.026, +0.007]) | 0.009 | 0.047 | 0.092 | 0.958 | -0.005 [-0.030, +0.014] | 0.914 | 0.187 |
+| residual dropout, blocks 1 to 4 | weighted min-rank 0.8 and 0.2 | 54 of 54 | 0.723 (-0.024 [-0.040, -0.011]) | 0.855 (+0.000 [-0.008, +0.011]) | 0.888 (+0.001 [-0.006, +0.011]) | 0.009 | 0.046 | 0.092 | 0.966 | +0.003 [-0.001, +0.009] | 0.918 | 0.186 |
+| residual dropout, blocks 1 to 4 | weighted min-rank 0.9 and 0.1 | 54 of 54 | 0.733 (-0.014 [-0.024, -0.006]) | 0.855 (+0.001 [-0.005, +0.008]) | 0.889 (+0.002 [-0.003, +0.009]) | 0.010 | 0.046 | 0.091 | 0.965 | +0.002 [-0.001, +0.004] | 0.918 | 0.186 |
+| residual dropout, blocks 1 to 4 | Fisher | 54 of 54 | 0.631 (-0.116 [-0.164, -0.074]) | 0.824 (-0.030 [-0.057, -0.006]) | 0.873 (-0.014 [-0.036, +0.006]) | 0.010 | 0.047 | 0.093 | 0.958 | -0.005 [-0.021, +0.010] | 0.913 | 0.187 |
 | residual dropout, blocks 9 to 12 | PSBD-TM alone | 54 of 54 | 0.747 (+0.000 [+0.000, +0.000]) | 0.855 (+0.000 [+0.000, +0.000]) | 0.887 (+0.000 [+0.000, +0.000]) | 0.010 | 0.047 | 0.093 | 0.963 | +0.000 [+0.000, +0.000] | 0.916 | 0.186 |
 | residual dropout, blocks 9 to 12 | mean of fractional PSU | 54 of 54 | 0.780 (+0.033 [+0.003, +0.064]) | 0.871 (+0.017 [+0.007, +0.029]) | 0.899 (+0.012 [+0.005, +0.019]) | 0.010 | 0.046 | 0.092 | 0.971 | +0.008 [-0.005, +0.023] | 0.928 | 0.186 |
 | residual dropout, blocks 9 to 12 | min-rank | 54 of 54 | 0.765 (+0.018 [-0.038, +0.074]) | 0.886 (+0.032 [+0.002, +0.070]) | 0.911 (+0.024 [-0.005, +0.061]) | 0.009 | 0.047 | 0.094 | 0.970 | +0.007 [-0.016, +0.032] | 0.934 | 0.187 |
@@ -412,6 +436,12 @@ Each table reads `fusion_rules_<set>.json`, `summary.<rate rule>.<partner>.all.<
 
 | partner | rule | models | TPR 1% (minus PSBD-TM) | TPR 5% (minus PSBD-TM) | TPR 10% (minus PSBD-TM) | FPR 1% | FPR 5% | FPR 10% | AUROC | AUROC minus PSBD-TM | TPR 20% | FPR 20% |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|
+| residual dropout, blocks 1 to 4 | PSBD-TM alone | 9 of 9 | 0.457 (+0.000 [+0.000, +0.000]) | 0.545 (+0.000 [+0.000, +0.000]) | 0.612 (+0.000 [+0.000, +0.000]) | 0.009 | 0.042 | 0.083 | 0.881 | +0.000 [+0.000, +0.000] | 0.705 | 0.167 |
+| residual dropout, blocks 1 to 4 | mean of fractional PSU | 9 of 9 | 0.313 (-0.144 [-0.362, -0.005]) | 0.459 (-0.086 [-0.225, +0.000]) | 0.602 (-0.010 [-0.037, +0.019]) | 0.010 | 0.042 | 0.086 | 0.897 | +0.015 [-0.023, +0.075] | 0.706 | 0.164 |
+| residual dropout, blocks 1 to 4 | min-rank | 9 of 9 | 0.434 (-0.023 [-0.041, -0.007]) | 0.516 (-0.030 [-0.064, +0.003]) | 0.584 (-0.028 [-0.088, +0.026]) | 0.008 | 0.042 | 0.080 | 0.860 | -0.022 [-0.160, +0.099] | 0.691 | 0.162 |
+| residual dropout, blocks 1 to 4 | weighted min-rank 0.8 and 0.2 | 9 of 9 | 0.450 (-0.007 [-0.011, -0.003]) | 0.532 (-0.014 [-0.029, -0.000]) | 0.601 (-0.011 [-0.031, +0.003]) | 0.008 | 0.041 | 0.081 | 0.896 | +0.014 [-0.004, +0.046] | 0.703 | 0.164 |
+| residual dropout, blocks 1 to 4 | weighted min-rank 0.9 and 0.1 | 9 of 9 | 0.454 (-0.003 [-0.006, -0.001]) | 0.538 (-0.008 [-0.017, +0.001]) | 0.606 (-0.006 [-0.016, +0.001]) | 0.008 | 0.041 | 0.081 | 0.886 | +0.004 [-0.002, +0.015] | 0.703 | 0.166 |
+| residual dropout, blocks 1 to 4 | Fisher | 9 of 9 | 0.391 (-0.066 [-0.159, -0.001]) | 0.516 (-0.029 [-0.084, +0.025]) | 0.591 (-0.021 [-0.088, +0.057]) | 0.009 | 0.042 | 0.081 | 0.876 | -0.006 [-0.096, +0.091] | 0.699 | 0.165 |
 | residual dropout, blocks 9 to 12 | PSBD-TM alone | 5 of 9 | 0.462 (+0.000 [+0.000, +0.000]) | 0.551 (+0.000 [+0.000, +0.000]) | 0.641 (+0.000 [+0.000, +0.000]) | 0.008 | 0.042 | 0.081 | 0.853 | +0.000 [+0.000, +0.000] | 0.771 | 0.166 |
 | residual dropout, blocks 9 to 12 | mean of fractional PSU | 5 of 9 | 0.468 (+0.006 [-0.005, +0.018]) | 0.558 (+0.007 [-0.009, +0.029]) | 0.657 (+0.016 [-0.006, +0.050]) | 0.009 | 0.041 | 0.082 | 0.914 | +0.062 [+0.003, +0.175] | 0.828 | 0.165 |
 | residual dropout, blocks 9 to 12 | min-rank | 5 of 9 | 0.596 (+0.134 [-0.014, +0.404]) | 0.689 (+0.138 [-0.069, +0.483]) | 0.763 (+0.122 [-0.133, +0.485]) | 0.009 | 0.042 | 0.080 | 0.951 | +0.099 [+0.002, +0.289] | 0.860 | 0.162 |
@@ -492,6 +522,116 @@ Each cell is mean TPR at 1% / 5% / 10% nominal FPR (`summary.<rate rule>.late_ba
 ![fusion rules, held-out set](figures/fusion_rules_holdout.png)
 
 ![fusion rules, full panel](figures/fusion_rules_panel.png)
+
+## Residual band comparison
+
+This section is a post-hoc comparison of bands requested after the confirmation read, and it makes no new pick. The pre-registration and its verdicts are unchanged. The question is which residual dropout band is the best union partner for PSBD-TM. The request cites Karayalçin et al. (arXiv 2026) for a middle-layer class-token onset of WaNet and an early per-token representation of static triggers. The project's summary of that paper (L8 in `docs/why-psbd-works-literature.md`) reads it differently, with stealthy triggers such as WaNet and BPP reaching the class token in earlier layers than static ones because their perturbation can be read in each token separately. Either reading predicts that the band matters by attack, so the 3 bands are compared per attack. `pre_residual_blocks_1_4` was added to `fusion_rules.py` as a 4th partner for this reading. The plain min-rank rule is the headline and the mean of fractional PSU sits beside it.
+
+The early band is the worst partner. On the held-out set min-rank with it changes TPR at 1%, 5% and 10% FPR by -0.109 [-0.159, -0.065], -0.027 [-0.048, -0.009] and -0.013 [-0.027, -0.001] against PSBD-TM alone, while the middle band gives +0.049 [-0.008, +0.108], +0.007 [-0.008, +0.024] and +0.003 [-0.003, +0.010] and the late band +0.039 [-0.044, +0.128], +0.017 [-0.006, +0.044] and +0.008 [-0.000, +0.016]. In AUROC the 3 read -0.003 [-0.006, +0.000], +0.005 [+0.002, +0.008] and +0.007 [+0.002, +0.012]. The early band does not help the patch trigger either. On the panel at the nearest rate, where all 3 bands cover every model, BadNets TPR at 1% FPR is 0.776 for PSBD-TM alone, 0.620 with the early band, 0.824 with the middle band and 0.670 with the late band.
+
+The middle and late bands trade WaNet against TaCT. On the 3 WaNet models of the panel min-rank AUROC is 0.883 with the early band, 0.948 with the middle band and 0.958 with the late band, against 0.779 for PSBD-TM alone. On the 3 TaCT models it is 0.801, 0.942 and 0.772 against 0.962. The middle band gets most of the WaNet lift at a much smaller TaCT cost, and it reaches the adaptive target on 54 of 54 panel models against 39 of 54 for the late band (the early band reaches it on 54 of 54). The WaNet lift grows from the early to the late band, so these readings do not single out a middle-layer onset for WaNet, and early residual dropout hurts BadNets instead of helping it. Both statements come from a post-hoc reading with 3 WaNet and 3 TaCT models, so they are hypotheses for a pre-registered test and not results.
+
+Each table reads `fusion_rules_<set>.json`, `summary.<rate rule>.<band>.all.<rule>`, with PSBD-TM alone on the same models as the reference.
+
+**Adaptive rate, held-out set.**
+
+| partner | rule | models | TPR 1% (minus PSBD-TM) | TPR 5% (minus PSBD-TM) | TPR 10% (minus PSBD-TM) | FPR 1% | FPR 5% | FPR 10% | AUROC (minus PSBD-TM) |
+|---|---|---|---|---|---|---|---|---|---|
+| residual dropout, blocks 1 to 4 | min-rank | 26 of 26 | 0.683 (-0.109 [-0.159, -0.065]) | 0.919 (-0.027 [-0.048, -0.009]) | 0.957 (-0.013 [-0.027, -0.001]) | 0.010 | 0.051 | 0.101 | 0.975 (-0.003 [-0.006, +0.000]) |
+| residual dropout, blocks 1 to 4 | mean of fractional PSU | 26 of 26 | 0.638 (-0.154 [-0.241, -0.081]) | 0.913 (-0.033 [-0.057, -0.012]) | 0.952 (-0.018 [-0.039, -0.003]) | 0.010 | 0.051 | 0.101 | 0.973 (-0.005 [-0.010, -0.001]) |
+| residual dropout, blocks 1 to 4 | PSBD-TM alone | 26 of 26 | 0.791 (+0.000 [+0.000, +0.000]) | 0.946 (+0.000 [+0.000, +0.000]) | 0.970 (+0.000 [+0.000, +0.000]) | 0.011 | 0.051 | 0.100 | 0.978 (+0.000 [+0.000, +0.000]) |
+| residual dropout, blocks 5 to 8 | min-rank | 26 of 26 | 0.841 (+0.049 [-0.008, +0.108]) | 0.953 (+0.007 [-0.008, +0.024]) | 0.973 (+0.003 [-0.003, +0.010]) | 0.010 | 0.052 | 0.102 | 0.983 (+0.005 [+0.002, +0.008]) |
+| residual dropout, blocks 5 to 8 | mean of fractional PSU | 26 of 26 | 0.874 (+0.082 [+0.039, +0.132]) | 0.961 (+0.015 [+0.003, +0.030]) | 0.976 (+0.006 [+0.002, +0.012]) | 0.011 | 0.051 | 0.102 | 0.984 (+0.006 [+0.004, +0.008]) |
+| residual dropout, blocks 5 to 8 | PSBD-TM alone | 26 of 26 | 0.791 (+0.000 [+0.000, +0.000]) | 0.946 (+0.000 [+0.000, +0.000]) | 0.970 (+0.000 [+0.000, +0.000]) | 0.011 | 0.051 | 0.100 | 0.978 (+0.000 [+0.000, +0.000]) |
+| residual dropout, blocks 9 to 12 | min-rank | 26 of 26 | 0.830 (+0.039 [-0.044, +0.128]) | 0.963 (+0.017 [-0.006, +0.044]) | 0.977 (+0.008 [-0.000, +0.016]) | 0.010 | 0.050 | 0.102 | 0.985 (+0.007 [+0.002, +0.012]) |
+| residual dropout, blocks 9 to 12 | mean of fractional PSU | 26 of 26 | 0.855 (+0.064 [+0.027, +0.120]) | 0.968 (+0.022 [+0.006, +0.043]) | 0.979 (+0.009 [+0.003, +0.016]) | 0.011 | 0.051 | 0.100 | 0.985 (+0.007 [+0.004, +0.011]) |
+| residual dropout, blocks 9 to 12 | PSBD-TM alone | 26 of 26 | 0.791 (+0.000 [+0.000, +0.000]) | 0.946 (+0.000 [+0.000, +0.000]) | 0.970 (+0.000 [+0.000, +0.000]) | 0.011 | 0.051 | 0.100 | 0.978 (+0.000 [+0.000, +0.000]) |
+
+**Adaptive rate, full panel.**
+
+| partner | rule | models | TPR 1% (minus PSBD-TM) | TPR 5% (minus PSBD-TM) | TPR 10% (minus PSBD-TM) | FPR 1% | FPR 5% | FPR 10% | AUROC (minus PSBD-TM) |
+|---|---|---|---|---|---|---|---|---|---|
+| residual dropout, blocks 1 to 4 | min-rank | 54 of 54 | 0.672 (-0.076 [-0.110, -0.045]) | 0.838 (-0.017 [-0.032, -0.003]) | 0.875 (-0.012 [-0.028, +0.002]) | 0.009 | 0.047 | 0.093 | 0.956 (-0.007 [-0.031, +0.013]) |
+| residual dropout, blocks 1 to 4 | mean of fractional PSU | 54 of 54 | 0.634 (-0.113 [-0.172, -0.065]) | 0.823 (-0.032 [-0.060, -0.011]) | 0.877 (-0.010 [-0.023, -0.000]) | 0.010 | 0.047 | 0.094 | 0.962 (-0.001 [-0.009, +0.010]) |
+| residual dropout, blocks 1 to 4 | PSBD-TM alone | 54 of 54 | 0.747 (+0.000 [+0.000, +0.000]) | 0.855 (+0.000 [+0.000, +0.000]) | 0.887 (+0.000 [+0.000, +0.000]) | 0.010 | 0.047 | 0.093 | 0.963 (+0.000 [+0.000, +0.000]) |
+| residual dropout, blocks 5 to 8 | min-rank | 54 of 54 | 0.754 (+0.007 [-0.039, +0.051]) | 0.869 (+0.014 [-0.008, +0.049]) | 0.899 (+0.012 [-0.014, +0.048]) | 0.010 | 0.046 | 0.092 | 0.974 (+0.011 [-0.001, +0.031]) |
+| residual dropout, blocks 5 to 8 | mean of fractional PSU | 54 of 54 | 0.764 (+0.017 [-0.021, +0.055]) | 0.860 (+0.005 [-0.007, +0.018]) | 0.896 (+0.009 [-0.001, +0.024]) | 0.010 | 0.047 | 0.094 | 0.973 (+0.010 [+0.001, +0.027]) |
+| residual dropout, blocks 5 to 8 | PSBD-TM alone | 54 of 54 | 0.747 (+0.000 [+0.000, +0.000]) | 0.855 (+0.000 [+0.000, +0.000]) | 0.887 (+0.000 [+0.000, +0.000]) | 0.010 | 0.047 | 0.093 | 0.963 (+0.000 [+0.000, +0.000]) |
+| residual dropout, blocks 9 to 12 | min-rank | 39 of 54 | 0.832 (+0.043 [-0.020, +0.112]) | 0.934 (+0.029 [-0.005, +0.079]) | 0.954 (+0.021 [-0.010, +0.069]) | 0.010 | 0.049 | 0.098 | 0.983 (+0.017 [+0.003, +0.043]) |
+| residual dropout, blocks 9 to 12 | mean of fractional PSU | 39 of 54 | 0.833 (+0.044 [+0.018, +0.082]) | 0.921 (+0.016 [+0.004, +0.031]) | 0.941 (+0.008 [+0.003, +0.015]) | 0.010 | 0.049 | 0.097 | 0.979 (+0.013 [+0.004, +0.029]) |
+| residual dropout, blocks 9 to 12 | PSBD-TM alone | 39 of 54 | 0.789 (+0.000 [+0.000, +0.000]) | 0.905 (+0.000 [+0.000, +0.000]) | 0.933 (+0.000 [+0.000, +0.000]) | 0.010 | 0.049 | 0.097 | 0.966 (+0.000 [+0.000, +0.000]) |
+
+**Nearest rate, full panel, every band on all models.**
+
+| partner | rule | models | TPR 1% (minus PSBD-TM) | TPR 5% (minus PSBD-TM) | TPR 10% (minus PSBD-TM) | FPR 1% | FPR 5% | FPR 10% | AUROC (minus PSBD-TM) |
+|---|---|---|---|---|---|---|---|---|---|
+| residual dropout, blocks 1 to 4 | min-rank | 54 of 54 | 0.676 (-0.071 [-0.106, -0.041]) | 0.842 (-0.013 [-0.029, +0.004]) | 0.878 (-0.009 [-0.026, +0.007]) | 0.009 | 0.047 | 0.092 | 0.958 (-0.005 [-0.030, +0.014]) |
+| residual dropout, blocks 1 to 4 | mean of fractional PSU | 54 of 54 | 0.607 (-0.140 [-0.199, -0.090]) | 0.814 (-0.041 [-0.073, -0.015]) | 0.871 (-0.016 [-0.033, -0.000]) | 0.010 | 0.047 | 0.094 | 0.960 (-0.003 [-0.012, +0.009]) |
+| residual dropout, blocks 1 to 4 | PSBD-TM alone | 54 of 54 | 0.747 (+0.000 [+0.000, +0.000]) | 0.855 (+0.000 [+0.000, +0.000]) | 0.887 (+0.000 [+0.000, +0.000]) | 0.010 | 0.047 | 0.093 | 0.963 (+0.000 [+0.000, +0.000]) |
+| residual dropout, blocks 5 to 8 | min-rank | 54 of 54 | 0.755 (+0.008 [-0.039, +0.055]) | 0.872 (+0.017 [-0.007, +0.053]) | 0.902 (+0.015 [-0.011, +0.051]) | 0.010 | 0.047 | 0.092 | 0.975 (+0.012 [-0.001, +0.032]) |
+| residual dropout, blocks 5 to 8 | mean of fractional PSU | 54 of 54 | 0.762 (+0.015 [-0.031, +0.062]) | 0.857 (+0.002 [-0.016, +0.019]) | 0.895 (+0.008 [-0.006, +0.025]) | 0.010 | 0.048 | 0.095 | 0.974 (+0.011 [+0.001, +0.028]) |
+| residual dropout, blocks 5 to 8 | PSBD-TM alone | 54 of 54 | 0.747 (+0.000 [+0.000, +0.000]) | 0.855 (+0.000 [+0.000, +0.000]) | 0.887 (+0.000 [+0.000, +0.000]) | 0.010 | 0.047 | 0.093 | 0.963 (+0.000 [+0.000, +0.000]) |
+| residual dropout, blocks 9 to 12 | min-rank | 54 of 54 | 0.765 (+0.018 [-0.038, +0.074]) | 0.886 (+0.032 [+0.002, +0.070]) | 0.911 (+0.024 [-0.005, +0.061]) | 0.009 | 0.047 | 0.094 | 0.970 (+0.007 [-0.016, +0.032]) |
+| residual dropout, blocks 9 to 12 | mean of fractional PSU | 54 of 54 | 0.780 (+0.033 [+0.003, +0.064]) | 0.871 (+0.017 [+0.007, +0.029]) | 0.899 (+0.012 [+0.005, +0.019]) | 0.010 | 0.046 | 0.092 | 0.971 (+0.008 [-0.005, +0.023]) |
+| residual dropout, blocks 9 to 12 | PSBD-TM alone | 54 of 54 | 0.747 (+0.000 [+0.000, +0.000]) | 0.855 (+0.000 [+0.000, +0.000]) | 0.887 (+0.000 [+0.000, +0.000]) | 0.010 | 0.047 | 0.093 | 0.963 (+0.000 [+0.000, +0.000]) |
+
+**Adaptive rate, development set.**
+
+| partner | rule | models | TPR 1% (minus PSBD-TM) | TPR 5% (minus PSBD-TM) | TPR 10% (minus PSBD-TM) | FPR 1% | FPR 5% | FPR 10% | AUROC (minus PSBD-TM) |
+|---|---|---|---|---|---|---|---|---|---|
+| residual dropout, blocks 1 to 4 | min-rank | 9 of 9 | 0.434 (-0.023 [-0.041, -0.007]) | 0.516 (-0.030 [-0.064, +0.003]) | 0.584 (-0.028 [-0.088, +0.026]) | 0.008 | 0.042 | 0.080 | 0.860 (-0.022 [-0.160, +0.099]) |
+| residual dropout, blocks 1 to 4 | mean of fractional PSU | 9 of 9 | 0.313 (-0.144 [-0.362, -0.005]) | 0.459 (-0.086 [-0.225, +0.000]) | 0.602 (-0.010 [-0.037, +0.019]) | 0.010 | 0.042 | 0.086 | 0.897 (+0.015 [-0.023, +0.075]) |
+| residual dropout, blocks 1 to 4 | PSBD-TM alone | 9 of 9 | 0.457 (+0.000 [+0.000, +0.000]) | 0.545 (+0.000 [+0.000, +0.000]) | 0.612 (+0.000 [+0.000, +0.000]) | 0.009 | 0.042 | 0.083 | 0.881 (+0.000 [+0.000, +0.000]) |
+| residual dropout, blocks 5 to 8 | min-rank | 9 of 9 | 0.507 (+0.050 [-0.034, +0.180]) | 0.620 (+0.074 [-0.044, +0.259]) | 0.682 (+0.070 [-0.074, +0.272]) | 0.009 | 0.038 | 0.076 | 0.931 (+0.050 [-0.021, +0.165]) |
+| residual dropout, blocks 5 to 8 | mean of fractional PSU | 9 of 9 | 0.419 (-0.038 [-0.156, +0.040]) | 0.550 (+0.005 [-0.050, +0.062]) | 0.644 (+0.032 [-0.026, +0.118]) | 0.010 | 0.042 | 0.083 | 0.924 (+0.042 [-0.012, +0.135]) |
+| residual dropout, blocks 5 to 8 | PSBD-TM alone | 9 of 9 | 0.457 (+0.000 [+0.000, +0.000]) | 0.545 (+0.000 [+0.000, +0.000]) | 0.612 (+0.000 [+0.000, +0.000]) | 0.009 | 0.042 | 0.083 | 0.881 (+0.000 [+0.000, +0.000]) |
+| residual dropout, blocks 9 to 12 | min-rank | 5 of 9 | 0.596 (+0.134 [-0.014, +0.404]) | 0.689 (+0.138 [-0.069, +0.483]) | 0.763 (+0.122 [-0.133, +0.485]) | 0.009 | 0.042 | 0.080 | 0.951 (+0.099 [+0.002, +0.289]) |
+| residual dropout, blocks 9 to 12 | mean of fractional PSU | 5 of 9 | 0.468 (+0.006 [-0.005, +0.018]) | 0.558 (+0.007 [-0.009, +0.029]) | 0.657 (+0.016 [-0.006, +0.050]) | 0.009 | 0.041 | 0.082 | 0.914 (+0.062 [+0.003, +0.175]) |
+| residual dropout, blocks 9 to 12 | PSBD-TM alone | 5 of 9 | 0.462 (+0.000 [+0.000, +0.000]) | 0.551 (+0.000 [+0.000, +0.000]) | 0.641 (+0.000 [+0.000, +0.000]) | 0.008 | 0.042 | 0.081 | 0.853 (+0.000 [+0.000, +0.000]) |
+
+**WaNet, TaCT and BadNets per band.** Each TPR cell is mean TPR at 1% / 5% / 10% nominal FPR (`summary.<rate rule>.<band>.by_attack.<attack>`). The held-out set has no TaCT model.
+
+Held-out set, adaptive rate.
+
+| attack | partner | models | min-rank, TPR 1 / 5 / 10% | mean of fractional PSU, TPR 1 / 5 / 10% | PSBD-TM alone, TPR 1 / 5 / 10% | min-rank, AUROC | mean of fractional PSU, AUROC | PSBD-TM alone, AUROC |
+|---|---|---|---|---|---|---|---|---|
+| wanet | residual dropout, blocks 1 to 4 | 2 | 0.377 / 0.735 / 0.863 | 0.087 / 0.706 / 0.819 | 0.546 / 0.838 / 0.928 | 0.938 | 0.920 | 0.940 |
+| wanet | residual dropout, blocks 5 to 8 | 2 | 0.729 / 0.912 / 0.937 | 0.795 / 0.915 / 0.942 | 0.546 / 0.838 / 0.928 | 0.955 | 0.957 | 0.940 |
+| wanet | residual dropout, blocks 9 to 12 | 2 | 0.944 / 0.946 / 0.950 | 0.915 / 0.946 / 0.949 | 0.546 / 0.838 / 0.928 | 0.968 | 0.967 | 0.940 |
+| tact | residual dropout, blocks 1 to 4 | 0 | -- | -- | -- | -- | -- | -- |
+| tact | residual dropout, blocks 5 to 8 | 0 | -- | -- | -- | -- | -- | -- |
+| tact | residual dropout, blocks 9 to 12 | 0 | -- | -- | -- | -- | -- | -- |
+| badnet_a2o | residual dropout, blocks 1 to 4 | 6 | 0.481 / 0.975 / 0.996 | 0.543 / 0.929 / 0.983 | 0.699 / 0.993 / 0.998 | 0.984 | 0.981 | 0.990 |
+| badnet_a2o | residual dropout, blocks 5 to 8 | 6 | 0.847 / 0.995 / 0.999 | 0.871 / 0.997 / 1.000 | 0.699 / 0.993 / 0.998 | 0.994 | 0.995 | 0.990 |
+| badnet_a2o | residual dropout, blocks 9 to 12 | 6 | 0.550 / 0.962 / 0.994 | 0.722 / 0.993 / 0.998 | 0.699 / 0.993 / 0.998 | 0.984 | 0.991 | 0.990 |
+
+Full panel, adaptive rate.
+
+| attack | partner | models | min-rank, TPR 1 / 5 / 10% | mean of fractional PSU, TPR 1 / 5 / 10% | PSBD-TM alone, TPR 1 / 5 / 10% | min-rank, AUROC | mean of fractional PSU, AUROC | PSBD-TM alone, AUROC |
+|---|---|---|---|---|---|---|---|---|
+| wanet | residual dropout, blocks 1 to 4 | 3 | 0.262 / 0.521 / 0.646 | 0.075 / 0.501 / 0.601 | 0.372 / 0.572 / 0.647 | 0.883 | 0.845 | 0.779 |
+| wanet | residual dropout, blocks 5 to 8 | 3 | 0.671 / 0.873 / 0.918 | 0.576 / 0.686 / 0.772 | 0.372 / 0.572 / 0.647 | 0.948 | 0.923 | 0.779 |
+| wanet | residual dropout, blocks 9 to 12 | 3 | 0.861 / 0.913 / 0.929 | 0.627 / 0.660 / 0.689 | 0.372 / 0.572 / 0.647 | 0.958 | 0.893 | 0.779 |
+| tact | residual dropout, blocks 1 to 4 | 3 | 0.006 / 0.035 / 0.090 | 0.012 / 0.067 / 0.144 | 0.012 / 0.078 / 0.169 | 0.792 | 0.949 | 0.962 |
+| tact | residual dropout, blocks 5 to 8 | 3 | 0.006 / 0.035 / 0.081 | 0.010 / 0.070 / 0.161 | 0.012 / 0.078 / 0.169 | 0.933 | 0.958 | 0.962 |
+| tact | residual dropout, blocks 9 to 12 | 1 | 0.013 / 0.104 / 0.271 | 0.018 / 0.213 / 0.488 | 0.030 / 0.230 / 0.502 | 0.946 | 0.953 | 0.942 |
+| badnet_a2o | residual dropout, blocks 1 to 4 | 12 | 0.619 / 0.942 / 0.970 | 0.649 / 0.917 / 0.973 | 0.776 / 0.963 / 0.987 | 0.985 | 0.985 | 0.992 |
+| badnet_a2o | residual dropout, blocks 5 to 8 | 12 | 0.801 / 0.951 / 0.973 | 0.811 / 0.946 / 0.981 | 0.776 / 0.963 / 0.987 | 0.991 | 0.993 | 0.992 |
+| badnet_a2o | residual dropout, blocks 9 to 12 | 9 | 0.697 / 0.973 / 0.996 | 0.812 / 0.995 / 0.998 | 0.797 / 0.994 / 0.998 | 0.989 | 0.994 | 0.993 |
+
+Full panel, nearest rate.
+
+| attack | partner | models | min-rank, TPR 1 / 5 / 10% | mean of fractional PSU, TPR 1 / 5 / 10% | PSBD-TM alone, TPR 1 / 5 / 10% | min-rank, AUROC | mean of fractional PSU, AUROC | PSBD-TM alone, AUROC |
+|---|---|---|---|---|---|---|---|---|
+| wanet | residual dropout, blocks 1 to 4 | 3 | 0.262 / 0.521 / 0.646 | 0.075 / 0.501 / 0.601 | 0.372 / 0.572 / 0.647 | 0.883 | 0.845 | 0.779 |
+| wanet | residual dropout, blocks 5 to 8 | 3 | 0.671 / 0.873 / 0.918 | 0.576 / 0.686 / 0.772 | 0.372 / 0.572 / 0.647 | 0.948 | 0.923 | 0.779 |
+| wanet | residual dropout, blocks 9 to 12 | 3 | 0.861 / 0.913 / 0.929 | 0.627 / 0.660 / 0.689 | 0.372 / 0.572 / 0.647 | 0.958 | 0.893 | 0.779 |
+| tact | residual dropout, blocks 1 to 4 | 3 | 0.006 / 0.035 / 0.090 | 0.012 / 0.067 / 0.144 | 0.012 / 0.078 / 0.169 | 0.801 | 0.952 | 0.962 |
+| tact | residual dropout, blocks 5 to 8 | 3 | 0.006 / 0.035 / 0.089 | 0.006 / 0.064 / 0.140 | 0.012 / 0.078 / 0.169 | 0.942 | 0.966 | 0.962 |
+| tact | residual dropout, blocks 9 to 12 | 3 | 0.006 / 0.037 / 0.094 | 0.007 / 0.073 / 0.165 | 0.012 / 0.078 / 0.169 | 0.772 | 0.876 | 0.962 |
+| badnet_a2o | residual dropout, blocks 1 to 4 | 12 | 0.620 / 0.943 / 0.971 | 0.610 / 0.915 / 0.973 | 0.776 / 0.963 / 0.987 | 0.986 | 0.984 | 0.992 |
+| badnet_a2o | residual dropout, blocks 5 to 8 | 12 | 0.824 / 0.955 / 0.978 | 0.831 / 0.925 / 0.972 | 0.776 / 0.963 / 0.987 | 0.992 | 0.992 | 0.992 |
+| badnet_a2o | residual dropout, blocks 9 to 12 | 12 | 0.670 / 0.939 / 0.968 | 0.753 / 0.956 / 0.984 | 0.776 / 0.963 / 0.987 | 0.987 | 0.992 | 0.992 |
 
 ## Verdicts
 

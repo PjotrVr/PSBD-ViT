@@ -52,6 +52,7 @@ RULE_WORDS = {
     "fisher": "Fisher",
 }
 PARTNER_WORDS = {
+    "early_band": "residual dropout, blocks 1 to 4",
     "late_band": "residual dropout, blocks 9 to 12",
     "middle_band": "residual dropout, blocks 5 to 8",
     "psbd_rd": "PSBD-RD",
@@ -166,6 +167,7 @@ def placeholder_values(records):
     values.update(pass_values(passes))
     values.update(band_values(bands))
     values.update(fusion_values(fusion))
+    values.update(residual_band_values(fusion))
     values.update(table_values(records, passes, bands, fusion, verdicts))
     return values
 
@@ -490,6 +492,74 @@ def fusion_values(fusion):
     return values
 
 
+def residual_band_values(fusion):
+    hold = fusion["holdout"]["summary"]["adaptive"]
+    panel = fusion["panel"]["summary"]["adaptive"]
+    nearest = fusion["panel"]["summary"]["nearest"]
+    values = {}
+    for partner in BAND_PARTNERS:
+        tag = partner.split("_")[0].upper()
+        values[f"BAND_{tag}_HOLD_N"] = (
+            f"{hold[partner]['n_models']} of {hold[partner]['n_pooled']}"
+        )
+        values[f"BAND_{tag}_PANEL_N"] = (
+            f"{panel[partner]['n_models']} of {panel[partner]['n_pooled']}"
+        )
+        for q in HEADLINE_QUANTILES:
+            values[f"BAND_{tag}_HOLD_{q[1:].replace('.', '')}"] = delta(
+                hold[partner]["all"]["min_rank"][f"{q}:tpr"]
+            )
+        values[f"BAND_{tag}_HOLD_AUROC"] = delta(
+            hold[partner]["all"]["min_rank"]["auroc"]
+        )
+        values[f"BAND_{tag}_WANET"] = f3(
+            nearest[partner]["by_attack"]["wanet"]["min_rank"]["auroc"]["mean"]
+        )
+        values[f"BAND_{tag}_TACT"] = f3(
+            nearest[partner]["by_attack"]["tact"]["min_rank"]["auroc"]["mean"]
+        )
+        values[f"BAND_{tag}_BADNET_TPR1"] = f3(
+            nearest[partner]["by_attack"]["badnet_a2o"]["min_rank"]["q0.01:tpr"]["mean"]
+        )
+    reference = nearest["early_band"]["by_attack"]
+    values["BAND_TM_WANET"] = f3(reference["wanet"]["tm_alone"]["auroc"]["mean"])
+    values["BAND_TM_TACT"] = f3(reference["tact"]["tm_alone"]["auroc"]["mean"])
+    values["BAND_TM_BADNET_TPR1"] = f3(
+        reference["badnet_a2o"]["tm_alone"]["q0.01:tpr"]["mean"]
+    )
+    values["BAND_TACT_N"] = f"{reference['tact']['n']}"
+    values["BAND_WANET_N"] = f"{reference['wanet']['n']}"
+
+    # The sentences of the band section state these orderings.
+    tpr1 = {p: hold[p]["all"]["min_rank"]["q0.01:tpr"] for p in BAND_PARTNERS}
+    assert tpr1["early_band"]["ci95"][1] < 0
+    assert (
+        tpr1["middle_band"]["mean_difference"] > 0
+        and tpr1["late_band"]["mean_difference"] > 0
+    )
+    wanet = {
+        p: nearest[p]["by_attack"]["wanet"]["min_rank"]["auroc"]["mean"]
+        for p in BAND_PARTNERS
+    }
+    assert wanet["late_band"] > wanet["middle_band"] > wanet["early_band"]
+    tact = {
+        p: nearest[p]["by_attack"]["tact"]["min_rank"]["auroc"]["mean"]
+        for p in BAND_PARTNERS
+    }
+    assert tact["middle_band"] > max(tact["early_band"], tact["late_band"])
+    badnet = {
+        p: nearest[p]["by_attack"]["badnet_a2o"]["min_rank"]["q0.01:tpr"]["mean"]
+        for p in BAND_PARTNERS
+    }
+    assert badnet["middle_band"] > max(badnet["early_band"], badnet["late_band"])
+    assert (
+        panel["early_band"]["n_models"]
+        == panel["middle_band"]["n_models"]
+        == panel["early_band"]["n_pooled"]
+    )
+    return values
+
+
 def table_values(records, passes, bands, fusion, verdicts):
     values = {
         "TABLE_DEV": dev_table(records, passes["dev"], fusion["dev"]),
@@ -498,6 +568,19 @@ def table_values(records, passes, bands, fusion, verdicts):
         "TABLE_WALL": wall_table(records),
         "TABLE_COVERAGE": coverage_table(fusion),
         "TABLE_PICK": pick_table(fusion),
+        "TABLE_BANDS_HOLDOUT": band_table(fusion["holdout"]["summary"]["adaptive"]),
+        "TABLE_BANDS_PANEL": band_table(fusion["panel"]["summary"]["adaptive"]),
+        "TABLE_BANDS_DEV": band_table(fusion["dev"]["summary"]["adaptive"]),
+        "TABLE_BANDS_PANEL_NEAREST": band_table(fusion["panel"]["summary"]["nearest"]),
+        "TABLE_BAND_ATTACKS_HOLDOUT": band_attack_table(
+            fusion["holdout"]["summary"]["adaptive"]
+        ),
+        "TABLE_BAND_ATTACKS_PANEL": band_attack_table(
+            fusion["panel"]["summary"]["adaptive"]
+        ),
+        "TABLE_BAND_ATTACKS_PANEL_NEAREST": band_attack_table(
+            fusion["panel"]["summary"]["nearest"]
+        ),
     }
     for model_set in MODEL_SETS:
         tag = model_set.upper()
@@ -700,6 +783,70 @@ def pick_table(fusion):
         "FPR 10%",
         "AUROC",
     ]
+    table = markdown_table(header, rows)
+    return table
+
+
+BAND_PARTNERS = ("early_band", "middle_band", "late_band")
+BAND_RULES = ("min_rank", "mean_psu", "tm_alone")
+BAND_ATTACKS = ("wanet", "tact", "badnet_a2o")
+
+
+def band_table(summary):
+    rows = []
+    for partner in BAND_PARTNERS:
+        block = summary[partner]
+        for rule in BAND_RULES:
+            reading = block["all"][rule]
+            rows.append(
+                [
+                    PARTNER_WORDS[partner],
+                    RULE_WORDS[rule],
+                    f"{block['n_models']} of {block['n_pooled']}",
+                ]
+                + [tpr_cell(reading, q) for q in HEADLINE_QUANTILES]
+                + [f3(reading[f"{q}:realized_fpr"]["mean"]) for q in HEADLINE_QUANTILES]
+                + [f"{f3(reading['auroc']['mean'])} ({delta(reading['auroc'])})"]
+            )
+    header = [
+        "partner",
+        "rule",
+        "models",
+        "TPR 1% (minus PSBD-TM)",
+        "TPR 5% (minus PSBD-TM)",
+        "TPR 10% (minus PSBD-TM)",
+        "FPR 1%",
+        "FPR 5%",
+        "FPR 10%",
+        "AUROC (minus PSBD-TM)",
+    ]
+    table = markdown_table(header, rows)
+    return table
+
+
+def band_attack_table(summary):
+    rows = []
+    for attack in BAND_ATTACKS:
+        for partner in BAND_PARTNERS:
+            group = summary[partner]["by_attack"].get(attack)
+            if group is None:
+                rows.append([attack, PARTNER_WORDS[partner], 0] + ["--"] * 6)
+                continue
+            rows.append(
+                [attack, PARTNER_WORDS[partner], group["n"]]
+                + [
+                    " / ".join(
+                        f3(group[r][f"{q}:tpr"]["mean"]) for q in HEADLINE_QUANTILES
+                    )
+                    for r in BAND_RULES
+                ]
+                + [f3(group[r]["auroc"]["mean"]) for r in BAND_RULES]
+            )
+    header = (
+        ["attack", "partner", "models"]
+        + [f"{RULE_WORDS[r]}, TPR 1 / 5 / 10%" for r in BAND_RULES]
+        + [f"{RULE_WORDS[r]}, AUROC" for r in BAND_RULES]
+    )
     table = markdown_table(header, rows)
     return table
 
@@ -1120,6 +1267,46 @@ Each cell is mean TPR at 1% / 5% / 10% nominal FPR (`summary.<rate rule>.late_ba
 ![fusion rules, held-out set](figures/fusion_rules_holdout.png)
 
 ![fusion rules, full panel](figures/fusion_rules_panel.png)
+
+## Residual band comparison
+
+This section is a post-hoc comparison of bands requested after the confirmation read, and it makes no new pick. The pre-registration and its verdicts are unchanged. The question is which residual dropout band is the best union partner for PSBD-TM. The request cites Karayalçin et al. (arXiv 2026) for a middle-layer class-token onset of WaNet and an early per-token representation of static triggers. The project's summary of that paper (L8 in `docs/why-psbd-works-literature.md`) reads it differently, with stealthy triggers such as WaNet and BPP reaching the class token in earlier layers than static ones because their perturbation can be read in each token separately. Either reading predicts that the band matters by attack, so the 3 bands are compared per attack. `pre_residual_blocks_1_4` was added to `fusion_rules.py` as a 4th partner for this reading. The plain min-rank rule is the headline and the mean of fractional PSU sits beside it.
+
+The early band is the worst partner. On the held-out set min-rank with it changes TPR at 1%, 5% and 10% FPR by @@BAND_EARLY_HOLD_001@@, @@BAND_EARLY_HOLD_005@@ and @@BAND_EARLY_HOLD_010@@ against PSBD-TM alone, while the middle band gives @@BAND_MIDDLE_HOLD_001@@, @@BAND_MIDDLE_HOLD_005@@ and @@BAND_MIDDLE_HOLD_010@@ and the late band @@BAND_LATE_HOLD_001@@, @@BAND_LATE_HOLD_005@@ and @@BAND_LATE_HOLD_010@@. In AUROC the 3 read @@BAND_EARLY_HOLD_AUROC@@, @@BAND_MIDDLE_HOLD_AUROC@@ and @@BAND_LATE_HOLD_AUROC@@. The early band does not help the patch trigger either. On the panel at the nearest rate, where all 3 bands cover every model, BadNets TPR at 1% FPR is @@BAND_TM_BADNET_TPR1@@ for PSBD-TM alone, @@BAND_EARLY_BADNET_TPR1@@ with the early band, @@BAND_MIDDLE_BADNET_TPR1@@ with the middle band and @@BAND_LATE_BADNET_TPR1@@ with the late band.
+
+The middle and late bands trade WaNet against TaCT. On the @@BAND_WANET_N@@ WaNet models of the panel min-rank AUROC is @@BAND_EARLY_WANET@@ with the early band, @@BAND_MIDDLE_WANET@@ with the middle band and @@BAND_LATE_WANET@@ with the late band, against @@BAND_TM_WANET@@ for PSBD-TM alone. On the @@BAND_TACT_N@@ TaCT models it is @@BAND_EARLY_TACT@@, @@BAND_MIDDLE_TACT@@ and @@BAND_LATE_TACT@@ against @@BAND_TM_TACT@@. The middle band gets most of the WaNet lift at a much smaller TaCT cost, and it reaches the adaptive target on @@BAND_MIDDLE_PANEL_N@@ panel models against @@BAND_LATE_PANEL_N@@ for the late band (the early band reaches it on @@BAND_EARLY_PANEL_N@@). The WaNet lift grows from the early to the late band, so these readings do not single out a middle-layer onset for WaNet, and early residual dropout hurts BadNets instead of helping it. Both statements come from a post-hoc reading with @@BAND_WANET_N@@ WaNet and @@BAND_TACT_N@@ TaCT models, so they are hypotheses for a pre-registered test and not results.
+
+Each table reads `fusion_rules_<set>.json`, `summary.<rate rule>.<band>.all.<rule>`, with PSBD-TM alone on the same models as the reference.
+
+**Adaptive rate, held-out set.**
+
+@@TABLE_BANDS_HOLDOUT@@
+
+**Adaptive rate, full panel.**
+
+@@TABLE_BANDS_PANEL@@
+
+**Nearest rate, full panel, every band on all models.**
+
+@@TABLE_BANDS_PANEL_NEAREST@@
+
+**Adaptive rate, development set.**
+
+@@TABLE_BANDS_DEV@@
+
+**WaNet, TaCT and BadNets per band.** Each TPR cell is mean TPR at 1% / 5% / 10% nominal FPR (`summary.<rate rule>.<band>.by_attack.<attack>`). The held-out set has no TaCT model.
+
+Held-out set, adaptive rate.
+
+@@TABLE_BAND_ATTACKS_HOLDOUT@@
+
+Full panel, adaptive rate.
+
+@@TABLE_BAND_ATTACKS_PANEL@@
+
+Full panel, nearest rate.
+
+@@TABLE_BAND_ATTACKS_PANEL_NEAREST@@
 
 ## Verdicts
 

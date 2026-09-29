@@ -13,8 +13,8 @@ backdoor rather than a source of the margin.
 
 ## Method
 
-282 checkpoints, every one that has both a cached detection result and an
-`args.json`, spanning 2 architectures, 4 datasets, 10 attacks and 3 poison rates.
+282 checkpoints, every one that had both a cached detection result and an
+`args.json` when it ran, spanning 2 architectures, 4 datasets, 10 attacks and 3 poison rates.
 SAM ablations excluded, matching the rest of the project's reporting.
 
 For each, 500 paired samples, the same test images with and without the trigger,
@@ -26,28 +26,40 @@ constant.
 
 ## Result
 
-0 failures over 282 checkpoints.
+0 failures over 282 checkpoints. 12 of them are the CIFAR-100 and Tiny TaCT evasive models,
+which read 0.00 clean source-class accuracy and fall under the ledger's source-mapped rule,
+so they are not backdoors. The table drops them (265 backdoored checkpoints with an ASR) and
+reads ASR from each checkpoint's `args.json`, the source the ledger uses, rather than the
+stale `metrics.json`:
+
+    PYTHONPATH=. .venv/bin/python scratch/stale_numbers/latent_geometry_panel.py
+
+The values this README quoted before 2026-09-29 are in brackets. The AUROC column reproduces
+them exactly on all 282, and the ASR and partial columns moved with the ASR source.
 
 | predictor | rho with AUROC | rho with ASR | **partial rho given ASR** |
 |---|---:|---:|---:|
-| `min_rank_ratio` | -0.541 | -0.451 | **-0.310** |
-| `min_cka` | -0.678 | -0.630 | **-0.342** |
-| `max_separation_auroc` | 0.498 | 0.556 | **0.095** |
-| `max_target_alignment` | 0.492 | 0.468 | 0.244 |
+| `min_rank_ratio` | -0.490 [-0.541] | -0.399 [-0.451] | **-0.311** [-0.310] |
+| `min_cka` | -0.636 [-0.678] | -0.590 [-0.630] | **-0.351** [-0.342] |
+| `max_separation_auroc` | 0.441 [0.498] | 0.468 [0.556] | **0.140** [0.095] |
+| `max_target_alignment` | 0.458 [0.492] | 0.387 [0.468] | 0.272 [0.244] |
 
 The sign is the predicted one: more collapse, so a smaller ratio, means easier
-detection.
+detection. `best_deployable_auroc` is the best AUROC over every deployable rule in each
+checkpoint's cached sweep, so it is a maximum over placements and rates rather than the
+canonical PSBD-TM reading at the adaptive 0.8 rule.
 
 **The ASR control is the point.** A backdoor that does not work cannot collapse
 anything, so any collapse measure is bound to track attack success. Holding ASR
-fixed, the collapse measures keep a real partial correlation (-0.31 and -0.34)
-while **raw separability falls to 0.095**, meaning separability predicts detection
-almost entirely through ASR and carries nothing of its own. That is the same
+fixed, the collapse measures keep a real partial correlation (-0.31 and -0.35)
+while **raw separability falls to 0.140**, meaning separability predicts detection
+mostly through ASR and carries little of its own. That is the same
 separation notebook 02 found by a different route: separability reaches 0.96 even
 on a benign model, and the collapse measures do not.
 
-Within the high ASR band alone (ASR above 0.9, n = 170) the correlation weakens to
--0.157 (p = 0.042). Real, correctly signed and modest.
+Within the high ASR band alone (ASR above 0.9, n = 164, none of them excluded) the
+correlation weakens to -0.176 (p = 0.024) [-0.157, p = 0.042, n = 170]. Real, correctly
+signed and modest.
 
 Benign controls behave exactly as a control should:
 

@@ -1,5 +1,13 @@
 # Perturbation calibration: disturbance per rate is not comparable across operators
 
+Superseded on 2026-09-29: of the 7 rows below, only `channel_mask` at `before_attention_norm`
+is still in `results/vit_cifar10_wanet_0_1/psbd_metrics.json`, where it now reads 0.05 to
+0.025, 0.3 to 0.259, 0.5 to 0.703 and 0.9 to 0.888. The `gaussian` rows were measured with
+the batch-coupled noise operator that audit finding A2 replaced by a per-sample one
+(`experiments/gaussian_batch_coupling/`), so their rate to sigma mapping no longer describes
+the operator in the code. The finding that a shared rate is not a shared disturbance stands
+and is the reason the canon compares placements at the matched 0.6 rule.
+
 Measured 2026-08-14 from the first jobs of the perturbation study, commit
 `b37ceaf`. Clean-validation shift ratio (sigma) against rate, ViT-B/16 CIFAR-10.
 

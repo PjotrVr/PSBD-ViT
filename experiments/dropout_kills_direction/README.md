@@ -43,5 +43,12 @@ but `separation` divides by the pooled standard deviation and that quotient alre
 absorbs the rescaling. A raw mean difference here would have been as fragile as the
 ablation was.
 
+The saved record, `results/vit_cifar10_badnet_a2o_0_1/dropout_direction_survival.json`,
+holds `pre_residual` at 0.778, 0.297 and 0.064 and `post_residual` at 0.015, 0.000 and
+0.000 at rates 0.1, 0.3 and 0.5, which are the `--post-ln` values above. It does not record
+which mode wrote it, and the values without `--post-ln` (0.696, 0.253 and 0.065) have no
+saved record. The conclusion is the same in both. The experiment covers this 1 checkpoint
+and has not been re-run on the current panel.
+
 Hypothesis docs: `docs/hypothesis/H3-why-post-residual-fails.md`,
 `docs/hypothesis/H20-input-side-beats-residual-adjacent.md`.

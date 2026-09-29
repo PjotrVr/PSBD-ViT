@@ -1,5 +1,11 @@
 # CPU timings for PSBD sweeps and the competitor detectors
 
+Superseded on 2026-09-29: the Swin comparison no longer reads 90 cells. With the ledger's
+source-mapped rule applied to Swin, the paper build of 2026-09-24 counted 83 Swin cells that
+clear the ASR bar and carry PSBD metrics and 80 that carry every placement of the paired
+comparison. The current counts are `\SwinCells` and `\SwinGainRecommendedMinusPublishedN` in
+`paper/headline.tex`, which the 2-point clean-accuracy bar of 2026-09-29 changes again.
+
 2026-09-23. Measured because the GPU queue carries 1463 waiting jobs and the
 login-node GPU is at 97% utilization from another job, so the question was
 whether the remaining work runs on the CPU queue instead. It does. These are the

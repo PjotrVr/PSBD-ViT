@@ -1,5 +1,11 @@
 # Detector smoke on the login node, 2026-09-10
 
+Superseded on 2026-09-29: the panel comparison named at the end of this record now runs over
+the paper panel, the 54 models successful at the 2-point clean-accuracy bar, rather than 65
+clearing cells, with 11 competitor detectors. The model count and both placements' ranks are
+`\DetectorsComparedModels`, `\DetectorsComparedCount`, `\DetectorsAurocRankOurs` and
+`\DetectorsAurocRankPublished` in `paper/headline.tex`.
+
 Every competitor detector in `detectors/` was run once on 3 GTSRB checkpoints on
 the login-node A100 before any panel job was written: the benign reference, a
 BadNet cell and a Blend cell, each at 5% poisoning. The purpose was acceptance,

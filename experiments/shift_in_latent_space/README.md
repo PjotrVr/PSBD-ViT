@@ -35,18 +35,41 @@ has to be subtracted from any claim about poisoning.
 Writes `results/<folder>/shift_latent.json`, and with `--umap` a projection coloured
 by where each sample landed. Needs a GPU.
 
+## Records and reading
+
+5 records exist, `results/vit_cifar10_{badnet_a2o,blend,bpp,lf}_0_1/shift_latent.json` and
+`results/vit_cifar10_benign/shift_latent.json`, all CIFAR-10 at 10% poisoning. Every one was
+measured with dropout at `pre_residual` at a fixed rate of 0.5, with the block range left at
+the script's default of blocks 5 to 8, which is neither a canonical placement nor a rate a
+canonical rule chose. The benign model is probed with the BadNets trigger, target 0. 800
+clean samples each, final block CLS features.
+
+| model | shifted | landed on target | cos toward target | cos toward landed class | projection along backdoor direction |
+|---|---:|---:|---:|---:|---:|
+| badnet_a2o | 91 | 0.374 | 0.472 | 0.399 | 0.622 |
+| bpp | 90 | 0.300 | 0.463 | 0.378 | 1.859 |
+| lf | 103 | 0.214 | 0.509 | 0.461 | 1.354 |
+| blend | 69 | 0.145 | 0.430 | 0.344 | 1.461 |
+| benign, BadNets probe | 95 | 0.295 | 0.478 | 0.403 | 0.422 |
+
 ## Finding
 
-H7 is partially refuted, and the exception is the most important result in the
-ledger. The target-class drift is real for `bpp`, `lf` and `badnet_a2o` at higher
-poisoning, running at 2 to 5 times the chance rate of 0.10, and it strengthens with
-poison rate for both `badnet` variants exactly as the neuron-bias story predicts.
+Target-class drift is not supported. The benign control, a model with no backdoor, lands
+0.295 of its shifted clean samples on the target class with a cosine toward the target of
+0.478. That matches the backdoored models (0.214 to 0.374 landed, 0.430 to 0.509 cosine), so
+the drift toward class 0 is a property of the backbone under heavy perturbation and not of
+the poisoning. Only the BadNets projection along its own backdoor direction can be set
+against the control, and it exceeds it modestly (0.622 against 0.422). The other attacks have
+no benign reading along their own directions.
 
-It is absent for `blend`, which reads 0.052 at 10% poisoning, below chance, while
-being the best-detected attack in the whole grid at AUROC 0.978 to 0.986. So on a
-transformer the method and its published explanation come apart: PSBD works best
-precisely where its stated mechanism is measurably not happening. Whatever produces
-the confidence gap for `blend` is not clean samples collapsing onto the attacker's
-target class.
+The version of this README before 2026-09-29 quoted a blend landed share of 0.052, a 2 to 5
+times chance drift and a trend with poison rate over both BadNets variants. None of those
+values is in the saved records, which hold 1 poison rate and no all-to-all model.
+
+The pass that decides where a sample landed and the pass that gives its displacement are 2
+separate forward passes, each started from the same seed (`measure.py`), so they share
+dropout masks only if both consume the random stream identically, and nothing checks it. A test of H7 that would count needs the
+canonical placement at its adaptive rate, a benign control per trigger and more than 1
+poison rate. None has been run, so H7 stays open on this evidence.
 
 Hypothesis doc: `docs/hypothesis/H7-clean-shifts-to-target.md`.

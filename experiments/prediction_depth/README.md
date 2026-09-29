@@ -70,47 +70,54 @@ threat model already grants, and applies 1 fixed rule everywhere: far from clean
 either direction is suspicious. The threshold stays a quantile of the validation
 deviation, so the false-positive budget is set exactly as before.
 
-## The headline: same AUROC, but it works at a budget PSBD cannot
+## The headline: a tie on AUROC, a gain at 1% FPR on the hard attacks
 
-Judged the way it should be judged. BadNet and Blend excluded, because BadNet implants at
-ASR 0.997 to 1.000 everywhere and the ledger already records that "its detection behavior
-is least like the others". Poison rates 1% and 5% only. Attacks that actually implanted
-(ASR >= 0.5) only. Paired against PSBD on the same cells, same splits, same pairing.
+Read on the paper panel of 54 models successful at the 2-point clean-accuracy bar,
+`depth_soft` against PSBD-TM at the adaptive 0.8 rule, paired within model on the same
+splits, AUROC at q0.25 and TPR at the q0.01 budget, with the paper generator's own reader
+(`scripts.paper.mech_prediction_depth.measure_cell`):
 
-**n = 32 (adaptive_blend, WaNet, LC, SIG, LF, Bpp), 1% and 5%, full 217-cell panel:**
+    PYTHONPATH=. .venv/bin/python scratch/stale_numbers/prediction_depth_panel.py
 
-| | AUROC | **TPR at 1% FPR** | forward passes |
-|---|---|---|---|
-| `depth_soft` | 0.831 | **0.675** | **1** |
-| PSBD | 0.821 | **0.428** | 30 |
-| delta | +0.011, CI [-0.028, +0.044] | **+0.248, CI [+0.090, +0.402]**, wins 24/32 | |
+| cells | n | AUROC depth | AUROC PSBD-TM | AUROC delta | **TPR@1% depth** | **TPR@1% PSBD-TM** | TPR delta | wins |
+|---|---|---|---|---|---|---|---|---|
+| all | 54 | 0.913 | 0.963 | -0.050, CI [-0.109, +0.000] | 0.734 | 0.747 | -0.013, CI [-0.118, +0.091] | 35 |
+| hard (BPP, WaNet, TaCT) | 18 | 0.872 | 0.922 | -0.051, CI [-0.218, +0.076] | **0.753** | **0.568** | **+0.185, CI [+0.027, +0.342]** | 13 |
+| hard at 1% and 5% | 12 | 0.819 | 0.947 | -0.128, CI [-0.361, +0.039] | 0.651 | 0.548 | +0.103, CI [-0.078, +0.286] | 7 |
 
-(An earlier read on 31 of these cells gave +0.284. The full panel gives +0.248. The
-conclusion is unchanged and the interval still excludes zero.)
-
-**AUROC is a tie and the confidence interval says so.** The result is entirely at the
-operating point: at a 1% false-positive budget it catches 70% where PSBD catches 41%,
-winning 23 of 31 cells, from a thirtieth of the compute.
-
-That is not a coincidence. `experiments/low_fpr_audit/` measured that 13 of 56 cells have
-AUROC >= 0.85 with TPR@1%FPR < 0.05, i.e. PSBD's binding failure is the extreme tail rather
-than the average. This lands exactly there.
+**AUROC is a tie on the hard attacks and the confidence interval says so.** The result is at
+the operating point: over all 18 hard models, at a 1% false-positive budget `depth_soft`
+catches 0.75 where PSBD-TM catches 0.57, from 1 forward pass against 3. Restricted to 1% and
+5% poisoning, the cut this section was first written for, the gain is +0.103 and its
+interval crosses 0. On the whole panel `depth_soft` trails PSBD-TM on AUROC by 0.050.
 
 By attack, TPR at 1% FPR:
 
-| attack | n | `depth_soft` | PSBD |
+| attack | n | `depth_soft` | PSBD-TM |
 |---|---|---|---|
-| LF | 8 | **0.884** | 0.507 |
-| Bpp | 8 | **0.859** | 0.524 |
-| WaNet | 4 | **0.769** | 0.141 |
-| adaptive_blend | 8 | 0.465 | **0.521** |
-| LC | 3 | **0.269** | 0.145 |
-| SIG | 1 | 0.062 | **0.280** |
+| WaNet | 3 | **0.929** | 0.372 |
+| BPP | 12 | **0.898** | 0.757 |
+| LF | 12 | **0.919** | 0.904 |
+| Blend | 12 | 0.833 | 0.829 |
+| BadNets | 12 | 0.421 | **0.776** |
+| TaCT | 3 | 0.000 | **0.012** |
 
-**It LOSES on adaptive_blend and on SIG**, which are the 2 hardest cases in the panel and
-the ones a defense most needs to win. On the full panel adaptive_blend flips from a tie to
-a loss. The wins on WaNet, Bpp and LF are large, so the honest reading is that
-this buys a large low-FPR gain on the mid-difficulty attacks and nothing on the hardest.
+The gain is WaNet and BPP. `depth_soft` loses badly on BadNets and collapses on TaCT (AUROC
+0.376 against 0.962), the 2 patch triggers, so it is a complement to PSBD-TM on global
+triggers rather than a replacement. The panel holds no SIG model.
+
+The paper's prediction depth macros (`paper/tables/prediction_depth.macros.json`,
+`\DepthCells`) were built before the source-mapped exclusion and the 2-point bar, and read a
+historical 65 cells until the rebuild of 2026-09-29.
+
+### The earlier reading
+
+The version of this section before 2026-09-29 read a 217-cell sweep: n = 32 cells at 1% and
+5% with ASR at least 0.5, below the 0.85 bar and including Adaptive-Blend and LC cells that
+never clear it, against PSBD at a placement and rule this README did not state. It reported
+`depth_soft` 0.831 against PSBD 0.821 on AUROC (historical) and 0.675 against 0.428 at TPR@1%FPR (+0.248,
+CI [+0.090, +0.402], 24 of 32 wins). It lost on Adaptive-Blend (0.465 against 0.521) and
+SIG (0.062 against 0.280). It has not been re-run.
 
 **Benign controls, all 4 datasets:** 0.481, 0.481, 0.501, 0.498, mean **0.491**, with TPR
 at the 1% budget reading 0.010 to 0.012, i.e. exactly nominal. The signal is not an
@@ -127,6 +134,11 @@ artifact of applying a trigger.
   set the pre-registered n.
 
 ## The earlier verdict, retained: on AUROC alone it loses
+
+This section and the 3 after it are earlier readings on the 217-cell sweep. They hold cells
+that are not on the current panel (`vit_gtsrb_lc_0_1`, `vit_gtsrb_sig_0_1`, the
+Adaptive-Blend cells) and compare against PSBD at earlier placements, and they have not been
+re-run on the current panel.
 
 BadNet is the wrong thing to judge this on. It implants at ASR 0.997 to 1.000 everywhere
 and the ledger already records that "its detection behavior is least like the others".

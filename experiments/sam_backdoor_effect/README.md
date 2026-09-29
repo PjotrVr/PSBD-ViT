@@ -45,6 +45,9 @@ because the SAM checkpoints were swept over a harder set. Matched on architectur
 dataset, attack, poison rate and placement, the sign flips to between +0.025 and
 +0.050 in SAM's favor, and 13 of those 18 matched cells are `badnet_a2a`. The
 verdict should be re-decided once matched `badnet_a2o`, `blend`, `bpp` and `lf`
-cells land.
+cells land. They have: `experiments/sam_reading/` matches Adam and SAM on those 4 attacks
+plus WaNet, and its 2026-09-29 rerun over 109 pairs at rho 0.1, ViT and Swin on all 4
+datasets, reads the PSBD-TM delta as -0.012 (CI [-0.032, +0.007]) and the PSBD-RD delta as
+-0.001.
 
 Hypothesis doc: `docs/hypothesis/H6-sam-improves-detectability.md`.

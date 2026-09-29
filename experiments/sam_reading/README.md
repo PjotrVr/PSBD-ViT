@@ -49,40 +49,53 @@ and its macro sidecar, 1 row per rho with Adam as the reference row.
 
 ## Table
 
-| Rho | Pairs | ASR | CA | PSBD token mask AUROC | PSBD token mask TPR at 10% | PSBD residual dropout AUROC | PSBD token mask delta vs Adam | 95% CI |
-|---|---|---|---|---|---|---|---|---|
-| Adam | 96 | 0.983 | 0.902 | 0.968 | 0.930 | 0.899 | -- | -- |
-| 0.05 | 24 | 0.984 | 0.898 | 0.973 | 0.933 | 0.851 | +0.034 | [-0.000, +0.082] |
-| 0.1 | 24 | 0.985 | 0.899 | 0.975 | 0.938 | 0.896 | +0.035 | [+0.002, +0.079] |
-| 0.15 | 24 | 0.984 | 0.901 | 0.954 | 0.887 | 0.822 | +0.010 | [-0.032, +0.058] |
-| 0.2 | 24 | 0.983 | 0.897 | 0.960 | 0.897 | 0.823 | +0.023 | [-0.024, +0.076] |
+`results/_experiments/sam_reading/sam_reading.json` is the run of 2026-09-11, 24 matched
+pairs per rho, all ViT, all CIFAR-10 or CIFAR-100. The PSBD sweep has since reached ViT and
+Swin on all 4 datasets at rho 0.1, so `measure.py` was rerun on CPU on 2026-09-29 against
+the current caches and written beside it as
+`results/_experiments/sam_reading/sam_reading_2026-09-29.json`:
 
-The Adam row is read over the 96 Adam checkpoints in the matched grid that swept
-both placements. Each SAM row's Pairs count, 24 throughout, is the narrower set
-that also swept both placements on the SAM side, all ViT, all CIFAR-10 or
-CIFAR-100: the SAM sweep has not yet reached Swin, GTSRB or Tiny ImageNet for this
-attack set, and the delta column is paired only within that set. The residual
-dropout delta at rho 0.15 and 0.2 excludes 0 entirely on the negative side, meaning
-the published placement's AUROC drops with SAM: [-0.164, -0.004] and [-0.157,
--0.003].
+```bash
+PYTHONPATH=. .venv/bin/python -c "import experiments.sam_reading.measure as m; \
+    m.OUTPUT_PATH = 'results/_experiments/sam_reading/sam_reading_2026-09-29.json'; m.main()"
+```
+
+AUROC at the adaptive 0.8 rule, fractional PSU. The Adam row is the 112 Adam checkpoints
+that swept both placements, and each SAM row is the SAM side of its matched pairs:
+
+| Rho | Pairs | ASR | CA | PSBD token mask AUROC | PSBD token mask TPR at 10% | PSBD residual dropout AUROC | PSBD token mask delta vs Adam | 95% CI | PSBD residual dropout delta | 95% CI |
+|---|---|---|---|---|---|---|---|---|---|---|
+| Adam | 112 | 0.976 | 0.892 | 0.967 | 0.930 | 0.885 | -- | -- | -- | -- |
+| 0.05 | 26 | 0.985 | 0.903 | 0.974 | 0.937 | 0.835 | +0.034 | [+0.002, +0.082] | -0.038 | [-0.115, +0.020] |
+| 0.1 | 109 | 0.974 | 0.902 | 0.955 | 0.909 | 0.882 | -0.012 | [-0.032, +0.007] | -0.001 | [-0.039, +0.036] |
+| 0.15 | 26 | 0.985 | 0.905 | 0.938 | 0.849 | 0.803 | -0.002 | [-0.053, +0.047] | -0.071 | [-0.155, -0.001] |
+| 0.2 | 26 | 0.984 | 0.903 | 0.958 | 0.891 | 0.811 | +0.019 | [-0.025, +0.070] | -0.062 | [-0.142, -0.002] |
+
+Rho 0.1 pools ViT and Swin over all 4 datasets and 5 attacks (109 pairs). Rho 0.05, 0.15
+and 0.2 are still ViT on CIFAR-10 and CIFAR-100 (26 pairs). ASR and clean accuracy are read
+from `checkpoints/<folder>/metrics.json`, which the 2026-09-29 audit
+(`docs/audits/2026-09-29-experiment-audit.md`) found stale against the ledger's `args.json`
+ASR. No attack in this grid is TaCT, so no pair holds a source-mapped model.
+
+The 2026-09-11 run read the token-mask delta as +0.034, +0.035, +0.010 and +0.023 over 24
+pairs at rho 0.05 to 0.2, with the rho 0.1 interval [+0.002, +0.079] the only 1 excluding 0.
+On 109 pairs the rho 0.1 delta is -0.012 and its interval crosses 0.
 
 The amplification metrics, where they exist (ViT, CIFAR-10, rate 0.1, `badnet_a2o`,
-`blend`, `bpp`, `lf`), repeat the earlier finding: `top2_tac` rises with rho
-(mean delta +0.71 at rho 0.15, n=4) while `silhouette` barely moves (mean delta
-0.004 at rho 0.15), so the backdoor amplifies without the clean and triggered
-features separating any further.
+`blend`, `bpp`, `lf`, n=4), repeat the earlier finding: `top2_tac` falls at low rho and
+rises at high rho (mean delta -0.397 at rho 0.05, +0.710 at 0.15, +2.252 at 0.2) while
+`silhouette` barely moves (at most 0.007 in absolute value), so the backdoor amplifies
+without the clean and triggered features separating any further.
 
 ## Conclusion
 
-SAM helps PSBD on ViT at the token-mask placement and hurts it at the placement the
-original PSBD paper published, so the answer to "does SAM help PSBD" depends on
-which placement is asked. The token-mask gain is small and mostly rho-independent,
-+0.010 to +0.035 mean AUROC with the tightest interval at rho 0.1 ([+0.002,
-+0.079]), while the residual-dropout loss grows with rho and reaches -0.069 to
--0.074 with both bootstrap intervals excluding 0 at rho 0.15 and 0.2. Every one of
-these numbers comes from 24 matched combinations, all ViT and all CIFAR-10 or
-CIFAR-100, so this settles the question for that architecture and those 2 datasets
-only, not yet for Swin, GTSRB or Tiny ImageNet.
+SAM does not help PSBD-TM, and it hurts the placement the original PSBD paper published at
+high rho. On the 109-pair pool of rho 0.1, the only rho with both architectures and all 4
+datasets, the token-mask delta is -0.012 (CI [-0.032, +0.007]) and the residual-dropout
+delta -0.001. The token-mask gain of +0.034 at rho 0.05 excludes 0 on 26 ViT CIFAR pairs,
+and the residual-dropout loss of -0.062 to -0.071 at rho 0.15 and 0.2 excludes 0 on the same
+kind of pairs. The earlier conclusion, a small rho-independent token-mask gain with its
+tightest interval at rho 0.1, does not survive the larger pool at that rho.
 
 ## Reproduce
 

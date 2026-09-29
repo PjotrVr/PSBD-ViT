@@ -13,6 +13,13 @@ of oracle-exclude (0.957). Forensic exclude by val_std actually hurts (0.847).
 
 The protocol: use all operators, do not try to identify the evaded one.
 
+Every number above reproduces from `results/adaptive_defender_analysis.json` (2026-08-17):
+56 evasive checkpoints, ViT and Swin on CIFAR-100 and Tiny, whose attack success stays above
+0.9, each probe at the matched 0.6 rule. The CIFAR-100 and Tiny TaCT evasive models are
+source-mapped (0.00 clean source-class accuracy) and none of them reaches attack success 0.9,
+so the 56 hold no source-mapped model. The experiment has not been re-run on the
+current caches.
+
 Runs on CPU using cached PSBD sweep data. No GPU needed.
 
     python experiments/adaptive_defender/analyze.py

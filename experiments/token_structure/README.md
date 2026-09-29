@@ -38,5 +38,11 @@ reads 3.33 despite both being global attacks, while `badnet_a2o` on CIFAR-100 re
 2.35 and is missed. The visual finding is real and the assumed correspondence
 between trigger locality and direction concentration does not hold.
 
+The records, `results/token_localization.json` and
+`results/token_concentration_classifier.json`, cover 8 CIFAR-100 and Tiny models at 10%,
+including CIFAR-100 SIG, WaNet and Adaptive-Blend, which do not clear the current 0.85 ASR
+bar. None is diverged or source-mapped, and the experiment has not been re-run on the
+current panel.
+
 Hypothesis docs: `docs/hypothesis/H32-token-localization-spatial.md`,
 `docs/hypothesis/H37-token-concentration-attack-classifier.md`.

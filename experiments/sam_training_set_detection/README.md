@@ -238,6 +238,12 @@ singular-value ratio by -0.13, both the wrong sign for the paper's own claim
 that SAM widens class separation (their reported silhouette gains on
 ResNet18/CIFAR-10 were +0.13 for BadNets and +0.26 for SSBA).
 
+The WaNet rows are not backdoors in the ledger's sense: `vit_cifar100_wanet_0_01` reads ASR
+0.057 and `vit_cifar100_wanet_0_05` 0.643 in `results/coverage/coverage.json`, both below the
+0.85 bar, so the WaNet pair at 1% measures detection of poisoned training samples in a model
+the trigger never implanted in. The BadNets and Blend rows clear the bar. None of the 12
+checkpoints is a model the ledger excludes as diverged or source-mapped.
+
 ## Why our gain is far smaller
 
 3 reasons, in order of how much evidence this experiment actually has for

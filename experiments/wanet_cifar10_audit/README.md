@@ -40,20 +40,24 @@ ASR 0.8898):
 |---|---|---|---|---|
 | before_attention_norm token_mask | 0.05 | 0.025 | 0.375 | 0.146 |
 | before_attention_norm token_mask | 0.4 | 0.665 | 0.432 | 0.092 |
-| before_attention_norm token_mask | **0.5 (adaptive)** | 0.855 | **0.459** | 0.086 |
+| before_attention_norm token_mask | **0.5 (adaptive)** | 0.855 | **0.459** | 0.087 |
 | before_attention_norm token_mask | 0.9 (top of ladder) | 0.906 | 0.767 | 0.049 |
-| post_residual dropout | 0.07 | 0.735 | 0.926 | 0.754 |
-| post_residual dropout | **0.09 (adaptive)** | 0.866 | **0.927** | 0.747 |
-| pre_residual dropout | 0.5 | 0.879 | 0.925 | 0.653 |
-| pre_residual dropout | **0.5 (adaptive)** | 0.879 | **0.925** | 0.653 |
+| post_residual dropout | 0.07 | 0.735 | 0.921 | 0.777 |
+| post_residual dropout | **0.09 (adaptive)** | 0.866 | **0.947** | 0.846 |
+| pre_residual dropout | 0.4 | 0.794 | 0.881 | 0.534 |
+| pre_residual dropout | **0.5 (adaptive)** | 0.879 | **0.946** | 0.823 |
+
+Read from `results/vit_cifar10_wanet_0_1/psbd_metrics.json` on 2026-09-29. The dropout rows
+moved since this audit was first written (historical: `post_residual` read 0.927 and `pre_residual`
+0.925 at their adaptive rates then), and the token-mask rows did not.
 
 Token masking never separates clean from backdoor on this cell, at any rate on the
 0.05 to 0.9 ladder: AUROC climbs from 0.37 at rate 0.05 to a ceiling of 0.77 at
 rate 0.9 (the top of the sweep) and never approaches the dropout placements'
-0.92 to 0.93. The adaptive rule's 0.459 sits inside that flat, low range, not below
+0.95. The adaptive rule's 0.459 sits inside that flat, low range, not below
 it, so a different rate choice would not have rescued the placement. The user's
-recollection of `pre_residual` doing well on WaNet is confirmed: it reads 0.925 at
-its adaptive rate, close to `post_residual`'s 0.927, both far above
+recollection of `pre_residual` doing well on WaNet is confirmed: it reads 0.946 at
+its adaptive rate, close to `post_residual`'s 0.947, both far above
 `before_attention_norm` token masking on this checkpoint.
 
 Recomputing rate 0.5's cache directly with `defenses.scores.psu_ratio_from_cache`
@@ -61,18 +65,23 @@ and `defenses.decision.detection_report` gives 0.4587, matching the stored value
 to 4 decimal places. The split manifest pairs clean and backdoor rows correctly,
 the baseline clean accuracy (0.9457) and ASR (0.8894) recomputed from
 `baseline_clean.pt` and `baseline_backdoor.pt` match `args.json`, and the 3 Monte
-Carlo mask seeds already cached for this cell (seed 0, 1, 2) all read 0.482 to
-0.484 at rate 0.5, so the failure is not a single unlucky mask draw.
+Carlo mask seeds already cached for this cell (seed 0, 1, 2) all read 0.458 to
+0.459 at rate 0.5, so the failure is not a single unlucky mask draw.
 
 The neighbouring cells rule out a checkpoint-wide problem and a WaNet-wide
 problem:
 
 | cell | before_attention_norm token_mask (adaptive) | post_residual (adaptive) | pre_residual (adaptive) |
 |---|---|---|---|
-| cifar10 wanet 10% (this cell) | 0.459 @ p=0.5 | 0.927 @ p=0.09 | 0.925 @ p=0.5 |
-| cifar10 wanet 5% | 0.936 @ p=0.6 | 0.959 @ p=0.07 | 0.950 @ p=0.4 |
-| gtsrb wanet 10% | 0.965 @ p=0.4 | 0.966 @ p=0.07 | 0.963 @ p=0.3 |
-| tiny wanet 10% | 0.887 @ p=0.5 | 0.860 @ p=0.05 | 0.567 @ p=0.4 |
+| cifar10 wanet 10% (this cell) | 0.459 @ p=0.5 | 0.947 @ p=0.09 | 0.946 @ p=0.5 |
+| cifar10 wanet 5% | 0.937 @ p=0.6 | 0.956 @ p=0.07 | 0.951 @ p=0.4 |
+| gtsrb wanet 10% | 0.948 @ p=0.4 | 0.960 @ p=0.07 | 0.958 @ p=0.3 |
+| tiny wanet 10% | 0.950 @ p=0.5 | 0.966 @ p=0.05 | 0.883 @ p=0.4 |
+
+The CIFAR-10 WaNet 5% and GTSRB WaNet 10% models lose 3.9 and 3.3 points of clean accuracy
+against their benign references, so they clear the ASR bar but are not in the paper panel of
+54 models successful at the 2-point bar (`results/coverage/coverage.json`). They are read here
+as WaNet backdoors, which they are.
 
 Token masking succeeds strongly on the very same attack and dataset at 5%
 poisoning, and on WaNet at 10% poisoning on GTSRB and Tiny ImageNet. The failure
@@ -82,7 +91,7 @@ general, not to WaNet in general and not to this checkpoint in general, since
 `vit_cifar10_wanet_0_1` also carries the lowest ASR (0.890) of every WaNet cell
 that clears the panel's 0.85 bar, and its clean shift-to-target fraction under
 token masking stays under 0.08 at every rate, below the 1-in-10 chance rate for
-CIFAR-10's class count, unlike GTSRB WaNet's 0.93. The shift-to-target mechanism
+CIFAR-10's class count, unlike GTSRB WaNet's 0.996 at its adaptive rate. The shift-to-target mechanism
 that explains detection on GTSRB is absent here, consistent with the panel
 finding that it is a local-trigger, few-class phenomenon.
 
@@ -129,11 +138,10 @@ The 0.459 is real: it recomputes exactly from the cache, is stable across 3 Mont
 Carlo mask seeds, and reflects token masking failing at every rate on the ladder
 for this cell, not a bad adaptive-rate pick. It is not a WaNet-wide or
 checkpoint-wide failure, since `pre_residual` and `post_residual` both score above
-0.92 on the identical checkpoint and token masking itself scores 0.94 on the same
-attack and dataset at 5% poisoning and above 0.96 on GTSRB and Tiny ImageNet
-WaNet at 10%. `vit_cifar10_wanet_0_1` sits at the lowest ASR (0.890) among WaNet
+0.94 on the identical checkpoint and token masking itself scores 0.94 on the same
+attack and dataset at 5% poisoning and 0.95 on GTSRB and Tiny ImageNet WaNet at 10%. `vit_cifar10_wanet_0_1` sits at the lowest ASR (0.890) among WaNet
 cells clearing the panel's bar, and its clean shift-to-target fraction under token
-masking stays near or below chance, unlike GTSRB's 0.93, so the shift-to-target
+masking stays near or below chance, unlike GTSRB's 0.996, so the shift-to-target
 mechanism that supports detection elsewhere is absent here. An independently
 trained BackdoorBench reference checkpoint for the same attack, dataset and rate,
 evaluated through its own PNG test images, reproduces the same ordering, token

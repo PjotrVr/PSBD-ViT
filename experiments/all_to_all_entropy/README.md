@@ -38,6 +38,16 @@ shift-invariant, so `log p_1 - log p_2 = z_1 - z_2` identically.
 The 2 statistics are almost perfectly complementary, and the benign control sits at
 chance for both, so neither is an artifact of the pipeline.
 
+The table is the saved record `results/all_to_all_entropy.json` of 2026-09-08. Its
+all-to-one group admits every ViT cell with ASR at least 0.5, below the canonical 0.85 bar,
+and it predates the TaCT, SIG and GTSRB target 1 cells of the current panel, so it has not
+been re-run on the current panel. It holds no diverged or source-mapped model. Read at the
+0.85 bar from the same per-cell rows
+(`PYTHONPATH=. .venv/bin/python scratch/stale_numbers/all_to_all_entropy_panel.py`), the
+all-to-one group is 43 cells on the 4 paper datasets with `psu_ratio` 0.934 against
+`neg_entropy` 0.322, and 5 of the 12 all-to-all cells clear it, with `psu_ratio` 0.365
+against `neg_entropy` 0.784. The complementarity holds at both cuts.
+
 2 things follow.
 
 **The case PSBD declares uncoverable is not uncoverable.** A single deterministic forward

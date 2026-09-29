@@ -1,8 +1,8 @@
 """Site A (attention input) against site B (attention branch output), same operator, 2 places.
 
 `before_attention_norm_token_mask` (site A, PSBD-TM, the recommended placement) and
-`before_attention_residual_token_mask` (site B) both score mean AUROC around 0.935 on the
-65 clearing cells, which reads as the same placement seen twice. Per model the picture
+`before_attention_residual_token_mask` (site B) both score mean AUROC around 0.95 on the
+clearing cells, which reads as the same placement seen twice. Per model the picture
 disagrees: B beats A by 0.52 on CIFAR-10 SIG 10% and 0.39 on CIFAR-10 WaNet 10%, A beats B
 by 0.39 on Tiny WaNet 5% and 0.24 on GTSRB WaNet 10%. This script asks whether that is 2
 probes reading the same signal at different sensitivity, or 2 probes that catch different

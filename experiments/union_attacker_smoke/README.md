@@ -90,13 +90,19 @@ PSU (`defenses.scores.psu_ratio_from_cache`) at each placement's
 |---|---:|---:|
 | ASR | 0.9997 | 1.0000 |
 | Clean accuracy | 0.6165 | 0.8254 |
-| `before_attention_norm_token_mask` AUROC (attacked) | 0.006 | 0.965 |
-| `before_attention_norm` dropout AUROC (attacked) | 0.004 | 0.677 |
-| `mlp_norm_out_gain_scale` AUROC (attacked) | 0.008 | 0.965 |
-| `post_residual` dropout AUROC (not attacked) | 0.013 | 0.570 |
-| `before_attention_residual_token_mask` AUROC (not attacked) | 0.287 | 0.948 |
+| `before_attention_norm_token_mask` AUROC (attacked) | 0.024 | 0.994 |
+| `before_attention_norm` dropout AUROC (attacked) | 0.001 | 0.806 |
+| `mlp_norm_out_gain_scale` AUROC (attacked) | 0.081 | 0.999 |
+| `post_residual` dropout AUROC (not attacked) | 0.330 | 0.826 |
+| `before_attention_residual_token_mask` AUROC (not attacked) | 0.909 | 0.979 |
 | Union AUROC, 3 attacked probes | 0.014 | 0.999 |
 | Union AUROC, all 5 probes | 0.787 | 0.999 |
+
+Every AUROC is fractional PSU at q0.25 at each placement's adaptive 0.8 rate
+(`PYTHONPATH=. .venv/bin/python scratch/stale_numbers/union_smoke_panel.py`). The
+single-probe rows before 2026-09-29 were read from the `adaptive` block of
+`psbd_metrics.json`, which holds absolute PSU, while the union rows were fractional. The
+union rows reproduce unchanged.
 
 Clean accuracy at 0.6165 against the panel's usual 0.83 for this cell is an
 artifact of 1 epoch over 8000 images, not a property of the union attacker.
@@ -109,15 +115,15 @@ like on a healthy model.
 ## What this does and does not show
 
 **Does show:** the multi-probe hinge collapses all 3 probes it was trained
-against (AUROC 0.965/0.677/0.965 to 0.004-0.008) even from an undertrained,
+against (AUROC 0.994, 0.806 and 0.999 to 0.001 to 0.081) even from an undertrained,
 1-epoch model, so the loss is doing what Task 1 built it to do. The pipeline
 end to end (`--evade-probes` training, multi-placement sweep, `cli.analyze`,
 `multi_probe_auroc`) runs without further errors once the memory ceiling was
 found. The 5-probe union (0.787) recovers substantially over the 3-attacked
-union (0.014) even though 2 of its own added members individually read badly
-here: `post_residual` at 0.013 (itself inverted) and the attention-branch token
-mask at 0.287. This is the min-rank mechanism combining anti-correlated
-per-sample errors rather than each probe's own marginal AUROC.
+union (0.014), and the recovery comes from 1 unattacked member: the attention-branch
+token mask reads 0.909 on its own, above the union, while `post_residual` reads 0.330.
+The min-rank rule lets the 3 inverted attacked probes pull the union below its best
+member.
 
 **Does not show:** whether the union defense detects a properly-trained
 (15-epoch, full-data) 3-probe union attacker. A 1-epoch, 8000-image, 0.62

@@ -18,6 +18,36 @@ edited by another process during the run (`docs/results-report.md`,
 `docs/hypothesis/README.md` and `.claude/CLAUDE.md` all changed mid session), so
 re-derive rather than assume if the summary has since been regenerated.
 
+**Source-mapped checkpoints in the snapshot.** 12 of the 282 checkpoints are the CIFAR-100
+and Tiny TaCT evasive models, ViT and Swin, which read 0.00 clean source-class accuracy and
+fall under the ledger's source-mapped rule, so they are not backdoors. The per-checkpoint
+CSVs let every P1 baseline, P2 and P3 summary be recomputed without them:
+
+```bash
+PYTHONPATH=. .venv/bin/python scratch/stale_numbers/theory_predictions_panel.py
+```
+
+| quantity | snapshot | without the 12 |
+|---|---:|---:|
+| P1 max softmax AUROC, ViT backdoored | 0.5323 (n=166) | 0.5349 (n=160) |
+| P1 max softmax AUROC, Swin backdoored | 0.5481 (n=111) | 0.5531 (n=105) |
+| P2 inverted cells, checkpoints | 44, 77 | 41, 74 |
+| P2 check 1, mean Spearman, positive cells | -0.0761, 14 | -0.0723, 13 |
+| P2 check 2, local AUROC low half, high half | 0.4729, 0.3895 | 0.4663, 0.3810 |
+| P2 check 3, single peaked inverted cells | 14 of 44 | 13 of 41 |
+| P2 check 4, mean gain, best, cells crossing 0.5 | +0.0036, +0.0546, 5 | +0.0028, +0.0546, 3 |
+| P2 top confidence bin, clean share, local AUROC | 0.7932, 0.2750 | 0.7970, 0.2607 |
+| P3 cells, checkpoints | 332, 213 | 319, 201 |
+| P3 mean AUROC, PSU against radius | 0.7080, 0.6914 | 0.7156, 0.6997 |
+| P3 cells won, PSU against radius | 171, 161 | 158, 161 |
+| P3 mean dTPR at q 0.01, 0.05, 0.10 | +0.0873, +0.0807, +0.0642 | +0.0909, +0.0844, +0.0675 |
+
+Every verdict stands. The 1 reading that moves is P3c's win count: without the 12, the
+radius rule wins 161 cells against PSU's 158, while PSU keeps the higher mean AUROC. The
+P1 position table and the mirror test are aggregates over `results/detection_summary.csv`
+with no per-checkpoint rows saved, so they have not been recomputed and still hold whatever
+source-mapped cells the snapshot held. The body below is the snapshot.
+
 Everything below is reproducible from the repo root with
 
 ```bash
@@ -171,11 +201,14 @@ by +0.21 to +0.29.
 
 The one correction to the prediction as written: AUROC does not decay **toward**
 the baseline, it decays **past** it. `gain_scale` amplifies the pre head
-activation, which sharpens the softmax most for the LEAST confident samples, so
-PSU there ranks by low confidence, and "low PSU means poisoned" flags the least
-confident sample while a triggered input is the most confident one. The
-statistic is inverted rather than degraded, and 0.4436 is exactly the mirror of
-0.5580.
+activation, a temperature sharpening of the softmax. Sharpening leaves `p_c` unchanged at
+an exact tie and at `p_c = 1` and raises it most in between, so PSU there is close to 0 for
+the most confident samples and most negative for samples of middling confidence, and "low
+PSU means poisoned" flags those while a triggered input is among the most confident. The
+statistic is inverted rather than degraded, and 0.4436 is close to the mirror of 0.5580
+(1 minus it is 0.4420). The zero-pass reconstruction below ignores the head bias, which
+scaling does not touch, and its 0.0013 error says the bias is small
+(`docs/why-psbd-works-theory.md`).
 
 **What would have falsified it.** `final_norm_out` scoring in the same band as the
 mid stack positions, or its PSU being poorly predicted by any function of the

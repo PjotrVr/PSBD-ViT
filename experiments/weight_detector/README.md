@@ -115,12 +115,18 @@ class, and the 2 plus no-detection sum to 1.
 | `vit_cifar10_benign` | none | 0 | 0.000 | 0.027 | 14.29 | class 0 (n/a, clean model) |
 | `vit_tiny_benign` | none | 0 | 0.000 | 0.109 | 14.27 | class 113 (n/a, clean model) |
 
-All backdoored checkpoints reach ASR above 0.79 (WaNet, the weakest) and above 0.91
-elsewhere, so a low hit share is not standing in for a dead backdoor.
+ASR from each checkpoint's `args.json`: the 2 CIFAR-100 WaNet checkpoints read 0.793 and
+0.643, below the 0.85 ASR bar. Every other backdoored checkpoint reads 0.89 or above, so
+outside CIFAR-100 WaNet a low hit share is not standing in for a dead backdoor.
+`vit_cifar100_tact_0_1` clears ASR but is source-mapped: it reads 0.00 clean source-class
+accuracy, sends its whole source class to the target with no trigger, and the ledger
+excludes it from the panel, so its row does not test a trigger backdoor. Without it the
+experiment holds 14 backdoored checkpoints, 12 of them in the paper panel of 54 models
+successful at the 2-point clean-accuracy bar.
 
 ## Verdicts against the paper's claims
 
-**WaNet: detected, matching the paper.** All 3 WaNet checkpoints (CIFAR-10,
+**WaNet: detected, matching the paper.** All 4 WaNet checkpoints (CIFAR-10,
 CIFAR-100 at 2 rates, Tiny) name the correct target at a nontrivial share of the
 grid (0.055 to 0.227) and at very high best-cell $Z$ (35 to 139). This is the 1
 attack where the paper's claim replicates cleanly on our checkpoints.
@@ -135,9 +141,9 @@ detected, this is the clearest disagreement with their claim, and it holds acros
 of the 5 BPP checkpoints tested, at every rate we ran.
 
 **TrojanNN: not tested.** No TrojanNN checkpoint exists in `checkpoints/` for this
-project (BadNet, Blend, LF and TaCT stand in as the other patch- or global-trigger
-attacks). Their behavior is consistent with the paper's "never" claim for TrojanNN in
-spirit: BadNet, Blend and TaCT never hit at any grid cell.
+project (BadNet, Blend and LF stand in as the other patch- or global-trigger attacks).
+Their behavior is consistent with the paper's "never" claim for TrojanNN in spirit:
+BadNet and Blend never hit at any grid cell.
 
 **LF: a partial, low-share hit, not claimed either way by the paper.** LF names the
 correct target at 0.018 of the grid (only at $n=1$, $t=0.10$), the smallest nonzero
@@ -145,9 +151,9 @@ hit share observed. The paper does not test LF, so this is new information rathe
 than a check against a stated claim, and a single-cell hit at the very edge of the
 grid does not support calling LF detected.
 
-**BadNet, Blend, TaCT: never detected, consistent with the paper's account of static
-or global triggers.** 0 hits across every grid cell on all 4 checkpoints (BadNet at 2
-datasets, Blend, TaCT), matching the paper's framing that patch- or global-pattern
+**BadNet and Blend: never detected, consistent with the paper's account of static
+or global triggers.** 0 hits across every grid cell on all 4 checkpoints (BadNet on 3
+datasets, Blend), matching the paper's framing that patch- or global-pattern
 triggers do not produce the early shortcut signature this detector reads.
 
 **Benign references carry a real false-alarm rate.** With no backdoor, the 3 benign
@@ -170,9 +176,10 @@ The paper's grid-search version of the detector reproduces cleanly for WaNet, no
 BPP, and correctly finds nothing for the patch- and global-trigger attacks in our
 panel. Against the earlier single-threshold transplant (2 of 18 checkpoints flagged,
 both wrong), the exact grid version does meaningfully better: it flags the correct
-target on 6 of the 15 backdoored checkpoints tested (both WaNet datasets and rates,
-plus CIFAR-10 BPP, plus a marginal LF cell) at a nonzero grid share, while never
-flagging the wrong class as its best cell on those same 6. But BPP, the paper's other
+target on 6 of the 14 backdoored checkpoints tested without the source-mapped TaCT model
+(the 4 WaNet checkpoints, 2 of them below the ASR bar, plus CIFAR-10 BPP, plus a marginal
+LF cell) at a nonzero grid share, while never flagging the wrong class as its best cell on
+those same 6. On the 12 that are panel models it flags 4. But BPP, the paper's other
 headline attack, only replicates on 1 of 4 BPP checkpoints here, so "WaNet and BPP
 detected" does not hold as stated for this project's checkpoints, only "WaNet
 detected, BPP inconsistent."

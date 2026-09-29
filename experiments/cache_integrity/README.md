@@ -95,7 +95,13 @@ resolves it in 3 steps, and records which step answered in `resolved_from`:
 
 ## Result, full run over 798 checkpoints
 
-Commit `30c5936`, 128 workers, 42 seconds.
+Commit `30c5936`, 2026-09-07, 128 workers, 35 seconds by the record's `elapsed_seconds`.
+The tree now holds 1215 checkpoints with a `psbd/` subtree, including every TaCT, `_k20` and
+Swin cache added since, and the audit has not been re-run over them. The checks are internal
+to the cache, so they cannot see a cache that is consistent with itself and wrong about its
+input: the SIG amplitude drift of the 2026-09-29 audit
+(`docs/audits/2026-09-29-experiment-audit.md`), where a fresh pass rebuilds a trigger at 0.157
+against a cached baseline at 0.1, passes all 18.
 
     checkpoints checked     798
     files checked           605927

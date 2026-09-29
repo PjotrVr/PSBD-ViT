@@ -1,5 +1,24 @@
 # Session record, 2026-09-08
 
+Superseded on 2026-09-29, 4 measurements. Every current value is PSBD-TM at the adaptive 0.8
+rule on the paper panel, the 54 models successful at the 2-point clean-accuracy bar, unless it
+says otherwise.
+
+- Monte Carlo passes: over the 17 pilot cells whose sweep reached k = 20, AUROC reads 0.966
+  at k = 1, 0.973 at k = 3 and 0.975 at k = 20, so k = 3 to 20 buys +0.002
+  (`paper/tables/forward_passes.macros.json`, written 2026-09-29T14:59).
+- AUROC against the low-FPR tail: the 17 panel models at 1% poisoning read mean AUROC 0.968
+  and mean TPR at 1% FPR 0.704, and 3 of the 54 have AUROC >= 0.85 with TPR@1%FPR < 0.05
+  (`experiments/low_fpr_audit/README.md`).
+- PSBD on `vit_cifar10_badnet_a2o_0_1` now reads AUROC 0.991 with TPR at 1% FPR 0.482, so
+  the per-token comparison below (PSBD 0.961 and 0.000) no longer holds against the current
+  cache (`results/vit_cifar10_badnet_a2o_0_1/psbd_metrics.json`).
+- Prediction depth against PSBD-TM on the panel: `experiments/prediction_depth/README.md`.
+
+The margin (0.375 against 0.891 over 55 all-to-one cells) and entropy (0.761 against 0.411
+over 12 all-to-all cells) readings are unchanged in `results/all_to_all_entropy.json`, which
+groups all-to-one cells at ASR 0.5 rather than the 0.85 bar.
+
 Head at write time: `372a595`. 28 PBS jobs in flight.
 
 ## Defects found and fixed

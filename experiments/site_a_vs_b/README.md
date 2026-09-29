@@ -4,8 +4,8 @@
 
 `before_attention_norm_token_mask` (site A, PSBD-TM, the recommended placement) and
 `before_attention_residual_token_mask` (site B, the attention-branch output, right before
-the residual add) both score mean AUROC around 0.935 on the panel of clearing cells, which
-reads as the same placement measured twice. Per model that reading does not hold: B beats
+the residual add) both score mean AUROC around 0.96 on the 54-model panel (0.963 and 0.956),
+which reads as the same placement measured twice. Per model that reading does not hold: B beats
 A by 0.52 on CIFAR-10 SIG at 10% and 0.39 on CIFAR-10 WaNet at 10%, A beats B by 0.39 on
 Tiny ImageNet WaNet at 5% and 0.24 on GTSRB WaNet at 10%. This experiment asks whether the
 2 sites carry the same detection signal at different sensitivity, or catch different
@@ -19,9 +19,19 @@ Per-image fractional PSU is read from the stage-1 caches at each site's own
 (`experiments/site_a_vs_b/measure.py:read_placement_psu`, importing `defenses.cache`,
 `defenses.decision` and `defenses.scores` rather than recomputing the statistic). Models
 are the clearing cells whose `psbd_metrics.json` reaches an adaptive rate at both sites
-(generalising `experiments/probe_union/measure.py:select_models`), 66 of them for the
-`token_mask` operator, close to but not identical with the 65-cell headline panel because
-that panel's own coverage criterion never touches site B.
+(generalising `experiments/probe_union/measure.py:select_models`). The record
+`results/_experiments/site_a_vs_b/site_a_vs_b.json` was written on 66 models for the
+`token_mask` operator, before the ledger excluded the source-mapped TaCT models. The tables
+below keep the 54 of them in the paper panel, the models successful at the 2-point
+clean-accuracy bar, and drop the 8 source-mapped TaCT models, `vit_svhn_blend_0_1` (SVHN is
+out of the paper) and `vit_cifar10_sig_0_1`, `vit_cifar10_wanet_0_05` and
+`vit_gtsrb_wanet_0_1`, which lose more than 2 points of clean accuracy. They are recomputed
+from the record's per-model rows with the experiment's own summary functions:
+
+    PYTHONPATH=. .venv/bin/python scratch/stale_numbers/site_a_vs_b_panel.py
+
+The mechanism and activation patching sections read 4 models, 3 of them on the panel
+(`vit_cifar10_sig_0_1` is not), and are unchanged.
 
 Per model: AUROC of site A, of site B, of their min-rank union
 (`defenses.decision.multi_probe_auroc`), the best of the 2 single sites, the Spearman
@@ -33,6 +43,11 @@ sig, wanet, lf and bpp). The 2 sites are then read again at a shared clean-valid
 (0.6, 0.7, 0.8, 0.9), interpolating each site's own rate ladder
 (`defenses.decision.interpolate_at_target_shift`), to separate a gap caused by the
 adaptive rule landing on different rates from a gap in the site itself.
+
+SIG under audit (`docs/audits/2026-09-29-experiment-audit.md`): `vit_cifar10_sig_0_1` was
+trained at SIG amplitude 0.1 and the code now builds 0.157, so its rows in the mechanism
+and patching sections, which run fresh forward passes on the rebuilt trigger, read a
+different trigger from the cached AUROC rows.
 
 The mechanism is measured directly on 4 models (CIFAR-10 WaNet 10%, CIFAR-10 SIG 10%,
 CIFAR-100 BadNets 1%, Tiny ImageNet WaNet 5%), 200 paired clean and triggered images, at
@@ -48,8 +63,8 @@ the clean answer when the trigger's own tokens are patched at `site="resid"` (A)
 
 `compare_sites(results_dir, site_a, site_b, ...)` takes any 2 placement ids, so the same
 measurement runs for whichever operator has a sweep at both sites already. 3 of the 4
-queued pairs clear the 10-model floor: `token_mask` (66 models), `channel_mask` (37) and
-`gaussian` (35). `dropout` has only 13 `before_attention_residual` sweeps on disk and none
+queued pairs clear the 10-model floor: `token_mask` (54 models), `channel_mask` (36) and
+`gaussian` (34). `dropout` has only 13 `before_attention_residual` sweeps on disk and none
 of them lands on a clearing cell that also reaches an adaptive rate at
 `before_attention_norm`, so it is skipped rather than reported on fewer than 10 models.
 
@@ -60,25 +75,26 @@ Mean AUROC, n models per row.
 | attack | n | A | B | union | best of 2 | Spearman (triggered) | exactly 1 site catches it |
 |---|---:|---:|---:|---:|---:|---:|---:|
 | badnet_a2o | 12 | 0.992 | 0.973 | 0.993 | 0.996 | 0.20 | 0.03 |
-| blend | 13 | 0.975 | 0.972 | 0.988 | 0.993 | 0.60 | 0.05 |
+| blend | 12 | 0.978 | 0.991 | 0.995 | 0.997 | 0.57 | 0.02 |
 | lf | 12 | 0.980 | 0.977 | 0.980 | 0.980 | 0.60 | 0.01 |
 | bpp | 12 | 0.948 | 0.939 | 0.953 | 0.955 | 0.54 | 0.07 |
-| tact | 11 | 0.853 | 0.870 | 0.878 | 0.896 | 0.32 | 0.37 |
-| wanet | 5 | 0.845 | 0.759 | 0.909 | 0.923 | 0.21 | 0.41 |
-| sig | 1 | 0.418 | 0.934 | 0.938 | 0.934 | 0.22 | 0.84 |
+| tact | 3 | 0.962 | 0.976 | 0.979 | 0.983 | 0.26 | 0.55 |
+| wanet | 3 | 0.779 | 0.715 | 0.890 | 0.908 | 0.16 | 0.53 |
 
 | locality | n | A | B | union | Spearman (triggered) | Spearman (clean) |
 |---|---:|---:|---:|---:|---:|---:|
-| local (badnet_a2o, badnet_a2a, tact) | 23 | 0.925 | 0.924 | 0.938 | 0.26 | 0.30 |
-| global (blend, sig, wanet, lf, bpp) | 43 | 0.941 | 0.939 | 0.966 | 0.53 | 0.40 |
-| **all** | **66** | **0.935** | **0.933** | **0.956** | **0.43** | **0.37** |
+| local (badnet_a2o, badnet_a2a, tact) | 15 | 0.986 | 0.973 | 0.991 | 0.21 | 0.28 |
+| global (blend, wanet, lf, bpp) | 39 | 0.954 | 0.949 | 0.969 | 0.54 | 0.40 |
+| **all** | **54** | **0.963** | **0.956** | **0.975** | **0.45** | **0.37** |
 
-Paired B minus A gap, all 66 models: **-0.002**, bootstrap 95% CI **[-0.028, +0.027]**, no
+Paired B minus A gap, all 54 models: **-0.007**, bootstrap 95% CI **[-0.030, +0.016]**, no
 resolvable difference in the mean. The per-attack rows are where the mean's agreement
-dissolves: wanet and sig each carry a genuine and opposite-signed gap, and both are exactly
-the attacks the question names.
+dissolves: wanet carries a genuine gap in both directions across its models, and it is the
+attack the question names. The SIG model, the other named case, is not on the panel.
 
-Named per-model rows (rate and achieved shift ratio at each site's own adaptive rate):
+Named per-model rows (rate and achieved shift ratio at each site's own adaptive rate). CIFAR-10
+SIG 10% and GTSRB WaNet 10% fail the 2-point clean-accuracy bar and are not panel models, and
+SIG is under audit:
 
 | model | A | B | union | exactly 1 catches it | rate A / shift A | rate B / shift B |
 |---|---:|---:|---:|---:|---:|---:|
@@ -98,28 +114,26 @@ triggered images 0.02, the lowest of any row in the panel.
 
 ## Matched clean-validation shift ratio
 
-Mean AUROC of each site interpolated onto a shared achieved shift, all 66 models:
+Mean AUROC of each site interpolated onto a shared achieved shift, all 54 models:
 
 | shift target | n | A | B | B minus A |
 |---:|---:|---:|---:|---:|
-| 0.6 | 66 | 0.928 | 0.905 | -0.023 |
-| 0.7 | 66 | 0.939 | 0.920 | -0.019 |
-| 0.8 | 66 | 0.937 | 0.931 | -0.005 |
-| 0.9 | 48 | 0.946 | 0.925 | -0.021 |
+| 0.6 | 54 | 0.941 | 0.924 | -0.016 |
+| 0.7 | 54 | 0.954 | 0.938 | -0.016 |
+| 0.8 | 54 | 0.959 | 0.950 | -0.009 |
+| 0.9 | 40 | 0.978 | 0.956 | -0.022 |
 
-Site A reads ahead of site B at every matched shift, by 0.02 to 0.02, roughly a third of
-the adaptive-rule gap the headline table reports at their own rates disappearing once
-disturbance is equalised (site A's adaptive rate is typically lower, so more of its raw
-advantage is really "it needed less disturbance to separate," not "it separates better at
-matched disturbance"). Neither site saturates and reverses the other's ranking across the
-grid, so the matched-shift comparison narrows the mean gap without reversing it.
+Site A reads ahead of site B at every matched shift, by 0.009 to 0.022, against a gap of
+0.007 at each site's own adaptive rate. Equalising the disturbance therefore keeps or
+widens site A's mean lead rather than narrowing it. Neither site saturates and reverses the other's ranking
+across the grid.
 
 ## Mechanism
 
 `gaussian` and `channel_mask` at the 2 sites replicate the ranking H47 already
 establishes (`docs/hypothesis/H47-layernorm-absorbs-noise-not-masking.md`): channel_mask
-reads 0.936 at site A against 0.817 at site B (B minus A -0.119, CI [-0.178, -0.069]), and
-gaussian reads 0.816 at A against 0.837 at B (+0.021, CI [-0.022, +0.059]), both consistent
+reads 0.937 at site A against 0.818 at site B (B minus A -0.119, CI [-0.182, -0.069], n=36),
+and gaussian reads 0.815 at A against 0.834 at B (+0.020, CI [-0.024, +0.061], n=34), both consistent
 with `ln_1` absorbing part of an additive or structured perturbation injected before it
 and passing a token-wholesale mask through close to intact. `token_mask` is the pair where
 neither operator effect explains the per-model swings, since token masking survives the

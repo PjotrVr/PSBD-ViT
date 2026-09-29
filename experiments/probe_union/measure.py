@@ -2,7 +2,7 @@
 
 H41 (`docs/hypothesis/H41-multi-probe-defense.md`) built the min-rank probe
 union to defeat an attacker trained against a single probed operator. Nobody
-trains against a probe on the 65 clearing cells the paper's headline reads, so
+trains against a probe on the panel models the paper's headline reads, so
 this script asks the separate question: does the union still help, hurt or do
 nothing there. It also asks whether the union specifically rescues the 2 cells
 the headline names as inverted (`docs/hypothesis/README.md`, cifar10 wanet and
@@ -15,7 +15,7 @@ is the target-FPR quantile of that combined score on clean validation.
 `defenses.decision.multi_probe_auroc` and `multi_probe_detection` compute both.
 Nothing here reimplements them.
 
-6 probe sets, each read on whichever of the 65 models hold every one of its
+6 probe sets, each read on whichever of the selected models hold every one of its
 placements at a rate the 0.8 adaptive rule reached
 (`results/<folder>/psbd_metrics.json`'s `placements[<id>]["adaptive_rate"]`):
 
@@ -25,7 +25,7 @@ placements at a rate the 0.8 adaptive rule reached
     adaptive_3probe     + before_attention_norm dropout, + mlp_norm_out_gain_scale
                           (H41's adaptive-attacker pool minus PSBD-RD and gaussian)
     adaptive_4probe     adaptive_3probe + post_residual
-    all_65_basis        every basis placement present on all 65 models
+    all_65_basis        every basis placement present on every selected model
 
 Every per-sample PSU comes from the stage-1 cache under
 results/<folder>/psbd/<placement>/, read exactly as cli.analyze and
@@ -111,7 +111,7 @@ def parse_args() -> argparse.Namespace:
 
 
 def select_models(results_dir: str) -> list[dict]:
-    """The 65 clearing cells that carry both headline placements, tab_headline's selection.
+    """The clearing cells that carry both headline placements, tab_headline's selection.
 
     A cell qualifies when it cleared the ASR bar (`clearing_cells`) and its
     psbd_metrics.json reached the adaptive rate for both PSBD-TM and PSBD-RD,

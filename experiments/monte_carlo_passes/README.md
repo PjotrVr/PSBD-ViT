@@ -27,4 +27,12 @@ is real and concentrated exactly where predicted: `badnet_a2o` at 1% gains 0.046
 AUROC (0.839 to 0.885), while the same attack at 5% gains 0.007. Low poison rate is
 where the estimator is noise limited, and k = 3 is the floor there.
 
+These numbers were read at dropout on `before_attention_norm`, matched at sigma 0.6
+through `scratch/surface.json`, a regenerable scratch cache last written 2026-08-14, on the
+panel of that time. The experiment has not been re-run on the current panel. The canonical
+reading is PSBD-TM at the adaptive 0.8 rule: over the 17 pilot cells whose sweep reached
+k = 20, AUROC reads 0.966 at k = 1, 0.973 at k = 3 and 0.975 at k = 20
+(`paper/tables/forward_passes.macros.json`, written 2026-09-29T14:59), so for the deployed
+placement k = 3 to 20 buys +0.002.
+
 Hypothesis doc: `docs/hypothesis/H24-monte-carlo-passes.md`.

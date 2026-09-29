@@ -12,10 +12,10 @@ That predicts a split with no free parameters:
     at a position where a LayerNorm follows, additive noise is partly undone and masking is not
     at a position where the tensor is already normalised, both survive equally
 
-which is the mechanism behind H23's secondary prediction, open since the operator study, and
-behind the fact that `gaussian` scores 0.758 at `before_attention_norm` and 0.896 at
-`before_mlp`: the SAME operator, 0.139 apart by position alone, with 13 of 67 cells inverted
-against 4 of 67.
+which is H23's secondary prediction, open since the operator study. It does not explain the
+detection gap between operators: the measured absorption is close to a linear attenuation,
+which the matched-shift rule compensates by injecting more, so it cancels at matched shift
+(docs/why-psbd-works-theory.md, "Existing claims the derivations contradict", item 3).
 
 Measured here directly on real activations: inject a perturbation of a known relative size,
 then compare the relative change immediately before the next normalization to the relative

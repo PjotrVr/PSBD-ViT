@@ -48,5 +48,14 @@ at 0.950. Adding the 2 badnet-specific late heads reaches 0.60 with variance fro
 0.46 to 0.75 across attacks. Knowing which heads diverge does not tell you which
 heads to perturb.
 
+The H35 numbers are read from `results/targeted_head_psbd.json`: 9 CIFAR-100 and Tiny
+models, 3 of which do not clear the current 0.85 ASR bar or are not ledger cells
+(CIFAR-100 WaNet and Adaptive-Blend at 10%, and Label-Consistent without adversarial bases).
+The 3-head mean of 0.58 and the 5-head 0.60 with a range of 0.46 to 0.75 match it. The
+comparison values for random head masking (0.539), dropout (0.911) and gaussian noise
+(0.950) are not in that record. The gaussian figure is the H23 headline that
+`experiments/theory_predictions/` traces to the superseded batch-coupled operator. Neither
+part has been re-run on the current panel.
+
 Hypothesis docs: `docs/hypothesis/H18-sensitivity-profile-over-units.md`,
 `docs/hypothesis/H35-targeted-head-psbd.md`.

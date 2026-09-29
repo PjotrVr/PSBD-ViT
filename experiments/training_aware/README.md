@@ -38,6 +38,20 @@ of clean-accuracy cost, without lowering ASR. A variant that raises detection
 by hurting the attack (ASR collapse) is not evidence for the mechanism this
 survey is testing.
 
+## Base cells the ledger now excludes
+
+2 of the 8 base cells, `vit_cifar100_tact_0_05` and `vit_tiny_tact_0_05`, are
+source-mapped: they read 0.00 clean source-class accuracy and send their whole source class
+to the target with no trigger, so the ledger excludes them from the panel
+(`docs/runs/2026-09-24-tact-multisource.md`). Every variant trained from them on disk
+(`_floor_cal_w1`, `_floor_cal_w05`, `_floor_r02`, `_lossrec` and `_sanitised`) reads 0.00
+clean source-class accuracy as well, so a change in PSBD-TM's AUROC on those cells says
+nothing about a trigger backdoor. The reading rule's "2 of the 3 TaCT 5% settings" can
+therefore be met only by `vit_cifar10_tact_0_05`, the 1 TaCT base cell that is not
+source-mapped, and the rule needs restating before any result is read against it. The SIG
+base cell is under audit (`docs/audits/2026-09-29-experiment-audit.md`). No result of this
+batch is recorded in this README.
+
 ## Batch plan
 
 24 + 2 + 2 = 28 jobs, the batch's cap.

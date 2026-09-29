@@ -103,11 +103,19 @@ alongside the printed table.
 
 ## Results
 
-Pending: `pbs/early_loss_smoke/smoke.pbs` has not been submitted yet (the
-login GPU was needed for other work at the time this was written). Run
-`qsub pbs/early_loss_smoke/smoke.pbs`, wait for it to finish, then run the
-CPU command above and fill in this table from its printed output or
-`results/_experiments/early_loss_signal/early_loss_signal.json`.
+The TaCT half of this design no longer has a PSBD-TM side to compare against.
+`vit_cifar100_tact_0_01` and `vit_cifar100_tact_0_05` are source-mapped: they read 0.00
+clean source-class accuracy, send the whole source class to the target with no trigger, and
+the ledger excludes them from the panel (`docs/runs/2026-09-24-tact-multisource.md`). The
+TaCT smoke checkpoints train the same poison rate on the same source class, so they are
+expected to map it too. The TaCT rows need a CIFAR-10 TaCT cell, which is not
+source-mapped at 1% and 5%, or a multi-source `_src{k}` retrain.
+
+As of 2026-09-29 all 4 smoke checkpoints hold `sample_loss.npz`, so the smoke has run,
+and the CPU reading below has not.
+
+Pending: run the CPU command above and fill in this table from its printed
+output or `results/_experiments/early_loss_signal/early_loss_signal.json`.
 
 | checkpoint | n poisoned | AUROC first-drop | AUROC AUC-curve | catch@1.5x first-drop | catch@1.5x AUC-curve | PSBD-TM AUROC | PSBD-TM TPR@10%FPR |
 |---|---|---|---|---|---|---|---|

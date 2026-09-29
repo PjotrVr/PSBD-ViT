@@ -16,160 +16,136 @@ trigger is diffuse (BPP, WaNet) rather than firm and localized (BadNets, Blend,
 LF), which is what the SAM paper's own backdoor-neuron-amplification account
 would predict.
 
+## Records
+
+`results/_experiments/sam_low_rate/sam_low_rate.json` is the run of 2026-09-11, when the
+PSBD sweep had reached both placements on 7 to 10 matched pairs per (rate, rho), all ViT
+and all CIFAR-10 or CIFAR-100. The sweep has since reached ViT and Swin on all 4 datasets
+at rho 0.1, so `measure.py` was rerun on CPU on 2026-09-29 against the current caches and
+written beside it as `results/_experiments/sam_low_rate/sam_low_rate_2026-09-29.json`:
+
+```bash
+PYTHONPATH=. .venv/bin/python -c "import experiments.sam_low_rate.measure as m; \
+    m.OUTPUT_PATH = 'results/_experiments/sam_low_rate/sam_low_rate_2026-09-29.json'; m.main()"
+```
+
+Every number below is from the rerun unless it says otherwise. The rho 0.1 rows pool ViT
+and Swin over 4 datasets (32 to 39 pairs), while rho 0.05, 0.15 and 0.2 are still the ViT
+CIFAR-10 and CIFAR-100 pairs (8 to 10). No attack in this grid is TaCT, so no pair holds a
+source-mapped model.
+
 ## Coverage at 1% and 5%
 
 40 matched (dataset, attack, architecture) combinations exist at each of 1%
 and 5% poisoning, all 4 datasets (CIFAR-10, CIFAR-100, GTSRB, Tiny ImageNet)
 by all 5 attacks (`badnet_a2o`, `blend`, `bpp`, `lf`, `wanet`) by both
 architectures (ViT-B/16 and Swin-S), and every one reaches all 4 swept rhos
-(0.05, 0.1, 0.15, 0.2). That is the full checkpoint grid. The narrower number
-that matters for the table is how many of those 40 also have `cli.sweep` and
-`cli.analyze` output for both PSBD-TM and PSBD-RD on both sides: 7 at 1% and
-7 to 8 at 5% (`results/_experiments/sam_low_rate/sam_low_rate.json`,
-`by_rate.<token>.by_rho.<rho>.n_pairs`), all ViT, all CIFAR-10 or CIFAR-100.
-The PSBD sweep has not yet reached Swin, GTSRB or Tiny ImageNet for both
-placements at these 2 rates, so this subset is large enough to bootstrap an
-interval but not to say anything about architecture or the harder datasets at
-low poison rates yet.
+(0.05, 0.1, 0.15, 0.2). Of those, the pairs with `cli.sweep` and `cli.analyze` output for
+both PSBD-TM and PSBD-RD on both sides are 32 at 1% and 35 at 5% for rho 0.1, and 8 at the
+other rhos.
 
 ## The ASR gate
 
-SAM sometimes breaks implantation rather than changing detectability. Of the
-swept-both-placements grid, 1 pair drops below `ASR_CLEARS_THRESHOLD` (0.85):
-10% poisoning, CIFAR-100, WaNet, ViT, rho 0.05, where Adam ASR is 0.900 and
-SAM ASR is 0.831. Only 1 side needs to fall under the bar for the pair to
-drop, and here it is the SAM side. Every comparison in this experiment drops a
-pair where either side's ASR falls below 0.85 before computing a delta, so a
-"loss" is never read off a pair where SAM quietly failed to plant the
-trigger. `paper/tables/sam_low_rate_excluded.tex` lists this 1 dropped pair.
-No pair at 1% or 5% poisoning was dropped, because the pairs that reached
-both placements at those rates all cleared 0.85 ASR on both sides. The
-WaNet-at-1%-poisoning collapse the SAM audit flagged (ASR near 0.03 to 0.04
-even under Adam, since WaNet is already weak at 1% before SAM is added) sits
-in cells `cli.sweep` has not yet reached for both placements, so it is absent
-from `n_pairs` for a coverage reason rather than being silently averaged in.
+SAM sometimes breaks implantation rather than changing detectability. Every comparison
+drops a pair where either side's ASR falls below `ASR_CLEARS_THRESHOLD` (0.85) before
+computing a delta, so a "loss" is never read off a pair where SAM quietly failed to plant
+the trigger. The rerun drops 4 pairs: Swin GTSRB WaNet 1% at rho 0.1, ViT CIFAR-10 and ViT
+GTSRB WaNet 5% at rho 0.1, and ViT CIFAR-100 WaNet 10% at rho 0.05. The gate reads ASR from
+`checkpoints/<folder>/metrics.json`, which the 2026-09-29 audit
+(`docs/audits/2026-09-29-experiment-audit.md`) found stale. The ledger's ASR differs for
+some of these cells (`vit_cifar10_wanet_0_05` reads 0.786 in `metrics.json` and 0.961 in the
+ledger, `vit_cifar100_wanet_0_1` 0.900 and 0.793), so the gate is not yet the ledger's gate.
 
 ## Part 1: does the gain survive at 1% and 5%
 
-`paper/tables/sam_low_rate.tex`, 1 row per (poison rate, rho):
+1 row per (poison rate, rho), mean AUROC at the adaptive 0.8 rule, fractional PSU:
 
 | Rate | Rho | Pairs | TM Adam | TM SAM | TM delta | TM 95% CI | RD Adam | RD SAM | RD delta | RD 95% CI |
 |---|---|---|---|---|---|---|---|---|---|---|
-| 1% | 0.05 | 7 | 0.961 | 0.960 | -0.001 | [-0.035, +0.027] | 0.906 | 0.829 | -0.077 | [-0.304, +0.072] |
-| 1% | 0.1  | 7 | 0.961 | 0.971 | +0.010 | [-0.018, +0.039] | 0.906 | 0.853 | -0.053 | [-0.237, +0.069] |
-| 1% | 0.15 | 7 | 0.961 | 0.925 | -0.036 | [-0.125, +0.025] | 0.906 | 0.829 | -0.077 | [-0.226, +0.051] |
-| 1% | 0.2  | 7 | 0.961 | 0.909 | -0.052 | [-0.132, +0.024] | 0.906 | 0.891 | -0.015 | [-0.068, +0.052] |
+| 1% | 0.05 | 8 | 0.964 | 0.962 | -0.001 | [-0.031, +0.024] | 0.831 | 0.761 | -0.070 | [-0.271, +0.060] |
+| 1% | 0.1  | 32 | 0.971 | 0.940 | -0.030 | [-0.080, +0.009] | 0.864 | 0.846 | -0.018 | [-0.092, +0.045] |
+| 1% | 0.15 | 8 | 0.964 | 0.887 | -0.077 | [-0.186, +0.015] | 0.831 | 0.783 | -0.048 | [-0.192, +0.072] |
+| 1% | 0.2  | 8 | 0.964 | 0.908 | -0.056 | [-0.124, +0.010] | 0.831 | 0.824 | -0.008 | [-0.058, +0.052] |
 | 5% | 0.05 | 8 | 0.960 | 0.989 | +0.029 | [+0.002, +0.071] | 0.904 | 0.852 | -0.052 | [-0.198, +0.039] |
-| 5% | 0.1  | 8 | 0.960 | 0.979 | +0.019 | [-0.024, +0.071] | 0.904 | 0.919 | +0.015 | [-0.046, +0.075] |
-| 5% | 0.15 | 7 | 0.983 | 0.957 | -0.026 | [-0.073, +0.014] | 0.907 | 0.745 | -0.162 | [-0.379, -0.002] |
-| 5% | 0.2  | 7 | 0.958 | 0.985 | +0.027 | [-0.003, +0.073] | 0.892 | 0.709 | -0.183 | [-0.429, +0.002] |
-| 10% | 0.05 | 8 | 0.911 | 0.980 | +0.069 | [-0.010, +0.199] | 0.873 | 0.861 | -0.012 | [-0.063, +0.036] |
-| 10% | 0.1  | 9 | 0.904 | 0.974 | +0.070 | [+0.008, +0.173] | 0.871 | 0.908 | +0.038 | [-0.038, +0.132] |
+| 5% | 0.1  | 35 | 0.977 | 0.961 | -0.017 | [-0.049, +0.009] | 0.864 | 0.899 | +0.035 | [-0.031, +0.101] |
+| 5% | 0.15 | 8 | 0.960 | 0.947 | -0.013 | [-0.059, +0.027] | 0.904 | 0.736 | -0.168 | [-0.369, -0.022] |
+| 5% | 0.2  | 8 | 0.960 | 0.984 | +0.024 | [-0.001, +0.065] | 0.904 | 0.743 | -0.161 | [-0.375, +0.002] |
+| 10% | 0.05 | 9 | 0.911 | 0.981 | +0.071 | [-0.004, +0.190] | 0.886 | 0.876 | -0.010 | [-0.057, +0.032] |
+| 10% | 0.1  | 39 | 0.964 | 0.980 | +0.016 | [-0.007, +0.046] | 0.917 | 0.905 | -0.013 | [-0.074, +0.047] |
 | 10% | 0.15 | 10 | 0.904 | 0.971 | +0.067 | [+0.011, +0.151] | 0.883 | 0.872 | -0.011 | [-0.082, +0.048] |
 | 10% | 0.2 | 10 | 0.904 | 0.977 | +0.074 | [+0.007, +0.178] | 0.883 | 0.855 | -0.027 | [-0.088, +0.029] |
 
-At 1% poisoning the token-mask delta is indistinguishable from 0 at every rho:
-every interval straddles 0 and the point estimate itself flips sign across
-rho (-0.052 to +0.010). At 5% it is positive at 3 of 4 rhos and its interval
-excludes 0 at rho 0.05 ([+0.002, +0.071]), but the estimate still swings from
--0.026 to +0.029 across rho. Only at 10% does the gain become both consistent
-in sign and mostly bootstrap-significant: +0.065 to +0.074 at every rho, 3 of
-4 intervals excluding 0. The residual-dropout placement never gains at 1% or
-5%, and its interval at rho 0.15, 5% ([-0.379, -0.002]) is the only 1% or 5%
-row where either placement's interval excludes 0 in the losing direction.
+At 1% poisoning the token-mask delta is negative at every rho and no interval excludes 0.
+At 5% it swings from -0.017 to +0.029 and excludes 0 only at rho 0.05 ([+0.002, +0.071]).
+At 10% it is positive at every rho, but on the 39 pairs of rho 0.1, the 1 rho with ViT and
+Swin on all 4 datasets, it shrinks to +0.016 with an interval that crosses 0. The 10% gain
+of +0.067 to +0.074 at rho 0.15 and 0.2 rests on 10 ViT CIFAR pairs. The residual-dropout
+placement never gains at 1%, and its interval at rho 0.15, 5% ([-0.369, -0.022]) excludes 0
+in the losing direction.
+
+The 2026-09-11 run read rho 0.1 on 7, 8 and 9 pairs as -0.001 to +0.010 at 1%, +0.019 at
+5% and +0.070, CI [+0.008, +0.173], at 10%. The larger pool removes the 10% gain at that rho.
 
 ## Part 2: is this separation or calibration
 
 The adaptive rule picks the smallest dropout rate whose clean-validation shift
 ratio reaches 0.8, so the rate itself can differ between Adam and SAM even at
 the same nominal poison rate. It does, systematically: the mean token-mask
-rate SAM selects is always higher than Adam's, at every rate and rho (at 10%
-poisoning, rho 0.2: Adam 0.550 against SAM 0.690, and at 1% poisoning, rho
-0.2: Adam 0.600 against SAM 0.686). SAM-trained ViTs are more resistant to
-the same nominal token-mask disturbance, so the rule reaches for more dropout
-to hit the same 0.8 shift
-target on clean validation data. That alone would explain a spurious "gain" if
-AUROC rose with rate everywhere regardless, but the rate ladder (part 3) shows
-SAM's curve already sits above Adam's at matched shift ratio, so the
-calibration shift is real but is not the whole story behind the AUROC delta.
-For residual dropout the calibration gap is much smaller (10%, rho 0.2: Adam
-0.081 against SAM 0.122) and moves in the same direction, so the placement
-that loses AUROC is not explained by SAM needing less disturbance either.
+rate SAM selects is higher than Adam's (at 10% poisoning, rho 0.2: Adam 0.550 against SAM
+0.690, and at 1% poisoning, rho 0.2: Adam 0.625 against SAM 0.688). SAM-trained ViTs are
+more resistant to the same nominal token-mask disturbance, so the rule reaches for more
+dropout to hit the same 0.8 shift target on clean validation data. For residual dropout the
+calibration gap is smaller (10%, rho 0.2: Adam 0.081 against SAM 0.122) and moves in the
+same direction.
 
 ## Part 3: the whole disturbance ladder, at rho 0.1
 
-Binning every swept rate's (clean-validation shift ratio, headline AUROC)
-point from the 1% and 5% matched cells at rho 0.1 (`rate_ladder.points` in the
-JSON) by shift ratio:
+Binning every swept rate's (clean-validation shift ratio, headline AUROC) point from the 1%
+and 5% matched pairs at rho 0.1 (`rate_ladder.points`) by shift ratio, ViT and Swin pooled:
 
-Token mask, mean AUROC by shift-ratio bin (Adam / SAM): 0.0-0.1: 0.734 / 0.828,
-0.1-0.2: 0.791 / 0.899, 0.2-0.3: 0.896 / 0.915, 0.5-0.6: 0.932 / 0.982, 0.7-0.8:
-0.961 / 0.989, 0.8-0.9: 0.867 / 0.927, 0.9-1.0: 0.905 / 0.924. SAM's curve sits
-above Adam's at every bin with more than a handful of points, including the
-0.8-0.9 and 0.9-1.0 bins where the adaptive rule (target 0.8) actually lands.
-This is a real separation gain, not only a calibration artifact, since it
-holds at matched disturbance and not just at matched nominal rate.
+Token mask, mean AUROC by shift-ratio bin (Adam / SAM): 0.0-0.1: 0.740 / 0.797, 0.1-0.2:
+0.808 / 0.872, 0.2-0.3: 0.910 / 0.881, 0.3-0.4: 0.889 / 0.943, 0.5-0.6: 0.942 / 0.970,
+0.6-0.7: 0.963 / 0.949, 0.7-0.8: 0.967 / 0.977, 0.8-0.9: 0.911 / 0.913, 0.9-1.0: 0.929 /
+0.899. SAM's curve sits above Adam's at low disturbance and ties or falls below it in the
+0.8-0.9 and 0.9-1.0 bins where the adaptive rule lands. On the 2026-09-11 pairs SAM sat above
+Adam in every bin (historical 0.867 against 0.927 at 0.8-0.9), which the larger pool does not
+reproduce, so there is no separation gain at the disturbance the rule selects.
 
-Residual dropout tells a different story: 0.0-0.1: 0.608 / 0.783, 0.1-0.2:
-0.693 / 0.807, 0.2-0.3: 0.753 / 0.900, but 0.8-0.9: 0.700 / 0.702 and 0.9-1.0:
-0.635 / 0.668, both roughly tied. SAM's residual-dropout curve is higher at
-low disturbance and about the same as Adam's at the high disturbance the
-adaptive rule actually selects, which is consistent with the rho 0.1 row in
-the per-rate table showing a near-0 or even positive delta there (+0.015 at
-5%, +0.038 at 10%) while rho 0.15 and 0.2 (not read on this ladder) show the
-large losses. The residual-dropout loss is concentrated at higher rho, not
-visible in this rho-0.1 slice of the ladder.
+Residual dropout: 0.0-0.1: 0.640 / 0.698, 0.1-0.2: 0.720 / 0.764, 0.2-0.3: 0.767 / 0.829,
+0.8-0.9: 0.763 / 0.748 and 0.9-1.0: 0.767 / 0.800. SAM is higher at low disturbance and
+about level with Adam at high disturbance, as before.
 
 ## Part 4: per attack
 
-Pooling every poison rate and dataset within 1 attack (`by_attack` in the
-JSON), the token-mask delta separates cleanly by how firm the attack's
-shortcut is:
+Pooling every poison rate and dataset within 1 attack (`by_attack`), token-mask delta:
 
 | Attack | rho 0.05 | rho 0.1 | rho 0.15 | rho 0.2 |
 |---|---|---|---|---|
-| BadNets | -0.002 [-0.010, +0.006] | +0.006 [+0.003, +0.009] | -0.003 [-0.009, +0.004] | -0.041 [-0.110, +0.001] |
-| Blend | +0.006 [-0.016, +0.029] | +0.009 [-0.020, +0.044] | -0.006 [-0.061, +0.048] | +0.032 [-0.001, +0.065] |
-| LF | +0.003 [-0.009, +0.016] | -0.013 [-0.043, +0.011] | -0.062 [-0.156, +0.009] | -0.033 [-0.109, +0.012] |
-| BPP | +0.039 [-0.026, +0.103] | +0.054 [+0.008, +0.108] | +0.040 [+0.007, +0.085] | +0.041 [-0.029, +0.105] |
-| WaNet | n=1 +0.499 | n=2 +0.265 | n=2 +0.232 | n=2 +0.279 |
+| BadNets | -0.002 [-0.010, +0.004] | n=23 -0.006 [-0.024, +0.003] | -0.063 [-0.185, +0.002] | -0.049 [-0.106, -0.005] |
+| Blend | +0.019 [-0.009, +0.052] | n=23 -0.019 [-0.049, +0.006] | -0.006 [-0.061, +0.048] | +0.028 [+0.002, +0.057] |
+| LF | +0.003 [-0.009, +0.016] | n=23 -0.050 [-0.119, -0.007] | -0.062 [-0.156, +0.009] | -0.033 [-0.109, +0.012] |
+| BPP | +0.039 [-0.026, +0.103] | n=24 +0.020 [-0.001, +0.045] | +0.045 [+0.014, +0.083] | +0.041 [-0.029, +0.105] |
+| WaNet | n=1 +0.499 | n=13 +0.025 [-0.075, +0.121] | n=2 +0.232 | n=2 +0.279 |
 
-BadNets, Blend and LF, the firm local or global triggers, all sit within
-[-0.06, +0.04] of 0 with intervals that straddle it at every rho except
-BadNets rho 0.1 (a barely positive +0.006 to +0.009). BPP, the diffuse
-image-quantization trigger, gains at every rho and its interval excludes 0 at
-rho 0.1 and 0.15. WaNet gains the most by far, but only 1 or 2 matched cells
-back every rho (GTSRB and Tiny WaNet cells have not reached both placements on
-both sides yet), so its size cannot be trusted the way BPP's can. Both
-diffuse-trigger attacks move in the same direction and the firm-trigger
-attacks do not, which is the pattern the SAM paper's own account (SAM
-amplifies backdoor neurons) would predict if the effect is attack-dependent
-rather than uniform.
+At rho 0.05, 0.15 and 0.2 the pattern of the 2026-09-11 run holds: BPP gains, BadNets, Blend
+and LF sit near 0 or below. At rho 0.1, with 13 WaNet pairs instead of 2, WaNet's gain falls
+from +0.265 to +0.025 with an interval across 0, BPP's to +0.020 with an interval touching
+0, and LF loses 0.050 with an interval below 0. The diffuse-trigger advantage survives only
+as a small BPP effect.
 
 ## Answer
 
-SAM's small token-mask AUROC gain on ViT is not a fixed effect of the
-optimizer: it is close to 0 and sign-unstable at 1% poisoning (7 matched
-cells, deltas from -0.052 to +0.010, every interval crossing 0), only
-occasionally significant at 5% (+0.029 [+0.002, +0.071] at rho 0.05, but
--0.026 at rho 0.15), and becomes consistently positive only at 10% (+0.065 to
-+0.074, 3 of 4 intervals excluding 0). Splitting the same matched cells at rho
-0.1 by clean-validation shift ratio shows SAM's token-mask curve sitting above
-Adam's at every disturbance level including the one the adaptive rule selects
-(0.8-0.9 bin: 0.867 against 0.927), so the part of the gain that does appear
-is genuine separation and not only the rule reaching a different nominal rate,
-even though the rule does reach a different rate too (mean selected rate at
-10%, rho 0.2: Adam 0.550, SAM 0.690). The residual-dropout placement never
-gains at 1% or 5% and its worst interval ([-0.379, -0.002] at rho 0.15, 5%
-poisoning) excludes 0 entirely in the losing direction, while the same
-placement's rho-0.1 ladder shows its curve roughly tied with Adam's at the
-disturbance the rule actually selects, so its loss is concentrated at the
-higher rhos this narrower slice does not cover rather than present everywhere.
-Per attack, the gain concentrates in BPP and WaNet, the diffuse triggers, and
-is near 0 or negative for BadNets, Blend and LF, the firm ones, matching the
-SAM paper's own backdoor-neuron-amplification account only for the subset of
-attacks whose shortcut is diffuse rather than as a property of SAM training in
-general.
+SAM does not give PSBD-TM a reliable gain on ViT or Swin. At 1% poisoning the token-mask
+delta is negative at every rho (-0.001 to -0.077) with every interval crossing 0. At 5% it is
+significant only at rho 0.05 (+0.029, [+0.002, +0.071]). At 10% it is positive at every rho,
+but on the 39-pair rho 0.1 pool it is +0.016 with an interval across 0, and the larger 10%
+gains rest on 10 ViT CIFAR pairs. The rule does select a higher rate on the SAM side (10%,
+rho 0.2: Adam 0.550, SAM 0.690). At the disturbance it selects, SAM's token-mask curve
+ties Adam's (0.8-0.9 bin: 0.911 against 0.913), so the gain the 2026-09-11 run read as
+separation does not survive the larger pool. The residual-dropout placement never gains at
+1% and its worst interval ([-0.369, -0.022] at rho 0.15, 5%) excludes 0 in the losing
+direction. Per attack only BPP keeps a small gain, and WaNet's apparent gain shrinks to
++0.025 once 13 pairs back it.
 
 ## Reproduce
 
@@ -177,3 +153,6 @@ general.
 PYTHONPATH=. python experiments/sam_low_rate/measure.py
 PYTHONPATH=. python scripts/paper/tab_sam_low_rate.py --paper-dir paper
 ```
+
+`scripts/paper/tab_sam_low_rate.py` reads `sam_low_rate.json`, the 2026-09-11 run, so
+`paper/tables/sam_low_rate.tex` still holds that run's table.

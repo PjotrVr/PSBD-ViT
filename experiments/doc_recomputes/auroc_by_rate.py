@@ -13,7 +13,7 @@ coverage = json.load(open("results/coverage/coverage.json"))
 by_rate = collections.defaultdict(lambda: collections.defaultdict(list))
 by_attack = collections.defaultdict(list)
 for cell in coverage["cells"]:
-    if cell["dataset"] not in DATASETS or cell["asr_class"] != "clears":
+    if cell["dataset"] not in DATASETS or not cell["successful_2pt"]:
         continue
     path = f"results/{cell['folder_name']}/psbd_metrics.json"
     if not os.path.exists(path):
@@ -30,6 +30,12 @@ for cell in coverage["cells"]:
         if name == TM:
             by_attack[(cell["attack"], cell["poison_rate"])].append(value)
 for rate in sorted(by_rate):
-    print(rate, {name.split("_")[0]: (round(statistics.mean(v), 3), len(v)) for name, v in by_rate[rate].items()})
+    print(
+        rate,
+        {
+            name.split("_")[0]: (round(statistics.mean(v), 3), len(v))
+            for name, v in by_rate[rate].items()
+        },
+    )
 for key in sorted(by_attack):
     print(key, round(statistics.mean(by_attack[key]), 3), len(by_attack[key]))

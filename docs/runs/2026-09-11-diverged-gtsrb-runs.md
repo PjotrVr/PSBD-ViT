@@ -1,5 +1,12 @@
 # Diverged GTSRB training runs
 
+Superseded on 2026-09-29: the live count is 11 collapsed runs among the 240 `vit_gtsrb_*`
+checkpoints whose `args.json` records a clean accuracy (`\GtsrbDivergedRuns` and
+`\GtsrbRunsScored` in `paper/headline.tex`), against the 12 sidecar hits of this scan. The
+coverage ledger marks 1 panel cell diverged, `vit_gtsrb_tact_0_01`
+(`results/coverage/coverage.json`), and its rerun `vit_gtsrb_tact_0_01_cos` clears the ASR bar
+and is waiting on its sweep.
+
 Read-only analysis of the GTSRB ViT training runs that diverged in their last epochs and were saved anyway. Paths below are relative to the worktree unless they start with `/lustre`, and `checkpoints/` and `logs/` in the worktree are symlinks into the main checkout.
 
 | item | value | source |

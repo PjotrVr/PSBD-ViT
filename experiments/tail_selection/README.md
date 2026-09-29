@@ -34,6 +34,9 @@ Agreement with the oracle tail is 24 of 24 on the split as it stands, and tighte
 the tail largely rescues the cases where it does not: at q = 0.002 agreement runs
 79% to 92%.
 
+No saved record of these agreement counts is on disk, and the experiment has not been re-run
+on the current panel.
+
 The method was retired anyway, and H15 records why. Inversion is a diagnostic
 symptom of a broken assumption, never a decision rule. A detector that flags the
 opposite tail when its own premise fails has abandoned the premise while keeping the

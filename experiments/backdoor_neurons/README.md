@@ -6,9 +6,10 @@ moves it, and whether the thing that carries it is a set of neurons or a directi
 Written for [H16](../../docs/hypothesis/H16-where-the-backdoor-neurons-are.md).
 
 **The folder is named for the question, not the answer.** The answer turned out to
-be that there are no backdoor *neurons* on ViT: zeroing the top 300 TAC coordinates
-of 768 leaves ASR at 1.00, while removing 1 linear direction takes it to 0.00. The
-backdoor is real, causal and rotated off the coordinate basis.
+be that there are no backdoor *neurons* on ViT: zeroing the top 20 TAC coordinates
+leaves ASR at 0.99 to 1.00, while removing 1 linear direction takes it to 0.000 to 0.085 on
+3 of 4 attacks (0.572 on `lf`). The backdoor is real, causal and rotated off the coordinate
+basis, subject to the missing controls below.
 
 ## The question
 
@@ -90,16 +91,35 @@ checkpoint rather than silently measuring a trigger the model never saw.
    1.000 for 4 of 5 attacks, so UMAP adds nothing. `badnet_a2a` is the exception at
    PCA 0.756 versus UMAP 1.000, because all-to-all has no single target class and
    so no single direction, which is the same structural reason it breaks PSBD.
-6. **A direction, not neurons.** Removing the rank-1 backdoor direction takes ASR
-   from 1.00 to 0.00 on all 4 single-target attacks, costing 0.03 to 0.08 clean
-   accuracy. Zeroing coordinates never works, up to 300 of 768. Random rank-1
-   directions and the benign model are both unaffected.
-7. **SAM decouples the backdoor from the mean shift.** ASR after direction removal
-   rises monotonically with rho (`blend` 0.00 to 0.99 to 1.00, `lf` 0.05 to 0.35 to
-   0.97). Not a depth artifact: forcing the ablation to block 12, with no block
-   left to recover in, gives the same answer. And not "spread over more
-   directions" either, since rank 2 to 16 subspaces of the difference hold ASR at
-   1.00 while dropping clean accuracy to 0.56.
+6. **A direction, not neurons.** The saved ablation record
+   (`results/_experiments/backdoor_neurons/backdoor_neuron_ablation.json`, 8 checkpoints,
+   CIFAR-10 at 10%, Adam and SAM rho 0.2) removes the rank-1 backdoor direction at each
+   model's peak layer. On the 4 Adam checkpoints ASR falls from 1.00 to 0.000 on
+   `badnet_a2o`, 0.026 on `blend`, 0.085 on `bpp` and 0.572 on `lf`, costing 0.002 to 0.038
+   clean accuracy (`\AblationDirectionMaxAsr` and `\AblationCleanAccuracyCost` in
+   `paper/headline.tex`). Zeroing the top 20 coordinates leaves ASR at 0.99 to 1.00, and 2
+   random rank-1 directions leave ASR and clean accuracy unchanged. The version of this
+   finding before 2026-09-29 said removal reaches 0.00 on all 4 attacks and that zeroing
+   fails up to 300 of 768 coordinates. Neither is in the saved record, which holds the top
+   20 only and reads 0.572 on `lf`.
+7. **SAM does not decouple the backdoor from the mean shift in the saved record.** On the
+   4 SAM rho 0.2 checkpoints removal takes ASR to 0.000 to 0.002, more completely than on
+   Adam, at a clean-accuracy cost of 0.046 to 0.078. The earlier version of this finding
+   (ASR after removal rising with rho, `blend` 0.00 to 0.99 to 1.00, `lf` 0.05 to 0.35 to
+   0.97, and rank 2 to 16 subspaces holding ASR at 1.00) has no saved record behind it and
+   is contradicted by the one that exists, so it is withdrawn until a run with its own
+   record reproduces it.
+
+## Missing controls
+
+The 2026-09-29 audit (`docs/audits/2026-09-29-experiment-audit.md`) names 2. The random
+rank-1 control in `ablate.py` is `torch.randn(width)`, isotropic and not matched in energy
+to the difference direction, so on an anisotropic residual stream it removes almost
+nothing by construction. A clean PCA direction of matched variance and another attack's
+direction are the controls it needs. And the 0.002 to 0.078 clean-accuracy cost of removal
+is what erasing the target class's own direction would cost, so per-class recall before
+and after removal is needed before finding 6 can say it removes the backdoor rather than
+the target class.
 
 ## Caveat
 

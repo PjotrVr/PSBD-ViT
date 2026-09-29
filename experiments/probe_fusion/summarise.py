@@ -27,17 +27,22 @@ def load(path: str) -> dict:
         return json.load(handle)
 
 
-def implanted_cells(report: dict) -> dict:
-    """Only cells whose attack actually implanted.
+def implanted_cells(report: dict, ledger: dict) -> dict:
+    """Only cells whose attack succeeded, by the current ledger's 2-point bar.
 
     A detection number on a backdoor that was never planted measures nothing, and averaging
-    it in flatters or punishes the detector at random.
+    it in flatters or punishes the detector at random. The class each cell carried when
+    measure.py ran is stale once the ledger learns a new exclusion (source-mapped TaCT on
+    2026-09-24, the 2-point clean-accuracy bar on 2026-09-29), so the current ledger's
+    `successful_2pt` decides and a cell it no longer holds is dropped.
     """
-    return {
-        name: cell
-        for name, cell in report["cells"].items()
-        if cell.get("asr_class") == "clears"
+    successful = {
+        cell["folder_name"] for cell in ledger["cells"] if cell.get("successful_2pt")
     }
+    implanted = {
+        name: cell for name, cell in report["cells"].items() if name in successful
+    }
+    return implanted
 
 
 def deltas(
@@ -71,6 +76,7 @@ def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--fusion", default="results/coverage/probe_fusion.json")
     parser.add_argument("--declaration", default="configs/psbd_basis.json")
+    parser.add_argument("--coverage", default="results/coverage/coverage.json")
     parser.add_argument("--reference", default="before_attention_norm_token_mask")
     parser.add_argument("--rule", default="min_rank", choices=("min_rank", "mean_rank"))
     parser.add_argument("--min-cells", type=int, default=10)
@@ -81,11 +87,12 @@ def main() -> None:
     args = parse_args()
     report = load(args.fusion)
     declaration = load(args.declaration)
+    ledger = load(args.coverage)
     protocol = declaration["selection_protocol"]
     select_on = set(protocol["select_on_datasets"])
     report_on = set(protocol["report_on_datasets"])
 
-    cells = implanted_cells(report)
+    cells = implanted_cells(report, ledger)
     names = {name for cell in cells.values() for name in cell["combinations"]}
 
     selection = {
@@ -101,7 +108,7 @@ def main() -> None:
         print("not enough coverage on the selection split yet")
         return
 
-    print(f"cells clearing the ASR bar: {len(cells)}   rule: {args.rule}")
+    print(f"cells successful at the 2-point bar: {len(cells)}   rule: {args.rule}")
     print(f"reference probe: {args.reference}\n")
     print(f"SELECTION split {sorted(select_on)}")
     ranked = sorted(selection, key=lambda name: -statistics.mean(selection[name]))

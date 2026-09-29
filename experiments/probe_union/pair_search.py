@@ -29,7 +29,7 @@ remaining 4 raises the resulting triple's mean TPR at 10% the most.
 
 Method, part 2 (the combination rule). For 3 named probe sets, the best pair
 from part 1, PSBD-TM plus the attention branch output token mask and the
-3-probe adaptive-attacker pool of `measure.py` on the 37 models that hold all
+3-probe adaptive-attacker pool of `measure.py` on the models that hold all
 3, the same per-image ranks r_j(x) (`defenses.scores.to_rank`, the share of
 clean validation inputs with a lower PSU under probe j) are combined 6 ways:
 min (the union), mean, max (the intersection, every probe must agree), the sum
@@ -45,7 +45,7 @@ disagreement is highest.
 
 Method, part 3 (unions larger than pairs). The pool is the 8 candidates with
 the best solo mean TPR at 10% (from part 1's solo search) plus token masking
-on the attention branch output, read on its own 66 models since it is not a
+on the attention branch output, read on the models that hold it since it is not a
 part-1 candidate. Every subset of size 3, 4 and 5 from this 9-placement pool
 is scored under min, product and z-sum, the 3 rules `combine_scores` already
 implements for part 2, ranked by mean TPR at 10% exactly as part 1 ranks

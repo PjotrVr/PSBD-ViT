@@ -16,24 +16,39 @@ inverted of 5.
 
 ## Method
 
-All 120 evasive (`_evade_*`) checkpoints that carry a PSBD cache, 119 with 4
-placements each. Cached PSU only, no GPU and no model. Each probe is read at the
-rate whose clean validation shift ratio is nearest 0.6, so probes are compared at
-a matched disturbance rather than a shared nominal rate.
+The measurement ran on all 120 evasive (`_evade_*`) checkpoints that carry a PSBD
+cache, 119 with 4 placements each, ViT and Swin. Cached PSU only, no GPU and no
+model. Each probe is read at the rate whose clean validation shift ratio is nearest
+0.6, the matched rule, so probes are compared at a matched disturbance rather than
+a shared nominal rate.
+
+12 of the 120 are TaCT evasive models on CIFAR-100 and Tiny for both architectures. All
+12 read 0.00 clean source-class accuracy: the ledger's source-mapped rule
+(`scripts/coverage_ledger.py`) marks them as models that send the whole source class
+to the target with no trigger, so they are not backdoors. The table below drops them
+and reads the remaining 108 from the per-checkpoint record
+`results/_experiments/median_rank_union/union_on_evasive.csv`:
+
+    PYTHONPATH=. .venv/bin/python scratch/stale_numbers/median_rank_union_panel.py
+
+The 120-checkpoint values, the ones this README quoted before 2026-09-29, are in
+brackets.
 
 ## Result: the fix does not work on real data
 
 | rule | mean AUROC | median AUROC |
 |---|---:|---:|
-| best single probe, chosen with hindsight | **0.767** | |
-| min-rank union | 0.702 | 0.723 |
-| **median-rank union** | **0.673** | 0.671 |
+| best single probe, chosen with hindsight | **0.796** [0.767] | |
+| min-rank union | 0.726 [0.701] | 0.763 [0.723] |
+| **median-rank union** | **0.694** [0.673] | 0.744 [0.671] |
 
-Min beats median on **65 of 120** checkpoints, median beats min on 55.
+Min beats median on **61 of 108** checkpoints, median beats min on 47 [65 and 55 of
+120].
 
-Restricted to the 110 checkpoints where a probe **is** actually inverted, which is
-the case the median was introduced to fix, min still wins: **0.683 against 0.654**.
-On the 10 with no inverted probe, min 0.910 against median 0.884.
+Restricted to the 98 checkpoints where a probe **is** actually inverted, which is
+the case the median was introduced to fix, min still wins: **0.707 against 0.675**
+[0.683 against 0.654 on 110]. On the 10 with no inverted probe, min 0.910 against
+median 0.884.
 
 Both achieve their FPR target (0.255 and 0.259 against 0.25), so this is a
 detection difference and not a calibration artifact.
@@ -52,8 +67,8 @@ min fragile in simulation is not the property real inverted probes have.
 
 ## The larger negative result
 
-**Neither union beats the best single probe**: min is -0.065 and median -0.094
-against it. The defender does not know which single probe is best without the
+**Neither union beats the best single probe**: min is -0.070 and median -0.102
+against it [-0.065 and -0.094 on 120]. The defender does not know which single probe is best without the
 labels, so a union remains defensible on threat-model grounds, that an attacker
 must evade every probe rather than guess which one was deployed. But it cannot be
 claimed as an AUROC improvement, and it is not one here.

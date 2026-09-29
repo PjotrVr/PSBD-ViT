@@ -1,5 +1,12 @@
 # SVHN and EuroSAT as clean-label SIG carriers
 
+Superseded on 2026-09-29: the ledger generated at 2026-09-29T16:00 holds 106 ViT cells over a
+27-placement basis, 65 clearing the ASR bar, 32 below it, 1 diverged and 8 source-mapped
+(`results/coverage/COVERAGE.md`). The 6 SVHN and EuroSAT cells this note expected to clear do
+clear, and `configs/psbd_basis.json` declares both datasets out of the paper. The paper reads
+CIFAR-10, CIFAR-100, GTSRB and Tiny, where 59 cells clear the ASR bar, 56 of them are successful
+at the 2-point clean-accuracy bar and 54 of those carry both headline placements.
+
 ## Question
 
 The clean-label SIG attack cannot clear the panel's ASR bar on GTSRB, CIFAR-100 or Tiny, because a clean-label attack may only poison images that already carry the target label and on those datasets the target class is too small a share of the training set to reach the panel's rates (`docs/clean-label-rate-caps.md`). SVHN and EuroSAT were trained as datasets whose target class is large enough for every panel rate, each with a dirty-label blend control beside it and a seed sweep on every cell. This note asks whether the attack implants on them at each rate, how far the seeds spread, what it costs in clean accuracy and which edit to `configs/psbd_basis.json` admits the cells to the coverage panel.
@@ -172,7 +179,7 @@ The other readers of `benign_reference` iterate the block rather than a fixed li
 | `cli/compare_detectors.py` | 128 | adds both as benign cells with no poison rate |
 | `scripts/paper/mech_shift_target.py` | 496 | loads `psbd_metrics` for both and filters them out while they are unswept |
 
-The panel itself needs no dataset list, but the report generators iterate a hardcoded `DATASET_ORDER` tuple, so the new cells reach `coverage.json`, `gaps.json` and the attack strength table of `COVERAGE.md` on the next ledger run and stay out of the paper tables until those tuples grow. `selection_protocol` names neither dataset in `select_on_datasets` or `report_on_datasets`. Since that protocol was frozen before these runs existed, I leave the placement as an open choice, where the natural side is `report_on_datasets` and adding to a pre-registered list is a protocol decision the user should make explicitly.
+The panel itself needs no dataset list, but the report generators iterate a hardcoded `DATASET_ORDER` tuple. The new cells therefore reach `coverage.json`, `gaps.json` and the attack strength table of `COVERAGE.md` on the next ledger run and stay out of the paper tables until those tuples grow. `selection_protocol` names neither dataset in `select_on_datasets` or `report_on_datasets`. Since that protocol was frozen before these runs existed, I leave the placement as an open choice, where the natural side is `report_on_datasets` and adding to a pre-registered list is a protocol decision the user should make explicitly.
 
 | file | line | current value | role |
 |---|---:|---|---|

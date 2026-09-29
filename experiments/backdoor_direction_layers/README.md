@@ -23,6 +23,12 @@ About a minute per checkpoint on the login-node A100. Writes
 
 ## Finding
 
+No `direction_layers_*.json` record is on disk for any of the 6 checkpoints below, so
+these values cannot be checked against a record, and the experiment has not been re-run
+on the current panel. None of the 6 is diverged or source-mapped, and the 4 all-to-one models are in the paper
+panel of 54 successful models. `badnet_a2a` holds no
+ledger cell, since all-to-all is scored outside the panel.
+
 Relative direction norm `||mean(x_trigger - x_clean)|| / mean||x_clean||` in the
 `[CLS]` token, CIFAR-10 ViT at 10% poisoning, 400 paired eligible samples, fp32:
 

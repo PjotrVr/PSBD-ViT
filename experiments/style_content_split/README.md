@@ -27,6 +27,9 @@ accuracy stays within 2 points:
 | **lf** | amplitude | 0.999 | **0.999** | -0.005 | **none** |
 | sig | amplitude | 0.015 | - | - | never implanted, uninformative |
 
+The SIG row is under audit (`docs/audits/2026-09-29-experiment-audit.md`), since SIG
+checkpoints trained before 2026-09-09 learned amplitude 0.1 and the code now builds 0.157.
+
 `lf` is the low-FREQUENCY attack, the most texture-carried thing in the panel, and it
 survives a FULL amplitude replacement at **0.949 ASR** while clean accuracy falls to 0.273.
 `adaptive_blend` gets *more* effective as texture is destroyed, because amplitude mixing

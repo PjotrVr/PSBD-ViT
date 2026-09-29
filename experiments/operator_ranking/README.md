@@ -2,8 +2,10 @@
 
 ## Question
 
-The published PSBD configuration is dropout at `pre_residual`, and it collapses at
-1% poisoning. Is that a limit of prediction-shift detection, or a bad operating
+Dropout on the residual stream, the PSBD paper's ConvNet placement, collapses at 1%
+poisoning. This experiment read it at `pre_residual` (dropout before both residual adds).
+The canonical PSBD-RD, `PUBLISHED_PLACEMENT` in `defenses/decision.py`, is `post_residual`
+(dropout after both adds), and the current numbers below give both. Is that a limit of prediction-shift detection, or a bad operating
 point? The 7 scripts here answer it from 1 cached surface, so no 2 of them are
 allowed to disagree about what a cell means.
 
@@ -45,19 +47,34 @@ needed once the sweep has run.
 
 ## Finding
 
-The low-poison-rate failure is an operating point, not a limit. On CIFAR-100 at 1%,
-moving from dropout at `pre_residual` to `token_mask` at `before_attention_norm`
-gains 0.162 mean AUROC at the swept rate, and 0.166 at matched shift ratio. The
-`gain_scale` at `mlp_norm_out` figure of 0.258 is WITHDRAWN: that arm is read at
-shift ratio 0.95 to 0.98 against a baseline at 0.65 to 0.76, and at matched shift
-ratio over the full 48-cell panel it gains -0.007. The
-published configuration reads 0.687 mean where `gain_scale` reads 0.945.
+The low-poison-rate failure is an operating point, not a limit. On the current panel, the
+4 CIFAR-100 models at 1% poisoning that clear the ASR bar (BadNets, Blend, BPP and LF) read
+PSBD-TM (`token_mask` at `before_attention_norm`) at 0.960 mean AUROC at the adaptive 0.8
+rule, against 0.861 for PSBD-RD (`post_residual`) and 0.843 for `pre_residual`. The paired
+gain over PSBD-RD is +0.100, CI [-0.015, +0.214], `\CifarOneZeroZeroOnePercentGain` in
+`paper/headline.tex`, and +0.117, CI [-0.002, +0.236], over `pre_residual`. At the matched
+0.6 rule the gains are +0.058 and +0.100. With 4 models neither interval excludes 0. Read
+with
 
-`head_to_head.py` shows where the gain comes from: `badnet_a2o` at 1% moves from
-0.297 to 0.839, which is an inverted detector becoming a working one. The benign
-control stays at 0.494 against 0.504, so the candidate configuration is not simply
-reading confidence. All-to-all still fails under both, which is H5 and a separate
-problem.
+    PYTHONPATH=. .venv/bin/python scratch/stale_numbers/panel_auroc.py
+
+restricted to those 4 folders. The version of this finding before 2026-09-29 read a
+2600-cell surface in `scratch/surface.json` built on the earlier panel and quoted a gain of
+0.162 at the swept rate and 0.166 at matched shift ratio, which the current panel does not
+reproduce.
+
+The `gain_scale` at `mlp_norm_out` figure of 0.258 is WITHDRAWN (`docs/audit-2026-09-07.md`):
+that arm was read at shift ratio 0.95 to 0.98 against a baseline at 0.65 to 0.76, and at
+matched shift ratio over the full 48-cell panel of the time it gained -0.007. On the 4
+current CIFAR-100 1% models at the matched 0.6 rule it reads 0.787, below PSBD-TM by
++0.119, CI [+0.057, +0.198].
+
+`head_to_head.py` showed where the gain comes from, and the current panel agrees:
+`badnet_a2o` on CIFAR-100 at 1% reads 0.744 under PSBD-RD, 0.815 under `pre_residual` and
+0.988 under PSBD-TM at the adaptive rule. The earlier surface read it at 0.297 against 0.839,
+an inverted detector becoming a working one. The benign control stayed at 0.494 against
+0.504, so the candidate configuration reads more than confidence. All-to-all still
+fails under both, which is H5 and a separate problem.
 
 Hypothesis doc: `docs/hypothesis/H17-low-poison-rate-is-a-placement-artifact.md`.
 Published tables: `docs/results/operator-position-ranking.md`,

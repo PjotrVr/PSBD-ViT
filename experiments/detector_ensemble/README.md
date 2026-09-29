@@ -31,6 +31,10 @@ cannot pick. The mechanism is that a mean is not robust to an inverted member: a
 placement reading 0.194 on `badnet_a2o` at 1% drags the average down instead of
 being ignored.
 
+These values come from `scratch/surface.json` (written 2026-08-14) and the caches of that
+time, over CIFAR-10 checkpoints at every poison rate, and they are in no
+saved record. The experiment has not been re-run on the current panel.
+
 This is the negative result that shaped H41. The min-rank rule keeps the same
 defender-legal setup and replaces the mean with a minimum, which an inverted member
 cannot poison, and that version does work.

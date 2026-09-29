@@ -1,5 +1,12 @@
 # SIG on GTSRB at target class 1
 
+Superseded on 2026-09-29: the ledger now pins GTSRB dirty-label cells to target 0 and gives the
+clean-label slots to the `_tl1` folders, so the ambiguous slots described below resolve. It
+holds `vit_gtsrb_sig_0_01_tl1` at ASR 0.356 and `vit_gtsrb_sig_0_05_tl1` at 0.673, both below
+the bar, and no GTSRB SIG cell at 10% (`results/coverage/coverage.json`). SIG checkpoints are
+under audit for the trigger amplitude they were trained at
+(`docs/audits/2026-09-29-experiment-audit.md`).
+
 ## Question
 
 The GTSRB SIG cells trained at target class 0 never cleared the ASR bar, and `docs/clean-label-rate-caps.md` traced part of that failure to the poison-rate cap. Class 0 is the smallest class in the training set, so every requested rate above its share trained the identical index set, and the cells labeled 1%, 5% and 10% were 3 replicates of 1 configuration.

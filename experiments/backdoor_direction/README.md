@@ -32,6 +32,12 @@ is CPU only and reads `results/direction_persistence.json`, so it has to run aft
 
 ## Finding
 
+The records under `results/` (`direction_norm_analysis.json`, `direction_persistence.json`,
+`direction_universality.json`, `cone_geometry.json`, `crystallization_vs_placement.json`)
+were written in August 2026 on checkpoints chosen by attack and rate, several of them below
+the current 0.85 ASR bar (CIFAR-100 SIG, WaNet and Adaptive-Blend at 10%). The experiment
+has not been re-run on the current panel.
+
 The direction exists and grows with depth, but almost every structural property
 predicted for it turned out to be absent.
 
@@ -44,13 +50,16 @@ H30 is supported with a qualification. The direction does not persist uniformly.
 crystallizes around layers 8 to 10 with a clear S-curve in alignment to the final
 layer, so early layers are carrying something that is not yet the final direction.
 
-H29 is refuted. Off-diagonal cosine between attacks is near 0 in every setting.
+H29 is refuted. Off-diagonal cosine between attacks is near 0 in every setting
+(`results/direction_universality.json`, which also holds the source-mapped TaCT models).
 Each attack writes its own direction, so a defender who knows 1 attack's direction
 learns nothing about the others.
 
-H36 is refuted, and it corrects an earlier reading. 9 of 10 attack directions sit
-87 to 91 degrees from the readout weight. Only `badnet_a2o` aligns, at 33 to 43
-degrees. H16's readout alignment of 0.87 to 0.89 was measured per model, so each
+H36 is refuted, and it corrects an earlier reading. On CIFAR-100 and Tiny at 10%
+(`results/cone_geometry.json`), 9 of 10 attack directions sit 86 to 94 degrees from the
+readout weight. Only `badnet_a2o` aligns, at 33 to 43 degrees. 1 of the 10 is the TaCT
+model, source-mapped on both datasets (0.00 clean source-class accuracy, so not a backdoor
+by the ledger's rule). Without it 8 of 9 sit 86 to 94 degrees, and the verdict is the same. H16's readout alignment of 0.87 to 0.89 was measured per model, so each
 direction aligns with its OWN model's readout weight and not with a shared
 reference. There is no cone.
 

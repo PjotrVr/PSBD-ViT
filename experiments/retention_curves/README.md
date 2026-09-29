@@ -24,6 +24,23 @@ backdoor is the more robust path exactly when ASR retention exceeds CA retention
 
 ## Result
 
+No record of this measurement is on disk and `measure.py`, which the reproduce line below
+names, is not in this directory or in the history of it, so none of the values in this
+README can be checked or recomputed. The population was GTSRB at 5% and 10% with ASR at
+least 0.5, below the canonical 0.85 bar. It included `badnet_a2a` and `adaptive_blend`
+cells that are not on the current panel. Whether it held `vit_gtsrb_tact_0_1`, which the
+ledger now excludes as source-mapped, cannot be read. The experiment has not been re-run on
+the current panel.
+
+3 further problems stand against the table below, from `docs/why-psbd-works-theory.md`
+("Existing claims the derivations contradict", item 4). The protocol reads ASR retention
+where CA retention first falls to 0.75, but the table's CA retention is 0.527 for dropout and
+0.718 for Fourier amplitude, so the 2 modalities are not compared at matched clean damage.
+`measure.py` is missing, as stated above. And an ASR retention above 1, the Adaptive-Blend
+"anti-fragility" below, is not corrected for a damaged model collapsing onto the target
+class, which alone produces a raw retention of 1.04 on WaNet, so it needs the excess form
+before it can be read as the attack getting stronger.
+
 GTSRB, 5% and 10%, attacks that actually implanted (ASR >= 0.5).
 
 | modality | what is perturbed | ASR retention | CA retention | backdoor more robust |
@@ -47,9 +64,9 @@ the one whose backdoor is the *fragile* path.
 | `vit_gtsrb_adaptive_blend_0_1` | dropout | **1.192** |
 | `vit_gtsrb_adaptive_blend_0_05` | Fourier amplitude | **1.125** |
 
-Retention above 1 means the attack gets **more** effective as the model is damaged, in 2
+Raw retention above 1 reads as the attack getting **more** effective as the model is damaged, in 2
 mechanistically unrelated modalities. Adaptive-Blend exists to suppress latent separability
-and it is the hardest attack in this panel for every detector measured here. This says why.
+and it is the hardest attack in this panel for every detector measured here. Before the collapse correction above, the reading offered was this.
 Damaging the model damages the carrier's own class evidence faster than the trigger's, so
 the trigger wins more often, and a detector that reads "how much did the prediction move"
 is reading a quantity that moves the wrong way.

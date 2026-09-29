@@ -40,6 +40,14 @@ entirely, still at 0.995 attack success at 5% poisoning, because the branch
 computations alone rebuild the direction with the skip path fully cut. No single
 alpha works across attacks, so this is not a deployable defense.
 
+Both records (`results/direction_erasure.json`, `results/skip_scaling.json`) cover 15
+CIFAR-100 and Tiny models at 5% and 10%. The 2 attacks erasure works on, `lc` and
+`adaptive_blend`, never clear the current 0.85 ASR bar (Label-Consistent without
+adversarial bases is not a ledger cell at all), and neither do the CIFAR-100 WaNet models,
+so "works on the weaker attacks" means it works where the backdoor was weak to begin with.
+None is a model the ledger excludes as diverged or source-mapped, and the experiment has
+not been re-run on the current panel.
+
 Together they locate where the direction lives: not in the layer 10 and 11 weights,
 and not only on the skip path.
 

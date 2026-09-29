@@ -151,6 +151,15 @@ against 0.9980/0.9984 at the full 12 blocks) but were never swept for Swin, so
 the "24 against 12" hypothesis stays untested by this panel and is reported
 as not available rather than ruled in or out.
 
+The ViT side of the CIFAR-100 WaNet pair, `vit_cifar100_wanet_0_1`, reads ASR 0.793 in the
+ledger, below the 0.85 bar, so it is not a panel model and its +0.084 gap compares against a
+weaker backdoor. The CIFAR-10 SIG pair is under audit
+(`docs/audits/2026-09-29-experiment-audit.md`): the ViT checkpoint was trained at SIG
+amplitude 0.1 and the code now builds 0.157, which affects every fresh forward pass on it
+here, and the Swin SIG checkpoints still need their trigger date checked. None of the 12
+checkpoints is diverged or source-mapped. On the ViT side, CIFAR-10 SIG 10% and GTSRB WaNet
+10% lose more than 2 points of clean accuracy and are not in the paper panel of 54 models.
+
 ## Verdict
 
 Most of the reported WaNet and SIG gap is not a Swin structural advantage: it

@@ -1,5 +1,15 @@
 # Out-of-sample test of the inverted H10 rule
 
+Superseded on 2026-09-29: the ledger's ASR for `vit_cifar10_wanet_0_1` is 0.890 and for
+`vit_cifar10_adaptive_blend_0_1` 0.622, below the 0.85 bar, so the second checkpoint no
+longer counts as a working backdoor and its row does not test the rule
+(`results/coverage/coverage.json`). On the current caches of the WaNet checkpoint at the
+adaptive 0.8 rule, `pre_residual` reads 0.946 on all blocks against 0.871, 0.937 and 0.943
+on blocks 1 to 4, 5 to 8 and 9 to 12, so the predicted band 9 to 12 is now the best band
+(strict pass) and no band beats all blocks (weak fail), the reverse of the result below
+(`results/vit_cifar10_wanet_0_1/psbd_metrics.json`, read with
+`scratch/stale_numbers/panel_auroc.py`).
+
 Registered at commit `4662187af48745e2f48e9a0362c82825f5f464f7`, **before any band job for these
 2 checkpoints was submitted**.
 

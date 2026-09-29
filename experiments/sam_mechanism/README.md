@@ -66,6 +66,15 @@ over all 6 pairs took under 5 minutes on an A100.
 | BadNet a2o 5% CIFAR-10 | Adam | 0.7 | 12 (0.93) | 10 | 1.12 | 7.24 | 9.27 | 0.891 | 0.183 | 0.991 |
 | BadNet a2o 5% CIFAR-10 | SAM | 0.7 | 12 (1.06) | 10 | 1.28 | 6.20 | 8.97 | 0.875 | 0.064 | 1.000 |
 
+The AUROC column is recomputed on the 500 measured pairs of each checkpoint. The canonical
+reading, fractional PSU on the full PSBD split at the adaptive 0.8 rule from
+`results/<folder>/psbd_metrics.json` (SAM at rho 0.1), gives the same ordering within 0.008
+on every row: 0.988 and 0.999 (BadNet 1%), 0.979 and 0.995 (Blend), 0.921 and 0.981 (BPP),
+0.967 and 0.996 (LF), 0.937 and 0.712 (WaNet), 0.992 and 0.999 (BadNet 5%). None of the 12
+checkpoints is diverged or source-mapped. The Adam WaNet model, `vit_cifar10_wanet_0_05`,
+loses 3.9 points of clean accuracy and is not in the paper panel of 54 models successful at
+the 2-point bar, and every other Adam checkpoint here is.
+
 SAM amplifies the footprint on 5 of the 6 pairs. The peak relative direction
 norm rises 9% to 41% and the final-layer mean TAC rises 8% to 31%, which is the
 same direction the SAM paper's Fig. 3 and Fig. 2 report on ResNet18 backdoor

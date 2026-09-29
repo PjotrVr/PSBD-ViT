@@ -56,7 +56,7 @@ The paper evaluates on CIFAR-10, GTSRB and a 200-class ImageNet subset, all with
 
 ## The reference implementation
 
-`third_party/BackdoorBox/core/defenses/IBD_PSC.py` at commit `af3afd1` is the released code. `count_BN_layers` at line 61 counts modules with `isinstance(module, torch.nn.BatchNorm2d)`. `prob_start` at line 89 runs Algorithm 1 with `for layer_index in range(1, layer_num)`, which never tests the all-layers configuration and falls off the end of the loop returning `None` when the error never crosses $\xi$. The ensemble at line 138 amplifies `sorted_indices[:layer_index+1]`, 1 more layer at every position than Eq. (4) writes, and deep-copies the model once per ensemble member per batch. `third_party/backdoor-toolbox/other_defenses_tool_box/IBD_PSC.py` agrees on the BatchNorm-only filter. `third_party/` is not checked out in this working tree, so these line numbers are the ones recorded when the port was written.
+`third_party/BackdoorBox/core/defenses/IBD_PSC.py` at commit `af3afd1` is the released code, pinned in `third_party.lock`. `count_BN_layers` at line 60 counts modules with `isinstance(module, torch.nn.BatchNorm2d)` (line 63). `prob_start` at line 89 runs Algorithm 1 with `for layer_index in range(1, layer_num)` (line 93), which never tests the all-layers configuration and falls off the end of the loop returning `None` when the error never crosses $\xi$. The ensemble at line 139 amplifies `sorted_indices[:layer_index+1]`, 1 more layer at every position than Eq. (4) writes, and deep-copies the model once per ensemble member per batch. `_test` also keeps only the inputs whose prediction equals their label before it returns a score (lines 133 and 153). `third_party/backdoor-toolbox/other_defenses_tool_box/IBD_PSC.py` agrees on the BatchNorm-only filter. The line numbers were read from the pinned checkout on 2026-09-29.
 
 ## The port step by step
 
@@ -84,7 +84,7 @@ $$
 2. **The calibrated variant.** The detector smoke of 2026-09-10 (`docs/runs/2026-09-10-detector-smoke.md`) found that on a GTSRB ViT the paper's $\omega = 1.5$ leaves the predictions intact through every amplified LayerNorm, so Algorithm 1 never crosses $\xi$, $k$ falls back to $L$ and every input keeps its label at nearly full probability, clean or triggered. The detector then reads chance for a scale mismatch rather than for a property of the backdoor. The settings table in the results block below shows how often $k$ lands at $L = 25$ on the panel. `ibd_psc_calibrated` gives the mechanism the amplification it needs on this architecture while keeping everything else from the paper, and it tries 1.5 first, so a model the paper's setting already breaks is scored exactly as `ibd_psc` scores it. The ladder 1.5, 2, 3, 5 and 8 is this project's choice and appears nowhere in the paper. It roughly doubles at each step. Both variants run on the panel, the faithful one so the paper's own setting is on record.
 3. **Ensemble layer counts.** Eq. (4) sums over $i = k, \ldots, k + n - 1$ amplified layers. The released code amplifies 1 more layer at every position. The port follows the equation.
 4. **Algorithm 1's range.** The paper tests $i = 1, \ldots, L$. The released code tests $1, \ldots, L - 1$ and returns `None` when nothing crosses, which crashes the next call. The port tests all $L$ and falls back to $k = L$, the value Algorithm 1 holds at loop exit.
-5. **Ensemble clamping.** When $k$ is within $n - 1$ of $L$, the window $k, \ldots, k + n - 1$ runs past the last layer, a case the paper's 20 BatchNorms rarely meet. The port keeps only the members with $i \le L$, so a late $k$ gives a smaller ensemble. At $k = L$ the ensemble holds only the fully amplified model, so the score is 1 amplified forward pass.
+5. **Ensemble clamping.** When $k$ is within $n - 1$ of $L$, the window $k, \ldots, k + n - 1$ runs past the last layer, a case the paper's 20 BatchNorms rarely meet. The port keeps only the members with $i \le L$, so a late $k$ gives a smaller ensemble. At $k = L$ the ensemble holds only the fully amplified model, so the score is 1 amplified forward pass. The released code has no such clamp: its slice `sorted_indices[:layer_index+1]` stops at $L$ by itself, so every member past the last layer amplifies all $L$ layers again and the fully amplified model is counted several times in its mean. From start index $L - 2$ with $n = 5$ it averages the members at $L - 1, L, L, L, L$ where the port averages $L - 1$ and $L$ once each.
 6. **Data budget.** The paper uses 100 benign images as $D_r$. The port uses the shared 2000-image validation split with its labels, so layer selection sees the same data every other detector sees.
 7. **No deep copies.** The port writes amplified parameters into the live model and restores them from clones, which is exact and allocates no second model. Restoring by copy rather than by dividing by $\omega$ leaves no floating-point drift in the deployed model.
 8. **The threshold rule.** The paper thresholds at $T = 0.9$. The port hands the negated PSC to `defenses.decision.detection_report`, which thresholds at a quantile of the validation scores. AUROC does not depend on this choice.
@@ -104,7 +104,22 @@ $$
 
 ## Cross-check against the reference
 
-No numerical test compares `psc_scores` or `select_start_layer_count` against BackdoorBox. `tests/test_detectors_ibd_psc.py` replaces Algorithm 1 with a stub and checks only the calibration search: that it stops at the first crossing factor, keeps the paper's factor when that one already crosses and falls back to the last factor with $k = L$ when none does. The LayerNorm identity in deviation 1 is algebra and is not tested. The synthetic sign gate `python -m experiments.preflight.check_signs`, run on the CPU on 2026-09-29, read both variants at AUROC 1.0000 on the fixture, above its floor of 0.60, which confirms plumbing and sign only. This is a gap against the project's rule that every port carries a numerical cross-check.
+`tests/test_detectors_ibd_psc.py` executes BackdoorBox's `IBD_PSC` class from the pinned checkout on a 10-layer pre-norm residual stack of LayerNorms and linear branches on the CPU. The 1 textual change is its BatchNorm2d filter read as LayerNorm, deviation 1 applied to the reference so that everything else can be compared. The model's own predictions serve as labels, so clean error starts at 0 and `_test`'s correctness filter keeps every input.
+
+1. Algorithm 1 picks the same depth as `prob_start` at $\omega = 3$ and $\xi = 0.3$, where the stack's error first crosses inside the range both implementations test.
+2. PSC agrees with `_test` to $10^{-6}$ when the port starts 1 layer deeper than the reference's start index, and disagrees when both start at the same index, which is deviation 3 shown numerically.
+3. Past the last layer the reference's mean equals $(F_{L-1} + 4 F_L)/5$ and the port's $(F_{L-1} + F_L)/2$, the clamp difference of deviation 5.
+4. At the paper's $\omega = 1.5$ and $\xi = 0.6$ the stack never crosses. The reference's start index is `None` and its `_test` raises `TypeError`. The port returns $k = L$ with its whole trace under $\xi$, and scores with 2 forward passes per batch, counted by a hook, equal to the fully amplified model alone.
+
+The first 3 tests of the file check the calibration search with a stubbed Algorithm 1. The LayerNorm identity of deviation 1 is algebra and is not tested. The synthetic sign gate `python -m experiments.preflight.check_signs`, run on the CPU on 2026-09-29, read both variants at AUROC 1.0000 on the fixture, above its floor of 0.60.
+
+## Ensemble size on ViT
+
+The faithful fit lands at $k = L = 25$ on most panel models (the settings table of the results block counts them). Each of those is the fallback of deviation 4 and not a crossing at the last layer: on every one, `ibd_psc_calibrated`, which runs the same Algorithm 1 at 1.5 first, found no crossing at 1.5 and moved up its ladder. At $k = L$ the window $L, \ldots, L + 4$ keeps only $L$, so the faithful score is the probability the fully amplified model gives $y'$, 1 member, 2 forward passes per input.
+
+This is a faithful consequence on ViT and not a port bug. BackdoorBox's layer-selection rule never tests $L$ and has no value to return when nothing crosses, so the released code raises on these models rather than scoring them, and the paper's Algorithm 1 holds $k = L$ at loop exit. Had the released ensemble been run from that $k$, its slice would stop at $L$ for every member, so all 5 of its members would be the same fully amplified model and its mean the same number the port returns, at 5 times the cost. The port's score is therefore what the reference's own arithmetic gives, and only the ensemble size differs. `test_without_a_crossing_backdoorbox_has_no_depth_and_the_port_scores_at_2_passes` pins this.
+
+The cost bookkeeping does not follow. `FORWARD_PASSES_PER_INPUT["ibd_psc"]` is $n + 1 = 6$ whatever $k$ is, and every `ibd_psc` record writes that 6 into its provenance as `forward_passes_per_input`, while a model at $k = L$ spends 2. A cost table read off the provenance overstates the faithful variant on those models by a factor of 3. The measured seconds per input in the results block are not affected. The registry is left as it is, since the paper's cost table reads it and the correction belongs with that table.
 
 ## Cost
 
@@ -117,16 +132,16 @@ Low is poisoned. The paper flags $PSC(x) > T$, so the raw statistic is high for 
 ## Results
 
 <!-- results:begin -->
-Generated by `python scripts/detector_doc_results.py` at commit `19488b81358b06040ba96f361d5061b2981f1f25-dirty`. It reads `results/coverage/coverage.json`, every `results/<folder>/detectors/<name>_metrics.json` and every `results/<folder>/psbd_metrics.json` of the 57 backdoored ViT-B/16 models the paper's detector comparison uses, the clearing models that carry a reading from every defense. PSBD-TM and PSBD-RD are read at the adaptive rate rule, every threshold is the clean-validation quantile named in the column and AUROC is the one-sided area at the 0.25 quantile, where a value under 0.5 means inverted.
+Generated by `python scripts/detector_doc_results.py` at commit `b2d32cf11708d5de965d3e13604c863a3ad9b493-dirty`. It reads `results/coverage/coverage.json`, every `results/<folder>/detectors/<name>_metrics.json` and every `results/<folder>/psbd_metrics.json` of the 54 backdoored ViT-B/16 models the paper's detector comparison uses, the successful models that carry a reading from every defense. PSBD-TM and PSBD-RD are read at the adaptive rate rule, every threshold is the clean-validation quantile named in the column and AUROC is the one-sided area at the 0.25 quantile, where a value under 0.5 means inverted.
 
 Summary over every compared model. The rank is among the 13 defenses of the comparison by mean AUROC, and the last column is PSBD-TM minus the defense, paired per model, with its 95% bootstrap interval over models (5000 resamples, seed 0).
 
 | defense | models | AUROC | TPR at 10% FPR | TPR at 20% FPR | models below chance | rank | PSBD-TM minus defense, AUROC |
 |---|---|---|---|---|---|---|---|
-| `ibd_psc` | 57 | 0.720 | 0.385 | 0.498 | 13 | 10 of 13 | +0.232 [+0.168, +0.297] |
-| `ibd_psc_calibrated` | 57 | 0.921 | 0.791 | 0.869 | 0 | 2 of 13 | +0.032 [+0.007, +0.057] |
-| PSBD-TM | 57 | 0.953 | 0.873 | 0.902 | 2 | 1 of 13 | reference |
-| PSBD-RD | 57 | 0.888 | 0.744 | 0.805 | 5 | 4 of 13 | +0.065 [+0.012, +0.121] |
+| `ibd_psc` | 54 | 0.732 | 0.400 | 0.517 | 12 | 9 of 13 | +0.231 [+0.165, +0.299] |
+| `ibd_psc_calibrated` | 54 | 0.936 | 0.825 | 0.900 | 0 | 2 of 13 | +0.027 [+0.004, +0.049] |
+| PSBD-TM | 54 | 0.963 | 0.887 | 0.916 | 1 | 1 of 13 | reference |
+| PSBD-RD | 54 | 0.885 | 0.736 | 0.798 | 5 | 5 of 13 | +0.078 [+0.027, +0.134] |
 
 `ibd_psc` per attack and poison rate. Each row is a mean over the models of that attack at that rate and n counts them. The last 2 columns repeat the AUROC of PSBD-TM and PSBD-RD on the same models.
 
@@ -144,11 +159,10 @@ Summary over every compared model. The rank is among the 13 defenses of the comp
 | LF | 1% | 4 | 0.572 | 0.319 | 0.394 | 0.963 | 0.959 |
 | LF | 5% | 4 | 0.580 | 0.246 | 0.278 | 0.986 | 0.978 |
 | LF | 10% | 4 | 0.795 | 0.419 | 0.489 | 0.990 | 0.985 |
-| SIG | 10% | 1 | 0.531 | 0.295 | 0.327 | 0.418 | 0.919 |
 | TaCT | 1% | 1 | 0.210 | 0.000 | 0.000 | 0.979 | 0.464 |
 | TaCT | 5% | 2 | 0.920 | 0.050 | 0.271 | 0.954 | 0.613 |
-| WaNet | 5% | 2 | 0.708 | 0.340 | 0.386 | 0.933 | 0.955 |
-| WaNet | 10% | 3 | 0.596 | 0.246 | 0.305 | 0.786 | 0.957 |
+| WaNet | 5% | 1 | 0.859 | 0.680 | 0.771 | 0.930 | 0.953 |
+| WaNet | 10% | 2 | 0.656 | 0.339 | 0.391 | 0.704 | 0.956 |
 
 `ibd_psc_calibrated` per attack and poison rate. Each row is a mean over the models of that attack at that rate and n counts them. The last 2 columns repeat the AUROC of PSBD-TM and PSBD-RD on the same models.
 
@@ -166,41 +180,40 @@ Summary over every compared model. The rank is among the 13 defenses of the comp
 | LF | 1% | 4 | 0.907 | 0.782 | 0.876 | 0.963 | 0.959 |
 | LF | 5% | 4 | 0.914 | 0.752 | 0.855 | 0.986 | 0.978 |
 | LF | 10% | 4 | 0.935 | 0.819 | 0.906 | 0.990 | 0.985 |
-| SIG | 10% | 1 | 0.599 | 0.138 | 0.307 | 0.418 | 0.919 |
 | TaCT | 1% | 1 | 0.713 | 0.134 | 0.441 | 0.979 | 0.464 |
 | TaCT | 5% | 2 | 0.918 | 0.497 | 0.718 | 0.954 | 0.613 |
-| WaNet | 5% | 2 | 0.776 | 0.427 | 0.560 | 0.933 | 0.955 |
-| WaNet | 10% | 3 | 0.731 | 0.365 | 0.470 | 0.786 | 0.957 |
+| WaNet | 5% | 1 | 0.859 | 0.680 | 0.771 | 0.930 | 0.953 |
+| WaNet | 10% | 2 | 0.776 | 0.438 | 0.567 | 0.704 | 0.956 |
 
 Mean AUROC per dataset. The shared 2000-image clean split gives about 200 images per class on CIFAR-10, 46 on GTSRB, 20 on CIFAR-100 and 10 on Tiny ImageNet, which is the budget every class-conditional method fits on.
 
 | defense | CIFAR-10 | CIFAR-100 | GTSRB | Tiny ImageNet |
 |---|---|---|---|---|
-| `ibd_psc` | 0.627 (17) | 0.833 (12) | 0.527 (14) | 0.931 (14) |
-| `ibd_psc_calibrated` | 0.886 (17) | 0.943 (12) | 0.921 (14) | 0.944 (14) |
-| PSBD-TM | 0.891 (17) | 0.979 (12) | 0.981 (14) | 0.977 (14) |
-| PSBD-RD | 0.844 (17) | 0.890 (12) | 0.862 (14) | 0.965 (14) |
+| `ibd_psc` | 0.639 (15) | 0.833 (12) | 0.531 (13) | 0.931 (14) |
+| `ibd_psc_calibrated` | 0.917 (15) | 0.943 (12) | 0.942 (13) | 0.944 (14) |
+| PSBD-TM | 0.919 (15) | 0.979 (12) | 0.984 (13) | 0.977 (14) |
+| PSBD-RD | 0.831 (15) | 0.890 (12) | 0.855 (13) | 0.965 (14) |
 
 Settings `ibd_psc` fitted per model. Each cell is a value the record's provenance carries and the number of models that took it.
 
 | setting | value (models) |
 |---|---|
-| `start_layer_count` | 22 (1), 23 (5), 25 (51) |
+| `start_layer_count` | 22 (1), 23 (5), 25 (48) |
 
 Settings `ibd_psc_calibrated` fitted per model. Each cell is a value the record's provenance carries and the number of models that took it.
 
 | setting | value (models) |
 |---|---|
-| `crossed_error_threshold` | True (57) |
-| `scaling_factor` | 1.5 (6), 2.0 (41), 3.0 (10) |
-| `start_layer_count` | 14 (1), 15 (7), 17 (11), 19 (2), 21 (13), 22 (1), 23 (22) |
+| `crossed_error_threshold` | True (54) |
+| `scaling_factor` | 1.5 (6), 2.0 (38), 3.0 (10) |
+| `start_layer_count` | 14 (1), 15 (7), 17 (11), 19 (2), 21 (13), 22 (1), 23 (19) |
 
 Measured cost, median over the compared models. Seconds per 1000 inputs divide the scoring time of the clean and backdoor splits by their size. The fit is the one-off pass over the clean validation split before any input is scored, and a dash marks a detector with no fit. The device is the one most records name.
 
 | detector | forward passes per input | seconds per 1000 inputs | fit seconds | precision | device |
 |---|---|---|---|---|---|
 | `ibd_psc` | 6 | 0.83 | 23.9 | bfloat16 | NVIDIA A100-SXM4-40GB |
-| `ibd_psc_calibrated` | 6 | 2.39 | 44.1 | bfloat16 | NVIDIA A100-SXM4-40GB |
+| `ibd_psc_calibrated` | 6 | 2.39 | 43.8 | bfloat16 | NVIDIA A100-SXM4-40GB |
 
 <!-- results:end -->
 

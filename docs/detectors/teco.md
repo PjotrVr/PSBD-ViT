@@ -59,7 +59,7 @@ The corruption set is the 15 common corruptions of Hendrycks and Dietterich's be
 
 ## The reference implementation
 
-No repository by TeCo's own authors is vendored. `third_party/BackdoorBench/detection_infer/teco.py` at commit `f02e353` is the reference the port was checked against by reading. It imports the `imagecorruptions` package (line 64), which is not installed in this project and would pull in `opencv-python` as a further dependency. Its corruption loop (lines 235 to 256) sets `x = images_poison` and then overwrites `x[i]` in place at every severity and every corruption type without resetting it, so severity 2 is applied to the output of severity 1, and the first severity of the second corruption type to an image that has already been through all 5 severities of the first. Its dispersion variable is named `mad` but is computed as `np.std(indexs)` (line 340), the population standard deviation. `third_party/` is not checked out in this working tree, so these line numbers are the ones recorded when the port was written.
+No repository by TeCo's own authors is vendored. `third_party/BackdoorBench/detection_infer/teco.py` at commit `f02e353` is the reference the port was checked against by reading. It imports the `imagecorruptions` package (line 64), which is not installed in this project and would pull in `opencv-python` as a further dependency. Its corruption loop (lines 235 to 256) sets `x = images_poison` and then overwrites `x[i]` in place at every severity and every corruption type without resetting it, so severity 2 is applied to the output of severity 1, and the first severity of the second corruption type to an image that has already been through all 5 severities of the first. Its dispersion variable is named `mad` but is computed as `np.std(indexs)` (line 340), the population standard deviation. Each corrupted image passes through `imagecorruptions.corrupt`, whose last line casts the float result with `np.uint8` (`__init__.py` line 69), a truncation to the 8-bit level below. The package is pinned in `third_party.lock` as `third_party/imagecorruptions` at commit `c959e65`. Its corruption formulas are those of the 1.1.2 release BackdoorBench would install, apart from skimage's renamed `channel_axis` argument, a numba-compiled glass-blur shuffle with the same statement and a float32 plasma map. The line numbers were read from the pinned checkouts on 2026-09-29.
 
 ## The port step by step
 
@@ -78,7 +78,7 @@ No repository by TeCo's own authors is vendored. `third_party/BackdoorBench/dete
 2. **Each corruption applied to the pristine image.** Algorithm 1 applies $D_k^n$ to $x$. The released code composes every corruption cumulatively, as described above. The port follows the algorithm. A faithful reproduction is therefore expected to differ from the published numbers, which the released statistic produced.
 3. **Population standard deviation.** The port computes what the released code computes, `np.std` with `ddof=0`, rather than what its variable name suggests. The choice rescales every score by a constant and moves no AUROC, but it moves any absolute threshold such as the paper's $\gamma = 1$.
 4. **Random angles drawn once per batch.** The motion-blur angle and the snow angle are drawn once per batch in `motion_blur` and `snow` rather than once per image. This is what makes the corruptions batchable, and sharing a nuisance angle within a batch removes a per-image random term from a statistic that compares corruption types within 1 image. Per-pixel noise in `gaussian_noise`, `shot_noise` and `impulse_noise` is still drawn independently per image.
-5. **Operator substitutions.** Where the reference's dependency was missing, the port substitutes a torch operation: `_disk_kernel`'s antialiasing Gaussian replaces `cv2.GaussianBlur`, `pixelate` uses torch area resampling in place of PIL's box filter and `_clipped_zoom` reproduces `scipy.ndimage.zoom`. `elastic_transform` samples with torch's reflection padding, which differs from scipy's `mode="reflect"` on border pixels only. The module docstring and the earlier version of this page recorded numerical agreement for each substitution, but no committed test reproduces those comparisons, so they are stated here as the author's record rather than as verified.
+5. **Operator substitutions.** Where the reference's dependency was missing, the port substitutes a torch operation: `_disk_kernel`'s antialiasing Gaussian replaces `cv2.GaussianBlur`, `pixelate` uses torch area resampling in place of PIL's box filter, `_clipped_zoom` reproduces `scipy.ndimage.zoom` and `elastic_transform` samples with torch's `grid_sample`. The cross-check below confirms the first and third to the 8-bit grid and finds that the second and fourth do not agree with the reference.
 6. **Corruption at the native resolution.** Corruption happens in pixel space at 32 or 64 pixels, before the model's own `Resize` upsamples to 224, which is where this project stamps triggers too and what the reference does at CIFAR scale.
 7. **The threshold rule.** The paper sweeps $\gamma$ and also evaluates a fixed $\gamma = 1$. The port hands the negated deviation to `defenses.decision.detection_report`, which thresholds at a quantile of the validation scores.
 
@@ -97,7 +97,23 @@ No repository by TeCo's own authors is vendored. `third_party/BackdoorBench/dete
 
 ## Cross-check against the reference
 
-No committed test compares any corruption operator or `hardness_thresholds` against the `imagecorruptions` package or BackdoorBench, and no test file for `detectors/teco.py` exists. The only automated check is the sign gate `python -m experiments.preflight.check_signs`, which runs TeCo with the 4 corruptions of `CHEAP_CORRUPTIONS` on the synthetic fixture. Run on the CPU on 2026-09-29 it read TeCo at AUROC 0.9017, above the floor of 0.60, which confirms plumbing and sign only. This is a gap against the project's rule that every port carries a numerical cross-check.
+`tests/test_detectors_teco.py` executes `imagecorruptions`' `corruptions.py` from the pinned checkout on 1 random 32 by 32 image at every severity. `cv2` and `pkg_resources` are not installed, so both are stubbed: the 3 OpenCV calls the compared corruptions make (`GaussianBlur`, `filter2D` with the default reflect-101 border and `cvtColor` to gray) are written out with scipy from OpenCV's documented formulas, independent of the port's torch code. The random corruptions receive the same draws on both sides. The criterion is the 8-bit grid: the reference returns a float and the port the nearest 8-bit level, so every port value must lie within half a level of the reference, plus $10^{-3}$ of a level.
+
+1. `contrast`, `brightness`, `zoom_blur`, `defocus_blur` and `jpeg_compression` meet the criterion at every severity, and so does `fog` under a shared numpy seed.
+2. `gaussian_noise`, `shot_noise`, `motion_blur` and `snow` meet it on the same noise, rates, flakes and angle.
+3. `glass_blur` meets it when every displacement is 0, which checks its 2 blurs and the truncating cast between them.
+4. `impulse_noise` draws inside skimage, so only its rates are compared: the shares of values set to 0 and to 255 on a mid-gray image agree within 0.02 at every severity.
+5. BackdoorBench's scoring loop (`teco.py` lines 323 to 341), transcribed, returns the same deviation as `deviation` to $10^{-6}$ on the predictions the port's own hardness pass produced, so the index rule, the never-flipped value 6 and `np.std` agree.
+6. The loop of lines 240 to 242, transcribed, composes severity 2 on the output of severity 1, deviation 2 asserted.
+
+4 disagreements were not recorded before these tests ran.
+
+- **Truncation.** `corrupt` truncates each corrupted image to uint8, and the port rounds. On `contrast` about half of all values land 1 level apart, every one with the port higher.
+- **`glass_blur` swaps where the reference duplicates.** The reference's shuffle writes `x[h, w], x[h_prime, w_prime] = x[h_prime, w_prime], x[h, w]` on a (height, width, 3) array (`corruptions.py` line 166). Both right-hand sides are views, so the first assignment overwrites the pixel the second reads, and the pixel at the target position is copied without moving the other way. numba compiles the statement with the same semantics. The port clones both pixels and swaps them. On the same displacements most pixels then differ, by up to about 50 levels. With the reference's statement made into a real swap the 2 meet the criterion, so the swap is the whole difference.
+- **`pixelate` does not match PIL.** PIL's BOX filter weights source pixels by fractional coverage and its NEAREST samples at pixel centers, where torch's area mode averages integer-bounded bins and its nearest samples at the floor of the scaled index. At the factors 0.5 and 0.25 only the rounding of the box mean differs, by 1 level at most. At 0.6, 0.4 and 0.3 whole blocks differ, by up to about 150 levels.
+- **`elastic_transform` disagrees on a band, not only on the border.** The reference smooths its displacement field and samples the image in scipy's half-sample `reflect` mode, where the port pads and samples by reflecting about the edge pixel. The 2 agree exactly where the smoothing window and the displaced sample stay inside the image. At 32 pixels the displacement reaches 2 to 5 pixels, so between a seventh and a quarter of all pixels are outside that region, and there the gap reaches well over 100 levels.
+
+The sign gate `python -m experiments.preflight.check_signs` also runs TeCo with the 4 corruptions of `CHEAP_CORRUPTIONS` on the synthetic fixture. Run on the CPU on 2026-09-29 it read TeCo at AUROC 0.9017, above the floor of 0.60.
 
 ## Cost
 
@@ -110,15 +126,15 @@ Low is poisoned. Eq. (4) flags $TeCo(x) > \gamma$, so the raw deviation is high 
 ## Results
 
 <!-- results:begin -->
-Generated by `python scripts/detector_doc_results.py` at commit `19488b81358b06040ba96f361d5061b2981f1f25-dirty`. It reads `results/coverage/coverage.json`, every `results/<folder>/detectors/<name>_metrics.json` and every `results/<folder>/psbd_metrics.json` of the 57 backdoored ViT-B/16 models the paper's detector comparison uses, the clearing models that carry a reading from every defense. PSBD-TM and PSBD-RD are read at the adaptive rate rule, every threshold is the clean-validation quantile named in the column and AUROC is the one-sided area at the 0.25 quantile, where a value under 0.5 means inverted.
+Generated by `python scripts/detector_doc_results.py` at commit `b2d32cf11708d5de965d3e13604c863a3ad9b493-dirty`. It reads `results/coverage/coverage.json`, every `results/<folder>/detectors/<name>_metrics.json` and every `results/<folder>/psbd_metrics.json` of the 54 backdoored ViT-B/16 models the paper's detector comparison uses, the successful models that carry a reading from every defense. PSBD-TM and PSBD-RD are read at the adaptive rate rule, every threshold is the clean-validation quantile named in the column and AUROC is the one-sided area at the 0.25 quantile, where a value under 0.5 means inverted.
 
 Summary over every compared model. The rank is among the 13 defenses of the comparison by mean AUROC, and the last column is PSBD-TM minus the defense, paired per model, with its 95% bootstrap interval over models (5000 resamples, seed 0).
 
 | defense | models | AUROC | TPR at 10% FPR | TPR at 20% FPR | models below chance | rank | PSBD-TM minus defense, AUROC |
 |---|---|---|---|---|---|---|---|
-| `teco` | 57 | 0.751 | 0.503 | 0.602 | 12 | 8 of 13 | +0.201 [+0.134, +0.270] |
-| PSBD-TM | 57 | 0.953 | 0.873 | 0.902 | 2 | 1 of 13 | reference |
-| PSBD-RD | 57 | 0.888 | 0.744 | 0.805 | 5 | 4 of 13 | +0.065 [+0.012, +0.121] |
+| `teco` | 54 | 0.743 | 0.492 | 0.589 | 12 | 8 of 13 | +0.220 [+0.153, +0.288] |
+| PSBD-TM | 54 | 0.963 | 0.887 | 0.916 | 1 | 1 of 13 | reference |
+| PSBD-RD | 54 | 0.885 | 0.736 | 0.798 | 5 | 5 of 13 | +0.078 [+0.027, +0.134] |
 
 `teco` per attack and poison rate. Each row is a mean over the models of that attack at that rate and n counts them. The last 2 columns repeat the AUROC of PSBD-TM and PSBD-RD on the same models.
 
@@ -136,19 +152,18 @@ Summary over every compared model. The rank is among the 13 defenses of the comp
 | LF | 1% | 4 | 0.624 | 0.225 | 0.336 | 0.963 | 0.959 |
 | LF | 5% | 4 | 0.386 | 0.071 | 0.127 | 0.986 | 0.978 |
 | LF | 10% | 4 | 0.420 | 0.124 | 0.173 | 0.990 | 0.985 |
-| SIG | 10% | 1 | 0.797 | 0.296 | 0.615 | 0.418 | 0.919 |
 | TaCT | 1% | 1 | 0.599 | 0.098 | 0.246 | 0.979 | 0.464 |
 | TaCT | 5% | 2 | 0.938 | 0.652 | 0.785 | 0.954 | 0.613 |
-| WaNet | 5% | 2 | 0.937 | 0.874 | 0.921 | 0.933 | 0.955 |
-| WaNet | 10% | 3 | 0.878 | 0.725 | 0.800 | 0.786 | 0.957 |
+| WaNet | 5% | 1 | 0.927 | 0.841 | 0.889 | 0.930 | 0.953 |
+| WaNet | 10% | 2 | 0.843 | 0.626 | 0.731 | 0.704 | 0.956 |
 
 Mean AUROC per dataset. The shared 2000-image clean split gives about 200 images per class on CIFAR-10, 46 on GTSRB, 20 on CIFAR-100 and 10 on Tiny ImageNet, which is the budget every class-conditional method fits on.
 
 | defense | CIFAR-10 | CIFAR-100 | GTSRB | Tiny ImageNet |
 |---|---|---|---|---|
-| `teco` | 0.700 (17) | 0.808 (12) | 0.675 (14) | 0.841 (14) |
-| PSBD-TM | 0.891 (17) | 0.979 (12) | 0.981 (14) | 0.977 (14) |
-| PSBD-RD | 0.844 (17) | 0.890 (12) | 0.862 (14) | 0.965 (14) |
+| `teco` | 0.677 (15) | 0.808 (12) | 0.655 (13) | 0.841 (14) |
+| PSBD-TM | 0.919 (15) | 0.979 (12) | 0.984 (13) | 0.977 (14) |
+| PSBD-RD | 0.831 (15) | 0.890 (12) | 0.855 (13) | 0.965 (14) |
 
 Measured cost, median over the compared models. Seconds per 1000 inputs divide the scoring time of the clean and backdoor splits by their size. The fit is the one-off pass over the clean validation split before any input is scored, and a dash marks a detector with no fit. The device is the one most records name.
 

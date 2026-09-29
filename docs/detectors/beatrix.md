@@ -64,7 +64,7 @@ The paper evaluates on CIFAR-10 and GTSRB with PreActResNet-18, on a 100-class V
 
 The authors' code is https://github.com/wanlunsec/Beatrix at commit `685827e`, vendored as `third_party/Beatrix` when the port was written. The method is the class `Feature_Correlations` at `defenses/Beatrix/Beatrix.py:307`, the validation jackknife is `threshold_determine` at line 388 and the driver is `BEAT_detector` at line 409. The driver hooks the input of `layer4` of a PreActResNet-18, runs the clean and poisoned test sets once, stores the feature maps with the argmax prediction, keeps the first 30 clean images of each predicted class as the defender's set, jackknifes them in 5 contiguous blocks to set the threshold and then scores the rest.
 
-`Feature_Correlations.G_p` raises the feature map to the power $p$, forms the (channels, channels) Gram, zeroes the strict lower triangle, applies `sign(.) * abs(.) ** (1 / p)` (the released reading of Eq. (9)'s root, which is undefined for a negative entry at odd $p$) and flattens the whole matrix, zeros included. The band is `median ± 10 * MAD` per entry, and the deviation sums `relu(min - g) / abs(min + 1e-6)` and `relu(g - max) / abs(max + 1e-6)` over every entry and order and divides by `channels * channels / 2 * len(power)`. 2 settings differ from the paper: `order_list = np.arange(1, 9)` runs orders 1 to 8, and the divisor is $\frac{1}{2} n^2 P$ rather than Eq. (14)'s $\frac{1}{2} n(n+1) P$. The BackdoorBench copy at `third_party/BackdoorBench/detection_pretrain/beatrix.py` omits the line `temp = temp**p`, so every order it computes is the first-order Gram under a $1/p$ root, and the port follows the authors' file. `third_party/` is not checked out in this working tree, so these line numbers are the ones recorded when the port was written.
+`Feature_Correlations.G_p` raises the feature map to the power $p$, forms the (channels, channels) Gram, zeroes the strict lower triangle, applies `sign(.) * abs(.) ** (1 / p)` (the released reading of Eq. (9)'s root, which is undefined for a negative entry at odd $p$) and flattens the whole matrix, zeros included. The band is `median ± 10 * MAD` per entry, and the deviation sums `relu(min - g) / abs(min + 1e-6)` and `relu(g - max) / abs(max + 1e-6)` over every entry and order and divides by `channels * channels / 2 * len(power)`. 2 settings differ from the paper: `order_list = np.arange(1, 9)` runs orders 1 to 8, and the divisor is $\frac{1}{2} n^2 P$ rather than Eq. (14)'s $\frac{1}{2} n(n+1) P$. The BackdoorBench copy at `third_party/BackdoorBench/detection_pretrain/beatrix.py` omits the line `temp = temp**p`, so every order it computes is the first-order Gram under a $1/p$ root, and the port follows the authors' file. Both repositories are pinned in `third_party.lock`, and the line numbers were read from the pinned checkouts on 2026-09-29.
 
 ## The port step by step
 
@@ -103,7 +103,7 @@ The authors' code is https://github.com/wanlunsec/Beatrix at commit `685827e`, v
 
 ## Cross-check against the reference
 
-`tests/test_detectors_beatrix.py::test_matches_the_official_feature_correlations_to_1e_5` cuts the class `Feature_Correlations` out of `third_party/Beatrix/defenses/Beatrix/Beatrix.py` with `ast`, runs it and the port on the same random feature maps and requires the deviations to agree to $10^{-5}$ after the constant $\frac{n}{n+1}$ of deviation 5. `third_party/` is not checked out in this working tree, so the test skipped when the suite ran on 2026-09-29. The other tests in the file run: the Gram features by hand on a 2 by 2 token matrix, the signed root, the band on a class-structured bank, the pooled fallback, the overflow guard at order 8, the jackknife against a fold refitted by hand and a Swin grid capture. The synthetic sign gate `python -m experiments.preflight.check_signs`, run on the CPU on 2026-09-29 with the feature layer set to 1 for the fixture's 2-block model, read Beatrix at AUROC 0.9090, above the floor of 0.60. The fixture's model is randomly initialized, so that reading says the Gram statistic registers a fixed pixel patch on random features. That is a property of the patch, so the reading confirms only the plumbing and the sign.
+`tests/test_detectors_beatrix.py::test_matches_the_official_feature_correlations_to_1e_5` cuts the class `Feature_Correlations` out of `third_party/Beatrix/defenses/Beatrix/Beatrix.py` with `ast`, runs it and the port on the same random feature maps and requires the deviations to agree to $10^{-5}$ after the constant $\frac{n}{n+1}$ of deviation 5. With the checkout restored by `scripts/fetch_third_party.sh` the test runs and passed on the CPU on 2026-09-29. The other tests in the file check the Gram features by hand on a 2 by 2 token matrix, the signed root, the band on a class-structured bank, the pooled fallback, the overflow guard at order 8, the jackknife against a fold refitted by hand and a Swin grid capture. The synthetic sign gate `python -m experiments.preflight.check_signs`, run on the CPU on 2026-09-29 with the feature layer set to 1 for the fixture's 2-block model, read Beatrix at AUROC 0.9090, above the floor of 0.60. The fixture's model is randomly initialized, so that reading says the Gram statistic registers a fixed pixel patch on random features. That is a property of the patch, so the reading confirms only the plumbing and the sign.
 
 ## Cost
 
@@ -116,15 +116,15 @@ High deviation is poisoned in the paper, the opposite of the shared convention. 
 ## Results
 
 <!-- results:begin -->
-Generated by `python scripts/detector_doc_results.py` at commit `19488b81358b06040ba96f361d5061b2981f1f25-dirty`. It reads `results/coverage/coverage.json`, every `results/<folder>/detectors/<name>_metrics.json` and every `results/<folder>/psbd_metrics.json` of the 57 backdoored ViT-B/16 models the paper's detector comparison uses, the clearing models that carry a reading from every defense. PSBD-TM and PSBD-RD are read at the adaptive rate rule, every threshold is the clean-validation quantile named in the column and AUROC is the one-sided area at the 0.25 quantile, where a value under 0.5 means inverted.
+Generated by `python scripts/detector_doc_results.py` at commit `b2d32cf11708d5de965d3e13604c863a3ad9b493-dirty`. It reads `results/coverage/coverage.json`, every `results/<folder>/detectors/<name>_metrics.json` and every `results/<folder>/psbd_metrics.json` of the 54 backdoored ViT-B/16 models the paper's detector comparison uses, the successful models that carry a reading from every defense. PSBD-TM and PSBD-RD are read at the adaptive rate rule, every threshold is the clean-validation quantile named in the column and AUROC is the one-sided area at the 0.25 quantile, where a value under 0.5 means inverted.
 
 Summary over every compared model. The rank is among the 13 defenses of the comparison by mean AUROC, and the last column is PSBD-TM minus the defense, paired per model, with its 95% bootstrap interval over models (5000 resamples, seed 0).
 
 | defense | models | AUROC | TPR at 10% FPR | TPR at 20% FPR | models below chance | rank | PSBD-TM minus defense, AUROC |
 |---|---|---|---|---|---|---|---|
-| `beatrix` | 57 | 0.890 | 0.655 | 0.715 | 2 | 3 of 13 | +0.062 [+0.011, +0.115] |
-| PSBD-TM | 57 | 0.953 | 0.873 | 0.902 | 2 | 1 of 13 | reference |
-| PSBD-RD | 57 | 0.888 | 0.744 | 0.805 | 5 | 4 of 13 | +0.065 [+0.012, +0.121] |
+| `beatrix` | 54 | 0.896 | 0.666 | 0.723 | 2 | 3 of 13 | +0.067 [+0.021, +0.120] |
+| PSBD-TM | 54 | 0.963 | 0.887 | 0.916 | 1 | 1 of 13 | reference |
+| PSBD-RD | 54 | 0.885 | 0.736 | 0.798 | 5 | 5 of 13 | +0.078 [+0.027, +0.134] |
 
 `beatrix` per attack and poison rate. Each row is a mean over the models of that attack at that rate and n counts them. The last 2 columns repeat the AUROC of PSBD-TM and PSBD-RD on the same models.
 
@@ -142,25 +142,24 @@ Summary over every compared model. The rank is among the 13 defenses of the comp
 | LF | 1% | 4 | 0.881 | 0.681 | 0.720 | 0.963 | 0.959 |
 | LF | 5% | 4 | 0.862 | 0.584 | 0.737 | 0.986 | 0.978 |
 | LF | 10% | 4 | 0.947 | 0.658 | 0.758 | 0.990 | 0.985 |
-| SIG | 10% | 1 | 0.992 | 0.985 | 0.993 | 0.418 | 0.919 |
 | TaCT | 1% | 1 | 0.997 | 0.994 | 1.000 | 0.979 | 0.464 |
 | TaCT | 5% | 2 | 0.999 | 0.994 | 1.000 | 0.954 | 0.613 |
-| WaNet | 5% | 2 | 0.471 | 0.168 | 0.248 | 0.933 | 0.955 |
-| WaNet | 10% | 3 | 0.636 | 0.193 | 0.330 | 0.786 | 0.957 |
+| WaNet | 5% | 1 | 0.228 | 0.003 | 0.006 | 0.930 | 0.953 |
+| WaNet | 10% | 2 | 0.621 | 0.267 | 0.365 | 0.704 | 0.956 |
 
 Mean AUROC per dataset. The shared 2000-image clean split gives about 200 images per class on CIFAR-10, 46 on GTSRB, 20 on CIFAR-100 and 10 on Tiny ImageNet, which is the budget every class-conditional method fits on.
 
 | defense | CIFAR-10 | CIFAR-100 | GTSRB | Tiny ImageNet |
 |---|---|---|---|---|
-| `beatrix` | 0.962 (17) | 0.965 (12) | 0.975 (14) | 0.655 (14) |
-| PSBD-TM | 0.891 (17) | 0.979 (12) | 0.981 (14) | 0.977 (14) |
-| PSBD-RD | 0.844 (17) | 0.890 (12) | 0.862 (14) | 0.965 (14) |
+| `beatrix` | 0.977 (15) | 0.965 (12) | 0.998 (13) | 0.655 (14) |
+| PSBD-TM | 0.919 (15) | 0.979 (12) | 0.984 (13) | 0.977 (14) |
+| PSBD-RD | 0.831 (15) | 0.890 (12) | 0.855 (13) | 0.965 (14) |
 
 Measured cost, median over the compared models. Seconds per 1000 inputs divide the scoring time of the clean and backdoor splits by their size. The fit is the one-off pass over the clean validation split before any input is scored, and a dash marks a detector with no fit. The device is the one most records name.
 
 | detector | forward passes per input | seconds per 1000 inputs | fit seconds | precision | device |
 |---|---|---|---|---|---|
-| `beatrix` | 1 | 0.71 | 13.5 | bfloat16 | NVIDIA A100-SXM4-40GB |
+| `beatrix` | 1 | 0.71 | 13.0 | bfloat16 | NVIDIA A100-SXM4-40GB |
 
 <!-- results:end -->
 

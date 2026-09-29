@@ -52,7 +52,7 @@ The paper uses the method both as a filter over a poisoned training set and as a
 
 The authors' code is https://github.com/HanxunH/CognitiveDistillation at commit `1d35393`, vendored as `third_party/CognitiveDistillation` when the port was written. The method is the 63-line class in `detection/cognitive_distillation.py`. It initializes the mask parameter to ones, so the starting mask is $(\tanh 1 + 1)/2 = 0.8808$, builds Adam over that 1 tensor with learning rate 0.1 and betas (0.1, 0.1), computes the reference logits once and detaches them, and then for 100 steps draws `torch.rand(b, c, 1, 1)` as the fill, forms `images * mask + (1 - mask) * fill`, takes the L1 distance between the logit tensors averaged over classes, adds `gamma` times the mask's L1 norm and `beta` times a total variation that sums squared vertical and horizontal differences and divides by the mask's element count, averages over the batch and steps. With `norm_only=True` it returns the L1 norm of the final mask per image.
 
-The code and the paper disagree in 2 places. The code's default is `beta=1.0` where Appendix B.3 says 10, and the code names the L1 weight `gamma`, a letter the paper reserves for the threshold coefficient. The driver `extract.py` freezes the model and feeds $[0, 1]$ images directly, so the class's missing preprocessor on the distilled pass is harmless there, and its line 116 binds the label tensor into the `preprocessor` slot, so the CD branch as checked out raises on its first batch. The backdoor-toolbox copy at `third_party/backdoor-toolbox/other_defenses_tool_box/CD.py` blends the $[0, 1]$ fill into normalized tensors (line 171) and computes its threshold with the L1 weight in place of $\gamma$ (line 195). `third_party/` is not checked out in this working tree, so these line numbers are the ones recorded when the port was written.
+The code and the paper disagree in 2 places. The code's default is `beta=1.0` where Appendix B.3 says 10, and the code names the L1 weight `gamma`, a letter the paper reserves for the threshold coefficient. The driver `extract.py` freezes the model and feeds $[0, 1]$ images directly, so the class's missing preprocessor on the distilled pass is harmless there, and its line 116 binds the label tensor into the `preprocessor` slot, so the CD branch as checked out raises on its first batch. The backdoor-toolbox copy at `third_party/backdoor-toolbox/other_defenses_tool_box/CD.py` blends the $[0, 1]$ fill into normalized tensors (line 171) and computes its threshold with the L1 weight in place of $\gamma$ (line 195). Both repositories are pinned in `third_party.lock`, and the line numbers were read from the pinned checkouts on 2026-09-29.
 
 ## The port step by step
 
@@ -93,7 +93,7 @@ The paper uses $\beta$ both for the TV weight and for the Adam moment decays, an
 
 ## Cross-check against the reference
 
-`tests/test_detectors_cd_l.py::test_mask_norms_match_the_released_class_bit_for_bit` loads the authors' class from `third_party/CognitiveDistillation/detection/cognitive_distillation.py`, runs it and `distill_masks` in float32 on the CPU with identity normalization and the same seed before each call, and requires the mask norms to be equal bit for bit. `third_party/` is not checked out in this working tree, so the test skipped when the suite ran on 2026-09-29. The other tests in the file run: the effective mask of ones is 0.8808, the total variation of a constant mask is 0 and carries the released normalization, no model parameter receives a gradient and the flags are restored, and the model receives the native resolution. A last test checks that a triggered input distills to a smaller mask than its clean twin on a hand-built model whose trigger gate is differentiable. The synthetic sign gate `python -m experiments.preflight.check_signs`, run on the CPU on 2026-09-29 with 30 steps, read CD-L at AUROC 0.9812, above the floor of 0.60.
+`tests/test_detectors_cd_l.py::test_mask_norms_match_the_released_class_bit_for_bit` loads the authors' class from `third_party/CognitiveDistillation/detection/cognitive_distillation.py`, runs it and `distill_masks` in float32 on the CPU with identity normalization and the same seed before each call, and requires the mask norms to be equal bit for bit. With the checkout restored by `scripts/fetch_third_party.sh` the test runs and passed on the CPU on 2026-09-29. The other tests in the file check that the effective mask of ones is 0.8808, the total variation of a constant mask is 0 and carries the released normalization, no model parameter receives a gradient and the flags are restored, and the model receives the native resolution. A last test checks that a triggered input distills to a smaller mask than its clean twin on a hand-built model whose trigger gate is differentiable. The synthetic sign gate `python -m experiments.preflight.check_signs`, run on the CPU on 2026-09-29 with 30 steps, read CD-L at AUROC 0.9812, above the floor of 0.60.
 
 ## Cost
 
@@ -106,15 +106,15 @@ Low is poisoned and the score is returned unnegated. Eq. (4) flags a mask whose 
 ## Results
 
 <!-- results:begin -->
-Generated by `python scripts/detector_doc_results.py` at commit `19488b81358b06040ba96f361d5061b2981f1f25-dirty`. It reads `results/coverage/coverage.json`, every `results/<folder>/detectors/<name>_metrics.json` and every `results/<folder>/psbd_metrics.json` of the 57 backdoored ViT-B/16 models the paper's detector comparison uses, the clearing models that carry a reading from every defense. PSBD-TM and PSBD-RD are read at the adaptive rate rule, every threshold is the clean-validation quantile named in the column and AUROC is the one-sided area at the 0.25 quantile, where a value under 0.5 means inverted.
+Generated by `python scripts/detector_doc_results.py` at commit `b2d32cf11708d5de965d3e13604c863a3ad9b493-dirty`. It reads `results/coverage/coverage.json`, every `results/<folder>/detectors/<name>_metrics.json` and every `results/<folder>/psbd_metrics.json` of the 54 backdoored ViT-B/16 models the paper's detector comparison uses, the successful models that carry a reading from every defense. PSBD-TM and PSBD-RD are read at the adaptive rate rule, every threshold is the clean-validation quantile named in the column and AUROC is the one-sided area at the 0.25 quantile, where a value under 0.5 means inverted.
 
 Summary over every compared model. The rank is among the 13 defenses of the comparison by mean AUROC, and the last column is PSBD-TM minus the defense, paired per model, with its 95% bootstrap interval over models (5000 resamples, seed 0).
 
 | defense | models | AUROC | TPR at 10% FPR | TPR at 20% FPR | models below chance | rank | PSBD-TM minus defense, AUROC |
 |---|---|---|---|---|---|---|---|
-| `cd_l` | 57 | 0.799 | 0.516 | 0.662 | 7 | 7 of 13 | +0.154 [+0.097, +0.212] |
-| PSBD-TM | 57 | 0.953 | 0.873 | 0.902 | 2 | 1 of 13 | reference |
-| PSBD-RD | 57 | 0.888 | 0.744 | 0.805 | 5 | 4 of 13 | +0.065 [+0.012, +0.121] |
+| `cd_l` | 54 | 0.808 | 0.536 | 0.682 | 7 | 7 of 13 | +0.155 [+0.099, +0.214] |
+| PSBD-TM | 54 | 0.963 | 0.887 | 0.916 | 1 | 1 of 13 | reference |
+| PSBD-RD | 54 | 0.885 | 0.736 | 0.798 | 5 | 5 of 13 | +0.078 [+0.027, +0.134] |
 
 `cd_l` per attack and poison rate. Each row is a mean over the models of that attack at that rate and n counts them. The last 2 columns repeat the AUROC of PSBD-TM and PSBD-RD on the same models.
 
@@ -132,19 +132,18 @@ Summary over every compared model. The rank is among the 13 defenses of the comp
 | LF | 1% | 4 | 0.567 | 0.209 | 0.352 | 0.963 | 0.959 |
 | LF | 5% | 4 | 0.589 | 0.210 | 0.305 | 0.986 | 0.978 |
 | LF | 10% | 4 | 0.642 | 0.179 | 0.314 | 0.990 | 0.985 |
-| SIG | 10% | 1 | 0.637 | 0.038 | 0.243 | 0.418 | 0.919 |
 | TaCT | 1% | 1 | 0.374 | 0.005 | 0.064 | 0.979 | 0.464 |
 | TaCT | 5% | 2 | 0.615 | 0.212 | 0.502 | 0.954 | 0.613 |
-| WaNet | 5% | 2 | 0.742 | 0.224 | 0.448 | 0.933 | 0.955 |
-| WaNet | 10% | 3 | 0.678 | 0.367 | 0.495 | 0.786 | 0.957 |
+| WaNet | 5% | 1 | 0.755 | 0.070 | 0.394 | 0.930 | 0.953 |
+| WaNet | 10% | 2 | 0.742 | 0.523 | 0.658 | 0.704 | 0.956 |
 
 Mean AUROC per dataset. The shared 2000-image clean split gives about 200 images per class on CIFAR-10, 46 on GTSRB, 20 on CIFAR-100 and 10 on Tiny ImageNet, which is the budget every class-conditional method fits on.
 
 | defense | CIFAR-10 | CIFAR-100 | GTSRB | Tiny ImageNet |
 |---|---|---|---|---|
-| `cd_l` | 0.847 (17) | 0.810 (12) | 0.819 (14) | 0.711 (14) |
-| PSBD-TM | 0.891 (17) | 0.979 (12) | 0.981 (14) | 0.977 (14) |
-| PSBD-RD | 0.844 (17) | 0.890 (12) | 0.862 (14) | 0.965 (14) |
+| `cd_l` | 0.869 (15) | 0.810 (12) | 0.839 (13) | 0.711 (14) |
+| PSBD-TM | 0.919 (15) | 0.979 (12) | 0.984 (13) | 0.977 (14) |
+| PSBD-RD | 0.831 (15) | 0.890 (12) | 0.855 (13) | 0.965 (14) |
 
 Measured cost, median over the compared models. Seconds per 1000 inputs divide the scoring time of the clean and backdoor splits by their size. The fit is the one-off pass over the clean validation split before any input is scored, and a dash marks a detector with no fit. The device is the one most records name.
 

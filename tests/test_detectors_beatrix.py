@@ -27,6 +27,7 @@ from torchvision.models.swin_transformer import SwinTransformer
 
 from detectors import beatrix
 from experiments.preflight.synthetic import build_backdoored_model, build_splits
+from tests.reference.third_party import reference_file
 
 DEVICE = torch.device("cpu")
 REPO_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -295,8 +296,9 @@ def load_official_feature_correlations():
     which exist here, so the class source is cut out with ast and run in a
     namespace holding the 3 names its body uses.
     """
-    if not os.path.exists(REFERENCE_FILE):
-        pytest.skip("third_party/Beatrix is not checked out")
+    # Skips only when the checkout is absent. A checkout without this file is at
+    # the wrong commit and fails.
+    reference_file("Beatrix", "defenses", "Beatrix", "Beatrix.py")
 
     source = open(REFERENCE_FILE).read()
     class_node = next(

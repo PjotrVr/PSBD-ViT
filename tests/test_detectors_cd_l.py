@@ -36,6 +36,7 @@ from experiments.preflight.synthetic import (
     build_splits,
     trigger_pattern,
 )
+from tests.reference.third_party import reference_file
 
 DEVICE = torch.device("cpu")
 IDENTITY_MEAN = (0.0, 0.0, 0.0)
@@ -251,8 +252,9 @@ def test_a_triggered_input_distills_to_a_smaller_mask_than_its_clean_twin():
 
 
 def load_reference_class():
-    if not os.path.exists(REFERENCE_PATH):
-        pytest.skip(f"released class absent at {REFERENCE_PATH}")
+    # Skips only when the checkout is absent. A checkout without this file is at
+    # the wrong commit and fails.
+    reference_file("CognitiveDistillation", "detection", "cognitive_distillation.py")
 
     spec = importlib.util.spec_from_file_location("cd_reference", REFERENCE_PATH)
     module = importlib.util.module_from_spec(spec)

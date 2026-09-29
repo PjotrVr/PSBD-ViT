@@ -8,11 +8,17 @@ resolution) and the CAM site from the fixture, the Grad-CAM arithmetic from a
 model whose logit is a fixed linear read of the mean patch token, the transplant
 statistics from a per-image reference loop, the envelope from points on a known
 parabola and the direction from a model whose prediction is driven by a corner
-region. The fixture's own AUROC is printed and never asserted.
+region. The fixture's own AUROC is printed and never asserted. The last tests
+run the pinned references: pytorch-grad-cam's GradCAM for the map, Beatrix's
+SentiNet class for the transplant statistics and its DecisionBoundary class for
+the envelope.
 """
+
+import types
 
 import numpy as np
 import pytest
+import scipy.optimize
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -50,6 +56,7 @@ from experiments.preflight.synthetic import (
     build_splits,
     trigger_pattern,
 )
+from tests.reference.third_party import load_definitions, reference_file
 
 DEVICE = torch.device("cpu")
 IDENTITY_MEAN = (0.0, 0.0, 0.0)
@@ -542,3 +549,271 @@ def test_the_model_receives_the_native_resolution(synthetic_case):
     assert masks.shape == (4, 1, 16, 16)
     assert set(seen_by_wrapper) == {(4, 3, 16, 16), (2 * FEW_OVERLAYS, 3, 16, 16)}
     assert set(seen_by_network) == {(4, 3, 32, 32), (2 * FEW_OVERLAYS, 3, 32, 32)}
+
+
+# The tests below execute the pinned references: pytorch-grad-cam's GradCAM at the
+# last commit whose constructor takes the singular target_layer that Beatrix's
+# SentiNet.py passes, and Beatrix's own SentiNet and DecisionBoundary classes.
+class NoPlot:
+    """Stands in for matplotlib.pyplot, which DecisionBoundary draws with."""
+
+    def __getattr__(self, name):
+        return lambda *args, **kwargs: None
+
+
+class SameSizeResize:
+    """Stands in for cv2 in BaseCAM.forward, which resizes the map to the input.
+
+    opencv-python is not installed. The stand-in returns the map at the patch
+    grid, so the reference's per-image min-max scaling runs on the same grid the
+    port's grad_cam returns, and only the upsampling is left out of the check.
+    """
+
+    @staticmethod
+    def resize(image, size):
+        return image
+
+
+def vit_patch_grid(tensor: torch.Tensor, grid: int) -> torch.Tensor:
+    """pytorch-grad-cam README, "How does it work with Vision Transformers".
+
+    Drops the class token and lays the patch tokens out as a (batch, dim, grid,
+    grid) map, the recipe the pinned README gives for ViT.
+    """
+    result = tensor[:, 1:, :].reshape(tensor.size(0), grid, grid, tensor.size(2))
+    result = result.transpose(2, 3).transpose(1, 2)
+    return result
+
+
+def load_grad_cam_class():
+    base = reference_file("pytorch-grad-cam", "pytorch_grad_cam", "base_cam.py")
+    grad_cam_file = reference_file(
+        "pytorch-grad-cam", "pytorch_grad_cam", "grad_cam.py"
+    )
+    hooks = reference_file(
+        "pytorch-grad-cam", "pytorch_grad_cam", "activations_and_gradients.py"
+    )
+    namespace = {
+        "np": np,
+        "torch": torch,
+        "cv2": SameSizeResize,
+        "tta": None,
+        "get_2d_projection": None,
+    }
+    load_definitions(hooks, ("ActivationsAndGradients",), namespace)
+    load_definitions(base, ("BaseCAM",), namespace)
+    load_definitions(grad_cam_file, ("GradCAM",), namespace)
+    return namespace["GradCAM"]
+
+
+def load_beatrix_sentinet(names: tuple[str, ...]) -> dict:
+    path = reference_file("Beatrix", "defenses", "SentiNet", "SentiNet.py")
+    namespace = {
+        "np": np,
+        "torch": torch,
+        "F": F,
+        "curve_fit": scipy.optimize.curve_fit,
+        "fmin_cobyla": scipy.optimize.fmin_cobyla,
+        "plt": NoPlot(),
+        "opt": types.SimpleNamespace(dataset="synthetic", attack_mode="none"),
+    }
+    load_definitions(path, names, namespace)
+    return namespace
+
+
+def test_grad_cam_matches_pytorch_grad_cam_at_the_same_site_to_1e_5():
+    """The map before upsampling, at the input of the last block of a 2-block ViT.
+
+    captured_layers numbers the output of block 1 as layer 1, which is the CAM
+    layer the port picks for 2 blocks, and that output is what a forward hook on
+    encoder.layers[0] records in the reference.
+    """
+    grad_cam_class = load_grad_cam_class()
+    network = build_backdoored_model().inner  # Resize, then a 2-block ViT
+    generator = torch.Generator().manual_seed(11)
+    images = torch.rand(5, 3, IMAGE_SIZE, IMAGE_SIZE, generator=generator)
+
+    reference = grad_cam_class(
+        model=network,
+        target_layer=network[1].encoder.layers[0],
+        use_cuda=False,
+        reshape_transform=lambda tensor: vit_patch_grid(tensor, GRID),
+    )
+    theirs = torch.from_numpy(
+        reference(input_tensor=images, target_category=None)
+    )  # (5, GRID, GRID)
+
+    layer, architecture = resolve_cam_site(network)
+    ours, predicted = grad_cam(network, images, DEVICE, False, layer, architecture)
+
+    with torch.no_grad():
+        assert torch.equal(predicted, network(images).argmax(dim=1))
+    assert layer == 1
+    assert theirs.var() > 0
+    assert torch.allclose(ours, theirs, atol=1e-5)
+
+
+def uint8_pixels(count: int, seed: int) -> torch.Tensor:
+    generator = torch.Generator().manual_seed(seed)
+    levels = torch.randint(
+        0, 256, (count, 3, IMAGE_SIZE, IMAGE_SIZE), generator=generator
+    )
+    pixels = levels.float() / 255.0  # (count, 3, 32, 32) on the 8-bit grid
+    return pixels
+
+
+class RecordingNetwork(nn.Module):
+    """Keeps every batch it classifies, so the composites themselves can be compared."""
+
+    def __init__(self, inner: nn.Module):
+        super().__init__()
+        self.inner = inner
+        self.seen: list[torch.Tensor] = []
+
+    def forward(self, images: torch.Tensor) -> torch.Tensor:
+        self.seen.append(images.detach().clone())
+        logits = self.inner(images)
+        return logits
+
+
+def test_fooled_matches_beatrix_exactly_and_the_inert_composite_is_reversed(
+    monkeypatch,
+):
+    """Beatrix's _get_entropy (SentiNet.py lines 271 to 292) on the same overlays and mask.
+
+    The adversarial composite, input inside the mask and the overlay outside it,
+    is the same in both, so fooled must be equal. The inert composite is not:
+    Beatrix pastes the input's region onto noise (line 281), the port pastes
+    noise into the overlay's region as Algorithm 3 does, which docs/detectors
+    records. Both composites are rebuilt by hand here and matched to what each
+    implementation fed its model.
+    """
+    namespace = load_beatrix_sentinet(("SentiNet",))
+    to_uint8 = lambda batch: (  # noqa: E731
+        (batch * 255).round().to(torch.uint8).permute(0, 2, 3, 1).numpy()
+    )  # (count, 32, 32, 3) uint8
+
+    image = uint8_pixels(1, seed=12)  # (1, 3, 32, 32)
+    overlays = uint8_pixels(FEW_OVERLAYS, seed=13)
+    inert = uint8_pixels(FEW_OVERLAYS, seed=14)
+    mask = torch.zeros(1, 1, IMAGE_SIZE, IMAGE_SIZE, dtype=torch.bool)
+    mask[..., 4:20, 8:28] = True
+    network = build_backdoored_model().inner.eval()
+    with torch.no_grad():
+        label = network(image).argmax(dim=1)  # (1,)
+
+    # Beatrix draws overlay indices with np.random.randint and the inert pattern
+    # with np.random.rand * 255 cast to uint8. Serving 0..n-1 and the inert
+    # levels offset by half a level hands it exactly the port's overlays and noise.
+    monkeypatch.setattr(np.random, "randint", lambda low, high, size: np.arange(size))
+    monkeypatch.setattr(
+        np.random,
+        "rand",
+        lambda *shape: (to_uint8(inert).astype(np.float64) + 0.5) / 255.0,
+    )
+    reference = object.__new__(namespace["SentiNet"])
+    reference.n_sample = FEW_OVERLAYS
+    reference.normalizer = torchvision_to_tensor()
+    reference.device = DEVICE
+    reference.input_height = reference.input_width = IMAGE_SIZE
+    reference.input_channel = 3
+    theirs_network = RecordingNetwork(network)
+    dataset = [(overlay, 0) for overlay in to_uint8(overlays)]
+    mask_hwc = mask[0].permute(1, 2, 0).numpy().astype(np.uint8)  # (32, 32, 1)
+    with torch.no_grad():
+        theirs_fooled, _ = reference._get_entropy(
+            to_uint8(image)[0], mask_hwc, dataset, theirs_network, label[0]
+        )
+
+    ours_network = RecordingNetwork(network)
+    ours_fooled, _ = overlay_statistics(
+        ours_network,
+        image,
+        mask,
+        label,
+        overlays,
+        inert,
+        IDENTITY_MEAN,
+        IDENTITY_STD,
+        DEVICE,
+        False,
+    )
+
+    region = mask[0].float()  # (1, 32, 32)
+    adversarial = overlays * (1 - region) + image * region
+    beatrix_inert = inert * (1 - region) + image * region
+    algorithm_3_inert = overlays * (1 - region) + inert * region
+    ours_composites = ours_network.seen[0]  # (2 * FEW_OVERLAYS, 3, 32, 32)
+
+    assert torch.allclose(theirs_network.seen[0], adversarial, atol=1e-6)
+    assert torch.allclose(ours_composites[:FEW_OVERLAYS], adversarial, atol=1e-6)
+    assert torch.allclose(theirs_network.seen[1], beatrix_inert, atol=1e-6)
+    assert torch.allclose(ours_composites[FEW_OVERLAYS:], algorithm_3_inert, atol=1e-6)
+    assert float(ours_fooled[0]) == pytest.approx(float(theirs_fooled), abs=1e-7)
+
+
+def torchvision_to_tensor():
+    from torchvision import transforms
+
+    to_tensor = transforms.ToTensor()
+    return to_tensor
+
+
+def clean_statistics(count: int, seed: int) -> tuple[np.ndarray, np.ndarray]:
+    """(fooled, avg_conf) points under a noisy concave envelope, off every bin edge."""
+    generator = np.random.default_rng(seed)
+    avg_conf = generator.uniform(0.05, 0.95, count)
+    # A bin edge is a multiple of 0.04. Nudging every value off the edges keeps
+    # the 2 bin conventions from disagreeing, which the next test checks alone.
+    on_edge = np.abs(
+        avg_conf / BOUNDARY_BIN_WIDTH - np.round(avg_conf / BOUNDARY_BIN_WIDTH)
+    )
+    avg_conf = np.where(on_edge < 1e-3, avg_conf + 0.005, avg_conf)
+    ceiling = 0.9 - 0.8 * (avg_conf - 0.5) ** 2
+    fooled = np.clip(ceiling * generator.uniform(0.2, 1.0, count), 0.0, 1.0)
+    return fooled, avg_conf
+
+
+def test_the_envelope_matches_beatrix_decision_boundary_to_1e_6():
+    """OutPts and the quadratic of Beatrix's DecisionBoundary (lines 477 to 531)."""
+    namespace = load_beatrix_sentinet(("DecisionBoundary",))
+    fooled, avg_conf = clean_statistics(300, seed=15)
+
+    boundary = namespace["DecisionBoundary"](list(fooled), list(avg_conf))
+    ours = fit_decision_boundary(torch.from_numpy(fooled), torch.from_numpy(avg_conf))
+
+    assert np.allclose(ours, boundary.coef, atol=1e-6)
+    # Deviation 6: Beatrix measures a COBYLA distance for exactly the boundary
+    # points above its curve (line 536), the points the port's residual calls
+    # positive. The sign agrees point for point, the magnitude is not compared.
+    envelope_fooled = boundary.boundary_fooled
+    envelope_conf = boundary.boundary_avgconf
+    above_beatrix = np.polyval(boundary.coef, envelope_conf) < envelope_fooled
+    residual = boundary_residual(
+        torch.from_numpy(envelope_fooled), torch.from_numpy(envelope_conf), ours
+    ).numpy()
+    assert above_beatrix.any()
+    assert np.array_equal(residual > 0, above_beatrix)
+
+
+def test_a_value_on_a_bin_edge_falls_in_the_next_bin_here_and_the_previous_in_beatrix():
+    """A disagreement too small to move a panel number, recorded so it is known.
+
+    Beatrix's bin i is (0.04 i, 0.04 (i + 1)], open below (line 491). The
+    port's is [0.04 i, 0.04 (i + 1)), open above. A clean avg_conf of exactly
+    0.08 joins 0.05 and 0.06 in Beatrix's bin 1, where it pushes 0.05 out of the
+    2 kept points, and opens bin 2 in the port, where 0.05 stays. avg_conf is a
+    mean of float32 softmax maxima, so an exact edge value is rare in practice.
+    """
+    namespace = load_beatrix_sentinet(("DecisionBoundary",))
+    fooled = np.array([0.5, 0.6, 0.9, 0.2, 0.4, 0.3])
+    avg_conf = np.array([0.05, 0.06, 0.08, 0.10, 0.50, 0.90])
+
+    beatrix = namespace["DecisionBoundary"](list(fooled), list(avg_conf))
+    ours = fit_decision_boundary(torch.from_numpy(fooled), torch.from_numpy(avg_conf))
+
+    port_convention_points = np.array([0.05, 0.06, 0.08, 0.10, 0.50, 0.90])
+    port_convention_fit = np.polyfit(port_convention_points, fooled, 2)
+    assert 0.05 not in list(beatrix.boundary_avgconf)
+    assert np.allclose(ours, port_convention_fit, atol=1e-9)
+    assert not np.allclose(ours, beatrix.coef, atol=1e-3)

@@ -98,7 +98,7 @@ The adversary mounts a localized universal attack: a contiguous region that hija
 
 The paper cites no released code, so 3 reimplementations are the executable references, all read when the port was written: `third_party/Beatrix/defenses/SentiNet/SentiNet.py` at commit `685827e` (the reference for `fooled`, `avgConf` and the boundary), `third_party/BackdoorBench/detection_infer/sentinet.py` at commit `f02e353` and `third_party/backdoor-toolbox/other_defenses_tool_box/sentinet.py` at commit `9d4d909`. All 3 drop Algorithm 1 and the mask subtraction of Algorithm 2 and use the Grad-CAM map of the predicted class as the only mask.
 
-Beatrix runs `pytorch_grad_cam`'s `GradCAM` on `layer4[-1]` of a PreActResNet-18 and binarizes the map at `MASK_COND` 0.85. Its main sets `use_truemask = True`, which replaces the Grad-CAM mask with the attack's true trigger mask on the poisoned side, so its reported numbers are oracle numbers. It composites `background * mask + overlay * (1 - mask)` on uint8 arrays and draws 10 random overlays per input. Its inert composite pastes the input's region onto noise, the reverse of Algorithm 3. It counts `fooled` against the model's prediction on the input, bins `avgConf` at 0.04, keeps the 2 largest `fooled` per bin, fits a quadratic with `curve_fit` and sets $d$ from COBYLA distances. BackdoorBench reuses that class with its whole clean set as overlays and decides on `avgconf > 0.9` alone, never reading `fooled`. backdoor-toolbox follows Algorithm 3 for both composites, uses the top 15% of map cells by area as the mask, 100 overlays and 400 validation images for the curve, and scores by the signed perpendicular distance. It counts `fooled` against the input's true label, and against the attack's target on poisoned inputs, and pastes the true trigger region for several attacks, both of which are oracles a defender does not have. `third_party/` is not checked out in this working tree, so these descriptions are the ones recorded when the port was written.
+Beatrix runs `pytorch_grad_cam`'s `GradCAM` on `layer4[-1]` of a PreActResNet-18 and binarizes the map at `MASK_COND` 0.85. Its main sets `use_truemask = True`, which replaces the Grad-CAM mask with the attack's true trigger mask on the poisoned side, so its reported numbers are oracle numbers. It composites `background * mask + overlay * (1 - mask)` on uint8 arrays and draws 10 random overlays per input. Its inert composite pastes the input's region onto noise, the reverse of Algorithm 3. It counts `fooled` against the model's prediction on the input, bins `avgConf` at 0.04, keeps the 2 largest `fooled` per bin, fits a quadratic with `curve_fit` and sets $d$ from COBYLA distances. BackdoorBench reuses that class with its whole clean set as overlays and decides on `avgconf > 0.9` alone, never reading `fooled`. backdoor-toolbox follows Algorithm 3 for both composites, uses the top 15% of map cells by area as the mask, 100 overlays and 400 validation images for the curve, and scores by the signed perpendicular distance. It counts `fooled` against the input's true label, and against the attack's target on poisoned inputs, and pastes the true trigger region for several attacks, both of which are oracles a defender does not have. `pytorch_grad_cam` is pinned in `third_party.lock` as `third_party/pytorch-grad-cam` at commit `5a5043c`, the last commit whose `GradCAM` takes the singular `target_layer` that Beatrix's line 406 passes. These descriptions were checked against the pinned checkouts on 2026-09-29.
 
 ## The port step by step
 
@@ -140,7 +140,15 @@ Beatrix runs `pytorch_grad_cam`'s `GradCAM` on `layer4[-1]` of a PreActResNet-18
 
 ## Cross-check against the reference
 
-No test runs a reimplementation from `third_party/`. `tests/test_detectors_sentinet.py` checks the port against constructions in the test file: Grad-CAM against the analytic map of a model whose logit is a fixed linear read of the mean patch token, `overlay_statistics` against a per-image reference loop, `fit_decision_boundary` against points on a known parabola, the all-zero map at the ViT output site and the never-empty mask. A last test checks the direction on a model whose prediction is driven by a corner region. The suite passed on the CPU on 2026-09-29. The synthetic sign gate cannot judge SentiNet, because the fixture reads its trigger straight from the pixels and no token Grad-CAM reads carries it, so `experiments/preflight/gate.py` lists it in `NOT_JUDGEABLE`. Run on the CPU the same day, `python -m experiments.preflight.check_signs` printed 0.0117 for it, marked not judged.
+`tests/test_detectors_sentinet.py` checks the port against constructions in the test file: Grad-CAM against the analytic map of a model whose logit is a fixed linear read of the mean patch token, `overlay_statistics` against a per-image loop, `fit_decision_boundary` against points on a known parabola, the all-zero map at the ViT output site and the never-empty mask. A direction test checks a model whose prediction is driven by a corner region. The last tests execute the pinned references on the CPU.
+
+1. pytorch-grad-cam's `GradCAM`, hooked on the output of block 1 of the fixture's 2-block ViT with the README's ViT reshape, returns the port's map at the patch grid to $10^{-5}$. opencv-python is not installed, so the reference's `cv2.resize` is replaced by the identity and its min-max scaling runs on the grid. The bilinear upsampling in `saliency_mask` is therefore not compared.
+2. Beatrix's `_get_entropy`, run with its overlay and noise draws served to match the port's, feeds the classifier the same adversarial composites as `overlay_statistics` and returns the same `fooled`. Its inert composites are the input's region on noise (line 281) and the port's are noise in the overlay's region, both rebuilt by hand and matched, which is the difference `overlay_statistics` documents.
+3. Beatrix's `DecisionBoundary` and `fit_decision_boundary` give the same quadratic to $10^{-6}$ on 300 clean points off every bin edge, and the boundary points Beatrix measures a COBYLA distance for are exactly those with a positive port residual (deviation 6, sign only).
+
+1 disagreement, too small to move a panel number, was not recorded before. Beatrix's bin $i$ is $(0.04 i, 0.04 (i + 1)]$ (line 491) and the port's $[0.04 i, 0.04 (i + 1))$, so an avg_conf of exactly a multiple of 0.04 falls in different bins and can change which points the envelope keeps. avg_conf is a mean of float32 softmax maxima, so an exact edge value is rare.
+
+The synthetic sign gate cannot judge SentiNet, because the fixture reads its trigger straight from the pixels and no token Grad-CAM reads carries it, so `experiments/preflight/gate.py` lists it in `NOT_JUDGEABLE`. Run on the CPU on 2026-09-29, `python -m experiments.preflight.check_signs` printed 0.0117 for it, marked not judged.
 
 ## Cost
 
@@ -153,15 +161,15 @@ High is poisoned in the paper's plane, since a triggered input sits above the en
 ## Results
 
 <!-- results:begin -->
-Generated by `python scripts/detector_doc_results.py` at commit `19488b81358b06040ba96f361d5061b2981f1f25-dirty`. It reads `results/coverage/coverage.json`, every `results/<folder>/detectors/<name>_metrics.json` and every `results/<folder>/psbd_metrics.json` of the 57 backdoored ViT-B/16 models the paper's detector comparison uses, the clearing models that carry a reading from every defense. PSBD-TM and PSBD-RD are read at the adaptive rate rule, every threshold is the clean-validation quantile named in the column and AUROC is the one-sided area at the 0.25 quantile, where a value under 0.5 means inverted.
+Generated by `python scripts/detector_doc_results.py` at commit `b2d32cf11708d5de965d3e13604c863a3ad9b493-dirty`. It reads `results/coverage/coverage.json`, every `results/<folder>/detectors/<name>_metrics.json` and every `results/<folder>/psbd_metrics.json` of the 54 backdoored ViT-B/16 models the paper's detector comparison uses, the successful models that carry a reading from every defense. PSBD-TM and PSBD-RD are read at the adaptive rate rule, every threshold is the clean-validation quantile named in the column and AUROC is the one-sided area at the 0.25 quantile, where a value under 0.5 means inverted.
 
 Summary over every compared model. The rank is among the 13 defenses of the comparison by mean AUROC, and the last column is PSBD-TM minus the defense, paired per model, with its 95% bootstrap interval over models (5000 resamples, seed 0).
 
 | defense | models | AUROC | TPR at 10% FPR | TPR at 20% FPR | models below chance | rank | PSBD-TM minus defense, AUROC |
 |---|---|---|---|---|---|---|---|
-| `sentinet` | 57 | 0.408 | 0.097 | 0.166 | 41 | 13 of 13 | +0.545 [+0.475, +0.609] |
-| PSBD-TM | 57 | 0.953 | 0.873 | 0.902 | 2 | 1 of 13 | reference |
-| PSBD-RD | 57 | 0.888 | 0.744 | 0.805 | 5 | 4 of 13 | +0.065 [+0.012, +0.121] |
+| `sentinet` | 54 | 0.418 | 0.101 | 0.173 | 38 | 13 of 13 | +0.545 [+0.473, +0.615] |
+| PSBD-TM | 54 | 0.963 | 0.887 | 0.916 | 1 | 1 of 13 | reference |
+| PSBD-RD | 54 | 0.885 | 0.736 | 0.798 | 5 | 5 of 13 | +0.078 [+0.027, +0.134] |
 
 `sentinet` per attack and poison rate. Each row is a mean over the models of that attack at that rate and n counts them. The last 2 columns repeat the AUROC of PSBD-TM and PSBD-RD on the same models.
 
@@ -179,19 +187,18 @@ Summary over every compared model. The rank is among the 13 defenses of the comp
 | LF | 1% | 4 | 0.298 | 0.012 | 0.035 | 0.963 | 0.959 |
 | LF | 5% | 4 | 0.374 | 0.052 | 0.199 | 0.986 | 0.978 |
 | LF | 10% | 4 | 0.488 | 0.001 | 0.069 | 0.990 | 0.985 |
-| SIG | 10% | 1 | 0.005 | 0.002 | 0.003 | 0.418 | 0.919 |
 | TaCT | 1% | 1 | 0.025 | 0.006 | 0.009 | 0.979 | 0.464 |
 | TaCT | 5% | 2 | 0.038 | 0.002 | 0.003 | 0.954 | 0.613 |
-| WaNet | 5% | 2 | 0.393 | 0.038 | 0.083 | 0.933 | 0.955 |
-| WaNet | 10% | 3 | 0.319 | 0.010 | 0.029 | 0.786 | 0.957 |
+| WaNet | 5% | 1 | 0.325 | 0.011 | 0.037 | 0.930 | 0.953 |
+| WaNet | 10% | 2 | 0.358 | 0.012 | 0.034 | 0.704 | 0.956 |
 
 Mean AUROC per dataset. The shared 2000-image clean split gives about 200 images per class on CIFAR-10, 46 on GTSRB, 20 on CIFAR-100 and 10 on Tiny ImageNet, which is the budget every class-conditional method fits on.
 
 | defense | CIFAR-10 | CIFAR-100 | GTSRB | Tiny ImageNet |
 |---|---|---|---|---|
-| `sentinet` | 0.315 (17) | 0.762 (12) | 0.218 (14) | 0.408 (14) |
-| PSBD-TM | 0.891 (17) | 0.979 (12) | 0.981 (14) | 0.977 (14) |
-| PSBD-RD | 0.844 (17) | 0.890 (12) | 0.862 (14) | 0.965 (14) |
+| `sentinet` | 0.326 (15) | 0.762 (12) | 0.217 (13) | 0.408 (14) |
+| PSBD-TM | 0.919 (15) | 0.979 (12) | 0.984 (13) | 0.977 (14) |
+| PSBD-RD | 0.831 (15) | 0.890 (12) | 0.855 (13) | 0.965 (14) |
 
 Measured cost, median over the compared models. Seconds per 1000 inputs divide the scoring time of the clean and backdoor splits by their size. The fit is the one-off pass over the clean validation split before any input is scored, and a dash marks a detector with no fit. The device is the one most records name.
 

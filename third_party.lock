@@ -1,0 +1,19 @@
+# Reference implementations the detector ports are cross-checked against.
+# scripts/fetch_third_party.sh clones each row into third_party/<name> at its commit.
+# third_party/ itself stays untracked, this file is what makes a checkout reproducible.
+# Columns are name, repository, full commit and, where the repository ships large data
+# the tests never read, the paths a sparse checkout keeps (comma separated).
+#
+# name                  repository                                          commit                                    sparse paths
+Beatrix                 https://github.com/wanlunsec/Beatrix                685827e3aa3c8090ab31b32bff898a877a9cd11d
+CognitiveDistillation   https://github.com/HanxunH/CognitiveDistillation    1d35393e14b20b4b7ddb41f359ec19b92086684b
+BackdoorBox             https://github.com/THUYimingLi/BackdoorBox          af3afd1c0b172cbf4b0f8c030a9afa0fecc13fc1
+backdoor-toolbox        https://github.com/vtu81/backdoor-toolbox           9d4d909f25df481dba12b8e8c20c0812b6b1910b
+BackdoorBench           https://github.com/SCLBD/BackdoorBench              f02e3534645f0ee63d6848653062cd6c0d6c400d
+ted                     https://github.com/tedbackdoordefense/ted           fa193a6656cfa6715f6a2cdbe7b33b7f6db54314
+SCALE-UP                https://github.com/JunfengGo/SCALE-UP               a2c6d062ebe6f5ebe5f45ab2694e453190df403d
+imagecorruptions        https://github.com/bethgelab/imagecorruptions       c959e659c9713837d2acd7ce785a81202d4be799
+pyod                    https://github.com/yzhao062/pyod                    3a71f47bb2cb9b7c8a09fc92e5c67510d7198b58
+pytorch-grad-cam        https://github.com/jacobgil/pytorch-grad-cam        5a5043cc988032ccbb5727e2f0503a7988b8ce83
+error-detection         https://github.com/hendrycks/error-detection        276d605bfa9a9bd7701bd88937c537c3fcab94cf  ASR/CTC/CTC_eval.py,Vision/CIFAR_Detection.py,README.md
+torchmetrics            https://github.com/Lightning-AI/torchmetrics        3514d715ef42b8dc0c8d96cb3d581caba512fbd7  src/torchmetrics/functional/pairwise/euclidean.py,src/torchmetrics/functional/pairwise/helpers.py

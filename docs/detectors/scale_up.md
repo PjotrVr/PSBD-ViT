@@ -51,9 +51,9 @@ The paper evaluates on CIFAR-10 and Tiny ImageNet with ResNet, against BadNets, 
 
 ## The reference implementations
 
-The authors release their code at https://github.com/JunfengGo/SCALE-UP, which is not vendored here. The port's module docstring records, from an earlier reading, that the released code uses `range(1, 12)` as the scaling set and adds $0.02 \cdot U[0, 1)$ noise to inputs. That record has not been re-derived since. 2 third-party ports were read directly when the port was written, `third_party/BackdoorBox/core/defenses/SCALE_UP.py` at commit `af3afd1` and `third_party/backdoor-toolbox/other_defenses_tool_box/scale_up.py` at commit `9d4d909`. Both use the paper's set $\{3, 5, 7, 9, 11\}$.
+The authors release their code at https://github.com/JunfengGo/SCALE-UP, pinned in `third_party.lock` at commit `a2c6d06`, the head of its only branch, since no commit was recorded when the port was written. `torch_model_wrapper.py` adds $0.02 \cdot U[0, 1)$ noise to every input (line 41) and records the predicted label at every factor in `range(1, 12)` (lines 55 to 58). `test.py`'s `process` then scores each row as `np.mean(a[i] == a[i][0])`, so the consistency is measured against the prediction on the noisy input at factor 1. That column counts as 1 agreement out of 11. 2 third-party ports were read directly when the port was written, `third_party/BackdoorBox/core/defenses/SCALE_UP.py` at commit `af3afd1` and `third_party/backdoor-toolbox/other_defenses_tool_box/scale_up.py` at commit `9d4d909`. Both use the paper's set $\{3, 5, 7, 9, 11\}$.
 
-backdoor-toolbox denormalizes before multiplying and renormalizes after clipping, `self.normalizer(torch.clip(self.denormalizer(clean_img) * scale, 0.0, 1.0))`, which keeps the multiply and the clip in pixel space as Section 4.2 states. BackdoorBox has the same denormalize and renormalize calls commented out and multiplies the loader's tensor directly, `torch.clip(clean_img * scale, 0.0, 1.0)`, which is only correct when the loader serves $[0, 1]$ pixels. Both fit Eq. (3) by comparing amplified predictions against the clean images' ground-truth labels rather than against $C(x)$, and both drop every scored image whose prediction disagrees with its dataset label before reporting a number. `third_party/` is not checked out in this working tree, so these quotes are the ones recorded when the port was written.
+backdoor-toolbox denormalizes before multiplying and renormalizes after clipping, `self.normalizer(torch.clip(self.denormalizer(clean_img) * scale, 0.0, 1.0))`, which keeps the multiply and the clip in pixel space as Section 4.2 states. BackdoorBox has the same denormalize and renormalize calls commented out and multiplies the loader's tensor directly, `torch.clip(clean_img * scale, 0.0, 1.0)`, which is only correct when the loader serves $[0, 1]$ pixels. Both fit Eq. (3) by comparing amplified predictions against the clean images' ground-truth labels rather than against $C(x)$, both fit 1 pooled mean and standard deviation over all classes rather than 1 pair per class (BackdoorBox `init_spc_norm`, backdoor-toolbox lines 188 and 189). Both drop every scored image whose prediction disagrees with its dataset label before reporting a number. The quotes were checked against the pinned checkouts on 2026-09-29.
 
 ## The port step by step
 
@@ -97,7 +97,14 @@ backdoor-toolbox denormalizes before multiplying and renormalizes after clipping
 
 ## Cross-check against the reference
 
-No numerical test compares `spc_scores` or `standardize_spc` against BackdoorBox or backdoor-toolbox, and no test file for `detectors/scale_up.py` exists. The synthetic sign gate cannot judge either variant: `experiments/preflight/gate.py` lists both in `NOT_JUDGEABLE` because SPC takes 6 values and the fixture's barely trained model keeps almost every clean prediction stable, tying the clean population at the maximum. Run on the CPU on 2026-09-29, `python -m experiments.preflight.check_signs` printed 0.5117 for `scale_up` and 0.0234 for `scale_up_data_limited`, both marked not judged. The second value shows how a near-tied 6-valued statistic can read as a strong inversion once it is standardized, without saying anything about the method. This is a gap against the project's rule that every port carries a numerical cross-check.
+`tests/test_detectors_scale_up.py` runs on a tiny random classifier on the CPU, with dim inputs so that every factor crosses the clip.
+
+1. With `OFFICIAL_CODE_SCALES`, `spc_scores` equals the authors' `process` on the factor loop of `torch_model_wrapper.py` (transcribed, since it runs at script level) to $10^{-7}$, without the input noise of deviation 4.
+2. With the paper's set, the data-free SPC equals BackdoorBox's `_test` exactly, and on a normalized loader it equals BackdoorBox fed raw pixels through a model that normalizes itself, which is the pixel-space round trip Section 4.2 asks for.
+3. BackdoorBox's `_test` returns only the inputs whose prediction equals their label, and the port's scores on those inputs equal it exactly while the port scores every input, deviation 5 asserted.
+4. When every class has fewer than `MIN_CLASS_SAMPLES` validation images, the port's fit falls back to pooled statistics equal to BackdoorBox's `init_spc_norm`, and the standardized scores agree to $10^{-6}$. With some validation labels wrong BackdoorBox's pooled mean falls below the mean of the port's Eq. (2) SPC, and with 6 images per class the port's means differ by class where BackdoorBox keeps 1. Both departures are asserted.
+
+The synthetic sign gate cannot judge either variant: `experiments/preflight/gate.py` lists both in `NOT_JUDGEABLE` because SPC takes 6 values and the fixture's barely trained model keeps almost every clean prediction stable, tying the clean population at the maximum. Run on the CPU on 2026-09-29, `python -m experiments.preflight.check_signs` printed 0.5117 for `scale_up` and 0.0234 for `scale_up_data_limited`, both marked not judged. The second value shows how a near-tied 6-valued statistic can read as a strong inversion once it is standardized, without saying anything about the method.
 
 ## Cost
 
@@ -110,16 +117,16 @@ Low is poisoned. The paper's rule is "backdoor if $SPC(x) > T$", so $SPC$ and $N
 ## Results
 
 <!-- results:begin -->
-Generated by `python scripts/detector_doc_results.py` at commit `19488b81358b06040ba96f361d5061b2981f1f25-dirty`. It reads `results/coverage/coverage.json`, every `results/<folder>/detectors/<name>_metrics.json` and every `results/<folder>/psbd_metrics.json` of the 57 backdoored ViT-B/16 models the paper's detector comparison uses, the clearing models that carry a reading from every defense. PSBD-TM and PSBD-RD are read at the adaptive rate rule, every threshold is the clean-validation quantile named in the column and AUROC is the one-sided area at the 0.25 quantile, where a value under 0.5 means inverted.
+Generated by `python scripts/detector_doc_results.py` at commit `b2d32cf11708d5de965d3e13604c863a3ad9b493-dirty`. It reads `results/coverage/coverage.json`, every `results/<folder>/detectors/<name>_metrics.json` and every `results/<folder>/psbd_metrics.json` of the 54 backdoored ViT-B/16 models the paper's detector comparison uses, the successful models that carry a reading from every defense. PSBD-TM and PSBD-RD are read at the adaptive rate rule, every threshold is the clean-validation quantile named in the column and AUROC is the one-sided area at the 0.25 quantile, where a value under 0.5 means inverted.
 
 Summary over every compared model. The rank is among the 13 defenses of the comparison by mean AUROC, and the last column is PSBD-TM minus the defense, paired per model, with its 95% bootstrap interval over models (5000 resamples, seed 0).
 
 | defense | models | AUROC | TPR at 10% FPR | TPR at 20% FPR | models below chance | rank | PSBD-TM minus defense, AUROC |
 |---|---|---|---|---|---|---|---|
-| `scale_up` | 57 | 0.728 | 0.329 | 0.501 | 9 | 9 of 13 | +0.224 [+0.162, +0.286] |
-| `scale_up_data_limited` | 57 | 0.631 | 0.343 | 0.496 | 19 | 12 of 13 | +0.322 [+0.249, +0.394] |
-| PSBD-TM | 57 | 0.953 | 0.873 | 0.902 | 2 | 1 of 13 | reference |
-| PSBD-RD | 57 | 0.888 | 0.744 | 0.805 | 5 | 4 of 13 | +0.065 [+0.012, +0.121] |
+| `scale_up` | 54 | 0.728 | 0.340 | 0.500 | 9 | 10 of 13 | +0.235 [+0.175, +0.298] |
+| `scale_up_data_limited` | 54 | 0.636 | 0.350 | 0.510 | 17 | 12 of 13 | +0.327 [+0.253, +0.402] |
+| PSBD-TM | 54 | 0.963 | 0.887 | 0.916 | 1 | 1 of 13 | reference |
+| PSBD-RD | 54 | 0.885 | 0.736 | 0.798 | 5 | 5 of 13 | +0.078 [+0.027, +0.134] |
 
 `scale_up` per attack and poison rate. Each row is a mean over the models of that attack at that rate and n counts them. The last 2 columns repeat the AUROC of PSBD-TM and PSBD-RD on the same models.
 
@@ -137,11 +144,10 @@ Summary over every compared model. The rank is among the 13 defenses of the comp
 | LF | 1% | 4 | 0.701 | 0.260 | 0.344 | 0.963 | 0.959 |
 | LF | 5% | 4 | 0.778 | 0.361 | 0.569 | 0.986 | 0.978 |
 | LF | 10% | 4 | 0.724 | 0.302 | 0.470 | 0.990 | 0.985 |
-| SIG | 10% | 1 | 0.767 | 0.437 | 0.541 | 0.418 | 0.919 |
 | TaCT | 1% | 1 | 0.653 | 0.131 | 0.279 | 0.979 | 0.464 |
 | TaCT | 5% | 2 | 0.987 | 0.411 | 0.454 | 0.954 | 0.613 |
-| WaNet | 5% | 2 | 0.715 | 0.028 | 0.503 | 0.933 | 0.955 |
-| WaNet | 10% | 3 | 0.548 | 0.098 | 0.167 | 0.786 | 0.957 |
+| WaNet | 5% | 1 | 0.500 | 0.055 | 0.117 | 0.930 | 0.953 |
+| WaNet | 10% | 2 | 0.558 | 0.147 | 0.202 | 0.704 | 0.956 |
 
 `scale_up_data_limited` per attack and poison rate. Each row is a mean over the models of that attack at that rate and n counts them. The last 2 columns repeat the AUROC of PSBD-TM and PSBD-RD on the same models.
 
@@ -159,20 +165,19 @@ Summary over every compared model. The rank is among the 13 defenses of the comp
 | LF | 1% | 4 | 0.691 | 0.441 | 0.528 | 0.963 | 0.959 |
 | LF | 5% | 4 | 0.657 | 0.250 | 0.586 | 0.986 | 0.978 |
 | LF | 10% | 4 | 0.684 | 0.329 | 0.610 | 0.990 | 0.985 |
-| SIG | 10% | 1 | 0.750 | 0.437 | 0.541 | 0.418 | 0.919 |
 | TaCT | 1% | 1 | 0.181 | 0.004 | 0.133 | 0.979 | 0.464 |
 | TaCT | 5% | 2 | 0.938 | 0.845 | 0.911 | 0.954 | 0.613 |
-| WaNet | 5% | 2 | 0.358 | 0.032 | 0.066 | 0.933 | 0.955 |
-| WaNet | 10% | 3 | 0.366 | 0.110 | 0.173 | 0.786 | 0.957 |
+| WaNet | 5% | 1 | 0.312 | 0.058 | 0.125 | 0.930 | 0.953 |
+| WaNet | 10% | 2 | 0.335 | 0.060 | 0.154 | 0.704 | 0.956 |
 
 Mean AUROC per dataset. The shared 2000-image clean split gives about 200 images per class on CIFAR-10, 46 on GTSRB, 20 on CIFAR-100 and 10 on Tiny ImageNet, which is the budget every class-conditional method fits on.
 
 | defense | CIFAR-10 | CIFAR-100 | GTSRB | Tiny ImageNet |
 |---|---|---|---|---|
-| `scale_up` | 0.792 (17) | 0.758 (12) | 0.632 (14) | 0.723 (14) |
-| `scale_up_data_limited` | 0.564 (17) | 0.641 (12) | 0.789 (14) | 0.544 (14) |
-| PSBD-TM | 0.891 (17) | 0.979 (12) | 0.981 (14) | 0.977 (14) |
-| PSBD-RD | 0.844 (17) | 0.890 (12) | 0.862 (14) | 0.965 (14) |
+| `scale_up` | 0.784 (15) | 0.758 (12) | 0.639 (13) | 0.723 (14) |
+| `scale_up_data_limited` | 0.563 (15) | 0.641 (12) | 0.817 (13) | 0.544 (14) |
+| PSBD-TM | 0.919 (15) | 0.979 (12) | 0.984 (13) | 0.977 (14) |
+| PSBD-RD | 0.831 (15) | 0.890 (12) | 0.855 (13) | 0.965 (14) |
 
 Measured cost, median over the compared models. Seconds per 1000 inputs divide the scoring time of the clean and backdoor splits by their size. The fit is the one-off pass over the clean validation split before any input is scored, and a dash marks a detector with no fit. The device is the one most records name.
 

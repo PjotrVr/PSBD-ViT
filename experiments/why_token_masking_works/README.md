@@ -42,7 +42,7 @@ $$\phi(x) = 1 - \frac{1}{k}\sum_{i=1}^{k}\frac{P_c(x;p,\theta_i')}{P_c(x;\theta)
 
 Every result spans the successful backdoors only (user decision, 2026-09-29): the attack clears the 0.85 ASR bar, the model is neither diverged nor source-mapped (a TaCT model that sends its clean source class to the target with no trigger), and its clean accuracy is within 2 points of the benign model of its dataset. A failed attack is left out even when that removes the attack.
 
-- ViT: the coverage ledger's `successful_2pt` verdict (`tokens.successful_vit_folders`), 56 models (`\PanelCellsSuccessful`), 54 of them carrying both placements (`\PanelCellsCached`). Of the 59 clearing models (`\PanelCellsClearing`) it drops `vit_cifar10_sig_0_1`, `vit_cifar10_wanet_0_05` and `vit_gtsrb_wanet_0_1`.
+- ViT: the coverage ledger's `successful_2pt` verdict (`tokens.successful_vit_folders`), 62 models (`\PanelCellsSuccessful`), 56 of them carrying both placements (`\PanelCellsCached`). The other 6 are TaCT reruns (`_src` folders) whose sweeps have not landed. Of the 65 clearing models (`\PanelCellsClearing`) it drops `vit_cifar10_sig_0_1`, `vit_cifar10_wanet_0_05` and `vit_gtsrb_wanet_0_1`. The cached-sweep readings below cover the 56. The GPU parts ran before 2 of them, `vit_gtsrb_lc_0_05_tl1_adv` and `vit_gtsrb_tact_0_01_cos`, got complete caches on 2026-09-30, so the causal parts do not include the new TaCT model.
 - Swin: the same rule through `scripts.paper._common.swin_coverage`, which applies the ViT declaration (datasets, poison rates 1%, 5% and 10%, canonical variants) with the Swin benign models as references (`swin.panel_cells`), 65 models, 63 of them carrying both PSBD-TM and PSBD-RD at the adaptive rule. No Swin Label-Consistent or SIG model is on it.
 - SIG is also kept out of every GPU run: `attacks/sig.py` builds amplitude 0.157 while the July ViT SIG checkpoint learned 0.1 (`docs/audits/2026-09-29-experiment-audit.md`). Both SIG models fail the success bar in any case.
 - Patch models for the causal parts: 15 on ViT (12 BadNets, 3 TaCT whose clean source images are classified correctly) and 14 on Swin (12 BadNets, 2 TaCT). Swin part A also ran on 7 models that left the panel when it switched to `swin_coverage` on 2026-09-30 (the 0.5% BadNets models and 4 Label-Consistent models). Their records stay in `swin/` and out of every summary.
@@ -119,7 +119,7 @@ The notebook `notebooks/why-psbd-tm.ipynb` has 1 figure per result below and sta
 
 ### The lead to explain
 
-On the 54 ViT models PSBD-TM reads 0.963 against 0.885 for PSBD-RD at the adaptive rule, a paired gain of +0.078 [+0.026, +0.135]. On Swin the paper reports 0.973 against 0.881 (`\SwinRecommendedAurocAdaptive`, `\SwinPublishedAurocAdaptive`), a paired gain of +0.096 [+0.051, +0.144] over 63 models (`\SwinGainRecommendedMinusPublished`). At the adaptive rate both change about 0.87 of clean predictions. On ViT patch triggers PSBD-TM changes 0.195 of triggered predictions and PSBD-RD 0.676, on Swin 0.009 and 0.595.
+On the 56 ViT models PSBD-TM reads 0.951 against 0.876 for PSBD-RD at the adaptive rule, a paired gain of +0.075 [+0.017, +0.136] (`sites/cache.json`, `vit.contrasts.psbd_tm_vs_psbd_rd.adaptive_all`). On Swin the paper reports 0.973 against 0.881 (`\SwinRecommendedAurocAdaptive`, `\SwinPublishedAurocAdaptive`), a paired gain of +0.096 [+0.051, +0.144] over 63 models (`\SwinGainRecommendedMinusPublished`). At the adaptive rate both change about 0.87 of clean predictions. On ViT patch triggers PSBD-TM changes 0.234 of triggered predictions and PSBD-RD 0.695 (16 models, the new GTSRB TaCT model included), on Swin 0.009 and 0.595.
 
 ### A, where a patch trigger is read
 
@@ -149,23 +149,23 @@ X1 (the coordinating agent's CPU reading of the cache, not measured here): on `v
 
 ### Site and operator, cached sweeps
 
-Paired AUROC gaps at the matched rule, a minus b, with 95% bootstrap intervals, ViT (54) then Swin (63 to 65):
+Paired AUROC gaps at the matched rule, a minus b, with 95% bootstrap intervals, ViT (56) then Swin (63 to 65), from `sites.py --cache-only` (`sites/cache.json`):
 
 | contrast | ViT | Swin |
 |---|---|---|
-| PSBD-TM minus PSBD-RD | +0.070 [+0.021, +0.124] | +0.135 [+0.089, +0.186] |
-| token mask, A minus the stream after the attention add | +0.069 [+0.034, +0.105] | +0.098 [+0.070, +0.127] |
-| token mask, A minus C (attention output) | +0.013 [-0.008, +0.036] | +0.151 [+0.103, +0.202] |
+| PSBD-TM minus PSBD-RD | +0.067 [+0.017, +0.122] | +0.135 [+0.089, +0.186] |
+| token mask, A minus the stream after the attention add | +0.071 [+0.038, +0.106] | +0.098 [+0.070, +0.127] |
+| token mask, A minus C (attention output) | +0.005 [-0.020, +0.031] | +0.151 [+0.103, +0.202] |
 | token mask, A minus B (after the norm) | +0.019 [+0.008, +0.031] (36) | not cached |
-| token mask, A minus E (MLP input) | +0.114 [+0.080, +0.150] | +0.226 [+0.165, +0.290] |
+| token mask, A minus E (MLP input) | +0.115 [+0.083, +0.149] | +0.226 [+0.165, +0.290] |
 | token mask, A minus once at the embedding | +0.290 [+0.243, +0.340] (36) | +0.283 [+0.188, +0.390] (26) |
-| at A, token mask minus dropout | +0.096 [+0.076, +0.116] | +0.128 [+0.084, +0.176] |
-| at A, token mask minus channel mask | +0.083 [+0.060, +0.107] | +0.115 [+0.074, +0.159] |
-| at A, token mask minus Gaussian | +0.188 [+0.138, +0.243] | +0.041 [+0.018, +0.068] |
-| dropout, A minus the stream (PSBD-RD) | -0.026 [-0.071, +0.022] | +0.009 [-0.038, +0.056] |
-| on the stream, token mask minus dropout | -0.007 [-0.048, +0.035] | see `sites/cache.json` |
+| at A, token mask minus dropout | +0.086 [+0.058, +0.110] | +0.128 [+0.084, +0.176] |
+| at A, token mask minus channel mask | +0.070 [+0.034, +0.101] | +0.115 [+0.074, +0.159] |
+| at A, token mask minus Gaussian | +0.173 [+0.117, +0.230] | +0.041 [+0.018, +0.068] |
+| dropout, A minus the stream (PSBD-RD) | -0.018 [-0.063, +0.029] | +0.009 [-0.038, +0.056] |
+| on the stream, token mask minus dropout | -0.017 [-0.068, +0.033] | see `sites/cache.json` |
 
-Verdicts. The stream-untouched hypothesis is supported (token masking loses on the stream and at the embedding). The whole-token hypothesis is supported at A (every other operator loses there). Neither alone suffices: dropout gains nothing from moving to A, and token masking gains nothing over dropout on the stream. The attention-mixing hypothesis is supported (every operator loses at the MLP input on ViT). "It just perturbs more" is refuted: every gap holds at the matched rule, and on the rate ladders no other operator at A reaches token masking at any clean shift (best points on ViT 0.968 against 0.929, 0.934 and 0.888).
+Verdicts. The stream-untouched hypothesis is supported (token masking loses on the stream and at the embedding). The whole-token hypothesis is supported at A (every other operator loses there). Neither alone suffices: dropout gains nothing from moving to A, and token masking gains nothing over dropout on the stream. The attention-mixing hypothesis is supported (every operator loses at the MLP input on ViT). "It just perturbs more" is refuted: every gap holds at the matched rule, and on the rate ladders no other operator at A reaches token masking at any clean shift (best points on ViT 0.959 against 0.929, 0.933 and 0.887).
 
 ### Site and operator, causal grid at matched clean damage
 

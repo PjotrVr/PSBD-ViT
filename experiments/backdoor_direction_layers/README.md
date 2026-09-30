@@ -41,15 +41,7 @@ Relative direction norm `||mean(x_trigger - x_clean)|| / mean||x_clean||` in the
 | 10 | 0.701 | 0.244 | 2.176 | 1.200 | 1.032 | 0.073 |
 | 12 | 1.032 | 0.488 | 1.364 | 1.214 | 1.116 | **0.049** |
 
-Layer at which the direction first reaches half its final magnitude:
-
-| attack | trigger family | onset |
-|---|---|---|
-| `blend` | global blended | **5** |
-| `bpp` | distributed quantization | **6** |
-| `lf` | low-frequency | 8 |
-| `badnet_a2o` | static patch | 9 |
-| `badnet_a2a` | static patch, all-to-all | 9 |
+The onset table that stood here had no record on disk and was superseded by `onset_layer` in `results/_experiments/backdoor_manifestation/runs/*.json`, tabulated per attack with its spread in `experiments/backdoor_manifestation/README.md`. That measurement, on the 5% successful panel models, keeps the ordering Blend, BPP, LF, BadNets on ViT-B/16 (median onset layers 6.5, 7.5, 9 and 9.5).
 
 **The ordering matches the companion paper's prediction.** Spatially distributed
 perturbations (`blend`, `bpp`) are detectable within each token independently, so

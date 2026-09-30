@@ -1,0 +1,965 @@
+"""Code cells of notebooks/backdoor-manifestation.ipynb, split on '# %% name' markers."""
+
+# %% setup
+import json
+import os
+import sys
+from pathlib import Path
+
+# Anchor at the repository root so every path resolves the same way it does
+# from a script, whichever directory the notebook was opened from.
+REPO_ROOT = next(
+    parent
+    for parent in [Path.cwd(), *Path.cwd().parents]
+    if (parent / "pyproject.toml").exists()
+)
+os.chdir(REPO_ROOT)
+sys.path.insert(0, str(REPO_ROOT))
+
+# %% imports
+import matplotlib.pyplot as plt
+import numpy as np
+import pandas as pd
+from IPython.display import Markdown, display
+
+import scripts.paper._style  # noqa: F401  the figure style every paper figure uses
+from experiments.backdoor_manifestation.measure import (
+    ASR_BAR,
+    NEURON_COUNTS,
+    SLUG,
+    TOP_DIMENSIONS,
+)
+from scripts.paper._style import PALETTE
+
+# The shared style selects the Agg backend for the paper build, which keeps every
+# figure out of a notebook, so the inline backend comes back after it.
+%matplotlib inline
+
+# %% loaders
+RESULTS = Path("results/_experiments") / SLUG
+SUMMARY = json.loads((RESULTS / "summary.json").read_text())
+ROWS = pd.DataFrame(SUMMARY["rows"])
+
+ATTACKS = ["badnet_a2o", "tact", "blend", "lf", "wanet", "bpp"]
+ATTACK_LABEL = {
+    "badnet_a2o": "BadNets",
+    "tact": "TaCT",
+    "blend": "Blend",
+    "lf": "LF",
+    "wanet": "WaNet",
+    "bpp": "BPP",
+}
+ATTACK_COLOUR = dict(zip(ATTACKS, PALETTE))
+ARCHITECTURE_LABEL = {"vit": "ViT-B/16", "swin": "Swin-S"}
+
+
+def load_run(name):
+    record = json.loads((RESULTS / "runs" / f"{name}.json").read_text())
+    return record
+
+
+def load_embedding(name):
+    record = json.loads((RESULTS / "embeddings" / f"{name}.json").read_text())
+    return record
+
+
+def usable(rows):
+    """Backdoored runs kept for mechanism readings, every one not marked source-mapped."""
+    kept = rows[~rows["benign"] & rows["excluded"].isna()]
+    return kept
+
+
+def backdoored_runs(architecture, attack):
+    rows = usable(ROWS)
+    names = rows[(rows["architecture"] == architecture) & (rows["attack"] == attack)]["name"].tolist()
+    return names
+
+
+def control_name(backdoored_name):
+    run = ROWS.set_index("name").loc[backdoored_name]
+    name = f"{run['architecture']}_{run['dataset']}_benign__{run['attack']}"
+    return name
+
+
+def featured_run(architecture, attack, preference=("tiny", "cifar100", "gtsrb", "cifar10")):
+    """1 run per attack for the single-model figures, the first dataset in preference order."""
+    rows = usable(ROWS)
+    rows = rows[(rows["architecture"] == architecture) & (rows["attack"] == attack)]
+    for dataset in preference:
+        match = rows[rows["dataset"] == dataset]
+        if len(match):
+            name = match["name"].iloc[0]
+            return name
+    return None
+
+
+print(f"{len(ROWS)} runs: {int((~ROWS['benign']).sum())} backdoored, {int(ROWS['benign'].sum())} benign controls")
+
+# %% panel_table
+panel = ROWS[~ROWS["benign"]][
+    ["name", "architecture", "dataset", "attack", "category", "n_pairs", "asr", "clean_accuracy", "clean_to_target", "below_asr_bar", "excluded"]
+].copy()
+panel["attack"] = panel["attack"].map(ATTACK_LABEL)
+panel = panel.sort_values(["category", "attack", "architecture", "dataset"]).set_index("name")
+panel.round(3)
+
+# %% control_table
+controls = ROWS[ROWS["benign"]][["name", "architecture", "dataset", "attack", "n_pairs", "asr", "clean_accuracy"]].copy()
+controls["attack"] = controls["attack"].map(ATTACK_LABEL)
+controls.pivot_table(index=["architecture", "dataset"], columns="attack", values="asr").round(3)
+
+# %% said_panel
+backdoored_rows = ROWS[~ROWS["benign"]]
+excluded = backdoored_rows[backdoored_rows["excluded"].notna()]
+below = backdoored_rows[backdoored_rows["below_asr_bar"]]
+kept = usable(ROWS)
+display(
+    Markdown(
+        f"The panel holds {len(backdoored_rows)} backdoored runs and {int(ROWS['benign'].sum())} benign-control runs. "
+        f"{len(excluded)} backdoored run(s) are excluded as source-mapped ({', '.join(excluded['name']) or 'none'}), "
+        f"which leaves {len(kept)} for every mechanism figure, {int((kept['architecture'] == 'vit').sum())} on ViT-B/16 and "
+        f"{int((kept['architecture'] == 'swin').sum())} on Swin-S. "
+        f"{len(below)} run(s) measure below the ASR bar of {ASR_BAR} on their 800 pairs ({', '.join(below['name']) or 'none'}). "
+        f"Across the kept runs ASR runs from {kept['asr'].min():.3f} to {kept['asr'].max():.3f} and paired clean accuracy from "
+        f"{kept['clean_accuracy'].min():.3f} to {kept['clean_accuracy'].max():.3f}. "
+        f"The benign controls send a median {controls['asr'].median():.3f} of triggered images to class 0."
+    )
+)
+
+# %% triggers
+def show_triggers(architecture="vit"):
+    attacks = [attack for attack in ATTACKS if featured_run(architecture, attack)]
+    figure, axes = plt.subplots(len(attacks), 5, figsize=(7.0, 1.45 * len(attacks)))
+    for row, attack in enumerate(attacks):
+        record = load_run(featured_run(architecture, attack))
+        clean = np.asarray(record["examples"]["clean"][0], dtype=np.uint8)
+        triggered = np.asarray(record["examples"]["triggered"][0], dtype=np.uint8)
+        difference = np.abs(triggered.astype(float) - clean.astype(float)).mean(axis=2) / 255
+        panels = [
+            (clean, "clean", None),
+            (triggered, "triggered", None),
+            (difference, "|difference|, 1 image", "magma"),
+            (np.asarray(record["input_change_map"]), f"mean |difference|, {record['n_pairs']} pairs", "magma"),
+            (np.asarray(record["input_change_grid"]), "on the 14 by 14 patch grid", "magma"),
+        ]
+        for column, (image, title, cmap) in enumerate(panels):
+            axis = axes[row, column]
+            shown = axis.imshow(image, cmap=cmap)
+            axis.set_xticks([])
+            axis.set_yticks([])
+            axis.grid(False)
+            if row == 0:
+                axis.set_title(title, fontsize=7)
+            if cmap is not None:
+                figure.colorbar(shown, ax=axis, fraction=0.046, pad=0.02)
+        axes[row, 0].set_ylabel(f"{ATTACK_LABEL[attack]}\n{record['run']['dataset']}", fontsize=7)
+    figure.tight_layout()
+    plt.show()
+
+
+show_triggers("vit")
+
+# %% token_maps_vit
+def token_map(record, layer):
+    entry = record["token_maps"][str(layer)]
+    grid = np.asarray(entry["map"]).reshape(entry["grid"])
+    return grid
+
+
+def show_token_maps(architecture, layers):
+    attacks = [attack for attack in ATTACKS if featured_run(architecture, attack)]
+    figure, axes = plt.subplots(len(attacks), len(layers) + 1, figsize=(7.0, 1.35 * len(attacks)))
+    for row, attack in enumerate(attacks):
+        name = featured_run(architecture, attack)
+        record = load_run(name)
+        control = load_run(control_name(name))
+        maps = [token_map(record, layer) for layer in layers] + [token_map(control, layers[-1])]
+        for column, grid in enumerate(maps):
+            axis = axes[row, column]
+            shown = axis.imshow(grid, cmap="viridis")
+            figure.colorbar(shown, ax=axis, fraction=0.046, pad=0.02)
+            axis.set_xticks([])
+            axis.set_yticks([])
+            axis.grid(False)
+            if row == 0:
+                title = f"layer {layers[column]}" if column < len(layers) else f"benign, layer {layers[-1]}"
+                axis.set_title(title, fontsize=7)
+        axes[row, 0].set_ylabel(f"{ATTACK_LABEL[attack]}\n{record['run']['dataset']}", fontsize=7)
+    figure.suptitle(f"{ARCHITECTURE_LABEL[architecture]}: per-token change, relative to the mean clean token norm", fontsize=8)
+    figure.tight_layout()
+    plt.show()
+
+
+show_token_maps("vit", [1, 4, 8, 12])
+
+# %% token_maps_swin
+show_token_maps("swin", [2, 4, 22, 24])
+
+# %% token_maps_cls
+cls_rows = []
+for attack in ATTACKS:
+    name = featured_run("vit", attack)
+    if name is None:
+        continue
+    record = load_run(name)
+    for layer in (4, 8, 12):
+        entry = record["token_maps"][str(layer)]
+        cls_rows.append(
+            {
+                "attack": ATTACK_LABEL[attack],
+                "run": name,
+                "layer": layer,
+                "class token": entry["class_token"],
+                "patch mean": float(np.mean(entry["map"])),
+                "patch max": float(np.max(entry["map"])),
+            }
+        )
+pd.DataFrame(cls_rows).pivot_table(index=["attack", "run"], columns="layer", values=["class token", "patch mean", "patch max"]).round(3)
+
+# %% said_class_token
+class_rows = []
+for name in usable(ROWS)[usable(ROWS)["architecture"] == "vit"]["name"]:
+    record = load_run(name)
+    entry = record["token_maps"]["12"]
+    control = load_run(control_name(name))["token_maps"]["12"]
+    class_rows.append(
+        {
+            "run": name,
+            "patch": record["run"]["category"] == "patch",
+            "class over patch mean": entry["class_token"] / np.mean(entry["map"]),
+            "class token": entry["class_token"],
+            "benign class token": control["class_token"],
+        }
+    )
+class_frame = pd.DataFrame(class_rows)
+ratio = class_frame["class token"] / class_frame["benign class token"]
+display(
+    Markdown(
+        f"Over all {len(class_frame)} usable ViT runs, the class token's relative change after block 12 is "
+        f"{ratio.median():.1f} times the benign control's (median, range {ratio.min():.1f} to {ratio.max():.1f}). "
+        f"Relative to the mean patch token it is {class_frame['class over patch mean'].median():.1f} times larger. "
+        "The trigger's change is therefore concentrated in the token the head reads, which is what a learned backdoor "
+        "needs and a benign model does not do."
+    )
+)
+assert (ratio > 1).all()
+
+# %% top_dimension_maps
+def show_top_dimension_maps(name, layer):
+    entry = load_run(name)["top_dimension_maps"][str(layer)]
+    clean, triggered = np.asarray(entry["clean"]), np.asarray(entry["triggered"])
+    count = clean.shape[0]
+    figure, axes = plt.subplots(2, count, figsize=(1.7 * count, 3.2))
+    for column in range(count):
+        limit = max(np.abs(clean[column]).max(), np.abs(triggered[column]).max())
+        for row, (maps, label) in enumerate(((clean, "clean"), (triggered, "triggered"))):
+            axis = axes[row, column]
+            shown = axis.imshow(maps[column], cmap="RdBu_r", vmin=-limit, vmax=limit)
+            axis.set_xticks([])
+            axis.set_yticks([])
+            axis.grid(False)
+            if row == 0:
+                axis.set_title(f"dimension {entry['dimensions'][column]}", fontsize=7)
+            if column == 0:
+                axis.set_ylabel(label, fontsize=7)
+        figure.colorbar(shown, ax=axes[:, column], fraction=0.046, pad=0.02)
+    figure.suptitle(f"{name}, layer {layer}, test image {entry['test_index']}", fontsize=8)
+    plt.show()
+
+
+show_top_dimension_maps(featured_run("vit", "badnet_a2o"), 12)
+show_top_dimension_maps(featured_run("vit", "blend"), 12)
+
+# %% attention_lines
+def show_trigger_attention(names, title):
+    figure, axes = plt.subplots(1, len(names), figsize=(7.0, 2.3), sharey=True)
+    for axis, name in zip(np.atleast_1d(axes), names):
+        record = load_run(name)
+        attention = record["attention"]
+        blocks = np.arange(1, record["num_blocks"] + 1)
+        axis.plot(blocks, np.asarray(attention["triggered_mass"]).mean(axis=1), label="triggered image", color=PALETTE[4])
+        axis.plot(blocks, np.asarray(attention["clean_mass"]).mean(axis=1), label="clean image", color=PALETTE[0])
+        control = load_run(control_name(name))
+        axis.plot(blocks, np.asarray(control["attention"]["triggered_mass"]).mean(axis=1), label="benign model, triggered", color="black", linestyle="--")
+        axis.axhline(attention["uniform_mass"], color="grey", linestyle=":", label="uniform attention")
+        axis.set_title(f"{name}\n{attention['n_trigger_tokens']} trigger tokens", fontsize=6)
+        axis.set_xlabel("block")
+    np.atleast_1d(axes)[0].set_ylabel("class-token attention\non trigger tokens")
+    np.atleast_1d(axes)[0].legend(fontsize=6)
+    figure.suptitle(title, fontsize=8)
+    figure.tight_layout()
+    plt.show()
+
+
+show_trigger_attention(backdoored_runs("vit", "badnet_a2o"), "BadNets, ViT-B/16: head-mean attention of the class token on the trigger's tokens")
+show_trigger_attention(backdoored_runs("vit", "tact"), "TaCT, ViT-B/16")
+
+# %% attention_heads
+def show_head_ratio(name):
+    record = load_run(name)
+    attention = record["attention"]
+    triggered = np.asarray(attention["triggered_mass"])  # (blocks, heads)
+    clean = np.asarray(attention["clean_mass"])  # (blocks, heads)
+    ratio = np.log2(np.maximum(triggered, 1e-6) / np.maximum(clean, 1e-6))
+    triggered_row = np.asarray(attention["triggered_row"])[-1].reshape(14, 14)
+    clean_row = np.asarray(attention["clean_row"])[-1].reshape(14, 14)
+
+    figure, axes = plt.subplots(1, 3, figsize=(7.0, 2.4), gridspec_kw={"width_ratios": [1.4, 1, 1]})
+    limit = np.abs(ratio).max()
+    shown = axes[0].imshow(ratio, cmap="RdBu_r", vmin=-limit, vmax=limit, aspect="auto")
+    axes[0].set_xlabel("head")
+    axes[0].set_ylabel("block")
+    axes[0].set_yticks(range(ratio.shape[0]), range(1, ratio.shape[0] + 1))
+    axes[0].set_title("log2 triggered over clean\nattention on trigger tokens", fontsize=7)
+    axes[0].grid(False)
+    figure.colorbar(shown, ax=axes[0], fraction=0.046, pad=0.02)
+    upper = max(triggered_row.max(), clean_row.max())
+    for axis, grid, label in ((axes[1], clean_row, "clean"), (axes[2], triggered_row, "triggered")):
+        shown = axis.imshow(grid, cmap="viridis", vmin=0, vmax=upper)
+        axis.set_title(f"block {record['num_blocks']} class-token row, {label}", fontsize=7)
+        axis.set_xticks([])
+        axis.set_yticks([])
+        axis.grid(False)
+    figure.colorbar(shown, ax=axes[2], fraction=0.046, pad=0.02)
+    figure.suptitle(name, fontsize=8)
+    figure.tight_layout()
+    plt.show()
+
+
+show_head_ratio(featured_run("vit", "badnet_a2o"))
+
+# %% attention_table
+attention_rows = []
+for name in usable(ROWS)[usable(ROWS)["architecture"] == "vit"]["name"]:
+    record = load_run(name)
+    attention = record["attention"]
+    control = load_run(control_name(name))["attention"]
+    last = slice(-4, None)
+    attention_rows.append(
+        {
+            "run": name,
+            "attack": ATTACK_LABEL[record["run"]["attack"]],
+            "trigger tokens": attention["n_trigger_tokens"],
+            "uniform": attention["uniform_mass"],
+            "clean, blocks 9 to 12": float(np.asarray(attention["clean_mass"])[last].mean()),
+            "triggered, blocks 9 to 12": float(np.asarray(attention["triggered_mass"])[last].mean()),
+            "benign triggered, blocks 9 to 12": float(np.asarray(control["triggered_mass"])[last].mean()),
+        }
+    )
+attention_frame = pd.DataFrame(attention_rows).set_index("run")
+attention_frame["triggered over clean"] = attention_frame["triggered, blocks 9 to 12"] / attention_frame["clean, blocks 9 to 12"]
+attention_frame.sort_values(["attack", "run"]).round(3)
+
+# %% said_attention
+patch_frame = attention_frame[attention_frame["attack"].isin(["BadNets", "TaCT"])].copy()
+patch_frame["benign over clean"] = patch_frame["benign triggered, blocks 9 to 12"] / patch_frame["clean, blocks 9 to 12"]
+global_frame = attention_frame[~attention_frame["attack"].isin(["BadNets", "TaCT"])]
+by_attack = patch_frame.groupby("attack")[["triggered over clean", "benign over clean"]].agg(["min", "max"])
+display(
+    Markdown(
+        f"On the {len(patch_frame)} patch-trigger ViT runs the trigger covers {patch_frame['trigger tokens'].min()} to "
+        f"{patch_frame['trigger tokens'].max()} tokens. In blocks 9 to 12 the class token's head-mean attention on them grows, from the clean "
+        f"to the triggered image, by a factor of {by_attack.loc['BadNets', ('triggered over clean', 'min')]:.0f} to "
+        f"{by_attack.loc['BadNets', ('triggered over clean', 'max')]:.0f} on BadNets, against {by_attack.loc['BadNets', ('benign over clean', 'min')]:.1f} to "
+        f"{by_attack.loc['BadNets', ('benign over clean', 'max')]:.1f} for the benign model shown the same trigger, so the backdoored class token has learned to read the corner. "
+        f"On TaCT the factor is {by_attack.loc['TaCT', ('triggered over clean', 'min')]:.0f} to {by_attack.loc['TaCT', ('triggered over clean', 'max')]:.0f} "
+        f"against {by_attack.loc['TaCT', ('benign over clean', 'min')]:.1f} to {by_attack.loc['TaCT', ('benign over clean', 'max')]:.1f} for its controls, "
+        "a smaller factor than BadNets and still above every TaCT control. "
+        f"For the {len(global_frame)} global-trigger runs the trigger set covers most of the grid and the factor "
+        f"({global_frame['triggered over clean'].min():.2f} to {global_frame['triggered over clean'].max():.2f}) says nothing about routing."
+    )
+)
+for attack in ("BadNets", "TaCT"):
+    subset = patch_frame[patch_frame["attack"] == attack]
+    assert (subset["triggered over clean"] > subset["benign over clean"].max()).all()
+
+# %% depth_curves
+METRICS = {
+    "rel_direction_norm": "relative direction norm",
+    "normalized_max_tac": "max TAC over mean |clean|",
+    "cka": "CKA, clean against triggered",
+}
+
+
+def layer_values(record, metric):
+    layers = record["layers"]
+    if metric == "normalized_max_tac":
+        values = np.asarray([row["max_tac"] / max(row["mean_abs_clean"], 1e-8) for row in layers])
+        return values
+    values = np.asarray([row[metric] for row in layers])
+    return values
+
+
+def show_depth_curves(architecture):
+    figure, axes = plt.subplots(1, len(METRICS), figsize=(7.0, 2.5))
+    for axis, (metric, label) in zip(axes, METRICS.items()):
+        control_curves = []
+        for attack in ATTACKS:
+            names = backdoored_runs(architecture, attack)
+            if not names:
+                continue
+            curves = []
+            for name in names:
+                record = load_run(name)
+                depth = np.arange(record["num_blocks"] + 1)
+                curves.append(layer_values(record, metric))
+                control_curves.append(layer_values(load_run(control_name(name)), metric))
+            axis.plot(depth, np.mean(curves, axis=0), color=ATTACK_COLOUR[attack], label=f"{ATTACK_LABEL[attack]} ({len(names)})")
+        axis.plot(depth, np.mean(control_curves, axis=0), color="black", linestyle="--", label="benign controls")
+        axis.set_xlabel("layer (0 = block 1 input)")
+        axis.set_title(label, fontsize=7)
+        if metric == "rel_direction_norm":
+            axis.set_yscale("log")
+    axes[0].legend(fontsize=6)
+    figure.suptitle(f"{ARCHITECTURE_LABEL[architecture]}: mean over datasets per attack, benign controls pooled", fontsize=8)
+    figure.tight_layout()
+    plt.show()
+
+
+show_depth_curves("vit")
+show_depth_curves("swin")
+
+# %% depth_table
+depth_rows = []
+for _, row in usable(ROWS).iterrows():
+    record = load_run(row["name"])
+    control = load_run(control_name(row["name"]))
+    depth_rows.append(
+        {
+            "run": row["name"],
+            "architecture": row["architecture"],
+            "attack": ATTACK_LABEL[row["attack"]],
+            "onset layer": record["onset_layer"],
+            "peak layer": record["peak_layer"],
+            "onset depth share": record["onset_layer"] / record["num_blocks"],
+            "final rel. direction": row["final_rel_direction_norm"],
+            "benign final rel. direction": control["layers"][-1]["rel_direction_norm"],
+            "final CKA": row["final_cka"],
+            "benign final CKA": control["layers"][-1]["cka"],
+        }
+    )
+depth_frame = pd.DataFrame(depth_rows).set_index("run")
+depth_frame.groupby(["architecture", "attack"]).agg(
+    onset_min=("onset layer", "min"),
+    onset_median=("onset layer", "median"),
+    onset_max=("onset layer", "max"),
+    models=("onset layer", "count"),
+    onset_share=("onset depth share", "mean"),
+    final_direction=("final rel. direction", "mean"),
+    benign_final_direction=("benign final rel. direction", "mean"),
+    final_cka=("final CKA", "mean"),
+    benign_final_cka=("benign final CKA", "mean"),
+).round(3)
+
+# %% said_depth
+onset = depth_frame.groupby(["architecture", "attack"])["onset depth share"].mean()
+final_ratio = depth_frame["final rel. direction"] / depth_frame["benign final rel. direction"]
+display(
+    Markdown(
+        "Every backdoored curve rises above its benign control. The controls peak in the middle of the network and fall, "
+        "so the depth profile belongs to the learned backdoor rather than to the input change. "
+        f"At the last layer the relative direction norm is {final_ratio.median():.1f} times the benign control's (median over "
+        f"{len(depth_frame)} runs, range {final_ratio.min():.1f} to {final_ratio.max():.1f}). CKA between clean and triggered features "
+        f"falls to a median {depth_frame['final CKA'].median():.3f} against {depth_frame['benign final CKA'].median():.3f} for the controls. "
+        f"On ViT the onset falls between {onset['vit'].min():.2f} and {onset['vit'].max():.2f} of the depth "
+        f"({', '.join(f'{attack} {value:.2f}' for attack, value in onset['vit'].items())}), "
+        f"on Swin between {onset['swin'].min():.2f} and {onset['swin'].max():.2f} "
+        f"({', '.join(f'{attack} {value:.2f}' for attack, value in onset['swin'].items())})."
+    )
+)
+assert (final_ratio > 1).all()
+
+# %% tac_heatmap
+def show_tac_heatmap(names):
+    figure, axes = plt.subplots(1, len(names), figsize=(7.0, 2.7))
+    for axis, name in zip(np.atleast_1d(axes), names):
+        record = load_run(name)
+        rows = [row for row in record["layers"] if row["tac_of_final_top"] is not None]
+        matrix = np.asarray([np.asarray(row["tac_of_final_top"]) / max(row["mean_abs_clean"], 1e-8) for row in rows])
+        shown = axis.imshow(matrix, aspect="auto", cmap="magma")
+        axis.set_yticks(range(len(rows)), [row["layer"] for row in rows])
+        axis.set_xticks(range(TOP_DIMENSIONS), record["layers"][-1]["top_tac_dimensions"], rotation=90, fontsize=5)
+        axis.set_xlabel("final layer's top 20 TAC dimensions")
+        axis.set_ylabel("layer")
+        axis.set_title(name, fontsize=7)
+        axis.grid(False)
+        figure.colorbar(shown, ax=axis, fraction=0.046, pad=0.02)
+    figure.tight_layout()
+    plt.show()
+
+
+show_tac_heatmap([featured_run("vit", attack) for attack in ("badnet_a2o", "blend", "wanet")])
+
+# %% overlap
+def show_overlap(family):
+    entry = SUMMARY["top_dimension_overlap"][family]
+    names, matrix = entry["names"], np.asarray(entry["jaccard"])
+    labels = [name.replace(f"{family}_", "") for name in names]
+    figure, axis = plt.subplots(figsize=(5.2, 4.4))
+    shown = axis.imshow(matrix, cmap="viridis", vmin=0, vmax=1)
+    axis.set_xticks(range(len(labels)), labels, rotation=90, fontsize=5)
+    axis.set_yticks(range(len(labels)), labels, fontsize=5)
+    axis.grid(False)
+    figure.colorbar(shown, ax=axis, fraction=0.046, pad=0.02)
+    axis.set_title(f"{family}: Jaccard of final-layer top {TOP_DIMENSIONS} TAC dimensions", fontsize=7)
+    plt.show()
+
+
+def overlap_statistics(family):
+    entry = SUMMARY["top_dimension_overlap"][family]
+    names, matrix = entry["names"], np.asarray(entry["jaccard"])
+    benign = np.asarray(["benign" in name for name in names])
+    pairs = [(i, j) for i in range(len(names)) for j in range(i + 1, len(names))]
+    between_backdoors = [matrix[i, j] for i, j in pairs if not benign[i] and not benign[j]]
+    between_controls = [matrix[i, j] for i, j in pairs if benign[i] and benign[j]]
+    statistics = {
+        "family": family,
+        "backdoored pairs": len(between_backdoors),
+        "mean Jaccard, backdoored against backdoored": float(np.mean(between_backdoors)) if between_backdoors else None,
+        "max Jaccard, backdoored against backdoored": float(np.max(between_backdoors)) if between_backdoors else None,
+        "mean Jaccard, benign probes against each other": float(np.mean(between_controls)) if between_controls else None,
+        "chance": SUMMARY["chance_jaccard"],
+    }
+    return statistics
+
+
+show_overlap("vit_tiny")
+ceiling = usable(ROWS).groupby("architecture")["final_split_half_jaccard"].mean()
+print("split-half ceiling, mean over backdoored runs:", ceiling.round(3).to_dict())
+pd.DataFrame([overlap_statistics(family) for family in sorted(SUMMARY["top_dimension_overlap"])]).set_index("family").round(3)
+
+# %% said_overlap
+family_statistics = pd.DataFrame([overlap_statistics(family) for family in sorted(SUMMARY["top_dimension_overlap"])])
+display(
+    Markdown(
+        f"Between backdoored runs of the same family the mean Jaccard of the top-20 TAC sets is "
+        f"{family_statistics['mean Jaccard, backdoored against backdoored'].mean():.3f} (family means from "
+        f"{family_statistics['mean Jaccard, backdoored against backdoored'].min():.3f} to "
+        f"{family_statistics['mean Jaccard, backdoored against backdoored'].max():.3f}), against a chance level of "
+        f"{SUMMARY['chance_jaccard']:.3f} and a split-half ceiling of {ceiling['vit']:.3f} on ViT and {ceiling['swin']:.3f} on Swin. "
+        "The top TAC coordinates are reproducible within a model and largely different between attacks, "
+        "so a list of backdoor neurons found for 1 attack does not transfer to another. "
+        "Whether the remaining overlap is made of coordinates that move for any input change is a hypothesis the benign rows of the matrix suggest and no removal here tests."
+    )
+)
+
+# %% histograms
+def show_histograms(name):
+    record = load_run(name)
+    histograms = record["neurons"]["histograms"]
+    figure, axes = plt.subplots(1, len(histograms), figsize=(7.0, 1.9))
+    for axis, (key, entry) in zip(axes, histograms.items()):
+        edges = np.asarray(entry["edges"])
+        centres = (edges[:-1] + edges[1:]) / 2
+        width = edges[1] - edges[0]
+        axis.bar(centres, entry["clean"], width=width, alpha=0.6, label="clean", color=PALETTE[0])
+        axis.bar(centres, entry["triggered"], width=width, alpha=0.6, label="triggered", color=PALETTE[4])
+        axis.set_title(key.replace("_", " "), fontsize=7)
+        axis.set_xlabel("activation" if key != "direction" else "projection on the direction")
+    axes[0].set_ylabel("eval-half images")
+    axes[0].legend(fontsize=6)
+    neurons = record["neurons"]
+    figure.suptitle(
+        f"{name}, final layer: top-TAC neuron AUROC {neurons['top_tac_eval_auroc'][0]:.3f}, "
+        f"best neuron {neurons['best_fit_dimension_eval_auroc']:.3f}, direction {neurons['direction_eval_auroc']:.3f}",
+        fontsize=7,
+    )
+    figure.tight_layout()
+    plt.show()
+
+
+show_histograms(featured_run("vit", "badnet_a2o"))
+show_histograms(featured_run("vit", "wanet"))
+show_histograms(featured_run("swin", "blend"))
+
+# %% auroc_scatter
+figure, axes = plt.subplots(1, 2, figsize=(7.0, 2.8))
+for architecture, marker in (("vit", "o"), ("swin", "s")):
+    rows = usable(ROWS)[usable(ROWS)["architecture"] == architecture]
+    for attack in ATTACKS:
+        subset = rows[rows["attack"] == attack]
+        if not len(subset):
+            continue
+        axes[0].scatter(subset["best_neuron_eval_auroc"], subset["direction_eval_auroc"], marker=marker, color=ATTACK_COLOUR[attack], s=18, label=f"{ATTACK_LABEL[attack]}, {ARCHITECTURE_LABEL[architecture]}")
+        axes[1].scatter(subset["final_participation"], subset["final_top_tac_direction_energy"], marker=marker, color=ATTACK_COLOUR[attack], s=18)
+axes[0].plot([0.9, 1], [0.9, 1], color="grey", linestyle=":")
+axes[0].set_xlabel("best single neuron, eval AUROC")
+axes[0].set_ylabel("backdoor direction, eval AUROC")
+axes[1].axvline(768 / 3, color="grey", linestyle=":", label="random direction, 768 / 3")
+axes[1].set_xlabel("participation ratio of the direction")
+axes[1].set_ylabel("direction energy in top 20 TAC dims")
+axes[1].legend(fontsize=6)
+axes[0].legend(fontsize=5, ncol=2, bbox_to_anchor=(0.0, -0.3), loc="upper left")
+figure.tight_layout()
+plt.show()
+usable(ROWS).groupby(["architecture", "attack"])[["best_neuron_eval_auroc", "top_tac_neuron_eval_auroc", "direction_eval_auroc", "final_participation", "final_top_tac_direction_energy", "final_direction_share"]].mean().round(3)
+
+# %% said_separability
+separability = usable(ROWS)
+gap = separability["direction_eval_auroc"] - separability["best_neuron_eval_auroc"]
+display(
+    Markdown(
+        f"On the eval half the direction's AUROC is at least the best single neuron's on {int((gap >= -0.005).sum())} of "
+        f"{len(separability)} runs (median gap {gap.median():+.3f}, smallest {gap.min():+.3f}). "
+        f"The direction's participation ratio has a median of {separability['final_participation'].median():.0f} coordinates "
+        f"and the 20 top-TAC coordinates carry a median {separability['final_top_tac_direction_energy'].median():.2f} of its squared length. "
+        "At the last layer a single coordinate already separates clean from triggered images almost perfectly, so separability alone does not tell a neuron from a direction. "
+        "The ablation below does."
+    )
+)
+
+# %% ablation
+DIRECTION_ABLATIONS = {
+    "none": "no edit",
+    "direction": "backdoor direction",
+    "direction_orthogonal_to_target": "backdoor direction minus its target-class part",
+    "random_direction": "isotropic random (mean of 3)",
+    "clean_pc1": "clean PC 1",
+    "variance_matched_pc": "variance-matched clean PC",
+    "target_class_direction": "target-class offset",
+    "other_trigger_direction": "other trigger's direction",
+    "benign_direction": "benign model's direction",
+}
+NEURON_RULES = {
+    "top_tac": "top TAC",
+    "top_direction_coordinates": "top direction coordinates",
+    "top_magnitude": "top clean magnitude",
+    "random_coordinates": "random",
+}
+
+
+def variant_value(ablation, key, measure):
+    variants = ablation["variants"]
+    if key == "random_direction":
+        value = float(np.mean([variants[f"random_direction_{index}"][measure] for index in range(3)]))
+        return value
+    if key not in variants or variants[key][measure] is None:
+        return np.nan
+    value = variants[key][measure]
+    return value
+
+
+def ablation_table(which, keys, measure):
+    rows = []
+    for _, row in usable(ROWS).iterrows():
+        for key in keys:
+            rows.append(
+                {
+                    "run": row["name"],
+                    "architecture": row["architecture"],
+                    "attack": ATTACK_LABEL[row["attack"]],
+                    "edit": key,
+                    measure: variant_value(row[which], key, measure),
+                }
+            )
+    frame = pd.DataFrame(rows)
+    return frame
+
+
+def show_edit_bars(which, keys, labels, title):
+    figure, axes = plt.subplots(2, 2, figsize=(7.0, 5.2), sharey="row")
+    for column, architecture in enumerate(("vit", "swin")):
+        for row, measure in enumerate(("asr", "target_recall")):
+            axis = axes[row, column]
+            frame = ablation_table(which, keys, measure)
+            frame = frame[frame["architecture"] == architecture]
+            table = frame.pivot_table(index="edit", columns="attack", values=measure).reindex(keys)
+            attacks = [ATTACK_LABEL[attack] for attack in ATTACKS if ATTACK_LABEL[attack] in table.columns]
+            width = 0.8 / max(len(attacks), 1)
+            for offset, attack in enumerate(attacks):
+                key = next(name for name, label in ATTACK_LABEL.items() if label == attack)
+                axis.bar(np.arange(len(keys)) + offset * width, table[attack], width=width, color=ATTACK_COLOUR[key], label=attack)
+            axis.set_xticks(np.arange(len(keys)) + 0.4, labels if row == 1 else [], rotation=90, fontsize=6)
+            axis.set_ylabel("ASR" if measure == "asr" else "target-class recall")
+            if row == 0:
+                axis.set_title(ARCHITECTURE_LABEL[architecture], fontsize=8)
+    axes[0, 0].legend(fontsize=6, ncol=2)
+    figure.suptitle(title, fontsize=8)
+    figure.tight_layout()
+    plt.show()
+
+
+def edit_summary(which, keys, labels):
+    frames = [ablation_table(which, keys, measure) for measure in ("asr", "clean_accuracy", "target_recall")]
+    merged = frames[0].merge(frames[1], on=["run", "architecture", "attack", "edit"]).merge(frames[2], on=["run", "architecture", "attack", "edit"])
+    merged["edit"] = merged["edit"].map(dict(zip(keys, labels)))
+    table = merged.groupby(["architecture", "edit"])[["asr", "clean_accuracy", "target_recall"]].agg(["mean", "max"])
+    return table.reindex(labels, level=1)
+
+
+direction_keys = list(DIRECTION_ABLATIONS)
+direction_labels = list(DIRECTION_ABLATIONS.values())
+show_edit_bars("ablation_final", direction_keys, direction_labels, "1 direction removed at the last block's output, eval half, mean over datasets")
+edit_summary("ablation_final", direction_keys, direction_labels).round(3)
+
+# %% ablation_neurons
+neuron_keys = ["none"] + [f"{rule}_{k}" for k in NEURON_COUNTS for rule in NEURON_RULES]
+neuron_labels = ["no edit"] + [f"{label}, k={k}" for k in NEURON_COUNTS for label in NEURON_RULES.values()]
+show_edit_bars("ablation_final", neuron_keys, neuron_labels, "k coordinates zeroed at the last block's output, eval half, mean over datasets")
+edit_summary("ablation_final", neuron_keys, neuron_labels).round(3)
+
+# %% said_ablation
+def edit_means(which, key, measure):
+    values = ablation_table(which, [key], measure).groupby("architecture")[measure].mean()
+    return values
+
+
+lines = []
+for architecture in ("vit", "swin"):
+    label = ARCHITECTURE_LABEL[architecture]
+    lines.append(
+        f"On {label} at the last block, removing the backdoor direction takes mean ASR from "
+        f"{edit_means('ablation_final', 'none', 'asr')[architecture]:.3f} to {edit_means('ablation_final', 'direction', 'asr')[architecture]:.3f}, "
+        f"and target-class recall from {edit_means('ablation_final', 'none', 'target_recall')[architecture]:.3f} to "
+        f"{edit_means('ablation_final', 'direction', 'target_recall')[architecture]:.3f}. "
+        f"Removing the target-class offset gives ASR {edit_means('ablation_final', 'target_class_direction', 'asr')[architecture]:.3f} and recall "
+        f"{edit_means('ablation_final', 'target_class_direction', 'target_recall')[architecture]:.3f}, while the backdoor direction minus its "
+        f"target-class part leaves ASR at {edit_means('ablation_final', 'direction_orthogonal_to_target', 'asr')[architecture]:.3f}. "
+        f"The energy-matched clean PC leaves ASR at {edit_means('ablation_final', 'variance_matched_pc', 'asr')[architecture]:.3f}, isotropic random directions at "
+        f"{edit_means('ablation_final', 'random_direction', 'asr')[architecture]:.3f}, the other trigger's direction at "
+        f"{edit_means('ablation_final', 'other_trigger_direction', 'asr')[architecture]:.3f} and the benign model's direction at "
+        f"{edit_means('ablation_final', 'benign_direction', 'asr')[architecture]:.3f}. "
+        f"Zeroing the 300 top-TAC neurons leaves ASR at {edit_means('ablation_final', 'top_tac_300', 'asr')[architecture]:.3f}, "
+        f"300 random neurons at {edit_means('ablation_final', 'random_coordinates_300', 'asr')[architecture]:.3f} and the 300 largest-magnitude neurons at "
+        f"{edit_means('ablation_final', 'top_magnitude_300', 'asr')[architecture]:.3f}."
+    )
+display(Markdown(" ".join(lines)))
+
+# %% magnitude_overlap
+overlap_rows = []
+for _, row in usable(ROWS).iterrows():
+    for which in ("ablation_final", "ablation_middle"):
+        entry = row[which]
+        overlap_rows.append(
+            {
+                "architecture": row["architecture"],
+                "depth": "last block" if which == "ablation_final" else "2/3 depth",
+                **{f"top {k} TAC in top {k} magnitude": entry["top_tac_magnitude_overlap"][str(k)] for k in NEURON_COUNTS},
+                "clean variance, backdoor direction": entry["clean_variance_along"]["direction"],
+                "clean variance, variance-matched PC": entry["clean_variance_along"]["variance_matched_pc"],
+                "clean variance, clean PC 1": entry["clean_variance_along"]["clean_pc1"],
+                "cos(target offset, backdoor)": entry["cosine_to_direction"]["target_class_direction"],
+                "cos(variance-matched PC, backdoor)": entry["cosine_to_direction"]["variance_matched_pc"],
+                "cos(benign, backdoor)": entry["cosine_to_direction"].get("benign_direction", np.nan),
+                "cos(other trigger, backdoor)": entry["cosine_to_direction"]["other_trigger_direction"],
+            }
+        )
+pd.DataFrame(overlap_rows).groupby(["architecture", "depth"]).mean().round(3)
+
+# %% per_class
+def recall_changes(name, which_layer, key):
+    record = load_run(name)
+    variants = record["ablation"][which_layer]["variants"]
+    before = np.asarray([np.nan if value is None else value for value in variants["none"]["per_class_recall"]])
+    after = np.asarray([np.nan if value is None else value for value in variants[key]["per_class_recall"]])
+    change = after - before
+    return change, record["run"]["target"]
+
+
+recall_rows = []
+for _, row in usable(ROWS).iterrows():
+    record = load_run(row["name"])
+    final = str(record["num_blocks"])
+    for key in ("direction", "direction_orthogonal_to_target", "target_class_direction", "variance_matched_pc", "clean_pc1"):
+        change, target = recall_changes(row["name"], final, key)
+        others = np.delete(change, target)
+        recall_rows.append(
+            {
+                "architecture": row["architecture"],
+                "edit": DIRECTION_ABLATIONS[key],
+                "target recall change": change[target],
+                "mean other-class change": np.nanmean(others),
+                "worst other-class change": np.nanmin(others),
+            }
+        )
+recall_means = pd.DataFrame(recall_rows).groupby(["architecture", "edit"]).mean()
+figure, axes = plt.subplots(1, 2, figsize=(7.0, 2.6), sharey=True)
+for axis, architecture in zip(axes, ("vit", "swin")):
+    subset = recall_means.loc[architecture]
+    positions = np.arange(len(subset))
+    axis.bar(positions - 0.2, subset["target recall change"], width=0.4, color=PALETTE[4], label="target class")
+    axis.bar(positions + 0.2, subset["mean other-class change"], width=0.4, color=PALETTE[0], label="other classes, mean")
+    axis.set_xticks(positions, subset.index, rotation=90, fontsize=6)
+    axis.set_title(ARCHITECTURE_LABEL[architecture], fontsize=7)
+axes[0].set_ylabel("recall change, last block")
+axes[0].legend(fontsize=6)
+figure.tight_layout()
+plt.show()
+recall_means.round(3)
+
+# %% said_per_class
+recall_frame = pd.DataFrame(recall_rows).groupby(["architecture", "edit"]).mean()
+display(
+    Markdown(
+        "Removing the backdoor direction at the last block costs the target class "
+        f"{-recall_frame.loc[('vit', 'backdoor direction'), 'target recall change']:.3f} of its recall on ViT and "
+        f"{-recall_frame.loc[('swin', 'backdoor direction'), 'target recall change']:.3f} on Swin, while the other classes move by "
+        f"{recall_frame.loc[('vit', 'backdoor direction'), 'mean other-class change']:+.3f} and "
+        f"{recall_frame.loc[('swin', 'backdoor direction'), 'mean other-class change']:+.3f} on average. "
+        "The edit is specific to 1 class, and that class is the target."
+    )
+)
+
+# %% ablation_middle
+show_edit_bars("ablation_middle", direction_keys, direction_labels, "1 direction removed at block 8 (ViT) or 16 (Swin)")
+pd.concat(
+    [
+        edit_summary("ablation_middle", direction_keys, direction_labels),
+        edit_summary("ablation_middle", neuron_keys, neuron_labels),
+    ]
+).round(3)
+
+# %% said_middle
+display(
+    Markdown(
+        f"At 2/3 of the depth, removing the backdoor direction leaves mean ASR at "
+        f"{edit_means('ablation_middle', 'direction', 'asr')['vit']:.3f} on ViT and {edit_means('ablation_middle', 'direction', 'asr')['swin']:.3f} on Swin, "
+        f"and 300 top-TAC neurons leave it at {edit_means('ablation_middle', 'top_tac_300', 'asr')['vit']:.3f} and "
+        f"{edit_means('ablation_middle', 'top_tac_300', 'asr')['swin']:.3f}. "
+        "A hypothesis, not tested here: the later blocks rebuild the direction from the patch tokens that still carry the trigger, "
+        "as the attention readout of step 2 suggests. Testing it would need the removal repeated on the patch tokens alone."
+    )
+)
+
+# %% steering
+STEER_LABEL = {
+    "direction": "backdoor direction",
+    "direction_orthogonal_to_target": "backdoor direction minus its target-class part",
+    "random_direction_0": "isotropic random",
+    "clean_pc1": "clean PC 1",
+    "variance_matched_pc": "variance-matched clean PC",
+    "target_class_direction": "target-class offset",
+    "other_trigger_direction": "other trigger's direction",
+    "benign_direction": "benign model's direction",
+}
+steer_rows = []
+for _, row in usable(ROWS).iterrows():
+    for which, depth in (("ablation_final", "last block"), ("ablation_middle", "2/3 depth")):
+        steering = row[which]["steer_clean_to_target"]
+        for key, label in STEER_LABEL.items():
+            steer_rows.append(
+                {
+                    "architecture": row["architecture"],
+                    "depth": depth,
+                    "added direction": label,
+                    "clean sent to target": steering.get(key, np.nan),
+                }
+            )
+steer_frame = pd.DataFrame(steer_rows)
+figure, axes = plt.subplots(1, 2, figsize=(7.0, 2.6), sharey=True)
+for axis, architecture in zip(axes, ("vit", "swin")):
+    means = steer_frame[(steer_frame["architecture"] == architecture) & (steer_frame["depth"] == "last block")].groupby("added direction")["clean sent to target"].mean().reindex(list(STEER_LABEL.values()))
+    axis.bar(range(len(means)), means.values, color=PALETTE[4])
+    axis.set_xticks(range(len(means)), means.index, rotation=90, fontsize=6)
+    axis.set_title(f"{ARCHITECTURE_LABEL[architecture]}, added at the last block", fontsize=7)
+axes[0].set_ylabel("clean images sent to target")
+figure.tight_layout()
+plt.show()
+steer_frame.pivot_table(index=["architecture", "depth"], columns="added direction", values="clean sent to target")[list(STEER_LABEL.values())].round(3)
+
+# %% said_steering
+steer_means = steer_frame.pivot_table(index=["architecture", "depth"], columns="added direction", values="clean sent to target")
+display(
+    Markdown(
+        "Adding the backdoor direction at the last block sends "
+        f"{steer_means.loc[('vit', 'last block'), 'backdoor direction']:.3f} of clean images to the target on ViT and "
+        f"{steer_means.loc[('swin', 'last block'), 'backdoor direction']:.3f} on Swin. The target-class offset at the same norm sends "
+        f"{steer_means.loc[('vit', 'last block'), 'target-class offset']:.3f} and {steer_means.loc[('swin', 'last block'), 'target-class offset']:.3f}, "
+        f"the benign model's direction {steer_means.loc[('vit', 'last block'), 'benign model' + chr(39) + 's direction']:.3f} and "
+        f"{steer_means.loc[('swin', 'last block'), 'benign model' + chr(39) + 's direction']:.3f}, and an isotropic random direction "
+        f"{steer_means.loc[('vit', 'last block'), 'isotropic random']:.3f} and {steer_means.loc[('swin', 'last block'), 'isotropic random']:.3f}."
+    )
+)
+
+# %% embedding
+POPULATION_COLOUR = {"clean": PALETTE[0], "triggered": PALETTE[4], "target_class": PALETTE[2]}
+
+
+def show_embeddings(names, method):
+    figure, axes = plt.subplots(1, len(names), figsize=(7.0, 2.0))
+    for axis, name in zip(axes, names):
+        record = load_embedding(name)
+        points = np.asarray(record[method])
+        populations = np.asarray(record["populations"])
+        for population, colour in POPULATION_COLOUR.items():
+            mask = populations == population
+            axis.scatter(points[mask, 0], points[mask, 1], s=3, alpha=0.6, color=colour, label=population.replace("_", " "))
+        axis.set_title(name.replace("__", "\nprobe "), fontsize=6)
+        axis.set_xticks([])
+        axis.set_yticks([])
+    axes[0].legend(fontsize=5, markerscale=3)
+    figure.suptitle(f"{method.upper()} of the head input, fitted on the fit half, eval half drawn", fontsize=8)
+    figure.tight_layout()
+    plt.show()
+
+
+latent_names = [featured_run("vit", attack) for attack in ("badnet_a2o", "blend", "wanet", "bpp")]
+show_embeddings(latent_names + [control_name(latent_names[0])], "pca")
+show_embeddings(latent_names + [control_name(latent_names[0])], "umap")
+swin_names = [featured_run("swin", attack) for attack in ("badnet_a2o", "blend", "wanet", "bpp")]
+show_embeddings(swin_names + [control_name(swin_names[0])], "pca")
+
+# %% readout
+figure, axis = plt.subplots(figsize=(4.6, 3.0))
+for architecture, marker in (("vit", "o"), ("swin", "s")):
+    rows = ROWS[ROWS["architecture"] == architecture]
+    backdoored = usable(rows)
+    benign = rows[rows["benign"]]
+    axis.scatter(backdoored["max_cosine_other_row"], backdoored["cosine_target_row"], marker=marker, s=16, color=PALETTE[4], label=f"backdoored, {ARCHITECTURE_LABEL[architecture]}")
+    axis.scatter(benign["max_cosine_other_row"], benign["cosine_target_row"], marker=marker, s=16, facecolors="none", edgecolors="black", label=f"benign control, {ARCHITECTURE_LABEL[architecture]}")
+axis.plot([-0.2, 1], [-0.2, 1], color="grey", linestyle=":")
+axis.set_xlabel("largest cosine with any other class row")
+axis.set_ylabel("cosine with the target class row")
+axis.legend(fontsize=6)
+plt.show()
+readout = ROWS.assign(group=np.where(ROWS["benign"], "benign control", "backdoored"))
+readout = readout[readout["excluded"].isna()]
+readout.groupby(["architecture", "group"])[["cosine_target_row", "max_cosine_other_row", "target_logit_rank"]].agg(["mean", "min", "max"]).round(3)
+
+# %% said_readout
+readout_backdoored = usable(ROWS)
+readout_benign = ROWS[ROWS["benign"]]
+display(
+    Markdown(
+        f"The head-input backdoor direction has a median cosine of {readout_backdoored['cosine_target_row'].median():.3f} with the target's "
+        f"centered weight row (range {readout_backdoored['cosine_target_row'].min():.3f} to {readout_backdoored['cosine_target_row'].max():.3f}), "
+        f"and the target has the largest logit shift on {int((readout_backdoored['target_logit_rank'] == 1).sum())} of {len(readout_backdoored)} runs. "
+        f"On the benign controls the same cosine has a median of {readout_benign['cosine_target_row'].median():.3f}. "
+        "At the head, the backdoor is the target class's own readout direction."
+    )
+)
+
+# %% category_table
+category_rows = []
+for _, row in usable(ROWS).iterrows():
+    record = load_run(row["name"])
+    final = row["ablation_final"]
+    category_rows.append(
+        {
+            "category": row["category"],
+            "attack": ATTACK_LABEL[row["attack"]],
+            "architecture": row["architecture"],
+            "asr": row["asr"],
+            "onset depth share": record["onset_layer"] / record["num_blocks"],
+            "final CKA": row["final_cka"],
+            "direction share": row["final_direction_share"],
+            "participation": row["final_participation"],
+            "direction AUROC": row["direction_eval_auroc"],
+            "best neuron AUROC": row["best_neuron_eval_auroc"],
+            "ASR, direction removed": final["variants"]["direction"]["asr"],
+            "ASR, variance-matched PC removed": final["variants"]["variance_matched_pc"]["asr"],
+            "ASR, top 300 TAC removed": final["variants"]["top_tac_300"]["asr"],
+            "target recall, direction removed": final["variants"]["direction"]["target_recall"],
+            "cos target row": row["cosine_target_row"],
+        }
+    )
+category_frame = pd.DataFrame(category_rows)
+category_frame.groupby(["category", "attack", "architecture"]).mean(numeric_only=True).round(3)
+
+# %% said_category
+display(
+    Markdown(
+        "The table is the summary of the walkthrough per category. The steps above name the model subset and the function behind each column."
+    )
+)
+

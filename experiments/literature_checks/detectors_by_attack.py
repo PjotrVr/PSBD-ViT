@@ -48,7 +48,7 @@ for cell in cells:
             continue
         row = next(r for r in block["rates"] if r["rate"] == rate)
         table[label][attack].append(row["detection_psu_ratio"]["q0.25"]["auroc"])
-attacks = ["badnet_a2o", "tact", "blend", "lf", "sig", "wanet", "bpp"]
+attacks = ["badnet_a2o", "tact", "blend", "lf", "sig", "wanet", "bpp", "lc"]
 print(
     "detector".ljust(26)
     + "".join(a[:8].rjust(10) for a in attacks)

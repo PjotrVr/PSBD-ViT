@@ -56,21 +56,20 @@ inside_gpu_window() {
     return 0
 }
 
-# -E 75 makes a held lock exit with 75, which tells a busy slot apart from a
-# stage that ran and failed.
+# Queues on the first slot for up to 30 seconds and then tries the second, in a
+# loop, so a free second slot is taken while the first is held by a long job
+# (the pattern of experiments/why_psbd_works/gpu_slot.sh). -E 75 tells a busy
+# slot apart from a stage that ran and failed.
 on_free_slot() {
-    local lock
-    for lock in "${LOCKS[@]}"; do
-        if flock -n -E 75 "$lock" "$@"; then
-            return 0
-        else
-            local status=$?
-            if ((status != 75)); then
-                return "$status"
-            fi
-        fi
+    local status
+    while true; do
+        flock -w 30 -E 75 "${LOCKS[0]}" "$@"
+        status=$?
+        ((status != 75)) && return "$status"
+        flock -n -E 75 "${LOCKS[1]}" "$@"
+        status=$?
+        ((status != 75)) && return "$status"
     done
-    flock "${LOCKS[0]}" "$@"
 }
 
 stage() {

@@ -45,40 +45,39 @@ PSU beats confidence-only on 5 of 5 checkpoints, by 0.175 on average. Over the p
 CIFAR-100 and Tiny models of the same record, confidence alone beats PSU on 8 of 44 (2026-09-29
 audit, `docs/audits/2026-09-29-experiment-audit.md`).
 
+<!-- results:begin -->
+<!-- Everything down to results:end is rendered by panel.py from results/_experiments/psu_vs_confidence/panel.json. -->
+
 ### The canonical reading on the current panel
 
-PSBD-TM (`before_attention_norm_token_mask`) at the adaptive 0.8 rule's rate, the paper
-panel of 54 models successful at the 2-point clean-accuracy bar, fractional and absolute PSU
-read from each model's `psbd_metrics.json` at q0.25 and confidence alone from the cached
-baseline:
+PSBD-TM (`before_attention_norm_token_mask`) at the adaptive 0.8 rule's rate, the paper panel of 56 models successful at the 2-point clean-accuracy bar, fractional and absolute PSU read from each model's `psbd_metrics.json` at q0.25 and confidence alone from the cached baseline:
 
-    PYTHONPATH=. .venv/bin/python scratch/stale_numbers/psu_confidence_panel.py
+    PYTHONPATH=. .venv/bin/python experiments/psu_vs_confidence/panel.py
 
 | dataset | n | absolute PSU | fractional PSU | confidence only | confidence wins |
 |---|---:|---:|---:|---:|---:|
 | cifar10 | 15 | 0.910 | 0.919 | 0.593 | 0 |
 | cifar100 | 12 | 0.958 | 0.979 | 0.813 | 0 |
-| gtsrb | 13 | 0.988 | 0.984 | 0.480 | 1 |
+| gtsrb | 15 | 0.941 | 0.935 | 0.433 | 1 |
 | tiny | 14 | 0.969 | 0.977 | 0.877 | 0 |
-| **all** | **54** | **0.955** | **0.963** | **0.688** | **1** |
+| **all** | **56** | **0.944** | **0.951** | **0.668** | **1** |
 
-Confidence alone beats fractional PSU on 1 of 54 models, `vit_gtsrb_tact_0_05` (0.999
-against 0.942), and absolute PSU on 3. The stochastic passes are doing real work at the
-canonical reading too. `vit_cifar10_sig_0_1`, where confidence alone also won (0.593 against
-0.418), fails the 2-point clean-accuracy bar and is under audit
-(`docs/audits/2026-09-29-experiment-audit.md`).
+Confidence alone beats fractional PSU on 1 of 56 models, `vit_gtsrb_tact_0_05` (0.999 against 0.942). It beats absolute PSU on 3. The stochastic passes do real work at the canonical reading.
+
+Fractional PSU reads 0.951 against 0.944 for the absolute form and beats it on 36 of the 56 panel models. Confidence only reads 0.668 on the same models.
+<!-- results:end -->
 
 The decisive column is the fractional drop. `1 - mean_dropout / P_c(x)` divides out the
 starting confidence entirely. If PSU worked only because confident samples fall further in
 absolute terms, normalizing by that confidence would destroy the signal. It does the
 opposite: fractional PSU reads at least as well as absolute PSU on average in both readings
-and beats it on 36 of the 54 panel models. So PSU is measuring how *robust* the prediction
+and beats it on most panel models (the count is in the block above). So PSU is measuring how *robust* the prediction
 is, not how confident it started.
 
 ## The fractional form
 
 Fractional PSU is now the canon headline statistic (`detection_psu_ratio`), with absolute PSU
-reported beside it. On the 54-model panel it reads 0.963 against 0.955 for the absolute form.
+reported beside it. Its panel mean against the absolute form's is in the block above.
 The gain is small and costs nothing: it is the same cached tensors divided by a number
 already on disk.
 
@@ -98,9 +97,9 @@ which is the right way round.
 
 ## Subquestions
 
-1. The fractional form's advantage holds under the adaptive rate rule on the 54-model
+1. The fractional form's advantage holds under the adaptive rate rule on the current
    panel (above). Whether it holds across SAM checkpoints has not been read.
-2. Confidence-only scores 0.688 mean on the 54-model panel. That is a baseline no PSBD
+2. Confidence-only scores far below PSBD-TM on the current panel (above). That is a baseline no PSBD
    paper reports, and any detection method should be shown to beat it.
 3. Does combining the 2 (confidence and PSU as 2 features) beat either? That
    would say they carry partly independent information.

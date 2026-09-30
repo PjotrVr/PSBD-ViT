@@ -1,6 +1,6 @@
 # Quantitative predictions for why PSBD works on ViT
 
-**Superseded on 2026-09-29 for panel numbers.** This document was written on the 57-model ViT panel of 2026-09-24. The panel is now the 54 models successful at the 2-point clean-accuracy bar (`paper/headline.tex`, `\HeadlinePairedCells`), which drops the only ViT SIG model and 2 WaNet models. Its panel means are kept as measured and are recomputed on the new panel once the analysis experiments of 2026-09-30 land.
+**Superseded on 2026-09-30 for panel numbers.** This document was written on the 57-model ViT panel of 2026-09-24. The panel is now the 56 successful models carrying both placements at the 2-point clean-accuracy bar (`paper/headline.tex`, `\HeadlinePairedCells`), which drops the only ViT SIG model and 2 WaNet models. Its panel means are kept as measured and are recomputed on the new panel once the analysis experiments of 2026-09-30 land.
 
 This document derives the numbers each explanation of PSBD's behavior on ViT predicts and checks each derivation against the cached results on disk. It is the companion of the literature memo `docs/why-psbd-works-literature.md` and reuses its explanation ids (L1 to L27 and P1 to P12). It sets the thresholds the experiments in `experiments/why_psbd_works/` and `experiments/why_token_masking_works/` are judged against.
 

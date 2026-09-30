@@ -2,10 +2,10 @@
 
 **Status: INCONCLUSIVE. The trend is attack-dependent and reverses sign.**
 
-> **Superseded on 2026-09-29:** the current values follow, each with its source, on the
-> 57-model ViT-B/16 panel of the 2026-09-24 build. At the adaptive 0.8 rule PSBD-TM
-> reads 0.968 at 1% over 17 models, 0.970 at 5% over 20 and 0.922 at 10% over 20, while
-> PSBD-RD rises from 0.818 to 0.898 to 0.937
+> **Superseded on 2026-09-30:** the current values follow, each with its source, on the
+> 56-model ViT-B/16 panel of the 2026-09-30 build. At the adaptive 0.8 rule PSBD-TM
+> reads 0.929 at 1% over 18 models, 0.972 at 5% over 20 and 0.949 at 10% over 18, while
+> PSBD-RD rises from 0.818 to 0.872 to 0.937
 > (`experiments/doc_recomputes/auroc_by_rate.py`, whose 1% and 10% gaps reproduce
 > `\GainsLowestRate` and `\GainsHighestRate`). Detection improves with poison rate for
 > PSBD-RD and not for PSBD-TM. The evidence below is the record of the measurement that

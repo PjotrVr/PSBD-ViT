@@ -1,5 +1,7 @@
 # Experiment audit, 2026-09-29
 
+Superseded on 2026-09-30: the panel is 56 models, see paper/headline.tex.
+
 Scope is every experiment directory that feeds the notebooks plus the work in progress on the login node GPU tonight (17:00 to 07:00). Every check ran on CPU from cached JSON and tensors. Nothing under `paper/` was edited and nothing was committed. Severity classes are wrong result, missing control, unsupported claim and hazard, in that order. Directories in progress (`why_psbd_works`, `prediction_shift_phenomenon`, `backdoor_manifestation`) were still changing at 17:35, so their sections describe the files at that time.
 
 ## Findings that invalidate or endanger tonight's runs

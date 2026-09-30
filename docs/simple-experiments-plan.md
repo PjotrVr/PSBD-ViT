@@ -131,7 +131,7 @@ Every L and P entry of the literature memo appears once here with its status and
 | L25 | LayerNorm absorbs noise and not masking | confirmed on ViT | done | Swin shares, not scheduled |
 | L26 | frequency content and WaNet's coherence check | E8's first prediction failed on the failing cell (X1) | X6, X15, X16, W8 | |
 | L27 | adversarial examples and backdoors | partial, 1 CIFAR-100 model per attack | none | PGD on the panel, not scheduled |
-| P1 | just more confident | refuted panel-wide (PSBD-TM beats the confidence ceiling $A^*(P_c)$ on 50 of 54 models) | done | none |
+| P1 | just more confident | refuted panel-wide (PSBD-TM beats the confidence ceiling $A^*(P_c)$ on 50 of 54 models of the 2026-09-29 build) | done | none |
 | P5 | out of distribution | refuted for Blend, LF and BPP, partial for WaNet (0.531) | done | none |
 | P7 | the trigger is small | partial, replaced by L20 | done | none |
 | P10 | the target class is easy | partial for BadNets, Blend, BPP, LF and WaNet, refuted for TaCT (0.032) | done | none |
@@ -555,7 +555,7 @@ WaNet is the most important failure because it holds the only inverted cell of t
 
 **X2. The replicates of the failing cell (W2).**
 
-- Hypothesis: the 0.459 cell is a checkpoint accident, against a recipe that defeats PSBD-TM.
+- Hypothesis: the 0.459 cell (CIFAR-10 WaNet at 10%, no longer the PSBD-TM floor since 2026-09-30) is a checkpoint accident, against a recipe that defeats PSBD-TM.
 - Comparison and control: `before_attention_norm_token_mask` and `post_residual` swept on `vit_cifar10_wanet_0_1_seed_1` and `_seed_2` (noise mode, attack success 0.885 and 0.889 in `metrics.json`), with the seed-0 cell as the reference.
 - Prediction: if both read at least 0.9, the 0.459 is a checkpoint property and the paper should say so. If both read at most 0.6, CIFAR-10 WaNet at 10% with noise mode is a recipe that defeats PSBD-TM and the paper has a real failure class.
 - Refuted if: the accident reading is refuted when either replicate reads 0.6 or below.
@@ -695,7 +695,7 @@ For $p \le (B-1)/B$ such masks exist, for example by assigning each token a rand
 
 **N5. Random-rotation subspace dropout (theory candidate (5)).**
 
-- Hypothesis: 2 predictions conflict. The earlier plan argued that the OR and AND asymmetry of token masking has no counterpart among random directions, so only the margin difference (E4, refuted as the carrier) remains and N5 reads at or below the MLP channel mask (0.833 on the 54 models). The theory triage argues that for a random $k$-dimensional subspace $S$, $\mathbb{E}P_S = (k/d)I$, so $u^\top(I - P_S)x$ has mean $(1 - k/d)a$ with relative fluctuation about $\sqrt{k}\,\|x\|/(d\,a)$, which ranks inputs by a cosine margin. Triggered representations are dominated by $u$.
+- Hypothesis: 2 predictions conflict. The earlier plan argued that the OR and AND asymmetry of token masking has no counterpart among random directions, so only the margin difference (E4, refuted as the carrier) remains and N5 reads at or below the MLP channel mask (0.833 on the 54 models of the 2026-09-29 build). The theory triage argues that for a random $k$-dimensional subspace $S$, $\mathbb{E}P_S = (k/d)I$, so $u^\top(I - P_S)x$ has mean $(1 - k/d)a$ with relative fluctuation about $\sqrt{k}\,\|x\|/(d\,a)$, which ranks inputs by a cosine margin. Triggered representations are dominated by $u$.
 - Comparison and control: rotation against the axis-aligned proxy `post_residual_channel_mask` at matched shift.
 - Prediction: the theory triage predicts patch 0.8 to 0.95 (at most 0.5 axis-aligned), blend 0.93 to 0.98, frequency about 0.9 and warp about 0.95. The earlier plan predicts at or below 0.833 overall. The cached axis-aligned proxy reads Blend 0.99, BadNets 0.34 and LF 0.95 on the 3 development models that carry it.
 - Refuted if: the theory triage is refuted when rotation reads within 0.05 of axis-aligned on the 2 patch development models, and the earlier plan when rotation beats 0.9 on patch.
@@ -706,7 +706,7 @@ For $p \le (B-1)/B$ such masks exist, for example by assigning each token a rand
 
 - Hypothesis: ShortcutProbe's "Active Neuron Dropout" (Prasad et al.), a neuron-level account (L7, P3) already refuted in the residual and MLP bases.
 - Comparison and control: dropout of positive activations only after GELU in the MLP hidden layer, the only ViT site where "positive" is defined, against the plain MLP channel mask at matched shift.
-- Prediction: at or below plain MLP channel masking, which reads 0.833 on the 54 models (TaCT 0.522, BadNets 0.775) against PSBD-TM's 0.963.
+- Prediction: at or below plain MLP channel masking, which reads 0.833 on the 54 models of the 2026-09-29 build (TaCT 0.522, BadNets 0.775) against PSBD-TM's 0.963 on the same 54.
 - Refuted if: the prediction is refuted when S1 beats the plain channel mask by more than 0.02.
 - Models, compute, owner: the development set, GPU, about 4 min per model (1 sweep, 40 min), `experiments/novel_operators/`.
 - Status: planned, main night slot 19.
@@ -954,7 +954,7 @@ Each entry gives the design in 2 or 3 sentences, what it revealed and what it me
 
 **Clever Hans (Lapuschkin et al., Nature Communications 2019, arXiv 1902.10178).** A Fisher-vector model classified horses by a copyright tag, which the authors showed by pasting the tag onto a car image and getting "horse". For us the transplant is X11, the trigger pasted onto blank, noise and foreign images.
 
-**SentiNet (Chou et al., DLS 2020, arXiv 1812.00292).** The salient region of a suspicious image is pasted onto held-out clean images and the fooled rate is compared with that of an inert pattern of the same size. For us the inert-pattern control is the part to copy, and the port's below-chance reading (Q23, `\DetectorsAurocSentinet` 0.418) is a warning that the transplant statistic's sign is subtle.
+**SentiNet (Chou et al., DLS 2020, arXiv 1812.00292).** The salient region of a suspicious image is pasted onto held-out clean images and the fooled rate is compared with that of an inert pattern of the same size. For us the inert-pattern control is the part to copy, and the port's below-chance reading (Q23, `\DetectorsAurocSentinet` 0.421) is a warning that the transplant statistic's sign is subtle.
 
 **Rethinking the trigger (Li et al., arXiv 2004.04692).** On ConvNets, moving a BadNets patch slightly or changing its appearance at test time drops the attack success rate sharply, and flipping or shrink-padding the test image is a cheap defense. For us moving the trigger across the token grid (X10) tests position binding (E9) on ViT and, because the grid position sets how many tokens a patch covers, manipulates m in the $p^{4m}$ law.
 

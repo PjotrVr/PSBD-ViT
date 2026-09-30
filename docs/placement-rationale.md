@@ -1,5 +1,7 @@
 # Placement rationale
 
+Superseded on 2026-09-30: the panel is 56 models, see paper/headline.tex. The tables below were read on 54.
+
 PSBD detects a backdoor by perturbing the model several times and flagging an input whose prediction barely moves. On a ResNet the original paper puts dropout in 1 obvious place. A vision transformer offers many places, and several kinds of perturbation fit each of them, so this repository swept a grid of them. This page explains that grid as what it was: a sequence of hypotheses, each forced by the result before it. For every site it says what tensor is touched and through which code path, which hypothesis made the site worth trying, which hypothesis doc under `docs/hypothesis/` records the test, and what the current measurement says. Every number sits in the generated placement ledger at the end of the page, written by `python scripts/detector_doc_results.py`. The prose describes the ledger's rows without retyping their values, so it cannot go stale when the panel grows.
 
 `notebooks/placements-and-operators.ipynb` is the executable companion: it runs every operator on a toy tensor and records the tensor shape at every position of real ViT-B/16, Swin-S and ResNet-18 architectures. Each step's comparison is drawn there from the same cached files.

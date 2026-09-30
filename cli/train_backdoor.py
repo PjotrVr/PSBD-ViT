@@ -114,6 +114,12 @@ COVER_RATE_MULTIPLES = {
     "wanet": 2.0,  # BackdoorBench cross_ratio 2, and PSBD's twice the poisoning ratio
     "adaptive_blend": 1.0,  # Qi et al. and PSBD: cover ratio equal to the poisoning ratio
     "bpp": 1.0,  # BackdoorBench neg_ratio 0.1 against pratio 0.1
+    # docs/evidence-surplus-theory.md: 10% cover at 10% poisoning for the AND
+    # attacks (R4, R6) and the veto (R7). Without covers an AND trigger is just a
+    # bigger OR trigger, since every subset would predict the target.
+    "and16": 1.0,
+    "and2": 1.0,
+    "veto": 1.0,
 }
 
 

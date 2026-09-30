@@ -24,11 +24,13 @@ from . import (
     badnet,
     blend,
     bpp,
+    conjunction,
     generated,
     lc,
     lf,
     sig,
     tact,
+    veto,
     wanet,
 )
 from .bases import adversarial_config_error as adversarial_config_error
@@ -58,6 +60,18 @@ def _badnet_all_to_m(num_targets: int) -> Callable[[], badnet.BadNetConfig]:
     return factory
 
 
+# R6's control for the 16-component AND: 2 redundant BadNets patches at opposite
+# corners, a cover image carrying exactly 1 of them.
+def _conjunction_two_corners() -> conjunction.ConjunctionConfig:
+    config = conjunction.ConjunctionConfig(
+        layout="opposite_corners",
+        num_components=2,
+        patch_size=3,
+        cover_min_components=1,
+    )
+    return config
+
+
 # name maps to (builder, config factory). A factory of None means the attack needs
 # arguments with no sensible default, so its config must be built directly.
 _ATTACKS = {
@@ -79,6 +93,9 @@ _ATTACKS = {
     "bpp": (bpp.build, bpp.BppConfig),
     "adaptive_blend": (adaptive_blend.build, adaptive_blend.AdaptiveBlendConfig),
     "tact": (tact.build, tact.TactConfig),
+    "and16": (conjunction.build, conjunction.ConjunctionConfig),
+    "and2": (conjunction.build, _conjunction_two_corners),
+    "veto": (veto.build, veto.VetoConfig),
     "generated": (generated.build, None),
 }
 

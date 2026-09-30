@@ -48,6 +48,7 @@ SETUP_CELL = code(
     SETUP
     + r"""
 import collections
+import re
 
 from matplotlib.patches import FancyBboxPatch, Rectangle
 
@@ -188,6 +189,9 @@ What is measured: per model, the headline AUROC (fractional PSU, 0.25 quantile t
 
 STEP1_CODE = code(r"""
 TM = "attention_input__token_mask"
+# The paper's own headline values, read from the build's macro file, so the prose
+# quotes the numbers the paper prints and names the macro that carries each.
+PAPER = dict(re.findall(r"\\newcommand\{\\([A-Za-z]+)\}\{([^}]*)\}", open("paper/headline.tex").read()))
 RD = "stream__dropout"
 
 
@@ -243,7 +247,7 @@ shifts.round(3)
 """)
 
 STEP1_SAID = said(r"""
-Each dot in the figure is 1 model, PSBD-RD's AUROC on the x axis and PSBD-TM's on the y axis, colored by attack, with the diagonal dashed. A dot above the diagonal is a model PSBD-TM detects better. On ViT the means are {headline["vit"]["tm"]:.3f} against {headline["vit"]["rd"]:.3f}, a paired gain of {headline["vit"]["gap"][0]:+.3f} with a 95% bootstrap interval of [{headline["vit"]["gap"][1]:+.3f}, {headline["vit"]["gap"][2]:+.3f}] over {headline["vit"]["models"]} models, and PSBD-TM is ahead on {headline["vit"]["tm_wins"]} of them. On Swin the means are {headline["swin"]["tm"]:.3f} against {headline["swin"]["rd"]:.3f}, a gain of {headline["swin"]["gap"][0]:+.3f} [{headline["swin"]["gap"][1]:+.3f}, {headline["swin"]["gap"][2]:+.3f}] over {headline["swin"]["models"]} models, ahead on {headline["swin"]["tm_wins"]}. The ViT means and the Swin PSBD-TM mean equal the paper's headline values, since the statistic, the rate rule and the panel are the paper's own.
+Each dot in the figure is 1 model, PSBD-RD's AUROC on the x axis and PSBD-TM's on the y axis, colored by attack, with the diagonal dashed. A dot above the diagonal is a model PSBD-TM detects better. On ViT the means are {headline["vit"]["tm"]:.3f} against {headline["vit"]["rd"]:.3f}, a paired gain of {headline["vit"]["gap"][0]:+.3f} with a 95% bootstrap interval of [{headline["vit"]["gap"][1]:+.3f}, {headline["vit"]["gap"][2]:+.3f}] over {headline["vit"]["models"]} models, and PSBD-TM is ahead on {headline["vit"]["tm_wins"]} of them. On Swin, over the {headline["swin"]["models"]} models carrying both, PSBD-TM is ahead on {headline["swin"]["tm_wins"]}. The paper reports the Swin panel as {PAPER["SwinRecommendedAurocAdaptive"]} for PSBD-TM (`\SwinRecommendedAurocAdaptive`) against {PAPER["SwinPublishedAurocAdaptive"]} for PSBD-RD (`\SwinPublishedAurocAdaptive`), a paired gain of {PAPER["SwinGainRecommendedMinusPublished"]} [{PAPER["SwinGainRecommendedMinusPublishedLow"]}, {PAPER["SwinGainRecommendedMinusPublishedHigh"]}] over {PAPER["SwinGainRecommendedMinusPublishedN"]} models (`\SwinGainRecommendedMinusPublished`). The ViT means above equal the paper's `\HeadlineAurocAdaptive` and `\PublishedAurocAdaptive`, since the statistic, the rate rule and the panel are the paper's own.
 
 The table says where the lead comes from. At the adaptive rate both placements change about {shifts["clean shift"].mean():.2f} of clean predictions, which the rule forces, and they differ in how many triggered predictions they change. On ViT patch triggers PSBD-TM changes {shifts.loc[("ViT-B/16", "PSBD-TM", "patch"), "triggered shift"]:.3f} of triggered predictions against {shifts.loc[("ViT-B/16", "PSBD-RD", "patch"), "triggered shift"]:.3f} for PSBD-RD, and on Swin patch triggers {shifts.loc[("Swin-S", "PSBD-TM", "patch"), "triggered shift"]:.3f} against {shifts.loc[("Swin-S", "PSBD-RD", "patch"), "triggered shift"]:.3f}. On global triggers the 2 are closer ({shifts.loc[("ViT-B/16", "PSBD-TM", "global"), "triggered shift"]:.3f} against {shifts.loc[("ViT-B/16", "PSBD-RD", "global"), "triggered shift"]:.3f} on ViT). So the thing to explain is why whole-token masking at the attention input leaves a patch-triggered prediction alone while it breaks a clean one, and why dropout on the stream does not. The figure does not say which of the site or the operator is responsible, which step 8 separates.
 """)
@@ -718,7 +722,7 @@ PSBD-TM combines a site (the attention input, before its LayerNorm) and an opera
 | attention has not yet mixed the tokens | token masking at the MLP input (site E) loses to site A, since attention has already copied the trigger into other tokens |
 | it just perturbs more | the gaps vanish at the matched clean shift of 0.6 |
 
-What is measured: for each pair of placements, the per-model AUROC difference over the models carrying both, at the adaptive rule and at the matched rule, with a 95% bootstrap interval (10000 resamples, `scripts.paper._common.bootstrap_ci`), plus both placements' clean and triggered shift ratios (`sites.contrast_table`). ViT has the full grid of 9 positions by 4 operators on 37 of the 57 models, and every contrast uses only the models carrying both of its placements. Swin has a smaller cached grid, so some contrasts have no Swin row.
+What is measured: for each pair of placements, the per-model AUROC difference over the models carrying both, at the adaptive rule and at the matched rule, with a 95% bootstrap interval (10000 resamples, `scripts.paper._common.bootstrap_ci`), plus both placements' clean and triggered shift ratios (`sites.contrast_table`). ViT has the full grid of 9 positions by 4 operators on 36 of the 54 models, and every contrast uses only the models carrying both of its placements. Swin has a smaller cached grid, so some contrasts have no Swin row.
 """)
 
 STEP8_CODE = code(r"""
@@ -1087,7 +1091,7 @@ Claim: PSBD-TM's adaptive rate damages the model more than PSBD-RD's, and more d
 """)
 
 STEP12_PERTURBS_SAID = said(r"""
-Verdict: refuted. At the matched rule PSBD-TM leads PSBD-RD by {gap("vit", "psbd_tm_vs_psbd_rd")} on ViT and {gap("swin", "psbd_tm_vs_psbd_rd")} on Swin, the same order as at the adaptive rule ({gap("vit", "psbd_tm_vs_psbd_rd", "adaptive")} and {gap("swin", "psbd_tm_vs_psbd_rd", "adaptive")}). On the ladders token masking at A lies above every other operator at every clean shift. And the adaptive rule itself equalizes damage: both placements change about {shifts["clean shift"].mean():.2f} of clean predictions there (step 1), since that is what the rule targets.
+Verdict: refuted. At the matched rule PSBD-TM leads PSBD-RD by {gap("vit", "psbd_tm_vs_psbd_rd")} on ViT and {gap("swin", "psbd_tm_vs_psbd_rd")} on Swin, the same order as at the adaptive rule ({gap("vit", "psbd_tm_vs_psbd_rd", "adaptive")} on ViT, and on Swin the paper's {PAPER["SwinGainRecommendedMinusPublished"]} [{PAPER["SwinGainRecommendedMinusPublishedLow"]}, {PAPER["SwinGainRecommendedMinusPublishedHigh"]}], `\SwinGainRecommendedMinusPublished`). On the ladders token masking at A lies above every other operator at every clean shift. And the adaptive rule itself equalizes damage: both placements change about {shifts["clean shift"].mean():.2f} of clean predictions there (step 1), since that is what the rule targets.
 """)
 
 STEP12_LN = md(r"""

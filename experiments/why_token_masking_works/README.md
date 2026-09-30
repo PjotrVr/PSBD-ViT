@@ -42,7 +42,7 @@ $$\phi(x) = 1 - \frac{1}{k}\sum_{i=1}^{k}\frac{P_c(x;p,\theta_i')}{P_c(x;\theta)
 
 Every result spans the successful backdoors only (user decision, 2026-09-29): the attack clears the 0.85 ASR bar, the model is neither diverged nor source-mapped (a TaCT model that sends its clean source class to the target with no trigger), and its clean accuracy is within 2 points of the benign model of its dataset. A failed attack is left out even when that removes the attack.
 
-- ViT: the coverage ledger's `successful_2pt` verdict, 54 models (`tokens.successful_vit_folders`). Against the 57 clearing models this drops `vit_cifar10_sig_0_1`, `vit_cifar10_wanet_0_05` and `vit_gtsrb_wanet_0_1`.
+- ViT: the coverage ledger's `successful_2pt` verdict (`tokens.successful_vit_folders`), 56 models (`\PanelCellsSuccessful`), 54 of them carrying both placements (`\PanelCellsCached`). Of the 59 clearing models (`\PanelCellsClearing`) it drops `vit_cifar10_sig_0_1`, `vit_cifar10_wanet_0_05` and `vit_gtsrb_wanet_0_1`.
 - Swin: the same rule through `scripts.paper._common.swin_coverage`, which applies the ViT declaration (datasets, poison rates 1%, 5% and 10%, canonical variants) with the Swin benign models as references (`swin.panel_cells`), 65 models, 63 of them carrying both PSBD-TM and PSBD-RD at the adaptive rule. No Swin Label-Consistent or SIG model is on it.
 - SIG is also kept out of every GPU run: `attacks/sig.py` builds amplitude 0.157 while the July ViT SIG checkpoint learned 0.1 (`docs/audits/2026-09-29-experiment-audit.md`). Both SIG models fail the success bar in any case.
 - Patch models for the causal parts: 15 on ViT (12 BadNets, 3 TaCT whose clean source images are classified correctly) and 14 on Swin (12 BadNets, 2 TaCT). Swin part A also ran on 7 models that left the panel when it switched to `swin_coverage` on 2026-09-30 (the 0.5% BadNets models and 4 Label-Consistent models). Their records stay in `swin/` and out of every summary.
@@ -119,7 +119,7 @@ The notebook `notebooks/why-psbd-tm.ipynb` has 1 figure per result below and sta
 
 ### The lead to explain
 
-On the 54 ViT models PSBD-TM reads 0.963 against 0.885 for PSBD-RD at the adaptive rule, a paired gain of +0.078 [+0.026, +0.135]. On the 63 Swin models carrying both it reads 0.973 against 0.877, +0.096 [+0.052, +0.143]. At the adaptive rate both change about 0.87 of clean predictions. On ViT patch triggers PSBD-TM changes 0.195 of triggered predictions and PSBD-RD 0.676, on Swin 0.009 and 0.595.
+On the 54 ViT models PSBD-TM reads 0.963 against 0.885 for PSBD-RD at the adaptive rule, a paired gain of +0.078 [+0.026, +0.135]. On Swin the paper reports 0.973 against 0.881 (`\SwinRecommendedAurocAdaptive`, `\SwinPublishedAurocAdaptive`), a paired gain of +0.096 [+0.051, +0.144] over 63 models (`\SwinGainRecommendedMinusPublished`). At the adaptive rate both change about 0.87 of clean predictions. On ViT patch triggers PSBD-TM changes 0.195 of triggered predictions and PSBD-RD 0.676, on Swin 0.009 and 0.595.
 
 ### A, where a patch trigger is read
 

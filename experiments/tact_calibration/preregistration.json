@@ -1,0 +1,50 @@
+{
+  "written_before": "analyze.py read any model outside the 4 tuning models (the dev, holdout and rest groups of plan.json)",
+  "tuned_on": "results/_experiments/tact_calibration/tuning.json, the 4 TaCT panel models",
+  "pass_count_primary": 20,
+  "validation_size": {"cifar10": 4000, "cifar100": 5000, "gtsrb": 4000, "tiny": 5000},
+  "shrinkage": {"fallback": 200, "class": 5},
+  "selection": "m maximizing each calibrated score's own mean TPR over 1%, 5% and 10% FPR on the 4 tuning models at k = 20, grid 5, 20, 50 and 200, ties to the larger m after rounding to 3 decimals. The fallback score reads the same TPR at every m (its fallback class is the attractor for at least 0.89 of triggered inputs on every tuning model), so the tie rule gave 200. The class score chose 5, the edge of the grid.",
+  "rules": {
+    "premise": {
+      "text": "On the 6 holdout models the mean share of triggered inputs whose PSBD-TM fallback class at k = 20 is their own source class is below own_source_below.",
+      "own_source_below": 0.1
+    },
+    "plain_low": {
+      "text": "Advance prediction from the evidence surplus account: PSBD-TM alone (P2_tm) and the final method (P2_final), with no calibration, detect under tpr_below of triggered inputs at 10% FPR on at least at_least of the 6 holdout models, read at each k in pass_counts.",
+      "tpr_below": 0.3,
+      "at_least": 4,
+      "pass_counts": [3, 20]
+    },
+    "holdout_gain": {
+      "text": "The OR rule with a calibrated score raises the holdout mean TPR at 10% FPR over its uncalibrated reference (PSBD-TM alone for or_*, the final method for final_or_*) by at least mean_gain_at_least, with the paired 95% bootstrap interval above 0. P3 is the fallback score, P4 the class score.",
+      "mean_gain_at_least": 0.1,
+      "pass_count": 20
+    },
+    "no_harm": {
+      "text": "On the successful non-TaCT development models (P5_dev) and on every successful non-TaCT panel model read (P5_panel), the mean TPR change of each OR rule against its reference is no worse than mean_loss_no_worse_than at each of 1%, 5% and 10% FPR.",
+      "mean_loss_no_worse_than": -0.02,
+      "pass_count": 20
+    },
+    "fpr_control": {
+      "text": "Over the successful non-TaCT panel models read, each OR rule's mean realized FPR on the all-class clean evaluation set is within tolerance of the nominal FPR.",
+      "tolerance": {"q0.01": 0.005, "q0.05": 0.01, "q0.10": 0.01},
+      "pass_count": 20
+    },
+    "pass_count": {
+      "text": "Recommended k is the smallest candidate whose mean AUROC and mean TPR at 1%, 5% and 10% FPR for PSBD-TM alone, over the successful non-TaCT panel models read, are each no more than within below k = 20 (P7). P7_auroc_gain: k = 20 raises mean AUROC over k = 3 with the paired interval above 0.",
+      "candidates": [3, 5, 10, 20],
+      "within": 0.01,
+      "predicted": 10
+    }
+  },
+  "expected": {
+    "P1": "holds, every tuning model read 0 own-source fallbacks",
+    "P2": "holds at both k for PSBD-TM alone and for the final method",
+    "P3": "fails, the fallback score cannot separate what the fallback class does not separate",
+    "P4": "uncertain, the class score gained on 2 of 4 tuning models and nothing on the other 2",
+    "P5": "the fallback OR rules hold, the class OR rules fail at 1% FPR, because triggered inputs are ranked against target-class validation images the backdoor made more robust",
+    "P6": "holds",
+    "P7": "holds"
+  }
+}

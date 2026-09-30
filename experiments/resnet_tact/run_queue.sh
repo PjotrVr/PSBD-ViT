@@ -35,19 +35,16 @@ TACT_RUNS=(
     "resnet18_cifar10_badnet_a2o_0_1 cifar10 badnet_a2o 0.1 -"
 )
 BENIGN_DATASETS=(gtsrb cifar10)
-SWEPT=(
+SUFFICIENCY=(
     resnet18_gtsrb_tact_0_05_src6
     resnet18_gtsrb_tact_0_1_src12
     resnet18_cifar10_tact_0_01
     resnet18_cifar10_tact_0_05_src3
     resnet18_cifar10_badnet_a2o_0_1
-)
-SUFFICIENCY=(
-    "${SWEPT[@]}"
     resnet18_gtsrb_badnet_a2o_0_1
     resnet18_gtsrb_blend_0_1
 )
-TACT_FOLDERS=("${SWEPT[@]:0:4}")
+TACT_FOLDERS=("${SUFFICIENCY[@]:0:4}")
 
 inside_gpu_window() {
     local now
@@ -92,16 +89,37 @@ stage() {
     fi
 }
 
-for run in "${TACT_RUNS[@]}"; do
-    read -r folder dataset attack rate sources <<<"$run"
-    [[ -f "$CHECKPOINTS/$folder/attack_result.pt" ]] && continue
-    override=()
+train_backdoor() {
+    local folder=$1 dataset=$2 attack=$3 rate=$4 sources=$5
+    [[ -f "$CHECKPOINTS/$folder/attack_result.pt" ]] && return 0
+    local override=()
     [[ "$sources" != "-" ]] && override=(--attack-override "source_classes=$sources")
     stage "train.$folder" $CAPPED cli.train_backdoor \
         --dataset "$dataset" --attack "$attack" --poison-rate "$rate" \
         --target-label 0 --architecture resnet18 --epochs 100 --seed 0 \
         --num-workers 4 --raw-data-dir "$RAW" "${override[@]}" \
         --output "$CHECKPOINTS/$folder/attack_result.pt"
+}
+
+sweep_and_analyze() {
+    local folder=$1
+    [[ -f "$RESULTS/$folder/psbd_metrics.json" ]] && return 0
+    [[ -f "$CHECKPOINTS/$folder/attack_result.pt" ]] || return 0
+    stage "sweep.$folder" $CAPPED cli.sweep --checkpoint-folder "$folder" \
+        --position post_residual --operator dropout --rates $RATES \
+        --forward-passes 3 --skip-existing \
+        --checkpoints-dir "$CHECKPOINTS" --results-dir "$RESULTS" --raw-data-dir "$RAW"
+    python -m cli.analyze --checkpoint-folder "$folder" \
+        --checkpoints-dir "$CHECKPOINTS" --results-dir "$RESULTS" \
+        >"$LOG_DIR/analyze.$folder.log" 2>&1
+}
+
+# Each model is swept right after it trains, so the GTSRB TaCT models read out
+# before the longer CIFAR-10 runs start.
+for run in "${TACT_RUNS[@]}"; do
+    read -r folder dataset attack rate sources <<<"$run"
+    train_backdoor "$folder" "$dataset" "$attack" "$rate" "$sources"
+    sweep_and_analyze "$folder"
 done
 
 for dataset in "${BENIGN_DATASETS[@]}"; do
@@ -110,18 +128,6 @@ for dataset in "${BENIGN_DATASETS[@]}"; do
     stage "train.$folder" $CAPPED cli.train_benign \
         --datasets "$dataset" --architecture resnet18 --epochs 100 --seed 0 \
         --num-workers 4 --raw-data-dir "$RAW" --weights-dir "$CHECKPOINTS"
-done
-
-for folder in "${SWEPT[@]}"; do
-    [[ -f "$RESULTS/$folder/psbd_metrics.json" ]] && continue
-    [[ -f "$CHECKPOINTS/$folder/attack_result.pt" ]] || continue
-    stage "sweep.$folder" $CAPPED cli.sweep --checkpoint-folder "$folder" \
-        --position post_residual --operator dropout --rates $RATES \
-        --forward-passes 3 --skip-existing \
-        --checkpoints-dir "$CHECKPOINTS" --results-dir "$RESULTS" --raw-data-dir "$RAW"
-    python -m cli.analyze --checkpoint-folder "$folder" \
-        --checkpoints-dir "$CHECKPOINTS" --results-dir "$RESULTS" \
-        >"$LOG_DIR/analyze.$folder.log" 2>&1
 done
 
 for folder in "${SUFFICIENCY[@]}"; do

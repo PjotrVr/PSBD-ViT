@@ -61,7 +61,8 @@ def psu_ratio_from_cache(
 ) -> torch.Tensor:
     """PSU as a fraction of the starting confidence, shape (n,), float32.
 
-        original form, in the notation of the paper's Equation 2
+        fractional form, our division of the paper's Equation 2 (an absolute drop,
+        see psu_from_cache) by the starting confidence, in the paper's notation
             phi_ratio(x) = 1 - (1/k) * sum_{i=1..k} P_c(x; p, theta_i') / P_c(x; theta)
             with c = argmax_c P(x; theta)
 

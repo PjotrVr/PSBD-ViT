@@ -221,7 +221,7 @@ poisoned models, **fails** when it fails on at least 2 in 3, and is **partial** 
 | architecture | poisoned models | benign models | source |
 |---|---|---|---|
 | ResNet-18 | 2 counted plus 1 reference (`resnet18_gtsrb_badnet_a2o_0_1`, `resnet18_gtsrb_blend_0_1`, `resnet18_cifar10_badnet_a2o_0_1_smoke`) | 0 | the non-evading checkpoints of `experiments/resnet_control/` |
-| ViT-B/16 | 54 | 4 (CIFAR-10, CIFAR-100, GTSRB, Tiny) | the successful panel (`scripts.paper._common.clearing_cells`, `successful_2pt`) with both placements cached |
+| ViT-B/16 | 56 | 4 (CIFAR-10, CIFAR-100, GTSRB, Tiny) | the successful panel (`scripts.paper._common.clearing_cells`, `successful_2pt`) with both placements cached |
 | Swin-S | 65 with PSBD-RD, 63 with PSBD-TM | 3 (CIFAR-100 cached, CIFAR-10 and GTSRB swept on 2026-09-29) | `scripts.paper.tab_swin.swin_cells` at the same `successful_2pt` bar, SIG removed |
 
 Both transformer panels are the successful backdoors of the paper: the attack success rate clears
@@ -345,14 +345,16 @@ rate. The attacks carry the repository's names: `badnet_a2o` BadNets all-to-one,
 | ViT-B/16 | PSBD-RD | blend | 12 | 10 / 0 / 2 | 0.06 | 0 / 4 / 8 | 0.08 |
 | ViT-B/16 | PSBD-RD | bpp | 12 | 7 / 0 / 5 | 0.08 | 0 / 4 / 8 | 0.09 |
 | ViT-B/16 | PSBD-RD | lf | 12 | 6 / 0 / 6 | 0.12 | 0 / 8 / 4 | 0.26 |
-| ViT-B/16 | PSBD-RD | tact | 3 | 0 / 0 / 3 | 0.94 | 0 / 0 / 3 | 0.03 |
+| ViT-B/16 | PSBD-RD | tact | 4 | 0 / 0 / 4 | 0.92 | 0 / 1 / 3 | 0.04 |
 | ViT-B/16 | PSBD-RD | wanet | 3 | 2 / 0 / 1 | 0.10 | 0 / 2 / 1 | 0.28 |
+| ViT-B/16 | PSBD-RD | lc | 1 | 0 / 0 / 1 | 0.97 | 0 / 0 / 1 | 0.00 |
 | ViT-B/16 | PSBD-TM | badnet_a2o | 12 | 10 / 0 / 2 | 0.03 | 3 / 3 / 6 | 0.22 |
 | ViT-B/16 | PSBD-TM | blend | 12 | 10 / 0 / 2 | 0.01 | 0 / 0 / 12 | 0.00 |
 | ViT-B/16 | PSBD-TM | bpp | 12 | 9 / 0 / 3 | 0.03 | 1 / 2 / 9 | 0.01 |
 | ViT-B/16 | PSBD-TM | lf | 12 | 12 / 0 / 0 | 0.00 | 0 / 4 / 8 | 0.17 |
-| ViT-B/16 | PSBD-TM | tact | 3 | 0 / 0 / 3 | 0.97 | 0 / 0 / 3 | 0.00 |
+| ViT-B/16 | PSBD-TM | tact | 4 | 0 / 0 / 4 | 0.99 | 0 / 0 / 4 | 0.00 |
 | ViT-B/16 | PSBD-TM | wanet | 3 | 2 / 0 / 1 | 0.04 | 0 / 2 / 1 | 0.21 |
+| ViT-B/16 | PSBD-TM | lc | 1 | 1 / 0 / 0 | 0.02 | 0 / 0 / 1 | 0.00 |
 | Swin-S | PSBD-RD | adaptive_blend | 7 | 6 / 0 / 1 | 0.00 | 4 / 2 / 1 | 0.97 |
 | Swin-S | PSBD-RD | badnet_a2o | 12 | 2 / 3 / 7 | 0.63 | 1 / 6 / 5 | 0.04 |
 | Swin-S | PSBD-RD | blend | 12 | 12 / 0 / 0 | 0.00 | 3 / 4 / 5 | 0.53 |
@@ -395,12 +397,13 @@ has saturated. The CIFAR-10 smoke run, reference only, shows the paper's shape t
 
 **Claim 1 on ViT-B/16 is partial under PSBD-RD and holds under PSBD-TM.** Under PSBD-RD the clean
 curves saturate near p = 0.09 and the triggered curves follow about 1 grid step later, so the
-window the paper describes is narrow, and 28 of 54 models miss it (median triggered ratio 0.12).
-The failures are BadNets on 11 of 12 models (median 0.69), TaCT on 3 of 3 (0.94) and 14 Blend,
-LF, BPP and WaNet models between 0.12 and 0.84, most of them on CIFAR-10 and CIFAR-100. Under
-PSBD-TM 43 of 54 hold with a median of 0.016. The 11 failures are the 3 trigger-conditional TaCT
-models (1.00, 0.97 and 0.42), 7 CIFAR-10, GTSRB and Tiny models of BadNets, Blend and BPP at 0.12
-to 0.36, and `vit_cifar10_wanet_0_1` at 0.82.
+window the paper describes is narrow, and 30 of 56 models miss it (median triggered ratio 0.12).
+The failures are BadNets on 11 of 12 models (median 0.69), TaCT on 4 of 4 (0.92), the LC model
+(0.97) and 14 Blend, LF, BPP and WaNet models between 0.12 and 0.84, most of them on CIFAR-10 and
+CIFAR-100. Under PSBD-TM 44 of 56 hold with a median of 0.018. The 12 failures are the 4
+trigger-conditional TaCT models (1.00, 1.00, 0.97 and 0.42, the first 2 `vit_cifar10_tact_0_01`
+and `vit_gtsrb_tact_0_01_cos`), 7 CIFAR-10, GTSRB and Tiny models of BadNets, Blend and BPP at
+0.12 to 0.36, and `vit_cifar10_wanet_0_1` at 0.82.
 
 **Claim 1 on Swin-S is partial under PSBD-RD and holds under PSBD-TM.** Under PSBD-RD 37 of 65
 hold, 13 are partial and 15 fail. Every Swin WaNet model is partial: some rate with a saturated
@@ -430,8 +433,10 @@ paper's BadNets panel shows for class 3. GTSRB Blend fails with 0.07 on the targ
 leads with 0.17.
 
 **Claim 2 on ViT-B/16 is partial under PSBD-RD and fails under PSBD-TM.** Under PSBD-RD the
-target leads on 19 of 54 models and takes 0.8 of the shifts on none (median 0.09). Under PSBD-TM
-the target leads on 15 of 54 and takes 0.8 on 4 (median 0.02). All 12 Blend models fail under
+target leads on 20 of 56 models and takes 0.8 of the shifts on none (median 0.09). Under PSBD-TM
+the target leads on 15 of 56 and takes 0.8 on 4 (median 0.02). On `vit_gtsrb_tact_0_01_cos`
+PSBD-TM sends 0.999 of the shifted clean predictions and 0.999 of the triggered ones to class 38,
+not the target, and moves every triggered prediction. All 12 Blend models fail under
 PSBD-TM, with a median of 0.00 on the target.
 
 **Claim 2 on Swin-S is partial under both placements.** Under PSBD-TM BadNets (10 of 12 hold,
@@ -463,14 +468,16 @@ p = 0.09, 1.0 at p = 0.2 and 0.05 at p = 0.9.
 | ViT-B/16 | PSBD-RD | blend | 12 | 9 of 12 | 0.05 | 0.84 | 1.00 |
 | ViT-B/16 | PSBD-RD | bpp | 12 | 12 of 12 | 0.07 | 0.83 | 0.99 |
 | ViT-B/16 | PSBD-RD | lf | 12 | 12 of 12 | 0.06 | 0.81 | 0.99 |
-| ViT-B/16 | PSBD-RD | tact | 3 | 1 of 3 | 0.43 | 0.81 | 0.46 |
+| ViT-B/16 | PSBD-RD | tact | 4 | 2 of 4 | 0.41 | 0.76 | 0.64 |
 | ViT-B/16 | PSBD-RD | wanet | 3 | 3 of 3 | 0.06 | 0.74 | 0.99 |
+| ViT-B/16 | PSBD-RD | lc | 1 | 0 of 1 | 0.52 | 0.61 | 0.43 |
 | ViT-B/16 | PSBD-TM | badnet_a2o | 12 | 10 of 12 | 0.12 | 0.87 | 0.99 |
 | ViT-B/16 | PSBD-TM | blend | 12 | 2 of 12 | 0.60 | 0.99 | 1.00 |
 | ViT-B/16 | PSBD-TM | bpp | 12 | 3 of 12 | 0.61 | 0.96 | 0.99 |
 | ViT-B/16 | PSBD-TM | lf | 12 | 4 of 12 | 0.67 | 0.96 | 1.00 |
-| ViT-B/16 | PSBD-TM | tact | 3 | 2 of 3 | 0.04 | 0.78 | 0.97 |
+| ViT-B/16 | PSBD-TM | tact | 4 | 2 of 4 | 0.04 | 0.77 | 0.95 |
 | ViT-B/16 | PSBD-TM | wanet | 3 | 3 of 3 | 0.30 | 0.83 | 0.97 |
+| ViT-B/16 | PSBD-TM | lc | 1 | 1 of 1 | 0.50 | 0.87 | 0.99 |
 | Swin-S | PSBD-RD | adaptive_blend | 7 | 6 of 7 | 0.64 | 0.85 | 1.00 |
 | Swin-S | PSBD-RD | badnet_a2o | 12 | 1 of 12 | 0.18 | 0.92 | 0.78 |
 | Swin-S | PSBD-RD | blend | 12 | 3 of 12 | 0.66 | 0.99 | 1.00 |
@@ -568,7 +575,7 @@ the mechanism the paper proposes? If it did, its shifted clean predictions would
 would move toward their triggered twins (claim 3).
 
 **Method.** The same 3 measurements, changing only the placement: claims 1 and 2 from its stage-1
-caches on the 54 successful ViT-B/16 models and the 4 ViT benign models, and claim 3 on the 10 ViT
+caches on the 56 successful ViT-B/16 models and the 4 ViT benign models, and claim 3 on the 10 ViT
 feature models and 2 benign ones at its adaptive rate, added to the existing records with
 `--add-conditions br_adaptive` (`run_best_residual_gpu.sh`, GPU 21:30 to 00:59 on 2026-09-29,
 mostly waiting for a lock slot). The control for claim 2 is `target_share_over_benign`, the
@@ -581,14 +588,15 @@ control for claim 3 is the benign models and the unrelated image pair.
 | blend | 12 | 8 | 0.02 | 0 | 1 | 0.04 | 0.00 | 1.00 |
 | bpp | 12 | 7 | 0.08 | 0 | 4 | 0.08 | 0.03 | 0.99 |
 | lf | 12 | 8 | 0.03 | 0 | 2 | 0.08 | 0.08 | 0.99 |
-| tact | 3 | 0 | 0.94 | 0 | 0 | 0.01 | -0.12 | 0.77 |
+| tact | 4 | 0 | 0.92 | 0 | 1 | 0.04 | -0.06 | 0.77 |
 | wanet | 3 | 3 | 0.01 | 0 | 1 | 0.05 | 0.05 | 1.00 |
+| lc | 1 | 0 | 0.75 | 0 | 0 | 0.00 | 0.00 | 0.67 |
 
 **Result.** The placement separates (median PSU ratio AUROC 0.99) and claim 1 is partial on it
-(31 of 54 models keep the triggered shift ratio at 0.1 or below). Claim 2 holds on none of the
-54 (43 fail, 11 partial): the median target share is 0.06, the target leads on 11 models, and the median excess over the benign
+(31 of 56 models keep the triggered shift ratio at 0.1 or below). Claim 2 holds on none of the
+56 (44 fail, 12 partial): the median target share is 0.06, the target leads on 12 models, and the median excess over the benign
 control is 0.02.
-A minority does show a target bias: 7 of 54 models send at least 0.3 more of their shifts to the
+A minority does show a target bias: 7 of 56 models send at least 0.3 more of their shifts to the
 target than the benign control (`vit_cifar100_blend_0_1`, `vit_cifar100_bpp_0_01`,
 `vit_cifar10_bpp_0_01`, `vit_cifar10_wanet_0_1`, `vit_gtsrb_badnet_a2o_0_1`, `vit_gtsrb_lf_0_1`
 and `vit_tiny_bpp_0_01`). Claim 3 fails on all 10 poisoned readings. Under a shared mask the pair's cosine
@@ -597,7 +605,7 @@ the pair reads 0.26 against 0.17 for an unrelated pair. The perturbed clean feat
 its triggered twin, from 0.67 to 0.19, as it does on the benign models (0.83 to 0.17).
 
 **Verdict: neuron bias does not explain the best residual placement, beyond a target bias on 7 of
-54 models.** It separates clean from
+56 models.** It separates clean from
 triggered images without sending clean predictions to the target beyond what a benign model does,
 and without moving clean features toward the backdoor's. What remains is claim 1 itself: the
 triggered prediction survives the perturbation more often than the clean one. Why it survives is
@@ -611,9 +619,9 @@ models, fails when it fails on at least 2 in 3, and is partial in between.
 | architecture | placement | poisoned models | claim 1 shift ratio | claim 2 target | claim 3 features | claim 4 std |
 |---|---|---|---|---|---|---|
 | ResNet-18 | PSBD-RD | 2 | partial (1 of 2) | partial (0 hold, 1 partial) | fails, the convergence is the mask's (1 of 4 readings hold) | BadNets half holds |
-| ViT-B/16 | PSBD-RD | 54 | partial (26 hold) | partial (0 hold, 19 partial) | fails, the convergence is the mask's (0 of 20) | holds |
-| ViT-B/16 | PSBD-TM | 54 | holds (43) | fails (4 hold, 39 fail) | fails (0 of 10) | partial |
-| ViT-B/16 | best residual, blocks 5 to 8 | 54 | partial (31 hold) | fails (0 hold) | fails (0 of 10) | holds |
+| ViT-B/16 | PSBD-RD | 56 | partial (26 hold) | partial (0 hold, 20 partial) | fails, the convergence is the mask's (0 of 20) | holds |
+| ViT-B/16 | PSBD-TM | 56 | holds (44) | fails (4 hold, 41 fail) | fails (0 of 10) | partial |
+| ViT-B/16 | best residual, blocks 5 to 8 | 56 | partial (31 hold) | fails (0 hold) | fails (0 of 10) | holds |
 | Swin-S | PSBD-RD | 65 | partial (37 hold, 13 partial) | partial (18 hold, 30 partial) | fails (0 of 18), drift toward backdoor features | partial |
 | Swin-S | PSBD-TM | 63 | holds (58) | partial (29 hold, 27 fail) | fails (0 of 9), drift toward backdoor features | holds |
 
@@ -628,6 +636,11 @@ models (GPU 18:17 to 21:10, 14 GB cap, peak allocation 1.3 GB per process, most 
 spent waiting for a lock slot), and the 2 Swin benign sweeps (`results/swin_cifar10_benign/psbd/`,
 `results/swin_gtsrb_benign/psbd/`, written by `cli.sweep` into directories that did not exist).
 `scratch/gpu_done_phenomenon` was touched at 21:09.
+
+Done on 2026-09-30: the cached stage and the summary rerun on the 56-model ViT panel, which
+added `vit_gtsrb_lc_0_05_tl1_adv` and `vit_gtsrb_tact_0_01_cos` to claims 1, 2 and 4. The
+per-attack tables are printed by `attack_tables.py` from `summary.json`. Claim 3 reads 10 fixed
+ViT models and neither new model is among them, so it was not rerun.
 
 Left: SIG on every architecture until the amplitude overrides are verified against the caches,
 a benign ResNet-18 (needs training), the SCP variant of Fig. A2, and the training-set version of

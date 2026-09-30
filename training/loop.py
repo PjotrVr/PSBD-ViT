@@ -26,6 +26,8 @@ from attacks.evasion import calibrate_probe_rate, train_one_epoch_evasive
 from models.backbones import build_resnet18, build_swin, build_vit
 from utils.provenance import current_git_commit
 from .sam import SAM
+from .telemetry.heldout import HeldoutPairs
+from .telemetry.record import TELEMETRY_FILENAME, Telemetry, TelemetryConfig
 
 
 def build_model(
@@ -126,10 +128,18 @@ def plain_update(
     criterion,
     optimizer,
     clip_grad_norm: float | None = None,
+    on_logits: Callable[[torch.Tensor], None] | None = None,
 ) -> torch.Tensor:
-    """A plain forward, backward and step, returning the batch loss."""
+    """A plain forward, backward and step, returning the batch loss.
+
+    on_logits, when given, receives the (batch, classes) logits the loss was
+    computed from, detached, before the backward.
+    """
     optimizer.zero_grad()
-    loss = criterion(model(images), labels)  # 0-dim
+    logits = model(images)  # (batch, num_classes)
+    loss = criterion(logits, labels)  # 0-dim
+    if on_logits is not None:
+        on_logits(logits.detach())
     loss.backward()
     clip_gradients(model, clip_grad_norm)
     optimizer.step()
@@ -143,8 +153,12 @@ def sam_update(
     criterion,
     optimizer,
     clip_grad_norm: float | None = None,
+    on_logits: Callable[[torch.Tensor], None] | None = None,
 ) -> torch.Tensor:
     """A SAM update, returning the loss at the original weights.
+
+    on_logits, when given, receives the first pass's (batch, classes) logits,
+    the ones at the original weights, detached.
 
     SAM does not implement step(), so the 2 passes are the caller's job, in this
     order: backward, first_step to reach the local worst-case weights, a second
@@ -154,7 +168,10 @@ def sam_update(
     """
     # ViT and Swin use LayerNorm rather than BatchNorm, so the 2 forward passes
     # carry no running-statistics hazard that SAM has with BatchNorm models.
-    loss = criterion(model(images), labels)  # 0-dim
+    logits = model(images)  # (batch, num_classes)
+    loss = criterion(logits, labels)  # 0-dim
+    if on_logits is not None:
+        on_logits(logits.detach())
     loss.backward()
     clip_gradients(model, clip_grad_norm)
     optimizer.first_step(zero_grad=True)
@@ -231,6 +248,7 @@ def train_one_epoch(
     use_sam: bool,
     clip_grad_norm: float | None = None,
     sample_loss_row: torch.Tensor | None = None,
+    telemetry: Telemetry | None = None,
 ) -> float:
     """An epoch of ordinary training, returning the mean batch loss.
 
@@ -241,15 +259,20 @@ def train_one_epoch(
     reduction="none" from the weights that batch is about to train on and
     scattered into the row by index. Left None (the default), the loader keeps
     its ordinary 2-tuple contract and nothing about a plain run changes.
+
+    telemetry, when given, also expects (image, label, index) triples. It reads
+    each batch's logits through the update's on_logits and takes its step
+    readings around the update (training.telemetry.record).
     """
     model.train()
+    indexed = sample_loss_row is not None or telemetry is not None
     per_sample_criterion = (
         nn.CrossEntropyLoss(reduction="none") if sample_loss_row is not None else None
     )
 
     running_loss = 0.0
     for batch in loader:
-        if sample_loss_row is not None:
+        if indexed:
             images, labels, indices = batch
         else:
             images, labels = batch
@@ -266,7 +289,20 @@ def train_one_epoch(
             sample_loss_row[indices] = per_sample_losses.cpu()
 
         update = sam_update if use_sam else plain_update
-        loss = update(model, images, labels, criterion, optimizer, clip_grad_norm)
+        if telemetry is None:
+            loss = update(model, images, labels, criterion, optimizer, clip_grad_norm)
+        else:
+            telemetry.begin_step()
+            loss = update(
+                model,
+                images,
+                labels,
+                criterion,
+                optimizer,
+                clip_grad_norm,
+                lambda logits: telemetry.observe_batch(logits, labels, indices),
+            )
+            telemetry.end_step()
         running_loss += loss.item()
 
     mean_loss = running_loss / max(len(loader), 1)
@@ -415,6 +451,33 @@ def check_not_diverged(trajectory: TrainingTrajectory) -> None:
         )
 
 
+def start_telemetry(
+    checkpoint_dir: str,
+    model: nn.Module,
+    optimizer: torch.optim.Optimizer,
+    architecture: str,
+    config: TelemetryConfig,
+    training_dataset: Dataset,
+    heldout: HeldoutPairs | None,
+    device: torch.device,
+    use_bfloat16: bool,
+) -> Telemetry:
+    """A Telemetry writing <checkpoint_dir>/telemetry.jsonl, its folder created."""
+    os.makedirs(checkpoint_dir, exist_ok=True)
+    telemetry = Telemetry(
+        os.path.join(checkpoint_dir, TELEMETRY_FILENAME),
+        model,
+        optimizer,
+        architecture,
+        config,
+        training_dataset,
+        heldout,
+        device,
+        use_bfloat16,
+    )
+    return telemetry
+
+
 def train_classifier(
     architecture: str,
     num_classes: int,
@@ -434,6 +497,8 @@ def train_classifier(
     clip_grad_norm: float | None = None,
     record_sample_loss: bool = False,
     checkpoint_dir: str | None = None,
+    telemetry_config: TelemetryConfig | None = None,
+    telemetry_heldout: HeldoutPairs | None = None,
 ) -> tuple[nn.Module, TrainingTrajectory]:
     """A freshly trained model and its validation trajectory, printed per epoch.
 
@@ -449,6 +514,13 @@ def train_classifier(
     (save_sample_loss_record). It requires train_loader.dataset to yield
     (image, label, index) triples (IndexedTrainingSet) and is not supported
     together with the evasive path.
+
+    telemetry_config, off (None) by default, writes <checkpoint_dir>/telemetry.jsonl
+    (training.telemetry.record). It has the same loader requirement as
+    record_sample_loss, is not supported with the evasive path either and trains
+    the same model a run without it trains. telemetry_heldout holds the fixed
+    held-out pairs the heavy and epoch probes read, and without it only the
+    light window and the module norms are written.
     """
     model = build_model(architecture, num_classes, model_dropout).to(device)
     criterion = nn.CrossEntropyLoss()
@@ -462,11 +534,30 @@ def train_classifier(
         )
     if record_sample_loss and checkpoint_dir is None:
         raise ValueError("record_sample_loss requires checkpoint_dir")
+    if telemetry_config is not None and evasion:
+        raise ValueError("telemetry is not supported together with the evasive path")
+    if telemetry_config is not None and checkpoint_dir is None:
+        raise ValueError("telemetry requires checkpoint_dir")
     num_training_samples = len(train_loader.dataset)
     poison_indices = (
         locate_poison_indices(train_loader.dataset) if record_sample_loss else set()
     )
     sample_loss_history: list[torch.Tensor] = []
+    telemetry = (
+        start_telemetry(
+            checkpoint_dir,
+            model,
+            optimizer,
+            architecture,
+            telemetry_config,
+            train_loader.dataset,
+            telemetry_heldout,
+            device,
+            use_bfloat16,
+        )
+        if telemetry_config is not None
+        else None
+    )
 
     # The rate this evasion run's probe(s) train against, 1 entry per epoch,
     # mutated onto the caller's `evasion` dict so cli.train_backdoor can drop
@@ -534,6 +625,7 @@ def train_classifier(
                 use_sam,
                 clip_grad_norm,
                 sample_loss_row,
+                telemetry,
             )
             if record_sample_loss:
                 sample_loss_history.append(sample_loss_row)
@@ -550,6 +642,8 @@ def train_classifier(
             f"epoch {epoch}: loss={average_loss:.4f} "
             f"val_acc={validation_accuracy:.4f}{extra}"
         )
+        if telemetry is not None:
+            telemetry.on_epoch_end(epoch, validation_accuracy, average_loss)
         # A caller can snapshot the trajectory without the loop learning about
         # checkpoint paths. Every write stays on the caller's side.
         if on_epoch_end is not None:
@@ -557,6 +651,10 @@ def train_classifier(
 
     if evasion:
         evasion["rate_history"] = rate_history
+    # Closed before the divergence check, so a collapsed run, the one whose
+    # trajectory most needs reading, still leaves its last window on disk.
+    if telemetry is not None:
+        telemetry.close()
 
     trajectory = TrainingTrajectory(tuple(validation_accuracies))
     check_not_diverged(trajectory)

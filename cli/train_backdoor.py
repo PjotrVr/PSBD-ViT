@@ -18,7 +18,7 @@ import argparse
 import json
 import os
 import time
-from dataclasses import replace
+from dataclasses import asdict, replace
 
 import torch
 import torchvision.transforms.v2 as transforms_v2
@@ -70,6 +70,8 @@ from training.loop import (
     save_checkpoint,
     train_classifier,
 )
+from training.telemetry.heldout import HeldoutPairs, build_heldout_pairs
+from training.telemetry.record import TelemetryConfig
 from utils.provenance import utc_timestamp
 
 # Interpolation is measured on a fixed subsample. The trajectory, not the exact
@@ -247,11 +249,17 @@ def build_training_loader(
         # the defender's side of any evaluation.
         poisoned_train = FlaggedPoisonedSet(poisoned_train)
 
-    if getattr(args, "record_sample_loss", False):
+    wants_row_indices = getattr(args, "record_sample_loss", False) or getattr(
+        args, "telemetry", False
+    )
+    if wants_row_indices:
         if getattr(args, "evade_psbd", False):
             # Both wrappers add a 3rd tuple element, and each expects the
             # other's 2-tuple contract from its inner dataset.
-            raise ValueError("--record-sample-loss and --evade-psbd cannot be combined")
+            raise ValueError(
+                "--record-sample-loss and --telemetry cannot be combined with "
+                "--evade-psbd"
+            )
         poisoned_train = IndexedTrainingSet(poisoned_train)
 
     train_loader = DataLoader(
@@ -522,6 +530,56 @@ def build_parser() -> argparse.ArgumentParser:
         ),
     )
     parser.add_argument(
+        "--telemetry",
+        action="store_true",
+        help=(
+            "write <output folder>/telemetry.jsonl (training.telemetry): the clean, "
+            "poisoned and cover loss, accuracy and margin every --telemetry-every "
+            "steps, module norms, update ratios, dormant shares and effective ranks "
+            "every --telemetry-heavy-every steps, and per epoch the held-out ASR, "
+            "clean accuracy, PSBD-TM margin retention and surplus factor. Off by "
+            "default, trains the same model, not supported with --evade-psbd."
+        ),
+    )
+    parser.add_argument(
+        "--telemetry-every",
+        type=int,
+        default=TelemetryConfig.every,
+        help="light window in optimizer steps",
+    )
+    parser.add_argument(
+        "--telemetry-heavy-every",
+        type=int,
+        default=TelemetryConfig.heavy_every,
+        help="heavy cadence in optimizer steps, a multiple of --telemetry-every, "
+        "0 switches the heavy probes off",
+    )
+    parser.add_argument(
+        "--telemetry-pairs",
+        type=int,
+        default=256,
+        help="fixed held-out clean and triggered test pairs the heavy and epoch "
+        "probes read, 0 switches those probes off",
+    )
+    parser.add_argument(
+        "--telemetry-retention-rates",
+        type=float,
+        nargs="*",
+        default=list(TelemetryConfig.retention_rates),
+        help="PSBD-TM rates the epoch record reads margin retention at, none to skip",
+    )
+    parser.add_argument(
+        "--telemetry-no-surplus",
+        action="store_true",
+        help="skip the per-epoch surplus factor",
+    )
+    parser.add_argument(
+        "--save-every-epoch",
+        action="store_true",
+        help="snapshot every epoch as its own <output folder>_epNN checkpoint "
+        "folder, the same as --checkpoint-freq 1",
+    )
+    parser.add_argument(
         "--exclude-indices-file",
         default=None,
         help=(
@@ -640,6 +698,36 @@ def snapshot_epochs(total: int, dense_until: int, freq: int) -> set[int]:
     return chosen
 
 
+def build_telemetry_config(args: argparse.Namespace) -> TelemetryConfig | None:
+    """The telemetry the run asked for, None when --telemetry is off."""
+    if not args.telemetry:
+        return None
+    config = TelemetryConfig(
+        every=args.telemetry_every,
+        heavy_every=args.telemetry_heavy_every,
+        retention_rates=tuple(args.telemetry_retention_rates),
+        measure_surplus=not args.telemetry_no_surplus,
+    )
+    return config
+
+
+def build_telemetry_heldout(
+    args: argparse.Namespace, attack: Attack
+) -> HeldoutPairs | None:
+    """The fixed held-out pairs, None when telemetry or its pairs are off."""
+    if not args.telemetry or args.telemetry_pairs <= 0:
+        return None
+    pairs = build_heldout_pairs(
+        args.dataset,
+        attack,
+        args.raw_data_dir,
+        args.telemetry_pairs,
+        args.seed,
+        max_samples=args.max_samples,
+    )
+    return pairs
+
+
 def build_train_eval_loader(train_loader: DataLoader, args) -> DataLoader:
     """The poisoned training set the model actually saw, unshuffled, for train accuracy.
 
@@ -654,6 +742,10 @@ def build_train_eval_loader(train_loader: DataLoader, args) -> DataLoader:
     set.
     """
     dataset = train_loader.dataset
+    # --record-sample-loss and --telemetry serve (image, label, index) triples,
+    # and the accuracy pass reads (image, label) pairs.
+    if isinstance(dataset, IndexedTrainingSet):
+        dataset = dataset.inner
     if len(dataset) > TRAIN_EVAL_SAMPLES:
         generator = torch.Generator().manual_seed(args.seed)
         picked = torch.randperm(len(dataset), generator=generator)[:TRAIN_EVAL_SAMPLES]
@@ -751,6 +843,9 @@ def main() -> None:
     # -1 is a CLI-only sentinel for "no limit". Normalize it to None immediately so
     # no subsetting code ever sees it, since -1 would slice off the last sample.
     args.max_samples = None if args.max_samples == -1 else args.max_samples
+    if args.save_every_epoch:
+        args.checkpoint_freq = 1
+    telemetry_config = build_telemetry_config(args)
     seed_everything(args.seed, workers=True)
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -769,6 +864,9 @@ def main() -> None:
         max_samples=args.max_samples,
         seed=args.seed,
     )
+    # Built ahead of the reseed below, so whatever a trigger draws while the pairs
+    # are stamped cannot move the stream training starts from.
+    telemetry_heldout = build_telemetry_heldout(args, attack)
 
     # Reseed right before the regular workflow so model init and training start from
     # an identical RNG state whether or not --max-samples triggered any subsetting.
@@ -791,6 +889,8 @@ def main() -> None:
         clip_grad_norm=args.clip_grad_norm,
         record_sample_loss=args.record_sample_loss,
         checkpoint_dir=os.path.dirname(args.output),
+        telemetry_config=telemetry_config,
+        telemetry_heldout=telemetry_heldout,
         on_epoch_end=build_snapshot_hook(
             args,
             num_classes,
@@ -878,6 +978,11 @@ def main() -> None:
     ).as_dict()
     metadata["n_cover"] = n_cover
     metadata["augment"] = args.augment
+    if telemetry_config is not None:
+        metadata["telemetry"] = {
+            **asdict(telemetry_config),
+            "heldout_pairs": args.telemetry_pairs,
+        }
     # Read back rather than threaded out of build_training_loader, since the
     # count is cheap to recompute and this keeps that function's return
     # signature untouched for every other caller.

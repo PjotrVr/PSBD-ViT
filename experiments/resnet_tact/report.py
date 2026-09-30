@@ -184,6 +184,8 @@ def psbd_reading(path, placement):
         "placement": placement,
         "adaptive_rate": rate,
         "clean_validation_shift_ratio": row["shift_ratio"]["validation"],
+        "clean_shift_ratio": row["shift_ratio"]["clean"],
+        "backdoor_shift_ratio": row["shift_ratio"]["backdoor"],
         "n_clean": metrics["split_sizes"]["clean"],
         "n_backdoor": metrics["split_sizes"]["backdoor"],
     }
@@ -432,8 +434,9 @@ def results_markdown(records, vit_rows, verdicts):
             "",
             "Dropout at `post_residual`, 3 passes, the adaptive rate of the 0.8 rule. "
             "TPR at the 0.01, 0.05 and 0.10 quantiles of the clean validation scores, "
-            "with the realized FPR on the paired clean test split at the 0.10 "
-            "quantile, then the AUROC.",
+            "with the realized FPR at the 0.10 quantile, then the AUROC. The FPR and "
+            "the AUROC read the paired clean test images, the clean twins of the "
+            "triggered ones, so for TaCT only source-class images.",
             "",
             "| model | rate | TPR@1% | TPR@5% | TPR@10% | FPR at q0.10 | AUROC |",
             "|---|---:|---:|---:|---:|---:|---:|",
@@ -449,6 +452,27 @@ def results_markdown(records, vit_rows, verdicts):
                 + " ".join(f"| {fmt(detection[q]['tpr'])}" for q in QUANTILES)
                 + f" | {fmt(detection['q0.10']['fpr'])} | {fmt(detection['auroc'])} |"
             )
+
+    lines += [
+        "",
+        "## Shift ratios at the adaptive rate",
+        "",
+        "The share of dropout passes whose prediction differs from the unperturbed "
+        "prediction, over the clean and the triggered test images, at the rate the "
+        "0.8 rule picked.",
+        "",
+        "| model | rate | clean | triggered |",
+        "|---|---:|---:|---:|",
+    ]
+    for r in records:
+        reading = r["psbd"]
+        if reading is None:
+            continue
+        lines.append(
+            f"| `{r['folder']}` | {reading['adaptive_rate']:g} "
+            f"| {fmt(reading['clean_shift_ratio'])} "
+            f"| {fmt(reading['backdoor_shift_ratio'])} |"
+        )
 
     lines += [
         "",

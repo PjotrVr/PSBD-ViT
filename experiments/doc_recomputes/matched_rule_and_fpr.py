@@ -1,6 +1,7 @@
 # Recomputes open questions Q25 (how matched the matched rule is) and Q27 (the realized
-# false-positive range at the headline quantile) on the current 57-model ViT panel, the
-# clearing cells of results/coverage/coverage.json that carry both headline placements.
+# false-positive range at the headline quantile) on the current ViT panel, the cells of
+# results/coverage/coverage.json successful at the 2-point bar that carry both headline
+# placements (56 models on 2026-09-30).
 import json
 import os
 import statistics

@@ -29311,20 +29311,20 @@
   "cached_reads": {
     "models": {
       "token_mask": {
-        "models": 54,
-        "target_flagged_share": 0.5386851850931568,
-        "other_flagged_share": 0.2481366484253495,
-        "target_shift_share": 0.18340984081671025,
-        "largest_class_share": 0.5880503831922697,
-        "uniform_share": 0.03689491817398793
+        "models": 56,
+        "target_flagged_share": 0.5256468250715572,
+        "other_flagged_share": 0.24782145874840872,
+        "target_shift_share": 0.17686223123342562,
+        "largest_class_share": 0.6022717669491856,
+        "uniform_share": 0.03640780730897009
       },
       "residual_dropout": {
-        "models": 54,
-        "target_flagged_share": 0.602209878878461,
-        "other_flagged_share": 0.24393437278491478,
-        "target_shift_share": 0.17797895421498242,
-        "largest_class_share": 0.32503215253759105,
-        "uniform_share": 0.03689491817398793
+        "models": 56,
+        "target_flagged_share": 0.5962529788791601,
+        "other_flagged_share": 0.24444719217717648,
+        "target_shift_share": 0.174153442402831,
+        "largest_class_share": 0.32131623261907105,
+        "uniform_share": 0.03640780730897009
       }
     },
     "benign": {
@@ -29388,12 +29388,12 @@
       },
       "tact": {
         "token_mask": {
-          "target_flagged_share": 0.03233333304524422,
-          "target_shift_share": 0.0001849236769551476
+          "target_flagged_share": 0.024249999783933163,
+          "target_shift_share": 0.0001386927577163607
         },
         "residual_dropout": {
-          "target_flagged_share": 0.08511111016074817,
-          "target_shift_share": 0.03227922847183002
+          "target_flagged_share": 0.2763333385810256,
+          "target_shift_share": 0.05960743130412127
         }
       },
       "wanet": {
@@ -29404,6 +29404,16 @@
         "residual_dropout": {
           "target_flagged_share": 0.8113333384195963,
           "target_shift_share": 0.3529882455909838
+        }
+      },
+      "lc": {
+        "token_mask": {
+          "target_flagged_share": 0.3472222089767456,
+          "target_shift_share": 0.00015354496948293732
+        },
+        "residual_dropout": {
+          "target_flagged_share": 0.02083333395421505,
+          "target_shift_share": 0.00013720714849243645
         }
       }
     }
@@ -29602,10 +29612,10 @@
   ],
   "critical_rate": {
     "predictions": {
-      "P1_pairs": 558,
-      "P1_spearman": 0.882726930869577,
-      "P1_median_abs_difference": 0.034858176501645355,
-      "P1_breaks_over_0.1": 100,
+      "P1_pairs": 576,
+      "P1_spearman": 0.8738000778640143,
+      "P1_median_abs_difference": 0.03742238953907534,
+      "P1_breaks_over_0.1": 108,
       "P1_breaks": [
         {
           "folder": "vit_cifar10_tact_0_01",
@@ -29698,6 +29708,12 @@
           "a_star": 0.29768424961419754
         },
         {
+          "folder": "vit_gtsrb_tact_0_01_cos",
+          "placement": "before_mlp_gaussian",
+          "auroc_adaptive": 0.994841882385083,
+          "a_star": 0.5628030872208183
+        },
+        {
           "folder": "vit_cifar10_blend_0_01",
           "placement": "before_mlp_gaussian",
           "auroc_adaptive": 0.49691257716049386,
@@ -29782,6 +29798,12 @@
           "a_star": 0.5983187596450618
         },
         {
+          "folder": "vit_gtsrb_tact_0_01_cos",
+          "placement": "pre_residual",
+          "auroc_adaptive": 0.8930892698586161,
+          "a_star": 0.6108312273751793
+        },
+        {
           "folder": "vit_gtsrb_lf_0_01",
           "placement": "after_embedding_token_mask",
           "auroc_adaptive": 0.01570795735724509,
@@ -29846,6 +29868,12 @@
           "placement": "post_residual",
           "auroc_adaptive": 0.49747754988349446,
           "a_star": 0.7294040398437441
+        },
+        {
+          "folder": "vit_gtsrb_tact_0_01_cos",
+          "placement": "before_attention_norm_gaussian",
+          "auroc_adaptive": 0.9951424083054435,
+          "a_star": 0.7634861006761834
         },
         {
           "folder": "vit_gtsrb_bpp_0_01",
@@ -29962,6 +29990,12 @@
           "a_star": 0.6560640914351852
         },
         {
+          "folder": "vit_gtsrb_tact_0_01_cos",
+          "placement": "before_attention_norm",
+          "auroc_adaptive": 0.9807417526125265,
+          "a_star": 0.8107123830339458
+        },
+        {
           "folder": "vit_cifar10_lf_0_05",
           "placement": "after_embedding_token_mask",
           "auroc_adaptive": 0.8266869888117284,
@@ -29998,10 +30032,28 @@
           "a_star": 0.5850808117791106
         },
         {
+          "folder": "vit_gtsrb_lc_0_05_tl1_adv",
+          "placement": "pre_residual",
+          "auroc_adaptive": 0.8006207026075708,
+          "a_star": 0.6466487447217368
+        },
+        {
+          "folder": "vit_gtsrb_tact_0_01_cos",
+          "placement": "post_residual",
+          "auroc_adaptive": 0.8298149033535961,
+          "a_star": 0.6766382077726931
+        },
+        {
           "folder": "vit_cifar10_badnet_a2o_0_1",
           "placement": "before_mlp_gaussian",
           "auroc_adaptive": 0.7914852430555557,
           "a_star": 0.9439075906635802
+        },
+        {
+          "folder": "vit_gtsrb_lc_0_05_tl1_adv",
+          "placement": "mlp_neurons_channel_mask",
+          "auroc_adaptive": 0.6134328567608411,
+          "a_star": 0.4618318791549804
         },
         {
           "folder": "vit_tiny_badnet_a2o_0_01",
@@ -30124,6 +30176,12 @@
           "a_star": 0.7705508680555555
         },
         {
+          "folder": "vit_gtsrb_lc_0_05_tl1_adv",
+          "placement": "before_mlp_gaussian",
+          "auroc_adaptive": 0.9331264905068998,
+          "a_star": 0.8169150689361384
+        },
+        {
           "folder": "vit_cifar100_badnet_a2o_0_05",
           "placement": "pre_residual",
           "auroc_adaptive": 0.8606912915935223,
@@ -30210,7 +30268,7 @@
       ],
       "P2_benign_rows": 44,
       "P2_max_distance_from_half": 0.017268875385802462,
-      "P3_median_validation_share": 0.9049999713897705,
+      "P3_median_validation_share": 0.9054999947547913,
       "P3_range": [
         0.8090000152587891,
         0.9975000023841858
@@ -30514,67 +30572,67 @@
         "triggered_median": 0.7833333263794581
       },
       "tact|before_attention_norm_token_mask": {
-        "models": 3,
-        "a_star": 0.6957550225971625,
-        "auroc_adaptive": 0.9624933613515969,
-        "clean_median": 0.4000000059604645,
-        "triggered_median": 0.5000000099341074
+        "models": 4,
+        "a_star": 0.6003365182968234,
+        "auroc_adaptive": 0.7882705401039237,
+        "clean_median": 0.3500000052154064,
+        "triggered_median": 0.42500000819563866
       },
       "tact|before_attention_norm": {
-        "models": 3,
-        "a_star": 0.5390550636123494,
-        "auroc_adaptive": 0.8770567465942002,
-        "clean_median": 0.46666666865348816,
-        "triggered_median": 0.5000000099341074
+        "models": 4,
+        "a_star": 0.6069693934677485,
+        "auroc_adaptive": 0.9029779980987818,
+        "clean_median": 0.42500000447034836,
+        "triggered_median": 0.5000000074505806
       },
       "tact|before_attention_norm_channel_mask": {
-        "models": 3,
-        "a_star": 0.5474585409825058,
-        "auroc_adaptive": 0.8816294198299404,
-        "clean_median": 0.46666666865348816,
-        "triggered_median": 0.5000000099341074
+        "models": 4,
+        "a_star": 0.5985059336038283,
+        "auroc_adaptive": 0.8655113893721479,
+        "clean_median": 0.42500000447034836,
+        "triggered_median": 0.4750000089406967
       },
       "tact|before_attention_norm_gaussian": {
-        "models": 3,
-        "a_star": 0.34090555390140737,
-        "auroc_adaptive": 0.9287864111480347,
-        "clean_median": 1.1666666666666667,
-        "triggered_median": 0.9166666666666666
+        "models": 4,
+        "a_star": 0.44655069059510133,
+        "auroc_adaptive": 0.945375410437387,
+        "clean_median": 1.0,
+        "triggered_median": 0.875
       },
       "tact|post_residual": {
-        "models": 3,
-        "a_star": 0.3401170720688394,
-        "auroc_adaptive": 0.5633422687763898,
-        "clean_median": 0.06333333378036816,
-        "triggered_median": 0.050000000124176346
+        "models": 4,
+        "a_star": 0.42424735599480284,
+        "auroc_adaptive": 0.6299604274206914,
+        "clean_median": 0.06000000052154064,
+        "triggered_median": 0.05000000027939677
       },
       "tact|pre_residual": {
-        "models": 3,
-        "a_star": 0.5062282255023836,
-        "auroc_adaptive": 0.6294823485085967,
-        "clean_median": 0.3333333432674408,
-        "triggered_median": 0.3333333432674408
+        "models": 4,
+        "a_star": 0.5323789759705825,
+        "auroc_adaptive": 0.6953840788461016,
+        "clean_median": 0.30000000819563866,
+        "triggered_median": 0.30000000819563866
       },
       "tact|before_attention_residual_token_mask": {
-        "models": 3,
-        "a_star": 0.8284162308561575,
-        "auroc_adaptive": 0.9760695145531955,
-        "clean_median": 0.5333333412806193,
-        "triggered_median": 0.6666666666666666
+        "models": 4,
+        "a_star": 0.7884011697953522,
+        "auroc_adaptive": 0.9165320211686361,
+        "clean_median": 0.5000000074505806,
+        "triggered_median": 0.625
       },
       "tact|before_mlp_gaussian": {
-        "models": 3,
-        "a_star": 0.7413237929699354,
-        "auroc_adaptive": 0.7377871735758968,
-        "clean_median": 1.6666666666666667,
-        "triggered_median": 1.8333333333333333
+        "models": 4,
+        "a_star": 0.696693616532656,
+        "auroc_adaptive": 0.8020508507781934,
+        "clean_median": 1.625,
+        "triggered_median": 1.75
       },
       "tact|mlp_neurons_channel_mask": {
-        "models": 3,
-        "a_star": 0.4619614469525731,
-        "auroc_adaptive": 0.5223441680645193,
-        "clean_median": 0.699999988079071,
-        "triggered_median": 0.6666666666666666
+        "models": 4,
+        "a_star": 0.5045531834317647,
+        "auroc_adaptive": 0.5501441652533618,
+        "clean_median": 0.6249999925494194,
+        "triggered_median": 0.6000000014901161
       },
       "wanet|before_attention_norm_token_mask": {
         "models": 3,
@@ -30638,6 +30696,69 @@
         "auroc_adaptive": 0.8643805348892228,
         "clean_median": 0.5666666626930237,
         "triggered_median": 0.7666666706403097
+      },
+      "lc|before_attention_norm_token_mask": {
+        "models": 1,
+        "a_star": 0.9171798334587471,
+        "auroc_adaptive": 0.9687036025895361,
+        "clean_median": 0.30000001192092896,
+        "triggered_median": 0.6000000238418579
+      },
+      "lc|before_attention_norm": {
+        "models": 1,
+        "a_star": 0.8731492814099414,
+        "auroc_adaptive": 0.936914327647216,
+        "clean_median": 0.4000000059604645,
+        "triggered_median": 0.6000000238418579
+      },
+      "lc|before_attention_norm_channel_mask": {
+        "models": 1,
+        "a_star": 0.8399321994266205,
+        "auroc_adaptive": 0.9106196901760562,
+        "clean_median": 0.4000000059604645,
+        "triggered_median": 0.5
+      },
+      "lc|before_attention_norm_gaussian": {
+        "models": 1,
+        "a_star": 0.8805065789391857,
+        "auroc_adaptive": 0.9392283630076926,
+        "clean_median": 1.0,
+        "triggered_median": 1.5
+      },
+      "lc|post_residual": {
+        "models": 1,
+        "a_star": 0.5046603640524624,
+        "auroc_adaptive": 0.44388886636277136,
+        "clean_median": 0.05000000074505806,
+        "triggered_median": 0.07000000029802322
+      },
+      "lc|pre_residual": {
+        "models": 1,
+        "a_star": 0.6466487447217368,
+        "auroc_adaptive": 0.8006207026075708,
+        "clean_median": 0.30000001192092896,
+        "triggered_median": 0.30000001192092896
+      },
+      "lc|before_attention_residual_token_mask": {
+        "models": 1,
+        "a_star": 0.9029005143002842,
+        "auroc_adaptive": 0.963532256640195,
+        "clean_median": 0.4000000059604645,
+        "triggered_median": 0.699999988079071
+      },
+      "lc|before_mlp_gaussian": {
+        "models": 1,
+        "a_star": 0.8169150689361384,
+        "auroc_adaptive": 0.9331264905068998,
+        "clean_median": 1.5,
+        "triggered_median": 2.0
+      },
+      "lc|mlp_neurons_channel_mask": {
+        "models": 1,
+        "a_star": 0.4618318791549804,
+        "auroc_adaptive": 0.6134328567608411,
+        "clean_median": 0.6000000238418579,
+        "triggered_median": 0.6000000238418579
       },
       "benign|before_attention_norm_token_mask": {
         "models": 4,
@@ -34489,13 +34610,13 @@
         "rd_margin": 0.09909736142621549
       },
       "tact": {
-        "status": "refuted",
+        "status": "supported",
         "key": "PSBD-TM minus A*(P_c)",
-        "value": 0.09769314705098715,
+        "value": -0.10736773277234296,
         "rule": "P1: confidence carries the signal if PSBD-TM does not beat A*(P_c), refuted when it beats it by 0.02 or more on most models",
-        "models": 3,
+        "models": 4,
         "beats": 2,
-        "rd_margin": -0.30145794552422006
+        "rd_margin": -0.2656778454555754
       },
       "wanet": {
         "status": "refuted",
@@ -34505,6 +34626,15 @@
         "models": 3,
         "beats": 2,
         "rd_margin": 0.228105634544612
+      },
+      "lc": {
+        "status": "refuted",
+        "key": "PSBD-TM minus A*(P_c)",
+        "value": 0.1765315290327798,
+        "rule": "P1: confidence carries the signal if PSBD-TM does not beat A*(P_c), refuted when it beats it by 0.02 or more on most models",
+        "models": 1,
+        "beats": 1,
+        "rd_margin": -0.348283207193985
       }
     },
     "target_easy": {
@@ -34539,7 +34669,7 @@
       "tact": {
         "status": "refuted",
         "key": "clean target-class images flagged, PSBD-TM",
-        "value": 0.03233333304524422,
+        "value": 0.024249999783933163,
         "rule": "P10: supported at 0.75 or more with benign at 0.35 or less, refuted at 0.4 or less",
         "benign": 0.20074999704957008
       },
@@ -34547,6 +34677,13 @@
         "status": "partial",
         "key": "clean target-class images flagged, PSBD-TM",
         "value": 0.554333328579863,
+        "rule": "P10: supported at 0.75 or more with benign at 0.35 or less, refuted at 0.4 or less",
+        "benign": 0.20074999704957008
+      },
+      "lc": {
+        "status": "refuted",
+        "key": "clean target-class images flagged, PSBD-TM",
+        "value": 0.3472222089767456,
         "rule": "P10: supported at 0.75 or more with benign at 0.35 or less, refuted at 0.4 or less",
         "benign": 0.20074999704957008
       }

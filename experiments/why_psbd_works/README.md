@@ -267,9 +267,9 @@ The other gates are checked in every record. Every control is matched to its tre
 
 **Missingness (L22).** The key number is the token mask minus token substitute AUROC. The rule: L22: supported within 0.02, refuted when substitution reads 0.05 or more lower (read at the adaptive rule, the theory note asks for the matched rule). On ViT-B/16 it reads supported for BadNets (0.019), refuted for TaCT (0.113), supported for Blend and LF (0.002), refuted for WaNet (0.403) and supported for BPP (0.020). On Swin-S it reads refuted for BadNets (0.139), refuted for TaCT (0.323), partial for Blend and LF (0.023), refuted for WaNet (0.558) and supported for BPP (0.014).
 
-**Confidence carries the signal (P1), on the whole panel.** The rule: P1: confidence carries the signal if PSBD-TM does not beat A*(P_c), refuted when it beats it by 0.02 or more on most models. It reads refuted for badnet_a2o (0.092), refuted for blend (0.052), refuted for bpp (0.081), refuted for lf (0.105), refuted for tact (0.098) and refuted for wanet (0.052).
+**Confidence carries the signal (P1), on the whole panel.** The rule: P1: confidence carries the signal if PSBD-TM does not beat A*(P_c), refuted when it beats it by 0.02 or more on most models. It reads refuted for badnet_a2o (0.092), refuted for blend (0.052), refuted for bpp (0.081), refuted for lc (0.177), refuted for lf (0.105), supported for tact (-0.107) and refuted for wanet (0.052).
 
-**The target class is easy (P10), on the whole panel.** The rule: P10: supported at 0.75 or more with benign at 0.35 or less, refuted at 0.4 or less. It reads partial for badnet_a2o (0.726), partial for blend (0.401), partial for bpp (0.413), partial for lf (0.737), refuted for tact (0.032) and partial for wanet (0.554).
+**The target class is easy (P10), on the whole panel.** The rule: P10: supported at 0.75 or more with benign at 0.35 or less, refuted at 0.4 or less. It reads partial for badnet_a2o (0.726), partial for blend (0.401), partial for bpp (0.413), refuted for lc (0.347), partial for lf (0.737), refuted for tact (0.024) and partial for wanet (0.554).
 
 **The statistic is epistemic uncertainty (P2), on the seed ensembles.** The rule: P2: supported at 0.9 or more with a clean Spearman of 0.5 or more against PSBD-TM, refuted at or below A*(P_c) or at a Spearman of 0.2 or less. It reads refuted for badnet_a2o (0.735), refuted for blend (0.738), refuted for bpp (0.663), refuted for lf (0.674), refuted for tact (0.712) and refuted for wanet (0.497).
 
@@ -279,7 +279,7 @@ The other gates are checked in every record. Every control is matched to its tre
 
 The account: each input has a critical rate $p^*$, the smallest rate on a placement's ladder at which most of its passes change its answer, and PSBD at any placement is a 2-sample test on $p^*$. `critical_rate.py` reads $p^*$ from the sweep's cached per-pass predictions (`defenses.decision.load_critical_rate_from_disk`, majority of passes) for every panel model and every placement with a full ladder, and computes $A^\star = P(p^*_{\text{triggered}} > p^*_{\text{clean}})$ over paired images, ties counted half. Its 3 predictions were fixed in the script's docstring before the first read.
 
-P1, 1 curve across operators and attacks (Spearman of $A^\star$ against the AUROC at the adaptive rate at least 0.8, median absolute difference at most 0.05): over 558 (model, placement) pairs the Spearman is 0.883 and the median difference 0.035, so P1 holds. 100 pairs lie more than 0.1 off, the largest `vit_cifar10_tact_0_01` at `before_attention_norm_gaussian` (0.928 against 0.053), `vit_cifar10_tact_0_01` at `before_attention_norm` (0.933 against 0.189), `vit_cifar10_wanet_0_1` at `before_attention_residual_token_mask` (0.846 against 0.135), `vit_cifar10_tact_0_01` at `before_attention_norm_channel_mask` (0.918 against 0.211), `vit_cifar10_wanet_0_1` at `before_mlp_gaussian` (0.799 against 0.171) and `vit_cifar10_tact_0_05` at `before_attention_norm_gaussian` (0.929 against 0.317).
+P1, 1 curve across operators and attacks (Spearman of $A^\star$ against the AUROC at the adaptive rate at least 0.8, median absolute difference at most 0.05): over 576 (model, placement) pairs the Spearman is 0.874 and the median difference 0.037, so P1 holds. 108 pairs lie more than 0.1 off, the largest `vit_cifar10_tact_0_01` at `before_attention_norm_gaussian` (0.928 against 0.053), `vit_cifar10_tact_0_01` at `before_attention_norm` (0.933 against 0.189), `vit_cifar10_wanet_0_1` at `before_attention_residual_token_mask` (0.846 against 0.135), `vit_cifar10_tact_0_01` at `before_attention_norm_channel_mask` (0.918 against 0.211), `vit_cifar10_wanet_0_1` at `before_mlp_gaussian` (0.799 against 0.171) and `vit_cifar10_tact_0_05` at `before_attention_norm_gaussian` (0.929 against 0.317).
 
 P2, the control (benign models probed with a trigger they never learned, $A^\star$ within 0.05 of 0.5): the largest distance over 44 benign rows is 0.017, so P2 holds.
 
@@ -504,21 +504,23 @@ The explanations tested as refutations: where shifted clean answers go and what 
 
 ### The panel-wide readings
 
-These read the sweep's caches over the 54 ViT models successful at the 2 point bar (`cached_reads.py`), or the seed-replicated cells (`seed_ensemble.py`), per attack.
+These read the sweep's caches over the 56 ViT models successful at the 2 point bar (`cached_reads.py`), or the seed-replicated cells (`seed_ensemble.py`), per attack.
 
 | account | attack | status | key | value |
 |---|---|---|---|---|
 | P1 confidence carries it | badnet_a2o | refuted | PSBD-TM minus A*(P_c) | 0.092 |
 | P1 confidence carries it | blend | refuted | PSBD-TM minus A*(P_c) | 0.052 |
 | P1 confidence carries it | bpp | refuted | PSBD-TM minus A*(P_c) | 0.081 |
+| P1 confidence carries it | lc | refuted | PSBD-TM minus A*(P_c) | 0.177 |
 | P1 confidence carries it | lf | refuted | PSBD-TM minus A*(P_c) | 0.105 |
-| P1 confidence carries it | tact | refuted | PSBD-TM minus A*(P_c) | 0.098 |
+| P1 confidence carries it | tact | supported | PSBD-TM minus A*(P_c) | -0.107 |
 | P1 confidence carries it | wanet | refuted | PSBD-TM minus A*(P_c) | 0.052 |
 | P10 target is easy | badnet_a2o | partial | clean target-class images flagged, PSBD-TM | 0.726 |
 | P10 target is easy | blend | partial | clean target-class images flagged, PSBD-TM | 0.401 |
 | P10 target is easy | bpp | partial | clean target-class images flagged, PSBD-TM | 0.413 |
+| P10 target is easy | lc | refuted | clean target-class images flagged, PSBD-TM | 0.347 |
 | P10 target is easy | lf | partial | clean target-class images flagged, PSBD-TM | 0.737 |
-| P10 target is easy | tact | refuted | clean target-class images flagged, PSBD-TM | 0.032 |
+| P10 target is easy | tact | refuted | clean target-class images flagged, PSBD-TM | 0.024 |
 | P10 target is easy | wanet | partial | clean target-class images flagged, PSBD-TM | 0.554 |
 | P2 epistemic ensemble | badnet_a2o | refuted | 3-seed ensemble statistic AUROC | 0.735 |
 | P2 epistemic ensemble | blend | refuted | 3-seed ensemble statistic AUROC | 0.738 |
@@ -527,15 +529,15 @@ These read the sweep's caches over the 54 ViT models successful at the 2 point b
 | P2 epistemic ensemble | tact | refuted | 3-seed ensemble statistic AUROC | 0.712 |
 | P2 epistemic ensemble | wanet | refuted | 3-seed ensemble statistic AUROC | 0.497 |
 
-Confidence ceiling (P1): $A^*(P_c)$ averages 0.881 over the panel against 0.688 for raw confidence. PSBD-TM beats it on 50 of 54 models by 0.082 on average, PSBD-RD on 40 of 54 by 0.003.
+Confidence ceiling (P1): $A^*(P_c)$ averages 0.882 over the panel against 0.668 for raw confidence. PSBD-TM beats it on 51 of 56 models by 0.069 on average, PSBD-RD on 40 of 56 by -0.006.
 
-Clean fragility: at PSBD-TM's adaptive rate with $k = 3$, 0.087 of held-out clean images never flip, the intra-image flip correlation has median 0.688 over models, and images that never flipped are 0.339 of the false positives on average. The logistic critical-rate fit against the homogeneous AND law, per dataset:
+Clean fragility: at PSBD-TM's adaptive rate with $k = 3$, 0.087 of held-out clean images never flip, the intra-image flip correlation has median 0.688 over models, and images that never flipped are 0.336 of the false positives on average. The logistic critical-rate fit against the homogeneous AND law, per dataset:
 
 | dataset | models | floor | median critical rate | scale | sd of critical rate | logistic RMSE | AND units | AND RMSE |
 |---|---|---|---|---|---|---|---|---|
 | cifar10 | 15 | 0.113 | 0.411 | 0.097 | 0.175 | 0.005 | 1.48 | 0.111 |
 | cifar100 | 12 | 0.016 | 0.302 | 0.104 | 0.188 | 0.012 | 2.25 | 0.068 |
-| gtsrb | 13 | 0.029 | 0.326 | 0.088 | 0.160 | 0.013 | 2.05 | 0.096 |
+| gtsrb | 15 | 0.030 | 0.307 | 0.088 | 0.159 | 0.018 | 2.19 | 0.090 |
 | tiny | 14 | 0.006 | 0.288 | 0.110 | 0.200 | 0.015 | 2.37 | 0.057 |
 
 Seed ensembles (P2), AUROC in the pipeline's paired form:

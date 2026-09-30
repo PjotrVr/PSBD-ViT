@@ -1549,6 +1549,49 @@
       }
     },
     {
+      "folder": "vit_gtsrb_lc_0_05_tl1_adv",
+      "attack": "lc",
+      "dataset": "gtsrb",
+      "target_label": 1,
+      "successful_2pt": true,
+      "token_mask": {
+        "rate": 0.3,
+        "target_class_easy": {
+          "threshold": 0.7840127348899841,
+          "target_images": 720,
+          "target_flagged_share": 0.3472222089767456,
+          "other_flagged_share": 0.22770780324935913,
+          "target_median_psu_ratio": 0.9191415905952454,
+          "other_median_psu_ratio": 0.9559555053710938
+        },
+        "shift_destination": {
+          "target_share": 0.00015354496948293732,
+          "largest_class_share": 0.9728993128862615,
+          "largest_class": 11,
+          "uniform_share": 0.023255813953488372,
+          "clean_shift_ratio": 0.8169018626213074
+        }
+      },
+      "residual_dropout": {
+        "rate": 0.07,
+        "target_class_easy": {
+          "threshold": 0.9563021063804626,
+          "target_images": 720,
+          "target_flagged_share": 0.02083333395421505,
+          "other_flagged_share": 0.2704450190067291,
+          "target_median_psu_ratio": 0.979337751865387,
+          "other_median_psu_ratio": 0.9685283899307251
+        },
+        "shift_destination": {
+          "target_share": 0.00013720714849243645,
+          "largest_class_share": 0.30038074983706653,
+          "largest_class": 11,
+          "uniform_share": 0.023255813953488372,
+          "clean_shift_ratio": 0.9141737222671509
+        }
+      }
+    },
+    {
       "folder": "vit_gtsrb_lf_0_01",
       "attack": "lf",
       "dataset": "gtsrb",
@@ -1674,6 +1717,49 @@
           "largest_class": 0,
           "uniform_share": 0.023255813953488372,
           "clean_shift_ratio": 0.8412041664123535
+        }
+      }
+    },
+    {
+      "folder": "vit_gtsrb_tact_0_01_cos",
+      "attack": "tact",
+      "dataset": "gtsrb",
+      "target_label": 0,
+      "successful_2pt": true,
+      "token_mask": {
+        "rate": 0.3,
+        "target_class_easy": {
+          "threshold": 0.9527778625488281,
+          "target_images": 60,
+          "target_flagged_share": 0.0,
+          "other_flagged_share": 0.25091487169265747,
+          "target_median_psu_ratio": 0.9771267175674438,
+          "other_median_psu_ratio": 0.9661661982536316
+        },
+        "shift_destination": {
+          "target_share": 0.0,
+          "largest_class_share": 0.9995989438855654,
+          "largest_class": 38,
+          "uniform_share": 0.023255813953488372,
+          "clean_shift_ratio": 0.9382565021514893
+        }
+      },
+      "residual_dropout": {
+        "rate": 0.05,
+        "target_class_easy": {
+          "threshold": 0.9663835763931274,
+          "target_images": 60,
+          "target_flagged_share": 0.8500000238418579,
+          "other_flagged_share": 0.24614161252975464,
+          "target_median_psu_ratio": 0.9609252214431763,
+          "other_median_psu_ratio": 0.973019540309906
+        },
+        "shift_destination": {
+          "target_share": 0.14159203980099502,
+          "largest_class_share": 0.14159203980099502,
+          "largest_class": 0,
+          "uniform_share": 0.023255813953488372,
+          "clean_shift_ratio": 0.9454374313354492
         }
       }
     },
@@ -3148,6 +3234,24 @@
         }
       },
       {
+        "folder": "vit_gtsrb_lc_0_05_tl1_adv",
+        "attack": "lc",
+        "dataset": "gtsrb",
+        "poison_rate": 0.05,
+        "successful_2pt": true,
+        "psbd_tm": 0.9687036025895361,
+        "psbd_rd": 0.44388886636277136,
+        "after_embedding_token_mask": null,
+        "scale_up": 0.9222253692452161,
+        "confidence_only": 0.21147942114787843,
+        "gain_scale_top": {
+          "factor": 16.0,
+          "clean_shift_ratio": 0.9610536098480225,
+          "target_share": 0.0,
+          "largest_class_share": 1.0
+        }
+      },
+      {
         "folder": "vit_gtsrb_lf_0_01",
         "attack": "lf",
         "dataset": "gtsrb",
@@ -3198,6 +3302,24 @@
           "factor": 16.0,
           "clean_shift_ratio": 0.9951081871986389,
           "target_share": 1.0,
+          "largest_class_share": 1.0
+        }
+      },
+      {
+        "folder": "vit_gtsrb_tact_0_01_cos",
+        "attack": "tact",
+        "dataset": "gtsrb",
+        "poison_rate": 0.01,
+        "successful_2pt": true,
+        "psbd_tm": 0.26560207636090427,
+        "psbd_rd": 0.8298149033535961,
+        "after_embedding_token_mask": null,
+        "scale_up": 0.955681988935182,
+        "confidence_only": 0.038315688819069736,
+        "gain_scale_top": {
+          "factor": 16.0,
+          "clean_shift_ratio": 0.9619943499565125,
+          "target_share": 0.0,
           "largest_class_share": 1.0
         }
       },
@@ -4292,6 +4414,14 @@
         "raw_confidence": 0.5791945130897179
       },
       {
+        "folder": "vit_gtsrb_lc_0_05_tl1_adv",
+        "attack": "lc",
+        "dataset": "gtsrb",
+        "successful_2pt": true,
+        "a_star": 0.7921720735567563,
+        "raw_confidence": 0.21147942114787843
+      },
+      {
         "folder": "vit_gtsrb_lf_0_01",
         "attack": "lf",
         "dataset": "gtsrb",
@@ -4314,6 +4444,14 @@
         "successful_2pt": true,
         "a_star": 0.8762431175539183,
         "raw_confidence": 0.5981610341436818
+      },
+      {
+        "folder": "vit_gtsrb_tact_0_01_cos",
+        "attack": "tact",
+        "dataset": "gtsrb",
+        "successful_2pt": true,
+        "a_star": 0.9881524486032376,
+        "raw_confidence": 0.038315688819069736
       },
       {
         "folder": "vit_gtsrb_tact_0_05",
@@ -4521,25 +4659,25 @@
           0.9
         ],
         "keep": [
-          0.9823846153986568,
-          0.9529743582869952,
-          0.7967564111145643,
-          0.5750128156863726,
-          0.32883333930602443,
-          0.1561025702036344,
-          0.07096153956193191,
-          0.038448718877939075,
-          0.03078205310381376,
-          0.02944872471002432
+          0.981333333471169,
+          0.9489777772376935,
+          0.7617666674156983,
+          0.5158333291610082,
+          0.2926222264766693,
+          0.14118889570236207,
+          0.06740000247955322,
+          0.03720000187555949,
+          0.0303000013033549,
+          0.02953333854675293
         ],
-        "floor": 0.02944872471002432,
-        "logistic_median": 0.32570613324381087,
-        "logistic_scale": 0.08819805915530737,
-        "critical_rate_sd": 0.15997358362258846,
-        "logistic_rmse": 0.012778376965985333,
-        "and_units": 2.046264591406906,
-        "and_rmse": 0.0962226638281622,
-        "models": 13
+        "floor": 0.02953333854675293,
+        "logistic_median": 0.3072917422835192,
+        "logistic_scale": 0.08755179597753675,
+        "critical_rate_sd": 0.1588013918816201,
+        "logistic_rmse": 0.01804136467188709,
+        "and_units": 2.1937886375241598,
+        "and_rmse": 0.08991699126243649,
+        "models": 15
       },
       "tiny": {
         "rates": [
@@ -5298,6 +5436,26 @@
         "never_flip_flagged_share": 1.0
       },
       {
+        "folder": "vit_gtsrb_lc_0_05_tl1_adv",
+        "rate": 0.3,
+        "passes": 3,
+        "validation_hist": [
+          0.1105,
+          0.0695,
+          0.107,
+          0.713
+        ],
+        "binomial_hist": [
+          0.007133328125000005,
+          0.08976876562500002,
+          0.376562484375,
+          0.526535421875
+        ],
+        "intra_image_correlation": 0.6215136772412633,
+        "false_positive_never_flip_share": 0.4671694764862467,
+        "never_flip_flagged_share": 1.0
+      },
+      {
         "folder": "vit_gtsrb_lf_0_01",
         "rate": 0.5,
         "passes": 3,
@@ -5356,6 +5514,26 @@
         "intra_image_correlation": 0.6307130465953135,
         "false_positive_never_flip_share": 0.39125560538116594,
         "never_flip_flagged_share": 1.0
+      },
+      {
+        "folder": "vit_gtsrb_tact_0_01_cos",
+        "rate": 0.3,
+        "passes": 3,
+        "validation_hist": [
+          0.062,
+          0.0045,
+          0.0145,
+          0.919
+        ],
+        "binomial_hist": [
+          0.000340555828703703,
+          0.01360841584722221,
+          0.18126150081944437,
+          0.8047895275046297
+        ],
+        "intra_image_correlation": 0.902499060270562,
+        "false_positive_never_flip_share": 0.0,
+        "never_flip_flagged_share": NaN
       },
       {
         "folder": "vit_gtsrb_tact_0_05",
@@ -5659,7 +5837,7 @@
       }
     ],
     "median_intra_image_correlation": 0.688056456162929,
-    "mean_never_flip_share": 0.08737962962962963,
-    "mean_false_positive_never_flip_share": 0.33948353989898183
+    "mean_never_flip_share": 0.08733928571428572,
+    "mean_false_positive_never_flip_share": 0.335701439839844
   }
 }

@@ -1,5 +1,6 @@
 # PSBD-TM and PSBD-RD mean AUROC at the adaptive 0.8 rule by poison rate, and by attack
-# and rate, over the 57-model panel, for H8 (does detection improve with poison rate).
+# and rate, over the current panel (56 models on 2026-09-30), for H8 (does detection
+# improve with poison rate).
 import collections
 import json
 import os

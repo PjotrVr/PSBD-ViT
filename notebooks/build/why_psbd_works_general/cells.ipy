@@ -1,0 +1,1247 @@
+"""Code cells of notebooks/why-psbd-works-general.ipynb, split on '# %% name' markers."""
+
+# %% setup
+import json
+import os
+import sys
+from pathlib import Path
+
+# Anchor at the repository root so every path resolves the way it does from a
+# script, whichever directory the notebook was opened from.
+REPO_ROOT = next(
+    parent
+    for parent in [Path.cwd(), *Path.cwd().parents]
+    if (parent / "pyproject.toml").exists()
+)
+os.chdir(REPO_ROOT)
+sys.path.insert(0, str(REPO_ROOT))
+
+# %% imports
+import matplotlib.pyplot as plt
+import numpy as np
+import pandas as pd
+
+import scripts.paper._style  # noqa: F401  the figure style every paper figure uses
+from scripts.paper._common import OKABE_ITO
+from scripts.paper._style import TEXT_WIDTH
+
+# The shared style selects the Agg backend for the paper build, which keeps every
+# figure out of a notebook, so the inline backend comes back after it.
+%matplotlib inline
+
+# %% load
+RESULTS = Path("results/_experiments/why_psbd_works")
+summary = json.loads((RESULTS / "summary.json").read_text())
+cached = json.loads((RESULTS / "cached_reads.json").read_text())
+sanity = json.loads((RESULTS / "sanity_vit_cifar100_badnet_a2o_0_05.json").read_text())
+
+GROUP_ORDER = [
+    "patch",
+    "patch_tact",
+    "blend",
+    "frequency",
+    "warp",
+    "quantization",
+    "benign_probe_badnet_a2o",
+    "benign_probe_blend",
+]
+GROUP_LABEL = {
+    "patch": "BadNets",
+    "patch_tact": "TaCT",
+    "patch_tact_source_mapped": "TaCT (source mapped)",
+    "blend": "Blend and LF",
+    "frequency": "SIG",
+    "warp": "WaNet",
+    "quantization": "BPP",
+    "benign_probe_badnet_a2o": "benign, BadNets probe",
+    "benign_probe_blend": "benign, Blend probe",
+}
+OPERATORS = [
+    "token_mask",
+    "dropout",
+    "channel_mask",
+    "gaussian",
+    "residual_dropout",
+    "token_substitute",
+    "rademacher",
+    "gaussian_mlp",
+    "rademacher_mlp",
+]
+HEADLINE_OPERATORS = OPERATORS[:5]
+OPERATOR_LABEL = {
+    "token_mask": "token mask\n(PSBD-TM)",
+    "dropout": "dropout\nattn input",
+    "channel_mask": "channel mask\nattn input",
+    "gaussian": "Gaussian\nattn input",
+    "residual_dropout": "dropout\nresidual (PSBD-RD)",
+    "token_substitute": "token\nsubstitute",
+    "rademacher": "Rademacher\nattn input",
+    "gaussian_mlp": "Gaussian\nMLP input",
+    "rademacher_mlp": "Rademacher\nMLP input",
+}
+ARCHITECTURES = [a for a in ("vit", "swin") if a in summary["groups"]]
+
+
+def groups_of(architecture):
+    present = summary["groups"][architecture]
+    ordered = [g for g in GROUP_ORDER if g in present]
+    ordered += sorted(g for g in present if g not in GROUP_ORDER)
+    return ordered
+
+
+def group_mean(architecture, group):
+    return summary["groups"][architecture][group]["mean"]
+
+
+def models_of(architecture, group):
+    # The panel: models successful at the 2 point bar, and the benign probes.
+    return [r for r in summary["per_model"]
+            if r["architecture"] == architecture and r["group"] == group
+            and (r.get("successful_2pt") or r["category"] == "benign")]
+
+
+def fmt(value, digits=3):
+    return "n/a" if value is None else f"{value:.{digits}f}"
+
+
+print(f"{summary['models']} model records")
+pd.DataFrame(
+    [
+        {
+            "model": r["name"],
+            "architecture": r["architecture"],
+            "group": r["group"],
+            "pairs": r["pairs"],
+            "hit pairs": r["hit_pairs"],
+            "clean accuracy (paired)": round(r["clean_accuracy"], 3),
+            "ASR (paired)": round(r["triggered_asr"], 3),
+            "cache agreement": r["cache_agreement"],
+        }
+        for r in summary["per_model"]
+    ]
+)
+
+# %% helpers
+from IPython.display import Markdown, display
+
+
+# Every sentence that carries a number is rendered from the records at execution,
+# so it is current by construction. The results markers tell
+# scripts/check_stale_numbers.py so, since a per-model reading can equal an old
+# headline mean by coincidence.
+def say(text):
+    display(Markdown(f"<!-- results:begin -->\n{text}\n<!-- results:end -->"))
+
+
+def listed(items):
+    items = [str(i) for i in items]
+    if not items:
+        return "none"
+    if len(items) == 1:
+        return items[0]
+    return ", ".join(items[:-1]) + " and " + items[-1]
+
+
+def group_name(g):
+    return GROUP_LABEL.get(g, g)
+
+
+def attack_groups(architecture):
+    return [g for g in groups_of(architecture) if not g.startswith("benign")]
+
+
+def benign_groups(architecture):
+    return [g for g in groups_of(architecture) if g.startswith("benign")]
+
+
+def verdict_of(architecture, g, key):
+    return summary["verdicts"][architecture][g][key]
+
+
+def by_status(architecture, key, groups=None):
+    groups = groups if groups is not None else attack_groups(architecture)
+    table = {}
+    for g in groups:
+        table.setdefault(verdict_of(architecture, g, key)["status"], []).append(g)
+    return table
+
+
+def status_sentence(architecture, key, groups=None):
+    table = by_status(architecture, key, groups)
+    parts = []
+    for status in ("supported", "partial", "refuted", "no data"):
+        if status in table:
+            names = [f"{group_name(g)} ({fmt(verdict_of(architecture, g, key)['value'])})" for g in table[status]]
+            parts.append(f"{status} for {listed(names)}")
+    return ", ".join(parts)
+
+
+T = summary["thresholds"]
+P = summary["parameters"]
+
+# %% parameters
+rows = [
+    ("paired images per model", P["PAIR_COUNT"]),
+    ("perturbed passes per operator, k", P["FORWARD_PASSES"]),
+    ("held-out and foreign images per model", P["FALLBACK_IMAGES"]),
+    ("adaptive target shift ratio", P["ADAPTIVE_TARGET"]),
+    ("flag quantile of the held-out statistic", P["HEADLINE_QUANTILE"]),
+    ("kNN neighbours of the OOD score, K", P["KNN_NEIGHBOURS"]),
+    ("visible fractions of the redundancy test", listed(f for f in P["KEEP_FRACTIONS"] if f < 1)),
+    ("random patterns per fraction", P["SUBSET_DRAWS"]),
+    ("sufficiency fractions", listed(P["SUFFICIENCY_FRACTIONS"])),
+    ("stream blocks, ViT and Swin", f"{listed(P['STREAM_BLOCKS']['vit'])}; {listed(P['STREAM_BLOCKS']['swin'])}"),
+    ("pairs for the Jacobian, attribution, finite differences",
+     f"{P['JACOBIAN_PAIRS']}, {P['ATTRIBUTION_PAIRS']}, {P['FLAT_PAIRS']}"),
+    ("finite-difference directions and steps", f"{P['FLAT_DIRECTIONS']} at {listed(P['FLAT_EPSILONS'])}"),
+    ("small-noise Gaussian rates and passes", f"{listed(P['SMALL_NOISE_RATES'])}, k = {P['SMALL_NOISE_PASSES']}"),
+    ("trigger units zeroed per late block (L7), late blocks", f"{P['LATE_UNITS']}, {P['LATE_BLOCK_COUNT']}"),
+    ("share of units zeroed per block in the all-block set", P["NEURON_SHARE"]),
+    ("foreign dataset per model dataset", ", ".join(f"{a}: {b}" for a, b in P["FOREIGN_DATASET"].items())),
+]
+display(pd.DataFrame(rows, columns=["setting", "value"]).set_index("setting"))
+display(pd.DataFrame([{"operator": name, **spec} for name, spec in P["OPERATORS"].items()]).set_index("operator"))
+
+# %% sanity
+rows = []
+for precision in ("bfloat16", "float32"):
+    gate_1 = sanity[precision]["gate_1"]
+    rows.append({"precision": precision, "gate": "1 clean accuracy",
+                 "fresh": gate_1["clean_accuracy"], "stored": gate_1["stored_clean_accuracy"]})
+    rows.append({"precision": precision, "gate": "1 ASR",
+                 "fresh": gate_1["asr"], "stored": gate_1["stored_asr"]})
+    for name, gate in sanity[precision]["gate_2"].items():
+        rows.append({"precision": precision, "gate": f"2 {name} fractional AUROC",
+                     "fresh": gate["auroc_fractional"], "stored": gate["cached_auroc_fractional"]})
+        rows.append({"precision": precision, "gate": f"2 {name} absolute AUROC",
+                     "fresh": gate["auroc_absolute"], "stored": gate["cached_auroc_absolute"]})
+        rows.append({"precision": precision, "gate": f"2 {name} per-sample correlation",
+                     "fresh": gate["per_sample_correlation"], "stored": 1.0})
+table = pd.DataFrame(rows)
+table["difference"] = (table["fresh"] - table["stored"]).abs()
+print("gate 3:", sanity["gate_3"])
+restoration = pd.DataFrame(
+    [{"model": r["name"], **(r["sanity"] or {})} for r in summary["per_model"]]
+)
+print("hooks left after a run, max over models:",
+      int((restoration["hooks_after"] - restoration["hooks_before"]).max()),
+      "| wrapped forwards:", int(restoration["wrapped_forwards"].max()),
+      "| active model dropouts:", int(restoration["active_model_dropouts"].max()),
+      "| max logit difference after the run:", float(restoration["max_logit_difference"].max()))
+table.round(4)
+
+# %% sanity_after
+tm = sanity["bfloat16"]["gate_2"]["token_mask"]
+rd = sanity["bfloat16"]["gate_2"]["residual_dropout"]
+rd32 = sanity["float32"]["gate_2"]["residual_dropout"]
+gate_1 = sanity["bfloat16"]["gate_1"]
+gates_pass = all(sanity[p]["gate_1"]["passed"] and all(g["passed"] for g in sanity[p]["gate_2"].values())
+                 for p in ("bfloat16", "float32")) and sanity["gate_3"]["passed"]
+agreement = [min(r["cache_agreement"].values()) for r in summary["per_model"] if r.get("cache_agreement")]
+say(f"""**What it shows.** On `{sanity['folder']}` every gate {'passes' if gates_pass else 'does not pass'}. Clean accuracy and ASR reproduce `metrics.json` ({fmt(gate_1['clean_accuracy'], 4)} against {fmt(gate_1['stored_clean_accuracy'], 4)}, {fmt(gate_1['asr'], 4)} against {fmt(gate_1['stored_asr'], 4)}). In bfloat16 the per-sample statistic of PSBD-RD matches the cache to at most {fmt(rd['per_sample_max_abs_difference'], 4)} and PSBD-TM's to at most {fmt(tm['per_sample_max_abs_difference'], 4)} over {tm['samples']} images, and both AUROCs equal the cached ones, so the hook sites, operators, rates, pass count, splits and pairing are the pipeline's. In float32 the same seed draws different dropout masks, which points to the draw depending on the activation dtype under autocast: PSBD-RD's per-sample correlation with the cache falls to {fmt(rd32['per_sample_correlation'])} while its AUROC moves from {fmt(rd32['cached_auroc_fractional'], 4)} to {fmt(rd32['auroc_fractional'], 4)}. The per-image difference is Monte Carlo noise and the detection reading does not depend on the precision. Over every record, the lowest agreement of the unperturbed predictions with the sweep's cached baseline is {fmt(min(agreement)) if agreement else 'n/a'}.
+
+**What it does not show.** The gates were run on 1 patch-trigger model. They prove the machinery, not that every model's cache is sound, which is what the per-record agreement column is for. 1 detail matters for any later reading of `psbd_metrics.json`: a placement's `adaptive` block holds the absolute statistic's AUROC and the fractional headline sits per rate under `detection_psu_ratio`.""")
+
+# %% step1
+fig, axes = plt.subplots(1, len(ARCHITECTURES), figsize=(TEXT_WIDTH, 3.4),
+                         squeeze=False, sharey=False)
+for axis, architecture in zip(axes[0], ARCHITECTURES):
+    groups = groups_of(architecture)
+    grid = np.array([
+        [group_mean(architecture, g)["operators"].get(op, {}).get("auroc_hit_only") or np.nan
+         for op in OPERATORS]
+        for g in groups
+    ])
+    image = axis.imshow(grid, cmap="RdBu", vmin=0.0, vmax=1.0, aspect="auto")
+    for i in range(grid.shape[0]):
+        for j in range(grid.shape[1]):
+            if np.isfinite(grid[i, j]):
+                axis.text(j, i, f"{grid[i, j]:.2f}", ha="center", va="center", fontsize=6)
+    axis.set_xticks(range(len(OPERATORS)))
+    axis.set_xticklabels([OPERATOR_LABEL[o] for o in OPERATORS], rotation=90, fontsize=6)
+    axis.set_yticks(range(len(groups)))
+    axis.set_yticklabels([GROUP_LABEL.get(g, g) for g in groups], fontsize=7)
+    axis.set_title(f"{architecture}: AUROC of the statistic, hit-only")
+    axis.grid(False)
+fig.colorbar(image, ax=axes[0].tolist(), shrink=0.8, label="AUROC, low statistic flags triggered")
+plt.show()
+
+pd.DataFrame(
+    [
+        {
+            "model": r["name"],
+            **{op: r["operators"][op]["auroc_paired"] for op in HEADLINE_OPERATORS},
+        }
+        for r in summary["per_model"]
+    ]
+).set_index("model").round(3)
+
+# %% step1_hist
+# 1 model per group: the per-image statistic under PSBD-TM and PSBD-RD, clean
+# twins against triggered hit images, read from the model's own record.
+examples = {}
+for r in summary["per_model"]:
+    if r["architecture"] == "vit" and r["group"] not in examples and (r["successful_2pt"] or r["category"] == "benign"):
+        examples[r["group"]] = r["name"]
+ordered = [g for g in groups_of("vit") if g in examples]
+fig, axes = plt.subplots(2, len(ordered), figsize=(TEXT_WIDTH, 3.2), squeeze=False, sharey="row")
+bins = np.linspace(-0.2, 1.0, 31)
+for column, g in enumerate(ordered):
+    name = examples[g].replace(":", "__probe_")
+    record = json.loads((RESULTS / f"{name}.json").read_text())
+    hit = np.array(record["baseline"]["hit"], dtype=bool)
+    for row, op in enumerate(("token_mask", "residual_dropout")):
+        block = record["operators"][op]
+        clean = np.array(block["clean"]["psu_ratio"], dtype=float)
+        triggered = np.array(block["triggered"]["psu_ratio"], dtype=float)[hit]
+        axis = axes[row][column]
+        axis.hist(clean, bins=bins, alpha=0.6, label="clean", color=OKABE_ITO[0])
+        axis.hist(triggered, bins=bins, alpha=0.6, label="triggered hit", color=OKABE_ITO[1])
+        if row == 0:
+            axis.set_title(GROUP_LABEL.get(g, g), fontsize=6)
+        if column == 0:
+            axis.set_ylabel(["PSBD-TM", "PSBD-RD"][row], fontsize=7)
+        axis.tick_params(labelsize=5)
+axes[1][0].set_xlabel("statistic phi", fontsize=6)
+axes[0][0].legend(fontsize=5)
+plt.tight_layout()
+plt.show()
+print({g: examples[g] for g in ordered})
+
+# %% step1_after
+lines = []
+for architecture in ARCHITECTURES:
+    attacks = attack_groups(architecture)
+    benign = benign_groups(architecture)
+    weakest = {g: min(HEADLINE_OPERATORS, key=lambda o: group_mean(architecture, g)["operators"][o]["auroc_hit_only"] or 1)
+               for g in attacks}
+    separating = by_status(architecture, "phenomenon")
+    benign_spread = [abs((group_mean(architecture, g)["operators"][o]["auroc_hit_only"] or 0.5) - 0.5)
+                     for g in benign for o in OPERATORS if o in group_mean(architecture, g)["operators"]]
+    lines.append(
+        f"On {architecture}, the statistic separates with at least {T['separating_operators']} of the "
+        f"{len(HEADLINE_OPERATORS)} headline operators (AUROC {T['separating_auroc']} or more) for "
+        f"{listed(group_name(g) for g in separating.get('supported', []))}"
+        + (f", and with fewer for {listed(group_name(g) for g in separating.get('partial', []) + separating.get('refuted', []))}" if separating.get('partial') or separating.get('refuted') else "")
+        + ". The weakest headline operator per category is "
+        + listed(f"{OPERATOR_LABEL[weakest[g]].split(chr(10))[0]} for {group_name(g)} ({fmt(group_mean(architecture, g)['operators'][weakest[g]]['auroc_hit_only'])})" for g in attacks)
+        + f". The benign probes stay within {fmt(max(benign_spread) if benign_spread else None)} of 0.5 over every operator."
+    )
+say("**What it shows.** " + " ".join(lines) + " The statistic is therefore not a property of 1 operator: whatever makes it work has to hold for masks, elementwise dropout and additive noise alike, which is the question of the next steps. A benign model reading the same triggered images at chance says the separation comes from the backdoor and not from the trigger's appearance.")
+say("**What it does not show.** The AUROCs are on this experiment's pairs, triggered images that reach the target against their clean twins, at each placement's own rate. They are not the paper's panel numbers, which use the full splits and the pipeline's pass count. The figure says that the statistic works, not why.")
+
+# %% step2
+fig, axes = plt.subplots(1, 3, figsize=(TEXT_WIDTH, 2.6))
+architecture = "vit"
+groups = groups_of(architecture)
+
+# Panel a: does the unperturbed margin or confidence already separate?
+x = np.arange(len(groups))
+axes[0].bar(x - 0.2, [group_mean(architecture, g)["auroc_margin_unperturbed"] for g in groups],
+            0.4, label="margin", color=OKABE_ITO[0])
+axes[0].bar(x + 0.2, [group_mean(architecture, g)["auroc_confidence_unperturbed"] for g in groups],
+            0.4, label="confidence", color=OKABE_ITO[1])
+axes[0].axhline(0.5, color="0.4", linewidth=0.8)
+axes[0].set_xticks(x)
+axes[0].set_xticklabels([GROUP_LABEL.get(g, g) for g in groups], rotation=90, fontsize=6)
+axes[0].set_ylabel("AUROC, triggered larger")
+axes[0].set_title("a  unperturbed", fontsize=8)
+axes[0].legend()
+
+# Panel b: margin retention under each headline operator, clean against triggered.
+for index, g in enumerate(groups):
+    operators = group_mean(architecture, g)["operators"]
+    clean = [operators[o]["clean_margin_retention"] for o in HEADLINE_OPERATORS]
+    triggered = [operators[o]["triggered_margin_retention"] for o in HEADLINE_OPERATORS]
+    color = OKABE_ITO[index % len(OKABE_ITO)]
+    axes[1].plot(range(5), triggered, "-o", color=color, markersize=3,
+                 label=GROUP_LABEL.get(g, g))
+    axes[1].plot(range(5), clean, ":", color=color, marker="x", markersize=3)
+axes[1].axhline(0.0, color="0.4", linewidth=0.8)
+axes[1].set_xticks(range(5))
+axes[1].set_xticklabels([OPERATOR_LABEL[o].split("\n")[0] for o in HEADLINE_OPERATORS],
+                        rotation=90, fontsize=6)
+axes[1].set_ylabel("median margin retention r")
+axes[1].set_title("b  solid triggered, dotted clean", fontsize=8)
+
+# Panel c: the statistic's AUROC against its margin-matched AUROC, 1 point per
+# model and operator.
+for index, g in enumerate(groups):
+    for r in models_of(architecture, g):
+        raw = [r["operators"][o]["auroc_hit_only"] for o in HEADLINE_OPERATORS]
+        matched = [r["operators"][o]["margin_matched_auroc"] for o in HEADLINE_OPERATORS]
+        axes[2].scatter(raw, matched, s=8, color=OKABE_ITO[index % len(OKABE_ITO)])
+axes[2].plot([0, 1], [0, 1], color="0.4", linewidth=0.8)
+axes[2].set_xlabel("AUROC of the statistic")
+axes[2].set_ylabel("AUROC, margin-matched pairs")
+axes[2].set_title("c  every model and operator", fontsize=8)
+fig.legend(*axes[1].get_legend_handles_labels(), loc="upper center",
+           bbox_to_anchor=(0.5, 1.12), ncol=4, fontsize=6)
+plt.tight_layout()
+plt.show()
+
+# %% step2_after
+architecture = "vit"
+attacks = attack_groups(architecture)
+rows = []
+for g in attacks:
+    m = group_mean(architecture, g)
+    v = verdict_of(architecture, g, "margin")
+    rows.append((g, m["auroc_margin_unperturbed"], m["auroc_confidence_unperturbed"],
+                 m["operators"]["token_mask"]["auroc_hit_only"], v["value"], v.get("auroc_lost_to_margin_matching")))
+lowest_margin = min(rows, key=lambda r: r[1])
+largest_loss = max(rows, key=lambda r: r[5] or 0)
+larger_start = all((r[1] or 0) > 0.6 for r in rows)
+say(f"""**What it shows.** Triggered images {'do' if larger_start else 'do not all'} start with larger margins: the unperturbed margin alone separates at {listed(f"{fmt(r[1])} for {group_name(r[0])}" for r in rows)}. That is below the statistic under PSBD-TM ({listed(f"{fmt(r[3])} for {group_name(r[0])}" for r in rows)}). The gap is widest for {group_name(lowest_margin[0])}. The perturbation does the rest. Under every separating operator the median clean margin turns negative (the answer flips), while the triggered margin keeps a positive share, a retention gap of {listed(f"{fmt(r[4])} for {group_name(r[0])}" for r in rows)} averaged over the separating operators. Matching each triggered image with a clean image of the same starting margin costs the statistic at most {fmt(largest_loss[5])} AUROC ({group_name(largest_loss[0])}), so the separation is not the starting margin in disguise: at equal margins, triggered answers lose less. The H-margin rule reads {status_sentence(architecture, 'margin')}.""")
+say("""**What it does not show.** Margin retention is the statistic seen through the logits, so its separating is close to a restatement. What the step rules out is the cheap reading, that triggered answers survive because they start further from the boundary. It does not say what protects the triggered margin, which is the next question: the margin is a readout of 1 feature vector, so the protection must show in that vector.""")
+
+# %% step3
+fig, axes = plt.subplots(1, 3, figsize=(TEXT_WIDTH, 2.6))
+architecture = "vit"
+groups = groups_of(architecture)
+x = np.arange(len(groups))
+
+# Panel a: how much of a triggered image's deviation from the clean mean lies on
+# the backdoor direction, and the cosine between that direction and the target's
+# readout direction in the head.
+share = [group_mean(architecture, g)["operators"]["token_mask"]["triggered_backdoor_share"] for g in groups]
+cosine = [group_mean(architecture, g)["cosine_backdoor_target_readout"] for g in groups]
+axes[0].bar(x - 0.2, share, 0.4, color=OKABE_ITO[0], label="backdoor share of deviation")
+axes[0].bar(x + 0.2, cosine, 0.4, color=OKABE_ITO[2], label="cos(u, target readout)")
+axes[0].set_xticks(x)
+axes[0].set_xticklabels([GROUP_LABEL.get(g, g) for g in groups], rotation=90, fontsize=6)
+axes[0].set_title("a  dominance", fontsize=8)
+axes[0].legend(fontsize=6)
+
+# Panel b: signal to perturbation ratio, triggered along u over clean along its
+# own class direction, per operator. Above 1 means the triggered component stands
+# further above the perturbation's noise than the clean class evidence does.
+for index, g in enumerate(groups):
+    operators = group_mean(architecture, g)["operators"]
+    ratios = [
+        (operators[o]["triggered_backdoor_spr"] or np.nan) / (operators[o]["clean_class_spr"] or np.nan)
+        for o in HEADLINE_OPERATORS
+    ]
+    axes[1].plot(range(5), ratios, "-o", markersize=3, color=OKABE_ITO[index % 8],
+                 label=GROUP_LABEL.get(g, g))
+axes[1].axhline(1.0, color="0.4", linewidth=0.8)
+axes[1].set_yscale("log")
+axes[1].set_xticks(range(5))
+axes[1].set_xticklabels([OPERATOR_LABEL[o].split("\n")[0] for o in HEADLINE_OPERATORS], rotation=90, fontsize=6)
+axes[1].set_ylabel("SPR triggered / SPR clean")
+axes[1].set_title("b  signal to perturbation", fontsize=8)
+
+# Panel c: memo L8, the per-image Spearman correlation between the statistic and
+# the fractional loss of the backdoor projection, on triggered images above the
+# bfloat16 floor and on clean and triggered pooled.
+width = 0.4
+for offset, key, label in ((-0.2, "spearman_psu_backdoor_drop_above_floor", "triggered, phi > 0.01"),
+                           (0.2, "spearman_psu_backdoor_drop_pooled", "clean and triggered pooled")):
+    values = [group_mean(architecture, g)["operators"]["token_mask"].get(key) for g in groups]
+    axes[2].bar(x + offset, [np.nan if v is None else v for v in values], width, label=label)
+axes[2].axhline(0.7, color=OKABE_ITO[2], linewidth=0.8, linestyle="--")
+axes[2].axhline(0.3, color=OKABE_ITO[1], linewidth=0.8, linestyle="--")
+axes[2].set_xticks(x)
+axes[2].set_xticklabels([GROUP_LABEL.get(g, g) for g in groups], rotation=90, fontsize=6)
+axes[2].set_title("c  L8 under PSBD-TM", fontsize=8)
+axes[2].legend(fontsize=6)
+fig.legend(*axes[1].get_legend_handles_labels(), loc="upper center", bbox_to_anchor=(0.5, 1.12), ncol=4, fontsize=6)
+plt.tight_layout()
+plt.show()
+
+pd.DataFrame(
+    [
+        {
+            "group": GROUP_LABEL.get(g, g),
+            **{
+                f"{op} L8 above floor": group_mean("vit", g)["operators"][op].get("spearman_psu_backdoor_drop_above_floor")
+                for op in HEADLINE_OPERATORS
+            },
+            "triggered share above floor (TM)": group_mean("vit", g)["operators"]["token_mask"].get("triggered_share_above_floor"),
+        }
+        for g in groups_of("vit")
+    ]
+).set_index("group").round(3)
+
+# %% step3_after
+architecture = "vit"
+attacks = attack_groups(architecture)
+m = {g: group_mean(architecture, g) for g in attacks}
+ratio_tm = {g: (m[g]["operators"]["token_mask"]["triggered_backdoor_spr"] or np.nan) / (m[g]["operators"]["token_mask"]["clean_class_spr"] or np.nan) for g in attacks}
+say(f"""**What it shows.** The triggered feature's deviation from the clean mean lies mostly on the backdoor direction: a median share of {listed(f"{fmt(m[g]['operators']['token_mask']['triggered_backdoor_share'])} for {group_name(g)}" for g in attacks)}. The direction points close to the target's readout (cosine {listed(f"{fmt(m[g]['cosine_backdoor_target_readout'])} for {group_name(g)}" for g in attacks)}). Under PSBD-TM the triggered backdoor component keeps a median {listed(f"{fmt(m[g]['operators']['token_mask']['triggered_backdoor_retention'])}" for g in attacks)} of itself, in the same order, while a clean image's component along its own class direction keeps {listed(f"{fmt(m[g]['operators']['token_mask']['clean_class_retention'])}" for g in attacks)}. The triggered signal stands {listed(f"{fmt(ratio_tm[g], 2)} times" for g in attacks)} further above the perturbation's noise than clean class evidence does. Per image, the statistic tracks how much of the backdoor projection a pass removes: the L8 Spearman correlation on triggered images above the floor is {listed(f"{fmt(m[g]['operators']['token_mask']['spearman_psu_backdoor_drop_above_floor'])} for {group_name(g)}" for g in attacks)}. The H-direction rule reads {status_sentence(architecture, 'direction')}.""")
+say(f"""**What it does not show.** The pooled correlation, clean and triggered images together, is low ({listed(fmt(m[g]['operators']['token_mask']['spearman_psu_backdoor_drop_pooled']) for g in attacks)}): clean images have no backdoor component to lose, so their statistic is set by their own class evidence, and 1 projection cannot order both populations. The direction explains the triggered side. It does not explain why the backdoor component survives a perturbation that destroys the clean class component, since both are directions of the same feature. The next step looks for the reason in how the evidence is spread over tokens.""")
+
+# %% step4
+fig, axes = plt.subplots(1, len(ARCHITECTURES), figsize=(TEXT_WIDTH, 2.8), squeeze=False)
+for axis, architecture in zip(axes[0], ARCHITECTURES):
+    for index, g in enumerate(groups_of(architecture)):
+        redundancy = group_mean(architecture, g)["redundancy"]
+        fractions = sorted(redundancy, key=float)
+        f = [float(v) for v in fractions]
+        color = OKABE_ITO[index % 8]
+        axis.plot(f, [redundancy[v]["triggered_kept"] for v in fractions], "-o", color=color,
+                  markersize=3, label=GROUP_LABEL.get(g, g))
+        axis.plot(f, [redundancy[v]["clean_kept"] for v in fractions], ":", color=color, marker="x", markersize=3)
+        forced = [redundancy[v].get("trigger_forced_triggered_kept") for v in fractions]
+        if any(v is not None for v in forced):
+            axis.plot(f, [np.nan if v is None else v for v in forced], "--", color=color, linewidth=0.8)
+    axis.set_xlabel("visible share of patch tokens, every block")
+    axis.set_ylabel("share of answers kept")
+    axis.set_title(f"{architecture}: solid triggered, dotted clean, dashed trigger forced visible", fontsize=7)
+fig.legend(*axes[0][0].get_legend_handles_labels(), loc="upper center", bbox_to_anchor=(0.5, 1.12), ncol=4, fontsize=6)
+plt.tight_layout()
+plt.show()
+
+# %% step4_after
+lines = []
+for architecture in ARCHITECTURES:
+    attacks = attack_groups(architecture)
+    red = {g: group_mean(architecture, g)["redundancy"].get(T["redundancy_fraction"], {}) for g in attacks}
+    lines.append(
+        f"On {architecture}, with {T['redundancy_fraction']} of the patch tokens visible in every block, the excess retention of triggered answers is "
+        + listed(f"{fmt(red[g].get('excess_retention'))} for {group_name(g)} (clean answers kept {fmt(red[g].get('clean_kept'))})" for g in attacks)
+        + f". The H-redundancy rule reads {status_sentence(architecture, 'redundancy')}."
+    )
+patch = [g for g in attack_groups("vit") if g.startswith("patch")]
+forced = {g: group_mean("vit", g)["redundancy"].get(T["redundancy_fraction"], {}) for g in patch}
+if patch:
+    lines.append(
+        "For the patch triggers on ViT, forcing the trigger's tokens visible keeps "
+        + listed(f"{fmt(forced[g].get('trigger_forced_triggered_kept'))} of triggered answers for {group_name(g)} against {fmt(forced[g].get('triggered_kept'))} with random patterns" for g in patch)
+        + ", the difference between a trigger that is spread and 1 that is merely rarely hidden."
+    )
+say("**What it shows.** " + " ".join(lines))
+say("""**What it does not show.** A fixed pattern removes tokens in every block, which is harsher than any operator used for detection, and the pattern is on the 14 by 14 patch grid, so a trigger whose evidence is finer than a token is not resolved. The test reads survival of the answer, not of the backdoor component itself. What it establishes is whether any sizeable subset of tokens carries enough of the trigger to write the backdoor direction on its own, which is what protects that direction from a perturbation that removes a random part of the computation.""")
+
+# %% wanet
+probe = pd.DataFrame(summary.get("wanet_probe") or [])
+if not len(probe):
+    say("The WaNet probe had not run when this notebook was executed.")
+else:
+    rows = []
+    for _, r in probe.iterrows():
+        for block, reading in r["blocks"].items():
+            rows.append({"model": r["folder"], "successful at 2 points": r["successful_2pt"], "block": int(block),
+                         "token probe": reading["token_probe_accuracy"], "class token probe": reading["cls_probe_accuracy"]})
+    table = pd.DataFrame(rows)
+    fig, axis = plt.subplots(figsize=(TEXT_WIDTH / 2, 2.6))
+    for index, (model, part) in enumerate(table.groupby("model")):
+        axis.plot(part["block"], part["token probe"], "-o", color=OKABE_ITO[index % 8], markersize=3, label=model.replace("vit_", ""))
+        axis.plot(part["block"], part["class token probe"], "--s", color=OKABE_ITO[index % 8], markersize=3)
+    axis.axhline(0.5, color="0.4", linewidth=0.8)
+    axis.set_xlabel("block whose incoming stream is probed")
+    axis.set_ylabel("held-out probe accuracy")
+    axis.set_title("solid single tokens, dashed class token", fontsize=7)
+    axis.legend(fontsize=5)
+    plt.show()
+    targets = pd.DataFrame([{"model": r["folder"], **{f"{k} on target": v for k, v in r["target_share"].items()}} for _, r in probe.iterrows()])
+    display(targets.set_index("model").round(3))
+    early = table[table["block"] <= 8]
+    say(f"""**What it shows.** Over blocks up to 8, single-token probes reach a mean held-out accuracy of {fmt(early['token probe'].mean())} (at most {fmt(early['token probe'].max())}) while the class-token probe reaches {fmt(early['class token probe'].mean())} (at most {fmt(early['class token probe'].max())}), and at the last probed block the class token reaches {fmt(table[table['block'] == table['block'].max()]['class token probe'].mean())}. The theory note's L26 prediction, single tokens near chance with the class token high, {'holds' if early['token probe'].mean() < 0.6 and table['class token probe'].max() >= 0.9 else 'does not hold as stated'} on these models.""")
+    say("""**What it does not show.** A linear probe that fails does not prove that no nonlinear reading of 1 token exists, and the pooled token probe mixes positions whose warp displacement differs. The probe is fitted on half of the images of 1 dataset per model.""")
+
+# %% step5
+fig, axes = plt.subplots(1, 3, figsize=(TEXT_WIDTH, 2.6))
+architecture = "vit"
+groups = groups_of(architecture)
+x = np.arange(len(groups))
+
+low = [group_mean(architecture, g)["low_dim"] for g in groups]
+axes[0].bar(x - 0.2, [entry["trigger_top1_share"] for entry in low], 0.4, label="triggered minus clean")
+axes[0].bar(x + 0.2, [entry["clean_pair_top1_share"] for entry in low], 0.4, label="clean minus clean")
+axes[0].set_xticks(x)
+axes[0].set_xticklabels([GROUP_LABEL.get(g, g) for g in groups], rotation=90, fontsize=6)
+axes[0].set_ylabel("top eigenvalue share")
+axes[0].set_title("a  spectrum of the feature change", fontsize=8)
+axes[0].legend(fontsize=6)
+
+last = str(max(int(b) for b in low[0]["jacobian"]))
+axes[1].bar(x - 0.2, [entry["jacobian"][last]["triggered_effective_tokens"] for entry in low], 0.4, label="triggered")
+axes[1].bar(x + 0.2, [entry["jacobian"][last]["clean_effective_tokens"] for entry in low], 0.4, label="clean")
+axes[1].set_xticks(x)
+axes[1].set_xticklabels([GROUP_LABEL.get(g, g) for g in groups], rotation=90, fontsize=6)
+axes[1].set_ylabel("effective tokens of the margin's Jacobian")
+axes[1].set_title(f"b  stream entering block {last}", fontsize=8)
+axes[1].legend(fontsize=6)
+
+suff = [group_mean(architecture, g)["sufficiency"] for g in groups]
+for offset, order in ((-0.2, "ranked"), (0.2, "random")):
+    axes[2].bar(x + offset, [s[order]["triggered_median"] for s in suff], 0.4, label=f"triggered, {order}")
+    axes[2].scatter(x + offset, [s[order]["clean_median"] for s in suff], marker="_", s=80, color="k")
+axes[2].set_yscale("log")
+axes[2].set_xticks(x)
+axes[2].set_xticklabels([GROUP_LABEL.get(g, g) for g in groups], rotation=90, fontsize=6)
+axes[2].set_ylabel("median smallest sufficient token share")
+axes[2].set_title("c  bars triggered, black ticks clean", fontsize=8)
+axes[2].legend(fontsize=6)
+plt.tight_layout()
+plt.show()
+
+pd.DataFrame(
+    [
+        {
+            "group": GROUP_LABEL.get(g, g),
+            "sufficiency AUROC ranked": group_mean("vit", g)["sufficiency"]["ranked"]["auroc"],
+            "sufficiency AUROC random": group_mean("vit", g)["sufficiency"]["random"]["auroc"],
+            "attribution Gini triggered": group_mean("vit", g)["low_dim"]["attribution"].get("triggered_gini"),
+            "attribution Gini clean": group_mean("vit", g)["low_dim"]["attribution"].get("clean_gini"),
+            "Jacobian rank triggered": group_mean("vit", g)["low_dim"]["jacobian"][last]["triggered_effective_rank"],
+            "Jacobian rank clean": group_mean("vit", g)["low_dim"]["jacobian"][last]["clean_effective_rank"],
+        }
+        for g in groups_of("vit")
+    ]
+).set_index("group").round(3)
+
+# %% step5_after
+architecture = "vit"
+attacks = attack_groups(architecture)
+low = {g: group_mean(architecture, g)["low_dim"] for g in attacks}
+last = str(max(int(b) for b in low[attacks[0]]["jacobian"]))
+suff = {g: group_mean(architecture, g)["sufficiency"] for g in attacks}
+spread_more = [g for g in attacks if (low[g]["jacobian"][last]["triggered_effective_tokens"] or 0) > (low[g]["jacobian"][last]["clean_effective_tokens"] or 0)]
+say(f"""**What it shows.** In feature space the trigger effect is close to 1 direction: the top eigenvalue holds {listed(f"{fmt(low[g]['trigger_top1_share'])} for {group_name(g)}" for g in attacks)} of the paired change, against at most {fmt(max(low[g]['clean_pair_top1_share'] for g in attacks))} for the change between 2 clean images. In token space the triggered decision is not concentrated: the margin's Jacobian at block {last} spreads over more tokens for triggered than for clean images for {listed(group_name(g) for g in spread_more)} ({listed(f"{fmt(low[g]['jacobian'][last]['triggered_effective_tokens'], 1)} against {fmt(low[g]['jacobian'][last]['clean_effective_tokens'], 1)}" for g in spread_more)}). A small part of the input suffices: the ranked sufficient token share of triggered images has median {listed(f"{fmt(suff[g]['ranked']['triggered_median'])} for {group_name(g)}" for g in attacks)} against {listed(fmt(suff[g]['ranked']['clean_median']) for g in attacks)} for clean images, and as a detector it reads AUROC {listed(fmt(suff[g]['ranked']['auroc']) for g in attacks)}. The H-low-dim rule reads {status_sentence(architecture, 'low_dim')}.""")
+say("""**What it does not show.** Low dimension and redundancy are 2 sides of 1 picture rather than rivals: the trigger writes 1 direction, and many different small token subsets can write it. The ranked order is 1 gradient, not Cognitive Distillation's optimization, so the sufficient share is an upper bound on the smallest set. The Jacobian is local and says nothing about the finite perturbations of the detector, which is what the flatness step asks about.""")
+
+# %% step6
+fig, axes = plt.subplots(1, 2, figsize=(TEXT_WIDTH, 2.6))
+architecture = "vit"
+groups = groups_of(architecture)
+sites = list(group_mean(architecture, groups[0])["flatness"])
+grid = np.array([
+    [group_mean(architecture, g)["flatness"][site]["auroc_flatter_curvature_log_prob"] or np.nan for site in sites]
+    for g in groups
+])
+image = axes[0].imshow(grid, cmap="RdBu", vmin=0, vmax=1, aspect="auto")
+for i in range(grid.shape[0]):
+    for j in range(grid.shape[1]):
+        axes[0].text(j, i, f"{grid[i, j]:.2f}", ha="center", va="center", fontsize=6)
+axes[0].set_xticks(range(len(sites)))
+axes[0].set_xticklabels(sites, rotation=90, fontsize=6)
+axes[0].set_yticks(range(len(groups)))
+axes[0].set_yticklabels([GROUP_LABEL.get(g, g) for g in groups], fontsize=6)
+axes[0].set_title("a  AUROC, triggered flatter (|curvature| of log P_c)", fontsize=7)
+axes[0].grid(False)
+
+for index, g in enumerate(groups):
+    for r in models_of(architecture, g):
+        small = r.get("small_noise")
+        if not small:
+            continue
+        rates = sorted(small["auroc_hit_only"], key=float)
+        xs = [float(v) for v in rates] + [small["operating_gaussian_rate"]]
+        ys = [small["auroc_hit_only"][v] for v in rates] + [small["operating_gaussian_auroc"]]
+        axes[1].plot(xs, ys, "-o", color=OKABE_ITO[index % 8], markersize=3, linewidth=0.8,
+                     label=GROUP_LABEL.get(g, g))
+axes[1].set_xscale("log")
+axes[1].axhline(0.5, color="0.4", linewidth=0.8)
+axes[1].set_xlabel("Gaussian rate r at the attention input (last point: adaptive rate)")
+axes[1].set_ylabel("AUROC")
+axes[1].set_title("b  float32, k = 20 at small r", fontsize=8)
+plt.tight_layout()
+plt.show()
+
+# %% step6_after
+architecture = "vit"
+attacks = attack_groups(architecture)
+small = {g: group_mean(architecture, g).get("small_noise") or {} for g in attacks}
+flat = {g: verdict_of(architecture, g, "flatness") for g in attacks}
+say(f"""**What it shows.** Finite-difference curvature does separate triggered from clean images at some sites (AUROC {listed(f"{fmt(max(v for v in (flat[g].get('finite_difference_auroc') or {{}}).values() if v is not None))} at best for {group_name(g)}" for g in attacks)}), which is the flatness the account expects. Its decisive prediction fails, though. At small Gaussian rates the AUROC is {listed(f"{fmt(small[g].get('auroc_at_smallest_rate'))} for {group_name(g)}" for g in attacks)}, against {listed(fmt(small[g].get('operating_gaussian_auroc')) for g in attacks)} at the operating rate, and the median ratio $\\phi(2r)/\\phi(r)$ on clean images is {listed(fmt(small[g].get('clean_ratio_median'), 2) for g in attacks)} rather than near 4, with image rankings that move across rates (Spearman {listed(fmt(small[g].get('clean_spearman_across_rates')) for g in attacks)}). The H-flatness rule reads {status_sentence(architecture, 'flatness')}.""")
+say("""**What it does not show.** The second-order expansion is a small-perturbation statement and every detector operates far outside it, at rates that change most clean answers. What the step shows is that the detector's separation is built up by large perturbations that remove structure, not read off a local curvature that small noise would already see. It does not say that curvature is irrelevant at every site. That the finite-difference AUROCs above chance reflect a triggered answer robust at every scale is a hypothesis, not an isolated result.""")
+
+# %% refute_confidence
+refutations = cached["refutations"]
+per_model = {r["folder"]: r for r in refutations["per_model"]}
+ceiling = pd.DataFrame(refutations["confidence_ceiling"])
+ceiling["PSBD-TM"] = [per_model[f]["psbd_tm"] for f in ceiling["folder"]]
+ceiling["PSBD-RD"] = [per_model[f]["psbd_rd"] for f in ceiling["folder"]]
+ceiling["confidence detector"] = [per_model[f]["confidence_only"] for f in ceiling["folder"]]
+
+fig, axes = plt.subplots(1, 2, figsize=(TEXT_WIDTH, 2.8))
+attacks = sorted(ceiling["attack"].unique())
+for index, attack in enumerate(attacks):
+    rows = ceiling[ceiling["attack"] == attack]
+    axes[0].scatter(rows["a_star"], rows["PSBD-TM"], s=12, color=OKABE_ITO[index % 8], label=attack)
+    axes[0].scatter(rows["a_star"], rows["PSBD-RD"], s=12, color=OKABE_ITO[index % 8], marker="x")
+axes[0].plot([0.4, 1], [0.4, 1], color="0.4", linewidth=0.8)
+axes[0].set_xlabel("A*(P_c), best any function of confidence can do")
+axes[0].set_ylabel("AUROC (dots PSBD-TM, crosses PSBD-RD)")
+axes[0].set_title("a  57 panel models, cached", fontsize=8)
+axes[0].legend(fontsize=6, ncol=2)
+
+groups = groups_of("vit")
+x = np.arange(len(groups))
+axes[1].bar(x - 0.2, [group_mean("vit", g)["auroc_confidence_unperturbed"] for g in groups], 0.4,
+            label="unperturbed confidence")
+axes[1].bar(x + 0.2, [group_mean("vit", g)["operators"]["token_mask"]["auroc_hit_only"] for g in groups], 0.4,
+            label="PSBD-TM statistic")
+axes[1].axhline(0.5, color="0.4", linewidth=0.8)
+axes[1].set_xticks(x)
+axes[1].set_xticklabels([GROUP_LABEL.get(g, g) for g in groups], rotation=90, fontsize=6)
+axes[1].set_title("b  this experiment's 256 pairs", fontsize=8)
+axes[1].legend(fontsize=6)
+plt.tight_layout()
+plt.show()
+
+print(f"A*(P_c) mean {ceiling['a_star'].mean():.3f}, raw confidence {ceiling['raw_confidence'].mean():.3f}, "
+      f"confidence detector {ceiling['confidence detector'].mean():.3f}")
+for name in ("PSBD-TM", "PSBD-RD"):
+    margin = ceiling[name] - ceiling["a_star"]
+    print(f"{name} beats A* on {(margin > 0).sum()} of {len(margin)} models, mean margin {margin.mean():+.3f}")
+
+# %% refute_confidence_after
+panel = [r for r in cached["refutations"]["confidence_ceiling"] if r.get("successful_2pt")]
+per_model = {r["folder"]: r for r in cached["refutations"]["per_model"]}
+tm_margin = [per_model[r["folder"]]["psbd_tm"] - r["a_star"] for r in panel]
+rd_margin = [per_model[r["folder"]]["psbd_rd"] - r["a_star"] for r in panel]
+verdicts_p1 = summary["panel_verdicts"]["confidence"]
+say(f"""**Verdict.** The best any function of confidence can do, $A^*(P_c)$, averages {fmt(np.mean([r['a_star'] for r in panel]))} over the {len(panel)} panel models, well above raw confidence ({fmt(np.mean([r['raw_confidence'] for r in panel]))}), because the likelihood ratio is not monotone in $P_c$. PSBD-TM beats it on {sum(m > 0 for m in tm_margin)} of {len(tm_margin)} models by {fmt(np.mean(tm_margin))} on average. PSBD-RD beats it on {sum(m > 0 for m in rd_margin)} of {len(rd_margin)} by {fmt(np.mean(rd_margin))}. Per attack the P1 rule reads {listed(f"{v['status']} for {a} ({fmt(v['value'])})" for a, v in sorted(verdicts_p1.items()))}. Confidence carries part of the signal, most for patch triggers, and PSBD-TM carries more than any function of it. For PSBD-RD the margin over confidence is small, so its reading is close to what confidence alone would give.""")
+say("""**What it does not show.** $A^*$ is an oracle: it needs the triggered distribution, so it bounds what confidence can do and is not a detector a defender could run. Beating it shows the perturbation adds information, not which information, which steps 2 to 5 answer.""")
+
+# %% refute_uncertainty
+fig, axes = plt.subplots(1, 2, figsize=(TEXT_WIDTH, 2.8))
+groups = groups_of("vit")
+x = np.arange(len(groups))
+for offset, key, label in ((-0.3, "auroc_hit_only", "PSU statistic"),
+                           (-0.1, "auroc_mutual_information", "BALD"),
+                           (0.1, "auroc_predictive_entropy", "predictive entropy"),
+                           (0.3, "auroc_own_prob_std", "sd of P_c")):
+    axes[0].bar(x + offset, [group_mean("vit", g)["operators"]["token_mask"][key] for g in groups], 0.2, label=label)
+axes[0].axhline(0.5, color="0.4", linewidth=0.8)
+axes[0].set_xticks(x)
+axes[0].set_xticklabels([GROUP_LABEL.get(g, g) for g in groups], rotation=90, fontsize=6)
+axes[0].set_title("a  same PSBD-TM passes, 4 readings", fontsize=8)
+axes[0].legend(fontsize=6)
+
+seeds = pd.DataFrame(summary["seed_ensemble"])
+if len(seeds):
+    a_star = {r["folder"]: r["a_star"] for r in cached["refutations"]["confidence_ceiling"]}
+    seeds["A*"] = [a_star.get(c) for c in seeds["cell"]]
+    order = np.arange(len(seeds))
+    axes[1].scatter(order, seeds["psbd_tm_cached_auroc"], label="PSBD-TM (cached)", s=14)
+    axes[1].scatter(order, seeds["ensemble_psu_ratio"], label="3-seed ensemble statistic", s=14)
+    axes[1].scatter(order, seeds["A*"], label="A*(P_c)", s=14, marker="_")
+    axes[1].set_xticks(order)
+    axes[1].set_xticklabels(seeds["cell"].str.replace("vit_", ""), rotation=90, fontsize=5)
+    axes[1].axhline(0.9, color="0.4", linewidth=0.8, linestyle="--")
+    axes[1].legend(fontsize=6)
+axes[1].set_title("b  a real epistemic ensemble", fontsize=8)
+plt.tight_layout()
+plt.show()
+seeds.round(3) if len(seeds) else "seed ensembles pending"
+
+# %% refute_uncertainty_after
+architecture = "vit"
+attacks = attack_groups(architecture)
+tm = {g: group_mean(architecture, g)["operators"]["token_mask"] for g in attacks}
+seeds = summary["seed_ensemble"]
+epistemic = summary["panel_verdicts"]["epistemic"]
+text = f"""**Verdict, pass uncertainty.** Over the same PSBD-TM passes, the class-blind BALD mutual information separates at AUROC {listed(f"{fmt(tm[g]['auroc_mutual_information'])} for {group_name(g)}" for g in attacks)}, against {listed(fmt(tm[g]['auroc_hit_only']) for g in attacks)} for the statistic, and the spread of $P_c$ at {listed(fmt(tm[g]['auroc_own_prob_std']) for g in attacks)}. Values below 0.5 mean triggered images are the more uncertain by these readings. A hypothesis for that, not tested here in isolation: a clean image's passes agree with each other on a wrong class, while a triggered image's target probability varies from pass to pass without leaving the target. The entropy of the mean prediction separates better ({listed(fmt(tm[g]['auroc_predictive_entropy']) for g in attacks)}) because it still sees where the mass went. The pass-uncertainty rule reads {status_sentence(architecture, 'pass_uncertainty')}. What separates is the shift away from the unperturbed answer, not disagreement among the passes."""
+if seeds:
+    text += f""" **Verdict, epistemic ensemble.** Over {len(seeds)} cells with 3 successful seeds, the ensemble statistic separates at {listed(f"{fmt(r['ensemble_psu_ratio'])} for `{r['cell']}`" for r in seeds)}, and its clean Spearman correlation with PSBD-TM is {listed(fmt(r.get('clean_spearman_with_psbd_tm')) for r in seeds)}. The P2 rule reads {listed(f"{v['status']} for {a}" for a, v in sorted(epistemic.items()))}."""
+else:
+    text += " The seed ensembles had not run when this notebook was executed."
+say(text)
+say("""**What it does not show.** The seed ensemble is small (3 members) and its members share the poisoned training set, so its disagreement is a narrow epistemic estimate. The conclusion rests on both readings together: uncertainty among passes does not separate, and uncertainty among independently trained models separates no better than confidence.""")
+
+# %% refute_ood
+fig, axes = plt.subplots(1, 2, figsize=(TEXT_WIDTH, 2.8))
+groups = groups_of("vit")
+x = np.arange(len(groups))
+axes[0].bar(x - 0.2, [group_mean("vit", g)["ood"]["knn_distance"]["auroc_triggered_vs_clean"] for g in groups], 0.4,
+            label="triggered vs clean")
+axes[0].bar(x + 0.2, [group_mean("vit", g)["ood"]["knn_distance"]["auroc_foreign_vs_clean"] for g in groups], 0.4,
+            label="foreign dataset vs clean")
+axes[0].axhline(0.5, color="0.4", linewidth=0.8)
+axes[0].set_xticks(x)
+axes[0].set_xticklabels([GROUP_LABEL.get(g, g) for g in groups], rotation=90, fontsize=6)
+axes[0].set_ylabel("AUROC of kNN distance")
+axes[0].set_title("a  is the triggered image unusual?", fontsize=8)
+axes[0].legend(fontsize=6)
+
+for offset, split, label in ((-0.25, "clean", "clean"), (0.0, "triggered", "triggered"), (0.25, "foreign", "foreign dataset")):
+    axes[1].bar(x + offset, [group_mean("vit", g)["operators"]["token_mask"]["flagged"][split] for g in groups], 0.25,
+                label=label)
+axes[1].axhline(0.25, color="0.4", linewidth=0.8, linestyle="--")
+axes[1].set_xticks(x)
+axes[1].set_xticklabels([GROUP_LABEL.get(g, g) for g in groups], rotation=90, fontsize=6)
+axes[1].set_ylabel("share flagged by PSBD-TM")
+axes[1].set_title("b  does PSBD flag an OOD input?", fontsize=8)
+axes[1].legend(fontsize=6)
+plt.tight_layout()
+plt.show()
+benign = pd.DataFrame(cached["refutations"]["benign"])[["folder", "psbd_tm", "psbd_rd"]]
+benign.round(3)
+
+# %% refute_ood_after
+architecture = "vit"
+attacks = attack_groups(architecture)
+m = {g: group_mean(architecture, g) for g in attacks}
+benign = pd.DataFrame(cached["refutations"]["benign"])
+detects_foreign = [g for g in attacks if (m[g]['ood']['knn_distance']['auroc_foreign_vs_clean'] or 0) > T["ood_knn_refuted"]]
+say(f"""**Verdict.** As a check on the score itself, the kNN distance separates foreign images from clean ones at {listed(f"{fmt(m[g]['ood']['knn_distance']['auroc_foreign_vs_clean'])} for {group_name(g)}" for g in attacks)}, so it {'registers the change of dataset for ' + listed(group_name(g) for g in detects_foreign) if detects_foreign else 'does not register the change of dataset in the model feature, since resized foreign images land among clean features'}. It separates triggered images at {listed(f"{fmt(m[g]['ood']['knn_distance']['auroc_triggered_vs_clean'])} for {group_name(g)}" for g in attacks)}, so triggered features do sit away from clean ones. PSBD does not flag unusual inputs as such: its flag takes {listed(f"{fmt(m[g]['operators']['token_mask']['flagged']['foreign'])} of foreign images for {group_name(g)}" for g in attacks)}, against {listed(fmt(m[g]['operators']['token_mask']['flagged']['clean']) for g in attacks)} of clean ones and {listed(fmt(m[g]['operators']['token_mask']['flagged']['triggered']) for g in attacks)} of triggered ones. The benign references read the triggered images at {listed(f"{fmt(r)}" for r in benign['psbd_tm'])} under PSBD-TM. The OOD rule reads {status_sentence(architecture, 'ood')}. Where foreign images are flagged well above clean ones, the reason is the model's own behavior on them, which the next cell checks through the share of foreign images the model sends to the target.""")
+foreign_target = []
+for r in models_of("vit", "warp") + models_of("vit", "patch") + models_of("vit", "blend") + models_of("vit", "quantization"):
+    name = r["name"].replace(":", "__probe_")
+    record = json.loads((RESULTS / f"{name}.json").read_text())
+    block = record["operators"]["token_mask"]["foreign"]
+    if "on_target_unperturbed" in block:
+        foreign_target.append({"model": r["name"], "foreign on target, unperturbed": block["on_target_unperturbed"],
+                               "foreign on target, PSBD-TM passes": block["on_target_perturbed"],
+                               "foreign flagged": record["operators"]["token_mask"]["flagged"]["foreign"]})
+pd.DataFrame(foreign_target).round(3) if foreign_target else "no record carries the foreign target shares yet"
+
+# %% refute_neurons
+fig, axes = plt.subplots(1, 2, figsize=(TEXT_WIDTH, 2.8))
+groups = [g for g in groups_of("vit") if not g.startswith("benign")]
+x = np.arange(len(groups))
+neurons = [group_mean("vit", g)["neurons"] for g in groups]
+axes[0].bar(x - 0.3, [n["late_top30_triggered_kept"] for n in neurons], 0.2, label="top 30 per block, blocks 9-12")
+axes[0].bar(x - 0.1, [n["late_random30_triggered_kept"] for n in neurons], 0.2, label="30 random, blocks 9-12")
+axes[0].bar(x + 0.1, [n["all_top_triggered_kept"] for n in neurons], 0.2, label="top 1%, all blocks")
+axes[0].bar(x + 0.3, [n["all_random_triggered_kept"] for n in neurons], 0.2, label="1% random, all blocks")
+axes[0].axhline(0.1, color=OKABE_ITO[1], linewidth=0.8, linestyle="--")
+axes[0].set_xticks(x)
+axes[0].set_xticklabels([GROUP_LABEL.get(g, g) for g in groups], rotation=90, fontsize=6)
+axes[0].set_ylabel("triggered answers kept (ASR on hits)")
+axes[0].set_title("a  zeroing MLP hidden units (L7)", fontsize=8)
+axes[0].legend(fontsize=5)
+
+ablation = pd.DataFrame(cached["refutations"]["direction_ablation"] or [])
+if len(ablation):
+    order = np.arange(len(ablation))
+    for offset, key, label in ((-0.3, "baseline_asr", "none"), (-0.1, "direction_removed_asr", "backdoor direction"),
+                               (0.1, "top_20_coordinates_asr", "top 20 TAC coordinates"),
+                               (0.3, "random_direction_asr", "random direction")):
+        axes[1].bar(order + offset, ablation[key], 0.2, label=label)
+    axes[1].set_xticks(order)
+    axes[1].set_xticklabels(ablation["folder"].str.replace("vit_", ""), rotation=90, fontsize=6)
+    axes[1].set_ylabel("ASR")
+    axes[1].set_title("b  residual stream, experiments/backdoor_neurons", fontsize=7)
+    axes[1].legend(fontsize=5)
+plt.tight_layout()
+plt.show()
+
+# %% refute_neurons_after
+architecture = "vit"
+attacks = attack_groups(architecture)
+n = {g: group_mean(architecture, g)["neurons"] for g in attacks}
+ablation = pd.DataFrame(cached["refutations"]["direction_ablation"] or [])
+say(f"""**Verdict.** Zeroing the top trigger units of the last blocks leaves {listed(f"{fmt(n[g]['late_top30_triggered_kept'])} of triggered answers for {group_name(g)}" for g in attacks)}, against {listed(fmt(n[g]['late_random30_triggered_kept']) for g in attacks)} with as many random units. Zeroing the top share of units in every block cuts triggered answers to {listed(fmt(n[g]['all_top_triggered_kept']) for g in attacks)} but also clean ones to {listed(fmt(n[g]['all_top_clean_kept']) for g in attacks)}, so those units are general-purpose, not trigger units. The L7 rule reads {status_sentence(architecture, 'trigger_neurons')}. In the residual stream, removing the backdoor direction takes ASR to {listed(fmt(v) for v in ablation['direction_removed_asr'])} on the {len(ablation)} models of `backdoor_neurons`, while zeroing the top TAC coordinates leaves {listed(fmt(v) for v in ablation['top_20_coordinates_asr'])}. The backdoor is a direction, not a set of units, and a direction has no units that could be robust on their own.""" if len(ablation) else "no ablation record")
+
+# %% refute_bias
+fig, axes = plt.subplots(1, 3, figsize=(TEXT_WIDTH, 2.8))
+groups = [g for g in groups_of("vit") if not g.startswith("benign")]
+x = np.arange(len(groups))
+for index, op in enumerate(HEADLINE_OPERATORS):
+    axes[0].bar(x + (index - 2) * 0.16,
+                [group_mean("vit", g)["operators"][op]["clean_shift_to_target"] for g in groups], 0.16,
+                label=OPERATOR_LABEL[op].split("\n")[0])
+axes[0].scatter(x, [group_mean("vit", g)["operators"]["token_mask"]["uniform_share"] for g in groups],
+                marker="_", color="k", s=80, label="1 / classes")
+axes[0].set_xticks(x)
+axes[0].set_xticklabels([GROUP_LABEL.get(g, g) for g in groups], rotation=90, fontsize=6)
+axes[0].set_ylabel("share of shifted clean answers on the target")
+axes[0].set_title("a  where do clean answers go", fontsize=8)
+axes[0].legend(fontsize=5)
+
+for index, op in enumerate(("token_mask", "residual_dropout")):
+    before = [group_mean("vit", g)["operators"][op]["auroc_hit_only"] for g in groups]
+    after = [group_mean("vit", g)["operators"][op]["auroc_without_target"] for g in groups]
+    axes[1].bar(x + (index - 0.5) * 0.4, np.array(before) - np.array(after, dtype=float), 0.4,
+                label=OPERATOR_LABEL[op].split("\n")[0])
+axes[1].axhline(0.10, color=OKABE_ITO[2], linewidth=0.8, linestyle="--")
+axes[1].axhline(0.02, color=OKABE_ITO[1], linewidth=0.8, linestyle="--")
+axes[1].set_xticks(x)
+axes[1].set_xticklabels([GROUP_LABEL.get(g, g) for g in groups], rotation=90, fontsize=6)
+axes[1].set_ylabel("AUROC lost when the target's gain is removed")
+axes[1].set_title("b  L10", fontsize=8)
+axes[1].legend(fontsize=6)
+
+easy = cached["models"]
+benign = cached["benign"]
+for index, (rows, label) in enumerate(((easy, "backdoored (57)"), (benign, "benign references (4)"))):
+    for jndex, op in enumerate(("token_mask", "residual_dropout")):
+        values = [r[op]["target_class_easy"] for r in rows if r.get(op) and r[op]["target_class_easy"]]
+        axes[2].bar(index * 2 + jndex - 0.2, np.mean([v["target_flagged_share"] for v in values]), 0.4,
+                    color=OKABE_ITO[jndex])
+        axes[2].bar(index * 2 + jndex + 0.2, np.mean([v["other_flagged_share"] for v in values]), 0.4,
+                    color=OKABE_ITO[jndex], alpha=0.4)
+axes[2].axhline(0.25, color="0.4", linewidth=0.8, linestyle="--")
+axes[2].set_xticks([0, 1, 2, 3])
+axes[2].set_xticklabels(["backdoored TM", "backdoored RD", "benign TM", "benign RD"], rotation=90, fontsize=6)
+axes[2].set_ylabel("clean images flagged (solid target class, pale others)")
+axes[2].set_title("c  P10, is the target class easy", fontsize=8)
+plt.tight_layout()
+plt.show()
+
+# %% refute_bias_after
+architecture = "vit"
+attacks = attack_groups(architecture)
+nb = {g: verdict_of(architecture, g, "neuron_bias") for g in attacks}
+easy = summary["panel_verdicts"]["target_easy"]
+cached_summary = [r for r in cached["models"] if r.get("successful_2pt")]
+tm_share = np.mean([r["token_mask"]["target_class_easy"]["target_flagged_share"] for r in cached_summary if r["token_mask"] and r["token_mask"]["target_class_easy"]])
+tm_other = np.mean([r["token_mask"]["target_class_easy"]["other_flagged_share"] for r in cached_summary if r["token_mask"] and r["token_mask"]["target_class_easy"]])
+benign_share = np.mean([r["token_mask"]["target_class_easy"]["target_flagged_share"] for r in cached["benign"] if r["token_mask"] and r["token_mask"]["target_class_easy"]])
+say(f"""**Verdict, neuron bias.** Shifted clean answers land on the target at {listed(f"{fmt(nb[g]['shift_to_target_tm'])} under PSBD-TM and {fmt(nb[g]['shift_to_target_rd'])} under PSBD-RD for {group_name(g)}" for g in attacks)}, above the uniform share {listed(fmt(nb[g]['uniform']) for g in attacks)} but far from most of them. Redistributing the target's gain changes PSBD-RD's AUROC by {listed(f"{fmt(nb[g]['value'])} for {group_name(g)}" for g in attacks)} and PSBD-TM's by {listed(fmt(nb[g]['token_mask_change']) for g in attacks)}. The L10 rule reads {status_sentence(architecture, 'neuron_bias')}. A clean image flagged by its own collapse is flagged whether or not the probability it lost went to the target: the attractor exists for some attacks, and the separation does not need it.
+
+**Verdict, target easy.** On the panel, clean images of the target class are flagged at {fmt(tm_share)} under PSBD-TM against {fmt(tm_other)} for the other classes, and at {fmt(benign_share)} on the benign references. Per attack the P10 rule reads {listed(f"{v['status']} for {a} ({fmt(v['value'])})" for a, v in sorted(easy.items()))}. The backdoor does make the target class more stable, above the base rate the threshold sets, which is a real false-positive source for clean images of the target class. It is not the mechanism: the triggered images PSBD flags come from every other class, and their answers survive because of the trigger.""")
+
+# %% refute_memo
+fig, axes = plt.subplots(1, 3, figsize=(TEXT_WIDTH, 2.8))
+geometry = pd.DataFrame(cached["refutations"]["latent_geometry"] or [])
+if len(geometry):
+    axes[0].scatter(geometry["final_rank_ratio"], geometry["best_deployable_auroc"], s=10)
+    axes[0].set_xlabel("final rank ratio (collapse)")
+    axes[0].set_ylabel("best deployable AUROC")
+    axes[0].set_title("a  P9 latent collapse", fontsize=8)
+
+gain = pd.DataFrame([{"folder": r["folder"], "attack": r["attack"], **r["gain_scale_top"]}
+                     for r in cached["refutations"]["per_model"] if r["gain_scale_top"]])
+by_attack = gain.groupby("attack")[["clean_shift_ratio", "target_share", "largest_class_share"]].mean()
+by_attack.plot.bar(ax=axes[1], legend=True, fontsize=6)
+axes[1].set_title(f"b  L14 gain_scale at factor {gain['factor'].iloc[0]:.0f}", fontsize=8)
+axes[1].legend(fontsize=5)
+
+refute = pd.DataFrame(cached["refutations"]["per_model"])
+scale = refute.groupby(["attack", "poison_rate"])["scale_up"].mean().unstack()
+scale.plot(ax=axes[2], marker="o", fontsize=6)
+axes[2].set_title("c  L13 SCALE-UP by poison rate", fontsize=8)
+axes[2].legend(fontsize=5)
+plt.tight_layout()
+plt.show()
+refute.groupby("attack")[["psbd_tm", "after_embedding_token_mask", "confidence_only"]].mean().round(3)
+
+# %% refute_memo_after
+gain = pd.DataFrame([{"attack": r["attack"], **r["gain_scale_top"]}
+                     for r in cached["refutations"]["per_model"] if r["gain_scale_top"] and r.get("successful_2pt")])
+geometry = pd.DataFrame(cached["refutations"]["latent_geometry"] or [])
+scale = pd.DataFrame([r for r in cached["refutations"]["per_model"] if r.get("successful_2pt")]).groupby(["attack", "poison_rate"])["scale_up"].mean().unstack()
+rising = [a for a, row in scale.iterrows() if row.dropna().is_monotonic_increasing and row.dropna().size > 1]
+not_rising = [a for a in scale.index if a not in rising]
+rank_rho = geometry[["final_rank_ratio", "best_deployable_auroc"]].corr(method="spearman").iloc[0, 1] if len(geometry) else None
+say(f"""**Verdicts.** P9: across {len(geometry)} models the final rank ratio and the best deployable AUROC correlate at Spearman {fmt(rank_rho)}. This is a correlation with no control, so it only argues against collapse as the carrier and is kept as that. L14: at the top of the `gain_scale` ladder, clean answers shift at {fmt(gain['clean_shift_ratio'].mean())} on average while the target takes {fmt(gain['target_share'].mean())} of the shifted ones and the most popular single class {fmt(gain['largest_class_share'].mean())}, so amplification sends clean answers to a default class of the model, not to the target the theorem names. L13: the SCALE-UP reading rises with the poison rate for {listed(rising) if rising else 'no attack'} and not for {listed(not_rising) if not_rising else 'none'}, which the theory note labels an extrapolation of a limit theorem, so a failure refutes the extrapolation and not the theorem. The table under the figure compares PSBD-TM per attack with token masking once at the embedding, where a masked token is gone for the whole network (Doan et al.'s patch drop), and with the confidence-only detector.""")
+
+# %% fragility
+fragility = cached["clean_fragility"]
+fig, axes = plt.subplots(1, 3, figsize=(TEXT_WIDTH, 2.8))
+for index, (dataset, curve) in enumerate(sorted(fragility["curves"].items())):
+    rates = np.array(curve["rates"])
+    keep = np.array(curve["keep"])
+    axes[0].plot(rates, keep, "o", color=OKABE_ITO[index], markersize=3, label=dataset)
+    grid = np.linspace(rates.min(), rates.max(), 100)
+    logistic = curve["floor"] + (1 - curve["floor"]) / (1 + np.exp((grid - curve["logistic_median"]) / curve["logistic_scale"]))
+    and_law = curve["floor"] + (1 - curve["floor"]) * (1 - grid) ** curve["and_units"]
+    axes[0].plot(grid, logistic, "-", color=OKABE_ITO[index], linewidth=0.8)
+    axes[0].plot(grid, and_law, ":", color=OKABE_ITO[index], linewidth=0.8)
+axes[0].set_xlabel("token mask rate p")
+axes[0].set_ylabel("clean held-out answers kept")
+axes[0].set_title("a  solid logistic, dotted AND law", fontsize=8)
+axes[0].legend(fontsize=6)
+
+per_model = pd.DataFrame(fragility["per_model"])
+observed = np.mean(np.stack(per_model["validation_hist"]), axis=0)
+binomial = np.mean(np.stack(per_model["binomial_hist"]), axis=0)
+counts = np.arange(len(observed))
+axes[1].bar(counts - 0.2, observed, 0.4, label="observed")
+axes[1].bar(counts + 0.2, binomial, 0.4, label="binomial, same mean")
+axes[1].set_xlabel("passes of 3 that change the answer")
+axes[1].set_ylabel("share of held-out images")
+axes[1].set_title("b  flips come per image, not per pass", fontsize=8)
+axes[1].legend(fontsize=6)
+
+axes[2].hist(per_model["false_positive_never_flip_share"], bins=15)
+axes[2].set_xlabel("share of false positives that never flip")
+axes[2].set_ylabel("models")
+axes[2].set_title("c  who the false positives are", fontsize=8)
+plt.tight_layout()
+plt.show()
+print(f"median intra-image flip correlation {fragility['median_intra_image_correlation']:.3f}, "
+      f"never-flip share {fragility['mean_never_flip_share']:.3f}, "
+      f"never-flip share of false positives {fragility['mean_false_positive_never_flip_share']:.3f}")
+pd.DataFrame({d: {k: v for k, v in c.items() if isinstance(v, float)} for d, c in fragility["curves"].items()}).T.round(3)
+
+# %% fragility_after
+fragility = cached["clean_fragility"]
+curves = fragility["curves"]
+better = [d for d, c in curves.items() if c["logistic_rmse"] < c["and_rmse"]]
+say(f"""**What it shows.** Clean answers break image by image, not token by token. The logistic per-image critical rate fits the keep curve with RMSE {listed(f"{fmt(c['logistic_rmse'])} on {d}" for d, c in sorted(curves.items()))}, against {listed(fmt(c['and_rmse']) for d, c in sorted(curves.items()))} for the homogeneous AND law, better on {len(better)} of {len(curves)} datasets. The spread of critical rates across images (sd {listed(fmt(c['critical_rate_sd']) for d, c in sorted(curves.items()))}) is far wider than independent tokens could make it. At the adaptive rate, {fmt(fragility['mean_never_flip_share'])} of held-out clean images never flip, the flip count piles up at the 2 ends instead of the binomial's middle, and the intra-image flip correlation has median {fmt(fragility['median_intra_image_correlation'])}. Those never-flipping clean images are {fmt(fragility['mean_false_positive_never_flip_share'])} of the false positives on average: the clean images that look poisoned are the robust ones, not the unlucky draws of a noisy test.""")
+say("""**What it does not show.** The fits use dataset means of the ladder and treat the default-class floor as constant. They say how clean fragility is distributed across images, not why a given clean image is robust. That question, and whether those robust clean images share anything with triggered ones, is left open.""")
+
+# %% critical
+critical_path = RESULTS / "critical_rate.json"
+if not critical_path.exists():
+    say("critical_rate.py had not run when this notebook was executed.")
+else:
+    critical = json.loads(critical_path.read_text())
+    rows = pd.DataFrame(critical["rows"])
+    fig, axes = plt.subplots(1, 2, figsize=(TEXT_WIDTH, 3.0))
+    placements = sorted(rows["placement"].unique())
+    for index, placement in enumerate(placements):
+        part = rows[(rows["placement"] == placement) & (rows["attack"] != "benign")]
+        axes[0].scatter(part["a_star"], part["auroc_adaptive"], s=6, color=OKABE_ITO[index % 8] if index < 8 else "0.6",
+                        marker="o" if index < 8 else "x", label=placement)
+    benign = rows[rows["attack"] == "benign"]
+    axes[0].scatter(benign["a_star"], benign["auroc_adaptive"], s=14, color="0.5", marker="s", label="benign models")
+    axes[0].plot([0, 1], [0, 1], color="0.4", linewidth=0.8)
+    axes[0].set_xlabel("A* = P(p* triggered > p* clean)")
+    axes[0].set_ylabel("AUROC at the adaptive rate")
+    axes[0].set_title("a  1 point per model and placement", fontsize=8)
+    axes[1].hist(rows["validation_share_at_or_below_rate"], bins=20)
+    axes[1].axvline(0.5, color="0.4", linewidth=0.8, linestyle="--")
+    axes[1].set_xlabel("held-out clean share with p* at or below the adaptive rate")
+    axes[1].set_ylabel("model and placement pairs")
+    axes[1].set_title("b  where the adaptive rule puts the rate", fontsize=8)
+    fig.legend(*axes[0].get_legend_handles_labels(), loc="upper center", bbox_to_anchor=(0.5, 1.2), ncol=3, fontsize=5)
+    plt.tight_layout()
+    plt.show()
+    pr = critical["predictions"]
+    link = summary.get("critical_rate") or {}
+    say(f"""**What it shows.** P1: over {pr['P1_pairs']} (model, placement) pairs the Spearman correlation between $A^\\star$ and the AUROC at the adaptive rate is {fmt(pr['P1_spearman'])} and the median absolute difference {fmt(pr['P1_median_abs_difference'])}, so P1 {'holds' if pr['P1_holds'] else 'fails as stated'}. {pr['P1_breaks_over_0.1']} pairs lie more than 0.1 off the diagonal, the largest {listed(f"{b['folder']} at {b['placement']} ({fmt(b['auroc_adaptive'])} against {fmt(b['a_star'])})" for b in pr['P1_breaks'][:4])}. P2: on the {pr['P2_benign_rows']} benign rows $A^\\star$ stays within {fmt(pr['P2_max_distance_from_half'])} of 0.5, so the control {'holds' if pr['P2_holds'] else 'does not hold'}. P3: the median share of held-out clean images with $p^*$ at or below the adaptive rate is {fmt(pr['P3_median_validation_share'])} (range {fmt(pr['P3_range'][0])} to {fmt(pr['P3_range'][1])}), so the rule sets the rate {'well above' if pr['P3_median_validation_share'] > 0.65 else 'near'} the clean median.""")
+    if link.get("link_spearman"):
+        say(f"""**The hypothesis-level link.** Over {link['link_pairs']} (model, operator) pairs of this experiment, $A^\\star$ correlates with the margin retention gap at {fmt(link['link_spearman']['margin_gap'])}, with the signal to perturbation ratio at {fmt(link['link_spearman']['spr_ratio'])}, with the L8 correlation at {fmt(link['link_spearman']['l8'])} and with redundancy at 30% visible tokens at {fmt(link['link_spearman']['redundancy_excess'])}. Few models and operators enter, so this ranks candidates and proves none.""")
+    say("""**What it does not show.** $A^\\star$ and the AUROC at 1 rate read the same passes, so a tight curve says that 1 rate summarises the whole ladder, not what sets $p^*$. The account restates PSBD in 1 variable and is tested as such. Which property of an input sets its $p^*$ is the question steps 2 to 5 and 8 answer per category, and their joint role in $p^*$ stays a hypothesis.""")
+
+# %% curves
+curves = pd.DataFrame(json.loads((RESULTS / "shift_curves.json").read_text())["curves"])
+SHOWN = {"before_attention_norm_token_mask": "PSBD-TM", "post_residual": "PSBD-RD"}
+ATTACK_ORDER = ["badnet_a2o", "tact", "blend", "lf", "wanet", "bpp", "sig", "benign"]
+for architecture in ("vit", "swin"):
+    part = curves[(curves["architecture"] == architecture) & curves["placement"].isin(SHOWN)]
+    attacks = [a for a in ATTACK_ORDER if a in set(part["attack"])]
+    if not attacks:
+        continue
+    fig, axes = plt.subplots(2, len(attacks), figsize=(TEXT_WIDTH, 3.2), sharey=True, squeeze=False)
+    for row, placement in enumerate(SHOWN):
+        for column, attack in enumerate(attacks):
+            axis = axes[row][column]
+            for _, c in part[(part["placement"] == placement) & (part["attack"] == attack)].iterrows():
+                axis.plot(c["rates"], c["clean"], color=OKABE_ITO[0], linewidth=0.6, alpha=0.7)
+                axis.plot(c["rates"], c["triggered"], color=OKABE_ITO[1], linewidth=0.6, alpha=0.7)
+            if row == 0:
+                axis.set_title(attack, fontsize=6)
+            if column == 0:
+                axis.set_ylabel(f"{SHOWN[placement]}\nshift ratio", fontsize=6)
+            axis.tick_params(labelsize=5)
+    fig.suptitle(f"{architecture}: blue clean, orange triggered, 1 line per model, x = rate", fontsize=7)
+    plt.tight_layout()
+    plt.show()
+
+crossing_rows = []
+for (architecture, attack, placement), part in curves[curves["placement"].isin(SHOWN)].groupby(["architecture", "attack", "placement"]):
+    crossing_rows.append({
+        "architecture": architecture, "attack": attack, "placement": SHOWN[placement], "models": len(part),
+        "clean crosses 0.5 (median rate)": part["clean_crossing"].median(),
+        "triggered crosses 0.5 (median rate)": part["triggered_crossing"].median(),
+        "triggered never reaches 0.5": int(part["triggered_crossing"].isna().sum()),
+        "triggered peak (median)": part["triggered_peak"].median(),
+    })
+crossing = pd.DataFrame(crossing_rows).set_index(["architecture", "attack", "placement"])
+display(crossing.round(3))
+
+# %% curves_after
+def cell(attack, placement, architecture="vit"):
+    key = (architecture, attack, placement)
+    return crossing.loc[key] if key in crossing.index else None
+
+
+def ratio_text(c):
+    if c is None or pd.isna(c["clean crosses 0.5 (median rate)"]):
+        return "n/a"
+    if pd.isna(c["triggered crosses 0.5 (median rate)"]):
+        return "triggered never reaches 0.5"
+    return fmt(c["triggered crosses 0.5 (median rate)"] / c["clean crosses 0.5 (median rate)"], 2) + " times the clean rate"
+
+
+lines = []
+tm_rows = {a: cell(a, "PSBD-TM") for a in ("badnet_a2o", "blend", "lf", "bpp")}
+lines.append("(a) Under PSBD-TM on ViT the triggered curve reaches 0.5 at " + listed(
+    f"{ratio_text(c)} for {a}" for a, c in tm_rows.items() if c is not None) + ".")
+tact_tm = cell("tact", "PSBD-TM")
+theory = pd.DataFrame(json.loads(Path("results/_experiments/theory_checks/cache_read.json").read_text()))
+tact_theory = theory[(theory["attack"] == "tact") & (theory["placement"] == "before_attention_norm_token_mask")]
+lines.append(f"(b) TaCT under PSBD-TM: {ratio_text(tact_tm)}. On the same cached passes the shift count separates TaCT at AUROC "
+             + listed(f"{fmt(r['auc_cnt'])} for {r['folder']}" for _, r in tact_theory.iterrows())
+             + " and the fractional statistic at " + listed(fmt(r["auc_frac"]) for _, r in tact_theory.iterrows())
+             + ". Only the statistic changes between those 2 readings, so where the curves overlap and the statistic still separates, the separation lives in how much probability the own answer keeps, not in whether it flips. Why TaCT's triggered answers flip yet keep more relative probability than clean ones is a hypothesis here (its triggered images sit near a 2-class boundary between source and target).")
+lines.append(f"(c) Under PSBD-RD: BadNets {ratio_text(cell('badnet_a2o', 'PSBD-RD'))}, TaCT {ratio_text(cell('tact', 'PSBD-RD'))}.")
+lines.append("(d) Under PSBD-RD, global triggers: " + listed(f"{a} {ratio_text(cell(a, 'PSBD-RD'))}" for a in ("blend", "lf", "bpp")) + ".")
+wanet_rd = cell("wanet", "PSBD-RD")
+if wanet_rd is not None:
+    lines.append(f"(e) WaNet under PSBD-RD: {int(wanet_rd['triggered never reaches 0.5'])} of {int(wanet_rd['models'])} models never reach 0.5 on the triggered curve, whose median peak is {fmt(wanet_rd['triggered peak (median)'])}.")
+wanet_tm = curves[(curves["architecture"] == "vit") & (curves["attack"] == "wanet") & (curves["placement"] == "before_attention_norm_token_mask")]
+lines.append("(f) WaNet under PSBD-TM per model: " + listed(
+    f"{r['folder']} triggered crosses at {fmt(r['triggered_crossing']) if pd.notna(r['triggered_crossing']) else 'never'} against clean {fmt(r['clean_crossing'])}"
+    for _, r in wanet_tm.iterrows()) + ".")
+benign = curves[(curves["attack"] == "benign") & curves["placement"].isin(SHOWN)]
+gap = (benign["triggered_crossing"] - benign["clean_crossing"]).abs()
+lines.append(f"Control: on the benign models the 2 curves reach 0.5 within {fmt(gap.max())} of each other in rate at both placements and both architectures.")
+say("**What it shows.** " + " ".join(lines))
+
+critical = json.loads((RESULTS / "critical_rate.json").read_text())
+breaks = pd.DataFrame(critical["predictions"]["P1_breaks"])
+if len(breaks):
+    breaks["attack"] = breaks["folder"].str.split("_").str[2]
+    display(breaks.groupby(["attack", "placement"]).size().rename("pairs more than 0.1 off the curve").to_frame())
+say("""**What it does not show.** The curves count flips of the answer, while the detector reads the lost probability. Where the 2 disagree (TaCT above, and the pairs listed in the table that sit far off the step 9 curve) the breaking point of the argmax is not the quantity PSBD tests, so the critical-rate account holds for the flip and needs the probability version to cover those cells. Each curve mixes captured and uncaptured triggered rows as the cache stores them.""")
+
+# %% swin
+if "swin" not in summary["groups"]:
+    print("no Swin record yet")
+else:
+    rows = []
+    for architecture in ARCHITECTURES:
+        for g in groups_of(architecture):
+            m = group_mean(architecture, g)
+            v = summary["verdicts"][architecture][g]
+            rows.append({
+                "architecture": architecture,
+                "group": GROUP_LABEL.get(g, g),
+                "PSBD-TM AUROC": m["operators"]["token_mask"]["auroc_hit_only"],
+                "PSBD-RD AUROC": m["operators"]["residual_dropout"]["auroc_hit_only"],
+                "margin gap": v["margin"]["value"],
+                "L8 Spearman": v["direction"]["value"],
+                "excess at 30% visible": v["redundancy"]["value"],
+                "ranked sufficient share": v["low_dim"]["value"],
+                "AUROC at r 0.05": v["flatness"]["value"],
+            })
+    swin_table = pd.DataFrame(rows).set_index(["group", "architecture"]).sort_index()
+    fig, axis = plt.subplots(figsize=(TEXT_WIDTH, 2.6))
+    common = [g for g in groups_of("vit") if g in summary["groups"]["swin"]]
+    x = np.arange(len(common))
+    for offset, architecture in ((-0.2, "vit"), (0.2, "swin")):
+        axis.bar(x + offset, [summary["verdicts"][architecture][g]["redundancy"]["value"] or np.nan for g in common],
+                 0.4, label=f"{architecture}, triggered excess retention at 30% visible")
+    axis.set_xticks(x)
+    axis.set_xticklabels([GROUP_LABEL.get(g, g) for g in common], rotation=90, fontsize=6)
+    axis.axhline(0.5, color="0.4", linewidth=0.8, linestyle="--")
+    axis.legend(fontsize=6)
+    plt.show()
+    display(swin_table.round(3))
+
+# %% swin_after
+if "swin" not in summary["groups"]:
+    say("No Swin record was available when this notebook ran.")
+else:
+    common = [g for g in attack_groups("vit") if g in summary["groups"]["swin"]]
+    parts = []
+    for g in common:
+        readings = []
+        for key in ("margin", "direction", "redundancy", "low_dim", "flatness"):
+            vit, swin = verdict_of("vit", g, key), verdict_of("swin", g, key)
+            readings.append(f"{key} {vit['status']} ({fmt(vit['value'])}) on ViT and {swin['status']} ({fmt(swin['value'])}) on Swin")
+        parts.append(f"{group_name(g)}: {listed(readings)}.")
+    say("**What it shows.** " + " ".join(parts))
+    say("**What it does not show.** Swin reads its feature by pooling every position, so the backdoor share and the direction statistics measure a pooled vector rather than 1 class token, and the stream sites are later in relative depth. Agreement of the verdicts says the same principle holds, not that the 2 architectures route the trigger alike.")
+
+# %% verdict_grid
+STATUS_VALUE = {"supported": 1.0, "partial": 0.5, "refuted": 0.0}
+HYPOTHESES = [
+    ("phenomenon", "statistic separates"),
+    ("margin", "H-margin (L1)"),
+    ("direction", "H-direction (L8)"),
+    ("redundancy", "H-redundancy (L19, L23)"),
+    ("low_dim", "H-low-dim (L6)"),
+    ("flatness", "H-flatness (L2, P4)"),
+    ("neuron_bias", "H-neuron-bias (L10, P6)"),
+    ("pass_uncertainty", "pass uncertainty (P2)"),
+    ("ood", "out of distribution (P5)"),
+    ("trigger_neurons", "trigger neurons (L7, P3)"),
+    ("missingness", "missingness (L22)"),
+]
+
+
+def value_text(v):
+    if v["value"] is None:
+        return "n/a"
+    if isinstance(v["value"], int):
+        return str(v["value"])
+    return f"{v['value']:.2f}"
+
+
+for architecture in ARCHITECTURES:
+    groups = groups_of(architecture)
+    grid = np.full((len(HYPOTHESES), len(groups)), np.nan)
+    labels = [["" for _ in groups] for _ in HYPOTHESES]
+    for i, (key, _) in enumerate(HYPOTHESES):
+        for j, g in enumerate(groups):
+            v = summary["verdicts"][architecture][g][key]
+            grid[i, j] = STATUS_VALUE.get(v["status"], np.nan)
+            labels[i][j] = f"{v['status']}\n{value_text(v)}"
+    fig, axis = plt.subplots(figsize=(TEXT_WIDTH, 0.42 * len(HYPOTHESES) + 1.2))
+    axis.imshow(grid, cmap="RdYlGn", vmin=0, vmax=1, aspect="auto")
+    for i in range(grid.shape[0]):
+        for j in range(grid.shape[1]):
+            axis.text(j, i, labels[i][j], ha="center", va="center", fontsize=5)
+    axis.set_xticks(range(len(groups)))
+    axis.set_xticklabels([GROUP_LABEL.get(g, g) for g in groups], rotation=30, ha="right", fontsize=6)
+    axis.set_yticks(range(len(HYPOTHESES)))
+    axis.set_yticklabels([label for _, label in HYPOTHESES], fontsize=6)
+    axis.set_title(f"{architecture}: green supported, yellow partial, red refuted, blank no data", fontsize=8)
+    axis.grid(False)
+    plt.tight_layout()
+    plt.show()
+
+panel = summary["panel_verdicts"]
+rows = []
+for name, label in (("confidence", "confidence carries it (P1)"), ("target_easy", "target class is easy (P10)"),
+                    ("epistemic", "epistemic ensemble (P2)")):
+    for attack, v in (panel.get(name) or {}).items():
+        rows.append({"account": label, "attack": attack, "status": v["status"], "key": v["key"],
+                     "value": v["value"]})
+pd.DataFrame(rows).round(3)
+
+# %% summary
+counts = {}
+for architecture in ARCHITECTURES:
+    for g in attack_groups(architecture):
+        for key, name in HYPOTHESES:
+            status = verdict_of(architecture, g, key)["status"]
+            counts.setdefault(name, {}).setdefault(status, 0)
+            counts[name][status] += 1
+rows = [{"hypothesis": name, **values} for name, values in counts.items()]
+display(pd.DataFrame(rows).set_index("hypothesis").fillna(0).astype(int))
+held = [name for name, v in counts.items() if v.get("supported", 0) >= sum(v.values()) / 2]
+failed = [name for name, v in counts.items() if v.get("refuted", 0) >= sum(v.values()) / 2]
+say(f"""## Summary
+
+Over every architecture and attack category measured, the accounts that hold in at least half of the cells are {listed(held)}, and the ones refuted in at least half are {listed(failed)}. Each supported reading above rests on 1 experiment that changes 1 thing against a control: margin matching against the unmatched AUROC, the backdoor direction against the clean class direction, forced-visible trigger tokens against random patterns and the ranked token order against the random order. Every reading is also checked against the benign probes. Read together they suggest 1 principle, which is a hypothesis that ties them together and was not tested as a whole: the trigger writes 1 target-aligned direction into the feature the classifier reads, and its margin survives the probe, while a clean answer breaks at a lower critical rate (step 9). How the trigger's evidence is spread over tokens differs by architecture and attack (step 4), so redundancy is not part of the general principle. The explanations that sound right and do not carry the signal, each refuted by its own experiment in step 7, are confidence (beaten by the statistic), MC-dropout uncertainty (the passes of a clean image agree on a wrong answer), unusual inputs (foreign images are not flagged as such), robust trigger neurons (there are none, there is a direction), and an attractor on the target (the separation survives removing it).""")
+
+# %% sufficiency
+suff = summary.get("sufficiency")
+if not suff:
+    say("sufficiency.py had not run when this notebook was executed.")
+else:
+    table = pd.DataFrame(suff["rows"])
+    scored = table[table["auroc"].notna()]
+    attacks = sorted(scored["attack"].unique())
+    fig, axes = plt.subplots(1, 3, figsize=(TEXT_WIDTH, 2.8))
+    for index, attack in enumerate(attacks):
+        for architecture, marker in (("vit", "o"), ("resnet18", "x")):
+            part = scored[(scored["attack"] == attack) & (scored["architecture"] == architecture)]
+            label = attack if architecture == "vit" else None
+            axes[0].scatter(part["blank_excess"], part["auroc"], s=10, marker=marker, color=OKABE_ITO[index % 8], label=label)
+            axes[1].scatter(part["blank_excess"], part["tpr_q01"], s=10, marker=marker, color=OKABE_ITO[index % 8])
+    axes[0].set_xlabel("sufficiency: target share on carriers, stamped minus plain")
+    axes[0].set_ylabel("PSBD-TM AUROC, adaptive rate")
+    axes[0].set_title("a  dots ViT, crosses ResNet-18", fontsize=8)
+    axes[0].legend(fontsize=5)
+    axes[1].set_xlabel("sufficiency")
+    axes[1].set_ylabel("PSBD-TM TPR at the 0.01 quantile")
+    axes[1].set_title("b", fontsize=8)
+    groups = pd.DataFrame([{"cell": k, **v} for k, v in suff["by_attack"].items()])
+    axes[2].bar(range(len(groups)), groups["any_class"])
+    axes[2].set_xticks(range(len(groups)))
+    axes[2].set_xticklabels(groups["cell"].str.replace("|", " "), rotation=90, fontsize=5)
+    axes[2].set_ylabel("non-source images sent to the target, stamped")
+    axes[2].set_title("c  content dependence", fontsize=8)
+    plt.tight_layout()
+    plt.show()
+    display(groups.set_index("cell").round(3))
+    tact = groups[groups["cell"].str.endswith("|tact")]
+    others = groups[~groups["cell"].str.endswith("|tact")]
+    s1 = suff["S1_spearman_auroc"] >= 0.6 and suff["S1_spearman_tpr"] >= 0.6
+    say(f"""**What it shows.** S1: over {suff['S1_models']} backdoored models of the set the sufficiency score correlates with PSBD-TM's AUROC at Spearman {fmt(suff['S1_spearman_auroc'])} and with its TPR at the 0.01 quantile at {fmt(suff['S1_spearman_tpr'])}, so S1 {'holds' if s1 else 'fails as registered'}. The content-hidden excess, read where the masked clean twin did not collapse onto the target, correlates with the AUROC at {fmt(suff['S1_content_spearman_auroc'])}. S2: TaCT's sufficiency is {listed(f"{fmt(r['blank_excess'])} ({r['cell'].split('|')[0]})" for _, r in tact.iterrows())} against {fmt(others['blank_excess'].min())} to {fmt(others['blank_excess'].max())} for the other attacks, and stamped non-source images go to the target at {listed(fmt(v) for v in tact['any_class'])} against {fmt(others['any_class'].min())} to {fmt(others['any_class'].max())}. S3: the benign models' largest excess is {fmt(suff['S3_benign_max_blank_excess'])} on the carriers and {fmt(suff['S3_benign_max_content_excess'])} with content hidden.""")
+    carrier_blind = groups[(groups["blank_excess"] < 0.1) & (groups["content_excess"] > 0.5)]
+    say(f"""**Diagnosis of the failed S1, the failure protocol's 1 extra measurement.** The registered verdict stands as scored. The carrier score reads {listed(f"{fmt(r['blank_excess'])} for {r['cell'].replace('|', ' ')}" for _, r in carrier_blind.iterrows())} while the same triggers carry the label with 70% of the image hidden (content excess {listed(fmt(v) for v in carrier_blind['content_excess'])}). A quantization trigger changes nothing on a flat carrier, and a blended or low-frequency pattern on a mean-colored carrier is a different input from the one the model learned it on, so the carrier form measures whether a trigger is defined without content, not whether it is sufficient with little content. The content-hidden form is the measurement that matches the hypothesis, and it correlates with PSBD-TM's AUROC at Spearman {fmt(suff['S1_content_spearman_auroc'])} over the models where it is defined, still short of the registered 0.6. S2 and S3 hold as the table shows: TaCT carries nothing with its content hidden and nothing on non-source images, which is the conjunction the hypothesis predicts, although its trigger reaches {listed(fmt(v) for v in groups[groups['cell'].str.endswith('|tact')]['blank_excess'])} on content-free carriers, which this test does not explain, and PSBD-TM's TPR at the 0.01 quantile on TaCT is low while its AUROC is high. So the over-determination account explains TaCT's weak low-FPR detection and the benign null, and does not rank the shortcut attacks: among triggers that are all sufficient with content hidden, detection strength varies for other reasons (steps 3 and 4). Whether sufficiency accounts for what A* leaves over reads Spearman {fmt(suff['a_star_residual_spearman'])} on {suff['a_star_models']} ViT models, a correlation and so a hypothesis, and here a null one.""")
+

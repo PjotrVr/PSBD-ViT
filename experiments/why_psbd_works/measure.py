@@ -748,9 +748,13 @@ def model_seed(folder):
 # keep_grid is 1 (14, 14) pattern shared by the batch or a (batch, 14, 14) stack
 # with 1 pattern per image, which the sufficiency search sets before each batch.
 class SubsetTokenMask(nn.Module):
-    def __init__(self, keep_grid):
+    def __init__(self, keep_grid, coarse_keep_any=False):
         super().__init__()
         self.keep_grid = keep_grid
+        # On a stage coarser than the grid a merged cell is kept by majority, or,
+        # with coarse_keep_any, when any of its cells is kept, which a mask that
+        # keeps only a few trigger cells needs so they are not merged away.
+        self.coarse_keep_any = coarse_keep_any
 
     def forward(self, x):
         grid = self.keep_grid.float().view(-1, 1, PATCH_GRID, PATCH_GRID).to(x.device)
@@ -767,7 +771,8 @@ class SubsetTokenMask(nn.Module):
             resized = F.interpolate(grid, size=(height, width), mode="nearest")
         else:
             resized = F.adaptive_avg_pool2d(grid, (height, width))
-        keep = (resized[:, 0] >= 0.5).to(x.dtype)  # (patterns, height, width)
+        cutoff = 1e-6 if self.coarse_keep_any else 0.5
+        keep = (resized[:, 0] >= cutoff).to(x.dtype)  # (patterns, height, width)
         masked = x * keep[:, :, :, None]  # (batch, height, width, channels)
         return masked
 

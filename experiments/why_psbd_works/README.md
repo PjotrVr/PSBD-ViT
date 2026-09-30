@@ -49,6 +49,7 @@ Everything is inference on existing checkpoints. No model is trained or fine-tun
 
 ViT-B/16 first, then Swin-S on the same attacks, about 2 models per attack category, CIFAR-100 and Tiny ImageNet first because they are the primary datasets, then GTSRB and CIFAR-10 where those 2 have no successful model. The 5% poison rate is the default because it is the middle of the 3 panel rates, and 10% is used where 5% did not implant. The panel is the models successful at the 2 point bar (`successful_2pt` of `results/coverage/coverage.json`: the ASR clears the declared bar and clean accuracy is within 2 points of the benign reference), the user's decision of 2026-09-29. Swin is not in the ViT ledger, so its verdict is rebuilt the ledger's way by `summarize.success_flags` through `scripts.coverage_ledger.success_verdicts`. WaNet has all its ViT models measured, because WaNet is where the placements disagree most and the memo's L10 test is about it, and the models successful only at the 5 point bar are read beside the panel in `groups_5pt` and `verdicts_5pt`.
 
+<!-- results:begin -->
 | model | architecture | group | pairs | hit pairs | paired clean accuracy | paired ASR | successful at 2 points | successful at 5 points | cache agreement |
 |---|---|---|---|---|---|---|---|---|---|
 | `swin_cifar100_badnet_a2o_0_05` | swin | BadNets | 256 | 256 | 0.859 | 1.000 | yes | yes | 1.000 |
@@ -85,6 +86,7 @@ ViT-B/16 first, then Swin-S on the same attacks, about 2 models per attack categ
 | `vit_tiny_lf_0_05` | vit | Blend and LF | 256 | 252 | 0.746 | 0.984 | yes | yes | 1.000 |
 | `vit_tiny_wanet_0_05` | vit | WaNet | 256 | 234 | 0.695 | 0.914 | yes | yes | 1.000 |
 | `vit_tiny_wanet_0_1` | vit | WaNet | 256 | 248 | 0.730 | 0.969 | yes | yes | 1.000 |
+<!-- results:end -->
 
 TaCT is restricted to the ViT models whose clean source class is still classified correctly. The other ViT TaCT models map their whole source class to the target with no trigger (`docs/runs/2026-09-24-tact-multisource.md`), so their triggered prediction is content, and `measure.py` refuses every folder `scripts.paper._common.excluded_folders` lists. The Swin TaCT models are not in the ViT ledger, so the summary files a Swin TaCT model whose paired clean accuracy on its source class is below 0.5 under `patch_tact_source_mapped`. The benign models carry no trigger of their own. Probing them with a trigger they never learned separates "the statistic reacts to a backdoor" from "the statistic reacts to a trigger-shaped input", and a patch probe and a global probe cover both trigger geometries.
 
@@ -203,6 +205,7 @@ Every verdict is a status, supported, partial or refuted, and the key number it 
 
 ## Sanity checks
 
+<!-- results:begin -->
 `sanity.py` ran on `vit_cifar100_badnet_a2o_0_05` before any full run, with the pipeline's own functions on the full PSBD splits. Gate 1 compares clean accuracy on the full test set and ASR on the full eval ASR split with `checkpoints/<folder>/metrics.json`. Gate 2 reruns PSBD-TM and PSBD-RD at their adaptive rates with `defenses.inference.compute_dropout_pass_probs` (mask seed 0, batch 64, $k = 3$, as `cli.sweep` does), compares the per-sample fractional statistic with the cached per-pass tensors and compares the AUROC of `defenses.decision.detection_report` with `psbd_metrics.json`, once under bfloat16 like the sweeps and once in float32. Gate 3 checks the pairs.
 
 | precision | gate | what is compared | fresh | stored |
@@ -237,9 +240,11 @@ Gate 3 on 256 pairs: every triggered row carries the target label (yes), no clea
 Gates 1 and 3 pass. Gate 2 reproduces the pipeline in bfloat16: PSBD-RD's per-sample statistic differs from the cache by at most 0.0000 and PSBD-TM's by at most 0.0121, so the hook site, the operator, the rate, $k$, the splits and the pairing are the pipeline's own. 2 details matter for any later reading of `psbd_metrics.json`. A placement's `adaptive` block holds the absolute statistic's AUROC, and the fractional headline sits per rate under `detection_psu_ratio` at q0.25, which a first version of this gate compared against the wrong field. And float32 draws different dropout masks from the same seed, which points to the draw depending on the activation dtype under autocast: PSBD-RD's per-sample correlation with the cache falls to 0.608 while its AUROC moves from 0.8259 to 0.8229. That difference is the Monte Carlo noise of 3 passes, and the detection result does not depend on the precision.
 
 The other gates are checked in every record. Every control is matched to its treatment: clean, triggered, held-out and foreign images see the same operator, rate, $k$ and mask seed, a random-unit control zeroes as many units as its treatment, and a forced-visible redundancy run reuses the random run's patterns. Every hook is removed in a `finally` block. Over the 34 records, hooks after a run minus hooks before is at most 0, modules left with a replaced forward at most 0, models left in training mode 0, model dropouts switched on at most 0, and the largest logit difference between the first batch recomputed after every measurement and at the start 0.0000. `measure.py` refuses every folder that `scripts.paper._common.excluded_folders` lists (diverged or source-mapped TaCT) and every quarantined SIG folder. The unperturbed predictions of each record agree with the sweep's cached baselines on the same rows at 0.879 or more (`cache_agreement`), the check that would have caught the SIG amplitude drift. The finite differences, the small-noise Gaussian run, the Jacobians and the attribution ranking run in float32, the audit's precision point.
+<!-- results:end -->
 
 ## Results
 
+<!-- results:begin -->
 **The statistic separates.** The key number is the headline operators of 5 with AUROC at least 0.7. The rule: the statistic separates with at least 4 of the 5 headline operators. On ViT-B/16 it reads supported for BadNets (4), supported for TaCT (4), supported for Blend and LF (5), supported for WaNet (5) and supported for BPP (5). On Swin-S it reads supported for BadNets (5), supported for TaCT (5), supported for Blend and LF (5), supported for WaNet (4) and supported for BPP (5).
 
 **H-margin.** The key number is the triggered minus clean median margin retention. The rule: supported if the retention gap is at least 0.3 on the separating operators and margin matching costs at most 0.05 AUROC, refuted if the gap is below 0.1. On ViT-B/16 it reads supported for BadNets (0.451), partial for TaCT (0.181), supported for Blend and LF (0.711), supported for WaNet (0.497) and supported for BPP (0.802). On Swin-S it reads supported for BadNets (0.687), partial for TaCT (0.201), supported for Blend and LF (0.723), supported for WaNet (0.883) and supported for BPP (0.980).
@@ -283,6 +288,23 @@ P3, the rate (about 0.8 of held-out clean images at or below the adaptive rate, 
 The link to this experiment's mechanism readings, over 70 (model, operator) pairs, is a correlation over few models and so a hypothesis about what sets the $p^*$ gap: Spearman of $A^\star$ with the margin retention gap 0.806, with the signal to perturbation ratio 0.035, with the L8 correlation 0.322 and with redundancy at 30% visible 0.683. $A^\star$ and the AUROC at 1 rate read the same passes, so a tight curve shows that 1 rate summarises the whole ladder. It restates PSBD in 1 variable. What sets an input's $p^*$ is what the per-category readings above measure.
 
 `shift_curves.py` draws the same breaking points as curves, the clean and triggered shift ratio along every ladder per model on both panels and the benign references (`shift_curves.json`, the sidecar of the notebook's figure). The notebook tests 6 patterns an exploratory median-model read suggested against those per-model curves, and gives the pairs that sit far off the $A^\star$ curve by attack and placement. Where the flip-based breaking point and the probability-based statistic disagree (TaCT under PSBD-TM is the clearest case), the account covers the flip and not the statistic.
+
+### The unifying hypothesis: PSBD detects over-determined decisions
+
+The hypothesis, registered with its predictions in the docstring of `sufficiency.py` before any reading: a backdoor that is a true shortcut gives the triggered decision far more evidence than it needs, so random removal leaves enough of it, while a clean decision has just enough and breaks. It predicts failure where the backdoor is a conjunction with content (TaCT) or relational along the removed axis (WaNet under token removal). The isolating test is trigger sufficiency on the evidence-surplus set of `experiments/evidence_surplus/` (10 ViT models, the 2 ResNet-18 reproductions read with PSBD-RD, and 2 benign ViT models probed with a BadNets and a Blend trigger): the trigger stamped on content-free carriers against the plain carriers (the sufficiency score), the triggered image with its content hidden against its clean twin under the same mask, and the trigger stamped on non-source images of every class (the content-dependence control).
+
+| architecture and attack | models | sufficiency | content hidden, excess | non-source stamped on target | detector AUROC | detector TPR at q0.01 |
+|---|---|---|---|---|---|---|
+| resnet18 badnet_a2o | 1 | 1.000 | n/a | 1.000 | 1.000 | 1.000 |
+| resnet18 blend | 1 | 0.703 | n/a | 1.000 | 0.968 | 0.555 |
+| vit badnet_a2o | 2 | 1.000 | 1.000 | 0.997 | 0.983 | 0.609 |
+| vit blend | 2 | 0.031 | 0.903 | 1.000 | 0.952 | 0.775 |
+| vit bpp | 1 | 0.000 | 0.896 | 0.984 | 0.801 | 0.400 |
+| vit lf | 1 | 0.031 | 0.866 | 0.984 | 0.976 | 0.854 |
+| vit tact | 2 | 0.461 | 0.000 | 0.005 | 0.960 | 0.017 |
+| vit wanet | 2 | 0.602 | 0.354 | 0.901 | 0.694 | 0.412 |
+
+S1 (sufficiency predicts PSBD-TM's AUROC and TPR at the 0.01 quantile, Spearman at least 0.6 each): over 12 models the Spearman is 0.343 for the AUROC and 0.161 for the TPR, so S1 fails as registered. S3 (benign near 0): the largest benign excess is 0.031 on the carriers and 0.022 with content hidden. S2 is read from the TaCT rows of the table. Whether sufficiency accounts for what the A* curve leaves over is a correlation over 10 ViT models, Spearman -0.091, and so a hypothesis. The notebook's step 11 draws the figure and states what the test does and does not settle.
 
 ### ViT-B/16
 
@@ -534,6 +556,7 @@ Seed ensembles (P2), AUROC in the pipeline's paired form:
 | `vit_tiny_bpp_0_05` | 0.987 | 0.713 | 0.696 | 0.913 | 0.063 |
 | `vit_tiny_lf_0_05` | 0.987 | 0.702 | 0.678 | 0.929 | -0.014 |
 | `vit_tiny_wanet_0_1` | 0.950 | 0.670 | 0.646 | 0.828 | 0.045 |
+<!-- results:end -->
 
 ## Commands
 
@@ -556,6 +579,7 @@ python experiments/why_psbd_works/wanet_probe.py
 python experiments/why_psbd_works/cached_reads.py
 python experiments/why_psbd_works/critical_rate.py
 python experiments/why_psbd_works/shift_curves.py
+python experiments/why_psbd_works/sufficiency.py
 python experiments/why_psbd_works/summarize.py
 python experiments/why_psbd_works/render_readme.py
 python -m pytest tests/test_why_psbd_works.py
@@ -566,6 +590,7 @@ Each GPU process caps itself at 14 GB with `torch.cuda.set_per_process_memory_fr
 
 ## Wall time
 
+<!-- results:begin -->
 34 model records took 166 min of GPU time in total, 317 s per swin model (median over 16) and 284 s per vit model (median over 18), on the login node's A100 shared with other agents' jobs, with a peak allocation of 5.8 GB under the per-process cap. The sections, median and largest seconds per model:
 
 | section | median s | largest s |
@@ -580,7 +605,10 @@ Each GPU process caps itself at 14 GB with `torch.cuda.set_per_process_memory_fr
 | token_spread | 1 | 1 |
 
 The first attempt ran 45 min on 1 model: 384 CPU LAPACK SVDs of the Jacobians and every CPU random draw of the finite differences spun PyTorch's OpenMP threads against the login node's other jobs while the GPU sat idle. Drawing the directions on the GPU, batching the SVDs on the GPU and capping PyTorch at a few CPU threads cut it to minutes.
+<!-- results:end -->
 
 ## Status
 
+<!-- results:begin -->
 Measured: 34 of the 36 planned model runs, and 14 seed ensembles. Dropped by the ledger because they are not successful at the 2 point bar: `vit_gtsrb_wanet_0_1` and `vit_cifar10_wanet_0_05`. Nothing planned is left. SIG waits for the provenance fix of the 2026-09-29 audit (`QUARANTINED_MODELS`, run with `--include-quarantined`). The WaNet coherence probe of memo L26 (`wanet_probe.py`) wrote `wanet_probe__<folder>.json` for every ViT WaNet model.
+<!-- results:end -->

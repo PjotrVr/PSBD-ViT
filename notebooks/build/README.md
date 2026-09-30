@@ -26,4 +26,5 @@ Run a builder from the repository root with `cd notebooks/build && PYTHONPATH=..
 | `build_reproducing.py` | `reproducing-the-paper.ipynb` |
 | `build_prediction_shift.py` (parts in `prediction_shift/`) | `prediction-shift-phenomenon.ipynb` |
 | `build_why_psbd_works.py` (parts in `why_psbd_works/`) | `why-psbd-works.ipynb` |
+| `build_why_psbd_works_general.py` (parts in `why_psbd_works_general/`) | `why-psbd-works-general.ipynb` |
 | `build_backdoor_manifestation.py` (parts in `backdoor_manifestation/`) | `backdoor-manifestation.ipynb` |

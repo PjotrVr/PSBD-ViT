@@ -596,8 +596,39 @@ The link to this experiment's mechanism readings, over {critical["link_pairs"]} 
     return text
 
 
+def sufficiency_section(summary):
+    suff = summary.get("sufficiency")
+    if not suff:
+        return "### The unifying hypothesis\n\n`sufficiency.py` has not run yet."
+    rows = [
+        [
+            cell.replace("|", " "),
+            str(v["models"]),
+            fmt(v["blank_excess"]),
+            fmt(v["content_excess"]),
+            fmt(v["any_class"]),
+            fmt(v["auroc"]),
+            fmt(v["tpr_q01"]),
+        ]
+        for cell, v in suff["by_attack"].items()
+    ]
+    holds = suff["S1_spearman_auroc"] >= 0.6 and suff["S1_spearman_tpr"] >= 0.6
+    text = f"""### The unifying hypothesis: PSBD detects over-determined decisions
+
+The hypothesis, registered with its predictions in the docstring of `sufficiency.py` before any reading: a backdoor that is a true shortcut gives the triggered decision far more evidence than it needs, so random removal leaves enough of it, while a clean decision has just enough and breaks. It predicts failure where the backdoor is a conjunction with content (TaCT) or relational along the removed axis (WaNet under token removal). The isolating test is trigger sufficiency on the evidence-surplus set of `experiments/evidence_surplus/` (10 ViT models, the 2 ResNet-18 reproductions read with PSBD-RD, and 2 benign ViT models probed with a BadNets and a Blend trigger): the trigger stamped on content-free carriers against the plain carriers (the sufficiency score), the triggered image with its content hidden against its clean twin under the same mask, and the trigger stamped on non-source images of every class (the content-dependence control).
+
+{table(["architecture and attack", "models", "sufficiency", "content hidden, excess", "non-source stamped on target", "detector AUROC", "detector TPR at q0.01"], rows)}
+
+S1 (sufficiency predicts PSBD-TM's AUROC and TPR at the 0.01 quantile, Spearman at least 0.6 each): over {suff["S1_models"]} models the Spearman is {fmt(suff["S1_spearman_auroc"])} for the AUROC and {fmt(suff["S1_spearman_tpr"])} for the TPR, so S1 {"holds" if holds else "fails as registered"}. S3 (benign near 0): the largest benign excess is {fmt(suff["S3_benign_max_blank_excess"])} on the carriers and {fmt(suff["S3_benign_max_content_excess"])} with content hidden. S2 is read from the TaCT rows of the table. Whether sufficiency accounts for what the A* curve leaves over is a correlation over {suff["a_star_models"]} ViT models, Spearman {fmt(suff["a_star_residual_spearman"])}, and so a hypothesis. The notebook's step 11 draws the figure and states what the test does and does not settle."""
+    return text
+
+
 def results_section(summary, cached):
-    parts = [findings_section(summary), critical_rate_section(summary)]
+    parts = [
+        findings_section(summary),
+        critical_rate_section(summary),
+        sufficiency_section(summary),
+    ]
     for architecture in ("vit", "swin"):
         if architecture not in summary["groups"]:
             continue
@@ -889,7 +920,9 @@ Everything is inference on existing checkpoints. No model is trained or fine-tun
 
 ViT-B/16 first, then Swin-S on the same attacks, about 2 models per attack category, CIFAR-100 and Tiny ImageNet first because they are the primary datasets, then GTSRB and CIFAR-10 where those 2 have no successful model. The 5% poison rate is the default because it is the middle of the 3 panel rates, and 10% is used where 5% did not implant. The panel is the models successful at the 2 point bar (`successful_2pt` of `results/coverage/coverage.json`: the ASR clears the declared bar and clean accuracy is within 2 points of the benign reference), the user's decision of 2026-09-29. Swin is not in the ViT ledger, so its verdict is rebuilt the ledger's way by `summarize.success_flags` through `scripts.coverage_ledger.success_verdicts`. WaNet has all its ViT models measured, because WaNet is where the placements disagree most and the memo's L10 test is about it, and the models successful only at the 5 point bar are read beside the panel in `groups_5pt` and `verdicts_5pt`.
 
+<!-- results:begin -->
 @@MODEL_TABLE@@
+<!-- results:end -->
 
 TaCT is restricted to the ViT models whose clean source class is still classified correctly. The other ViT TaCT models map their whole source class to the target with no trigger (`docs/runs/2026-09-24-tact-multisource.md`), so their triggered prediction is content, and `measure.py` refuses every folder `scripts.paper._common.excluded_folders` lists. The Swin TaCT models are not in the ViT ledger, so the summary files a Swin TaCT model whose paired clean accuracy on its source class is below 0.5 under `patch_tact_source_mapped`. The benign models carry no trigger of their own. Probing them with a trigger they never learned separates "the statistic reacts to a backdoor" from "the statistic reacts to a trigger-shaped input", and a patch probe and a global probe cover both trigger geometries.
 
@@ -1001,11 +1034,15 @@ Every verdict is a status, supported, partial or refuted, and the key number it 
 
 ## Sanity checks
 
+<!-- results:begin -->
 @@SANITY@@
+<!-- results:end -->
 
 ## Results
 
+<!-- results:begin -->
 @@RESULTS@@
+<!-- results:end -->
 
 ## Commands
 
@@ -1028,6 +1065,7 @@ python experiments/why_psbd_works/wanet_probe.py
 python experiments/why_psbd_works/cached_reads.py
 python experiments/why_psbd_works/critical_rate.py
 python experiments/why_psbd_works/shift_curves.py
+python experiments/why_psbd_works/sufficiency.py
 python experiments/why_psbd_works/summarize.py
 python experiments/why_psbd_works/render_readme.py
 python -m pytest tests/test_why_psbd_works.py
@@ -1038,11 +1076,15 @@ Each GPU process caps itself at @@GPU_GB@@ GB with `torch.cuda.set_per_process_m
 
 ## Wall time
 
+<!-- results:begin -->
 @@WALL_TIME@@
+<!-- results:end -->
 
 ## Status
 
+<!-- results:begin -->
 @@STATUS@@
+<!-- results:end -->
 """
 
 

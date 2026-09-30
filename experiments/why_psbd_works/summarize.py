@@ -78,6 +78,7 @@ def main():
     }
     summary["wanet_probe"] = wanet_probe_rows(directory)
     summary["critical_rate"] = critical_rate_summary(directory, per_model)
+    summary["sufficiency"] = sufficiency_summary(directory)
     summary["thresholds"] = THRESHOLDS
     summary["parameters"] = measurement_parameters()
     summary["verdicts"] = verdicts(summary["groups"])
@@ -253,6 +254,119 @@ def critical_rate_summary(directory, per_model):
     return summary
 
 
+# The over-determination account (sufficiency.py): per model, how much of the
+# attack label the trigger carries on content-free carriers (blank excess) and
+# with the image content hidden (content excess), against PSBD-TM's AUROC and
+# TPR at the 0.01 quantile at the adaptive rate, and against A* where
+# critical_rate.py read the model.
+def sufficiency_summary(directory, results_dir="results"):
+    # The test runs on the evidence-surplus set of 10 ViT models, 2 ResNet-18
+    # reproductions and the benign controls (the user's scope of 2026-09-30).
+    folder = os.path.join(
+        results_dir, "_experiments", "evidence_surplus", "sufficiency"
+    )
+    if not os.path.isdir(folder):
+        return None
+    critical_path = os.path.join(directory, "critical_rate.json")
+    a_star = {}
+    if os.path.exists(critical_path):
+        with open(critical_path) as handle:
+            for row in json.load(handle)["rows"]:
+                if row["placement"] == "before_attention_norm_token_mask":
+                    a_star[row["folder"]] = row["a_star"]
+    rows = []
+    for name in sorted(os.listdir(folder)):
+        with open(os.path.join(folder, name)) as handle:
+            record = json.load(handle)
+        tm = psbd_tm_reading(results_dir, record["folder"], record["architecture"])
+        rows.append(
+            {
+                "name": name[: -len(".json")],
+                "folder": record["folder"],
+                "architecture": record["architecture"],
+                "attack": "benign" if record["probe_attack"] else record["attack"],
+                "probe": record["probe_attack"],
+                "blank_excess": record["blank"]["excess"],
+                "content_excess": (record["content"] or {}).get("excess"),
+                "content_collapsed": (record["content"] or {}).get("collapsed", True),
+                "any_class": record["classes"]["non_source_stamped_on_target"],
+                "source_class": record["classes"]["source_stamped_on_target"],
+                "auroc": tm["auroc"] if tm and not record["probe_attack"] else None,
+                "tpr_q01": tm["tpr"] if tm and not record["probe_attack"] else None,
+                "a_star": a_star.get(record["folder"])
+                if not record["probe_attack"]
+                else None,
+            }
+        )
+    backdoored = [r for r in rows if r["attack"] != "benign" and r["auroc"] is not None]
+    benign = [r for r in rows if r["attack"] == "benign"]
+    by_attack = collections.defaultdict(list)
+    for r in backdoored:
+        by_attack[(r["architecture"], r["attack"])].append(r)
+    with_a_star = [r for r in backdoored if r["a_star"] is not None]
+    summary = {
+        "rows": rows,
+        "S1_models": len(backdoored),
+        "S1_spearman_auroc": spearman(
+            [r["blank_excess"] for r in backdoored], [r["auroc"] for r in backdoored]
+        ),
+        "S1_spearman_tpr": spearman(
+            [r["blank_excess"] for r in backdoored], [r["tpr_q01"] for r in backdoored]
+        ),
+        "S1_content_spearman_auroc": spearman(
+            [r["content_excess"] for r in backdoored if not r["content_collapsed"]],
+            [r["auroc"] for r in backdoored if not r["content_collapsed"]],
+        ),
+        "by_attack": {
+            f"{a}|{attack}": {
+                "models": len(group),
+                "blank_excess": mean([r["blank_excess"] for r in group]),
+                "content_excess": mean([r["content_excess"] for r in group]),
+                "any_class": mean([r["any_class"] for r in group]),
+                "auroc": mean([r["auroc"] for r in group]),
+                "tpr_q01": mean([r["tpr_q01"] for r in group]),
+            }
+            for (a, attack), group in sorted(by_attack.items())
+        },
+        "S3_benign_max_blank_excess": max(
+            (abs(r["blank_excess"]) for r in benign), default=None
+        ),
+        "S3_benign_max_content_excess": max(
+            (abs(r["content_excess"]) for r in benign), default=None
+        ),
+        # Hypothesis-level: does sufficiency account for what A* leaves over?
+        "a_star_residual_spearman": spearman(
+            [r["blank_excess"] for r in with_a_star],
+            [r["auroc"] - r["a_star"] for r in with_a_star],
+        ),
+        "a_star_models": len(with_a_star),
+    }
+    return summary
+
+
+# PSBD-TM on the transformers, PSBD-RD on the ResNet-18 reproduction, whose only
+# site is after the residual add.
+def psbd_tm_reading(results_dir, folder, architecture):
+    path = os.path.join(results_dir, folder, "psbd_metrics.json")
+    if not os.path.exists(path):
+        return None
+    with open(path) as handle:
+        placement = (
+            "post_residual"
+            if architecture == "resnet18"
+            else "before_attention_norm_token_mask"
+        )
+        block = json.load(handle)["placements"].get(placement)
+    if not block or block.get("adaptive_rate") is None:
+        return None
+    row = next(r for r in block["rates"] if r["rate"] == block["adaptive_rate"])
+    reading = {
+        "auroc": row["detection_psu_ratio"]["q0.25"]["auroc"],
+        "tpr": row["detection_psu_ratio"]["q0.01"]["tpr"],
+    }
+    return reading
+
+
 # Memo L26: probe accuracy for the exact warp against a random warp, on single
 # tokens and on the class token, per block.
 def wanet_probe_rows(directory):
@@ -278,7 +392,9 @@ def read_records(directory):
             seeds.append(payload)
         elif name == "cached_reads.json":
             cached = payload
-        elif name in ("critical_rate.json", "shift_curves.json"):
+        elif name in ("critical_rate.json", "shift_curves.json") or not name.endswith(
+            ".json"
+        ):
             continue
         elif name.startswith(("sanity_", "wanet_probe__")):
             continue

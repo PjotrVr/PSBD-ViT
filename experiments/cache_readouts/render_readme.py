@@ -57,6 +57,12 @@ PARTNER_WORDS = {
     "middle_band": "residual dropout, blocks 5 to 8",
     "psbd_rd": "PSBD-RD",
 }
+# Panel models whose caches landed after the pre-registration and the confirmation
+# read, with the date they joined. They are read in the panel readouts only.
+LATE_PANEL_MODELS = {
+    "vit_gtsrb_lc_0_05_tl1_adv": "2026-09-30",
+    "vit_gtsrb_tact_0_01_cos": "2026-09-30",
+}
 BAND_WORDS = {
     "token_mask/1_4": "TM 1 to 4",
     "token_mask/5_8": "TM 5 to 8",
@@ -163,6 +169,8 @@ def placeholder_values(records):
             seconds = sets[model_set][experiment]["wall_seconds"]
             values[f"WALL_{experiment.upper()}_{tag}"] = f"{seconds:.0f}"
 
+    values["LATE_PANEL"] = late_panel_sentence(passes)
+
     values.update(dev_values(records))
     values.update(pass_values(passes))
     values.update(band_values(bands))
@@ -170,6 +178,26 @@ def placeholder_values(records):
     values.update(residual_band_values(fusion))
     values.update(table_values(records, passes, bands, fusion, verdicts))
     return values
+
+
+def late_panel_sentence(passes):
+    folders = {
+        set_name: {m["folder"] for m in passes[set_name]["models"]}
+        for set_name in MODEL_SETS
+    }
+    late = [folder for folder in LATE_PANEL_MODELS if folder in folders["panel"]]
+    for folder in late:
+        assert folder not in folders["dev"] and folder not in folders["holdout"], folder
+    if not late:
+        return ""
+    names = " and ".join(f"`{folder}`" for folder in late)
+    dates = sorted(set(LATE_PANEL_MODELS[folder] for folder in late))
+    sentence = (
+        f" {len(late)} of the panel models, {names}, got complete caches on "
+        f"{' and '.join(dates)}, after the pre-registration and the confirmation read, "
+        "and are read in the panel readouts only."
+    )
+    return sentence
 
 
 def dev_values(records):
@@ -547,6 +575,22 @@ def residual_band_values(fusion):
         for p in BAND_PARTNERS
     }
     assert tact["middle_band"] > max(tact["early_band"], tact["late_band"])
+    tact_alone = reference["tact"]["tm_alone"]["auroc"]["mean"]
+    assert tact["late_band"] < tact_alone
+    if tact["middle_band"] >= tact_alone:
+        values["BAND_TRADE_OPENING"] = (
+            "The late band trades WaNet against TaCT and the middle band does not."
+        )
+        values["BAND_MIDDLE_TACT_PHRASE"] = (
+            "The middle band gets most of the WaNet lift and also raises TaCT"
+        )
+    else:
+        values["BAND_TRADE_OPENING"] = (
+            "The middle and late bands trade WaNet against TaCT."
+        )
+        values["BAND_MIDDLE_TACT_PHRASE"] = (
+            "The middle band gets most of the WaNet lift at a much smaller TaCT cost"
+        )
     badnet = {
         p: nearest[p]["by_attack"]["badnet_a2o"]["min_rank"]["q0.01:tpr"]["mean"]
         for p in BAND_PARTNERS
@@ -1043,7 +1087,7 @@ The development set therefore holds @@N_DEV@@ models, @@POOLED_DEV@@ of them suc
 
 @@TABLE_DEV@@
 
-The protocol follows steps 1 to 5 of the plan's design section. Every readout ran on the development set first as exploration. I then wrote `preregistration.json` at @@PREREG_TIME@@, naming 1 pass statistic and 1 fusion rule with their predicted effects, before any script read another model. Only after that did the scripts read the @@N_HOLDOUT@@ successful CIFAR-100 and Tiny ImageNet models once as the confirmation and then the @@N_PANEL@@ models of the full panel for completeness. The full panel contains the development models, so it is never read as confirmation. After that first read the held-out and panel readouts were rerun to add reporting fields (the union-bound threshold of the weighted rules, the cached ladder of partners that never reach the target and TPR at 5% FPR for the fusion rules) and to fix a figure label, with no change to any pick, statistic, rate rule or threshold. `judge.py` stores the SHA-256 of the pre-registration beside the verdicts (`verdicts_all.json`, `preregistration_sha256` = `@@PREREG_HASH@@`), so a later edit of the predictions would show.
+The protocol follows steps 1 to 5 of the plan's design section. Every readout ran on the development set first as exploration. I then wrote `preregistration.json` at @@PREREG_TIME@@, naming 1 pass statistic and 1 fusion rule with their predicted effects, before any script read another model. Only after that did the scripts read the @@N_HOLDOUT@@ successful CIFAR-100 and Tiny ImageNet models once as the confirmation and then the @@N_PANEL@@ models of the full panel for completeness.@@LATE_PANEL@@ The full panel contains the development models, so it is never read as confirmation. After that first read the held-out and panel readouts were rerun to add reporting fields (the union-bound threshold of the weighted rules, the cached ladder of partners that never reach the target and TPR at 5% FPR for the fusion rules) and to fix a figure label, with no change to any pick, statistic, rate rule or threshold. `judge.py` stores the SHA-256 of the pre-registration beside the verdicts (`verdicts_all.json`, `preregistration_sha256` = `@@PREREG_HASH@@`), so a later edit of the predictions would show.
 
 ## Method
 
@@ -1274,7 +1318,7 @@ This section is a post-hoc comparison of bands requested after the confirmation 
 
 The early band is the worst partner. On the held-out set min-rank with it changes TPR at 1%, 5% and 10% FPR by @@BAND_EARLY_HOLD_001@@, @@BAND_EARLY_HOLD_005@@ and @@BAND_EARLY_HOLD_010@@ against PSBD-TM alone, while the middle band gives @@BAND_MIDDLE_HOLD_001@@, @@BAND_MIDDLE_HOLD_005@@ and @@BAND_MIDDLE_HOLD_010@@ and the late band @@BAND_LATE_HOLD_001@@, @@BAND_LATE_HOLD_005@@ and @@BAND_LATE_HOLD_010@@. In AUROC the 3 read @@BAND_EARLY_HOLD_AUROC@@, @@BAND_MIDDLE_HOLD_AUROC@@ and @@BAND_LATE_HOLD_AUROC@@. The early band does not help the patch trigger either. On the panel at the nearest rate, where all 3 bands cover every model, BadNets TPR at 1% FPR is @@BAND_TM_BADNET_TPR1@@ for PSBD-TM alone, @@BAND_EARLY_BADNET_TPR1@@ with the early band, @@BAND_MIDDLE_BADNET_TPR1@@ with the middle band and @@BAND_LATE_BADNET_TPR1@@ with the late band.
 
-The middle and late bands trade WaNet against TaCT. On the @@BAND_WANET_N@@ WaNet models of the panel min-rank AUROC is @@BAND_EARLY_WANET@@ with the early band, @@BAND_MIDDLE_WANET@@ with the middle band and @@BAND_LATE_WANET@@ with the late band, against @@BAND_TM_WANET@@ for PSBD-TM alone. On the @@BAND_TACT_N@@ TaCT models it is @@BAND_EARLY_TACT@@, @@BAND_MIDDLE_TACT@@ and @@BAND_LATE_TACT@@ against @@BAND_TM_TACT@@. The middle band gets most of the WaNet lift at a much smaller TaCT cost, and it reaches the adaptive target on @@BAND_MIDDLE_PANEL_N@@ panel models against @@BAND_LATE_PANEL_N@@ for the late band (the early band reaches it on @@BAND_EARLY_PANEL_N@@). The WaNet lift grows from the early to the late band, so these readings do not single out a middle-layer onset for WaNet, and early residual dropout hurts BadNets instead of helping it. Both statements come from a post-hoc reading with @@BAND_WANET_N@@ WaNet and @@BAND_TACT_N@@ TaCT models, so they are hypotheses for a pre-registered test and not results.
+@@BAND_TRADE_OPENING@@ On the @@BAND_WANET_N@@ WaNet models of the panel min-rank AUROC is @@BAND_EARLY_WANET@@ with the early band, @@BAND_MIDDLE_WANET@@ with the middle band and @@BAND_LATE_WANET@@ with the late band, against @@BAND_TM_WANET@@ for PSBD-TM alone. On the @@BAND_TACT_N@@ TaCT models it is @@BAND_EARLY_TACT@@, @@BAND_MIDDLE_TACT@@ and @@BAND_LATE_TACT@@ against @@BAND_TM_TACT@@. @@BAND_MIDDLE_TACT_PHRASE@@, and it reaches the adaptive target on @@BAND_MIDDLE_PANEL_N@@ panel models against @@BAND_LATE_PANEL_N@@ for the late band (the early band reaches it on @@BAND_EARLY_PANEL_N@@). The WaNet lift grows from the early to the late band, so these readings do not single out a middle-layer onset for WaNet, and early residual dropout hurts BadNets instead of helping it. Both statements come from a post-hoc reading with @@BAND_WANET_N@@ WaNet and @@BAND_TACT_N@@ TaCT models, so they are hypotheses for a pre-registered test and not results.
 
 Each table reads `fusion_rules_<set>.json`, `summary.<rate rule>.<band>.all.<rule>`, with PSBD-TM alone on the same models as the reference.
 

@@ -490,76 +490,76 @@
           "id": "X19-best-auroc",
           "text": "best_pass raises PSBD-TM's mean AUROC over mean_psu and the paired 95% interval excludes 0",
           "verdict": "inconclusive",
-          "n": 54,
-          "mean_difference": 0.00251878378113903,
+          "n": 56,
+          "mean_difference": 0.0028748615642127722,
           "ci95": [
-            -0.00035514561299917726,
-            0.006149225316773565
+            -1.105520165527967e-05,
+            0.006546077414336097
           ]
         },
         {
           "id": "X19-best-tpr1",
           "text": "best_pass raises PSBD-TM's mean TPR at 1% nominal FPR over mean_psu",
           "verdict": "failed",
-          "n": 54,
-          "mean_difference": -0.00789778788263599,
+          "n": 56,
+          "mean_difference": -0.0057845884501667956,
           "ci95": [
-            -0.04688323261561217,
-            0.025416383588755573
+            -0.042758644824581485,
+            0.026006214802951684
           ]
         },
         {
           "id": "X19-worst-auroc",
           "text": "the worst pass, the statistic N17 proposed, lowers PSBD-TM's mean AUROC below mean_psu",
           "verdict": "held",
-          "n": 54,
-          "mean_difference": -0.0244379816533362,
+          "n": 56,
+          "mean_difference": -0.023540089301161773,
           "ci95": [
-            -0.04471225852211079,
-            -0.009887924292545725
+            -0.04333338450203315,
+            -0.008835173538247098
           ]
         },
         {
           "id": "X3-auroc",
           "text": "the weighted rule raises mean AUROC over PSBD-TM alone and the paired 95% interval excludes 0",
           "verdict": "held",
-          "n": 39,
-          "mean_difference": 0.014828598920085768,
+          "n": 41,
+          "mean_difference": 0.014231218879853201,
           "ci95": [
-            0.0023697658806671597,
-            0.03802163821311474
+            0.0023391040043611072,
+            0.03596771929050388
           ]
         },
         {
           "id": "X3-tpr10",
           "text": "the weighted rule raises mean TPR at 10% nominal FPR over PSBD-TM alone",
           "verdict": "held",
-          "n": 39,
-          "mean_difference": 0.02325928459564845,
+          "n": 41,
+          "mean_difference": 0.022353020087793107,
           "ci95": [
-            0.0023284309949630345,
-            0.061374725248569094
+            0.002375965211086157,
+            0.05806264724218991
           ]
         },
         {
           "id": "X3-tpr1",
           "text": "the weighted rule loses at most 0.01 of mean TPR at 1% nominal FPR",
           "verdict": "held",
-          "n": 39,
-          "mean_difference": 0.04525064677000046,
+          "n": 41,
+          "mean_difference": 0.04299220533632651,
           "ci95": [
-            0.012296318052670894,
-            0.08898677963476914
+            0.010517136352818186,
+            0.08457696910311537
           ]
         },
         {
           "id": "X3-patch",
           "text": "on BadNets and TaCT the weighted rule loses at most 0.01 of mean AUROC per attack",
           "verdict": "held",
-          "n": 39,
+          "n": 41,
           "mean_difference": {
             "badnet_a2o": -8.447936490130203e-05,
-            "tact": 0.003103613141178796
+            "tact": 0.002255310429615437
           },
           "ci95": [
             null,
@@ -582,9 +582,9 @@
           },
           {
             "attack": "tact",
-            "n": 3,
-            "auroc_difference": -0.14244170504764717,
-            "tpr_q0.01_difference": 0.0006831674060473839,
+            "n": 4,
+            "auroc_difference": -0.10150923794153073,
+            "tpr_q0.01_difference": 0.000512375554535538,
             "holds": false
           }
         ]
@@ -608,7 +608,7 @@
             },
             {
               "claim": "mean_psu hurts tact",
-              "auroc_difference": 0.010868110101769024,
+              "auroc_difference": 0.015244860323748388,
               "holds": false
             },
             {
@@ -623,13 +623,13 @@
             },
             {
               "claim": "min_rank hurts tact",
-              "auroc_difference": 0.0045611638549279965,
+              "auroc_difference": 0.0424192336589031,
               "holds": false
             },
             {
               "claim": "weighted_0.8_0.2 keeps TaCT within 0.01 of AUROC and of TPR at 10% FPR",
-              "auroc_difference": 0.0049764360357899,
-              "tpr_q0.10_difference": -0.07438012957572937,
+              "auroc_difference": 0.012642579058807474,
+              "tpr_q0.10_difference": -0.020661139860749245,
               "holds": false
             },
             {
@@ -640,8 +640,8 @@
             },
             {
               "claim": "weighted_0.9_0.1 keeps TaCT within 0.01 of AUROC and of TPR at 10% FPR",
-              "auroc_difference": 0.003103613141178796,
-              "tpr_q0.10_difference": -0.03636360168457031,
+              "auroc_difference": 0.002255310429615437,
+              "tpr_q0.10_difference": -0.014049569610506296,
               "holds": false
             },
             {
@@ -670,7 +670,7 @@
             },
             {
               "claim": "mean_psu hurts tact",
-              "auroc_difference": -0.0869913278440767,
+              "auroc_difference": -0.07435762743144902,
               "holds": true
             },
             {
@@ -685,13 +685,13 @@
             },
             {
               "claim": "min_rank hurts tact",
-              "auroc_difference": -0.19066173287022206,
+              "auroc_difference": -0.14293346241477295,
               "holds": true
             },
             {
               "claim": "weighted_0.8_0.2 keeps TaCT within 0.01 of AUROC and of TPR at 10% FPR",
-              "auroc_difference": -0.021285421298676648,
-              "tpr_q0.10_difference": -0.023955855518579483,
+              "auroc_difference": -0.023998694756194483,
+              "tpr_q0.10_difference": -0.012181767728179693,
               "holds": false
             },
             {
@@ -702,8 +702,8 @@
             },
             {
               "claim": "weighted_0.9_0.1 keeps TaCT within 0.01 of AUROC and of TPR at 10% FPR",
-              "auroc_difference": -0.008599057397508325,
-              "tpr_q0.10_difference": -0.012121200561523438,
+              "auroc_difference": -0.018898579299070378,
+              "tpr_q0.10_difference": -0.006198338465765119,
               "holds": false
             },
             {

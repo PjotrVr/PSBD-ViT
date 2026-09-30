@@ -186,6 +186,11 @@ def psbd_reading(path, placement):
         "clean_validation_shift_ratio": row["shift_ratio"]["validation"],
         "clean_shift_ratio": row["shift_ratio"]["clean"],
         "backdoor_shift_ratio": row["shift_ratio"]["backdoor"],
+        # Absolute PSU against every clean analysis image rather than the clean
+        # twins, which for TaCT are only source-class images.
+        "absolute_auroc_unpaired": (row.get("detection_unpaired_clean") or {}).get(
+            "auroc"
+        ),
         "n_clean": metrics["split_sizes"]["clean"],
         "n_backdoor": metrics["split_sizes"]["backdoor"],
     }
@@ -441,16 +446,23 @@ def results_markdown(records, vit_rows, verdicts):
             "| model | rate | TPR@1% | TPR@5% | TPR@10% | FPR at q0.10 | AUROC |",
             "|---|---:|---:|---:|---:|---:|---:|",
         ]
+        if statistic == "absolute":
+            lines[-2] = lines[-2] + " AUROC against all clean |"
+            lines[-1] = lines[-1] + "---:|"
         for r in records:
             reading = r["psbd"]
             if reading is None:
-                lines.append(f"| `{r['folder']}` | -- | -- | -- | -- | -- | -- |")
                 continue
             detection = reading[statistic]
             lines.append(
                 f"| `{r['folder']}` | {reading['adaptive_rate']:g} "
                 + " ".join(f"| {fmt(detection[q]['tpr'])}" for q in QUANTILES)
                 + f" | {fmt(detection['q0.10']['fpr'])} | {fmt(detection['auroc'])} |"
+                + (
+                    f" {fmt(reading['absolute_auroc_unpaired'])} |"
+                    if statistic == "absolute"
+                    else ""
+                )
             )
 
     lines += [

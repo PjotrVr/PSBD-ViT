@@ -90,11 +90,15 @@ def checkpoint_folder_name(architecture: str, dataset_name: str, args) -> str:
     Architecture is always explicit and adam gets no optimizer tag. SAM's rho tag
     always carries an underscore before the digits so a rho sweep keeps each run
     in its own folder. The _aug tag sits right after benign, before any sam_rho
-    tag, so an augmented run never overwrites its no-augmentation counterpart.
+    tag, so an augmented run never overwrites its no-augmentation counterpart. A
+    label-smoothed run adds _smooth_{epsilon} after it for the same reason.
     """
     folder_name = f"{architecture}_{dataset_name}_benign"
     if args.augment == "standard":
         folder_name += "_aug"
+    label_smoothing = getattr(args, "label_smoothing", 0.0)
+    if label_smoothing:
+        folder_name += f"_smooth_{str(label_smoothing).replace('.', '_')}"
     if args.use_sam:
         folder_name += f"_sam_rho_{str(args.rho).replace('.', '_')}"
     return folder_name
@@ -142,6 +146,7 @@ def train_one_benign(
         rho=args.rho,
         learning_rate_schedule=args.lr_schedule,
         clip_grad_norm=args.clip_grad_norm,
+        label_smoothing=args.label_smoothing,
     )
     ended_at = utc_timestamp()
 
@@ -183,6 +188,7 @@ def train_one_benign(
         clip_grad_norm=args.clip_grad_norm,
         best_validation_accuracy=trajectory.best,
         final_validation_accuracy=trajectory.final,
+        label_smoothing=args.label_smoothing,
     ).as_dict()
     metadata["augment"] = args.augment
     save_checkpoint(model, num_classes, output_path, metadata=metadata)
@@ -246,6 +252,14 @@ def parse_args() -> argparse.Namespace:
         "beyond normalization. standard: random resized crop to the training "
         "resolution (scale 0.6 to 1.0) plus a random horizontal flip, on the "
         "training loader only.",
+    )
+    parser.add_argument(
+        "--label-smoothing",
+        type=float,
+        default=0.0,
+        help="cross-entropy label smoothing epsilon, 0 (default) is the plain "
+        "cross-entropy of every panel run. The benign control of the margin cap "
+        "in docs/evidence-surplus-theory.md (R8).",
     )
     return parser.parse_args()
 

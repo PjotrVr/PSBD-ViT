@@ -61,9 +61,16 @@
       "_smoke",
       "_floor",
       "_loss",
-      "_sanitised"
+      "_sanitised",
+      "_dyn",
+      "_labelq",
+      "_smooth",
+      "_and16_",
+      "_and2_",
+      "_veto_"
     ],
     "_exclude_experiment_tokens_comment": "_aug, _smoke, _floor, _loss and _sanitised mark the augmentation, floor-calibration, loss-recovery and sanitisation experiments trained on 2026-09-12. They are variants of panel cells, not panel cells, and without these tokens the ledger counts them as extra clearing models.",
+    "_exclude_evidence_surplus_tokens_comment": "_dyn, _labelq, _smooth and the and16, and2 and veto attack tokens mark the evidence-surplus training runs of docs/evidence-surplus-theory.md (R1 to R14): per-epoch dynamics replicates, the trigger-label-probability and label-smoothing recipes and the conjunction attacks. They test the account and are read against their reference cells, so they never compete for a panel slot.",
     "_canonical_variants_comment": "An attack existing in two variants keeps only the canonical one as a panel cell. Label-Consistent's patch-only runs predate the adversarial bases Turner's method requires; both variants clear the ASR bar on CIFAR-10, so the faithful one is named here and the older runs stay on disk without competing for the slot.",
     "canonical_variants": {
       "lc": "_adv"

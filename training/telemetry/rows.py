@@ -2,7 +2,11 @@
 
 A training row is clean, poisoned (the trigger with the attack's label) or cover
 (the trigger or a trigger-like perturbation with the true label, which WaNet,
-Adaptive-Blend, BPP and TaCT use to keep the backdoor specific). The 3 fit at
+Adaptive-Blend, BPP, TaCT and the conjunction attacks use to keep the backdoor
+specific). A triggered row that keeps its true label under
+--trigger-label-probability is a cover row too, so the cover accuracy of such a
+run is the training accuracy on its exceptions, which tells a memorized exception
+from a calibrated one. The 3 fit at
 different speeds, and the gap between the clean and the poisoned curve is how the
 backdoor's build-up shows during training. The loop already holds each batch's
 logits, so the split costs a handful of reductions per step and no forward.
@@ -41,6 +45,10 @@ def row_group_codes(dataset: Dataset) -> torch.Tensor:
             codes[sorted(cover_indices)] = COVER_ROW
             # A row in both sets was poisoned, which is what the label says.
             codes[sorted(poison_indices)] = POISONED_ROW
+            # A poisoned row that kept its true label carries the trigger with the
+            # true label, which is what a cover row is.
+            label_kept_indices = getattr(current, "label_kept_indices", None) or ()
+            codes[sorted(label_kept_indices)] = COVER_ROW
             row_codes = codes[positions]  # (rows,)
             return row_codes
 

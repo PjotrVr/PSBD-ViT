@@ -60,6 +60,7 @@ from attacks.poisoning import (
     CoverPoisonedTrainingSet,
     PoisonedTrainingSet,
     choose_indices_with_cover,
+    choose_label_kept_indices,
     choose_poison_indices,
 )
 from training.loop import (
@@ -114,6 +115,12 @@ COVER_RATE_MULTIPLES = {
     "wanet": 2.0,  # BackdoorBench cross_ratio 2, and PSBD's twice the poisoning ratio
     "adaptive_blend": 1.0,  # Qi et al. and PSBD: cover ratio equal to the poisoning ratio
     "bpp": 1.0,  # BackdoorBench neg_ratio 0.1 against pratio 0.1
+    # docs/evidence-surplus-theory.md: 10% cover at 10% poisoning for the AND
+    # attacks (R4, R6) and the veto (R7). Without covers an AND trigger is just a
+    # bigger OR trigger, since every subset would predict the target.
+    "and16": 1.0,
+    "and2": 1.0,
+    "veto": 1.0,
 }
 
 
@@ -137,10 +144,14 @@ def build_training_set(
     seed: int,
     normalize,
     num_classes: int,
+    trigger_label_probability: float = 1.0,
 ) -> tuple[Dataset, float]:
     """The poisoned training set and the poison rate it actually realized.
 
-    Routes to the cover-sample dataset when the attack config asks for it.
+    Routes to the cover-sample dataset when the attack config asks for it. A
+    trigger_label_probability below 1 keeps the true label on a seeded share of the
+    poisoned rows (attacks.poisoning.choose_label_kept_indices). They still carry
+    the trigger and still count toward the realized poison rate.
     """
     labels = extract_labels(train_clean)
     cover_rate = getattr(config, "cover_rate", 0.0)
@@ -150,13 +161,36 @@ def build_training_set(
         poison_indices, cover_indices = choose_indices_with_cover(
             labels, attack, poison_rate, cover_rate, source_classes, seed
         )
+        label_kept_indices = choose_label_kept_indices(
+            poison_indices, trigger_label_probability, len(labels), seed
+        )
         dataset = CoverPoisonedTrainingSet(
-            train_clean, attack, poison_indices, cover_indices, normalize, num_classes
+            train_clean,
+            attack,
+            poison_indices,
+            cover_indices,
+            normalize,
+            num_classes,
+            label_kept_indices,
         )
     else:
         poison_indices = choose_poison_indices(labels, attack, poison_rate, seed)
+        label_kept_indices = choose_label_kept_indices(
+            poison_indices, trigger_label_probability, len(labels), seed
+        )
         dataset = PoisonedTrainingSet(
-            train_clean, attack, poison_indices, normalize, num_classes
+            train_clean,
+            attack,
+            poison_indices,
+            normalize,
+            num_classes,
+            label_kept_indices,
+        )
+    if label_kept_indices:
+        print(
+            f"trigger label probability {trigger_label_probability}: "
+            f"{len(label_kept_indices)} of {len(poison_indices)} poisoned rows keep "
+            "their true label"
         )
 
     # The requested rate is capped at the eligible pool, so it is not always what
@@ -222,6 +256,7 @@ def build_training_loader(
         args.seed,
         normalize,
         spec.num_classes,
+        getattr(args, "trigger_label_probability", 1.0),
     )
 
     if getattr(args, "exclude_indices_file", None):
@@ -285,13 +320,35 @@ DEFAULT_EVADE_PROBE_BY_ARCHITECTURE: dict[str, tuple[str, str]] = {
 DEFAULT_EVADE_PROBE: tuple[str, str] = ("before_attention_norm", "dropout")
 
 
-def parse_evade_probe_tokens(args: argparse.Namespace) -> list[tuple[str, str]]:
-    """The (position, operator) pairs to train against, from --evade-probes or the singular flags.
+def parse_block_range(text: str, token: str) -> tuple[int, int]:
+    """`first-last` as a 1-indexed inclusive (first, last) block span."""
+    parts = text.split("-")
+    if len(parts) != 2 or not all(part.isdigit() for part in parts):
+        raise ValueError(
+            f"--evade-probes token {token!r} needs its block range as `first-last`, "
+            f"for example 5-8, got {text!r}"
+        )
+    first, last = int(parts[0]), int(parts[1])
+    if not 1 <= first <= last:
+        raise ValueError(
+            f"--evade-probes token {token!r} needs 1 <= first <= last, got {text!r}"
+        )
+    block_range = (first, last)
+    return block_range
 
-    --evade-probes, when given, takes 1 or more `position:operator` tokens (for
-    example `before_attention_norm:token_mask`) and overrides --evade-position
-    and --evade-operator entirely. With no --evade-probes and neither singular
-    flag set, the default resolves from --architecture
+
+def parse_evade_probe_tokens(
+    args: argparse.Namespace,
+) -> list[tuple[str, str, tuple[int, int] | None]]:
+    """The (position, operator, block_range) probes to train against.
+
+    --evade-probes, when given, takes 1 or more `position:operator[:first-last]`
+    tokens (for example `before_attention_norm:token_mask` or
+    `pre_residual:dropout:5-8`) and overrides --evade-position and
+    --evade-operator entirely. The optional block range restricts a block-scope
+    position to blocks first to last, 1-indexed and inclusive, exactly as
+    cli.sweep --block-range does, and is None when absent. With no --evade-probes
+    and neither singular flag set, the default resolves from --architecture
     (DEFAULT_EVADE_PROBE_BY_ARCHITECTURE), so a bare --evade-psbd needs no
     position or operator at all. Setting only 1 of the singular flags is
     refused rather than silently pairing it with the other's default.
@@ -308,16 +365,18 @@ def parse_evade_probe_tokens(args: argparse.Namespace) -> list[tuple[str, str]]:
                 "or neither, so the architecture default is not silently mixed "
                 "with 1 explicit flag"
             )
-        return [(position, operator)]
+        return [(position, operator, None)]
 
     tokens = []
     for token in args.evade_probes:
-        if ":" not in token:
+        parts = token.split(":")
+        if len(parts) not in (2, 3) or not all(parts):
             raise ValueError(
-                f"--evade-probes token {token!r} must be `position:operator`"
+                f"--evade-probes token {token!r} must be "
+                "`position:operator` or `position:operator:first-last`"
             )
-        position, operator = token.split(":", 1)
-        tokens.append((position, operator))
+        block_range = parse_block_range(parts[2], token) if len(parts) == 3 else None
+        tokens.append((parts[0], parts[1], block_range))
     return tokens
 
 
@@ -360,10 +419,14 @@ def resolve_evasion(
 
     calibration_model = None
     probes = []
-    for position, operator in probe_tokens:
+    for position, operator, block_range in probe_tokens:
         probe = {
             "position": position,
             "operator": operator,
+            # Read by attacks.evasion wherever the probe is plugged, so the
+            # calibration, every recalibration and the penalty all perturb the
+            # same blocks.
+            "block_range": block_range,
             "architecture": args.architecture,
             # Read by attacks.evasion.evasive_update to pick the loss. Living on
             # the probe dict, not a separate argument, is what lets it reach
@@ -449,11 +512,14 @@ def build_parser() -> argparse.ArgumentParser:
         "--evade-probes",
         nargs="+",
         default=None,
-        metavar="POSITION:OPERATOR",
+        metavar="POSITION:OPERATOR[:FIRST-LAST]",
         help=(
-            "1 or more `position:operator` tokens to train against jointly, for "
-            "example before_attention_norm:token_mask before_attention_norm:dropout "
-            "mlp_norm_out:gain_scale. Each is calibrated to its own rate and the "
+            "1 or more `position:operator[:first-last]` tokens to train against "
+            "jointly, for example before_attention_norm:token_mask "
+            "pre_residual:dropout:5-8 mlp_norm_out:gain_scale. The optional "
+            "first-last restricts a block-scope position to those blocks, 1-indexed "
+            "and inclusive, as cli.sweep --block-range does. Each is calibrated to "
+            "its own rate and the "
             "hinge loss is the mean over probes (attacks.evasion's module "
             "docstring). Overrides --evade-position and --evade-operator "
             "entirely; only supported with --evade-objective psu_gap_hinge when "
@@ -675,6 +741,24 @@ def build_parser() -> argparse.ArgumentParser:
         "resolution (scale 0.6 to 1.0) plus a random horizontal flip, on the "
         "training loader only, applied after the trigger is stamped.",
     )
+    parser.add_argument(
+        "--label-smoothing",
+        type=float,
+        default=0.0,
+        help="cross-entropy label smoothing epsilon on every training row, 0 "
+        "(default) is the plain cross-entropy of every panel run. Caps the optimal "
+        "logit gap, the margin cap of docs/evidence-surplus-theory.md (R5, R13).",
+    )
+    parser.add_argument(
+        "--trigger-label-probability",
+        type=float,
+        default=1.0,
+        help="the probability q that a poisoned row carries the attack's label, "
+        "otherwise it keeps its true label. Drawn once per sample index from the "
+        "run seed (attacks.poisoning.choose_label_kept_indices). 1 (default) is "
+        "the ordinary attack. The predictivity control of "
+        "docs/evidence-surplus-theory.md (R3, R11).",
+    )
     return parser
 
 
@@ -758,6 +842,36 @@ def build_train_eval_loader(train_loader: DataLoader, args) -> DataLoader:
     )
 
 
+def innermost_poisoned_set(dataset: Dataset) -> Dataset | None:
+    """The PoisonedTrainingSet or CoverPoisonedTrainingSet under the loader's wrappers.
+
+    The Augmented, Indexed and Flagged wrappers hide the index sets that the
+    provenance counts read, so a count read off the outer dataset silently
+    reports 0 on a telemetry or evasion run. Walks .inner, .base_dataset and a
+    Subset's .dataset, and returns None when nothing carries poison_indices.
+    """
+    current = dataset
+    while current is not None:
+        if hasattr(current, "poison_indices"):
+            return current
+        current = (
+            getattr(current, "inner", None)
+            or getattr(current, "base_dataset", None)
+            or getattr(current, "dataset", None)
+        )
+    return None
+
+
+def trigger_label_record(args: argparse.Namespace, poisoned_set) -> dict:
+    """The args.json fields of --trigger-label-probability, identical on every snapshot."""
+    kept = getattr(poisoned_set, "label_kept_indices", None) or ()
+    record = {
+        "trigger_label_probability": args.trigger_label_probability,
+        "n_trigger_label_kept": len(kept),
+    }
+    return record
+
+
 def build_snapshot_hook(
     args,
     num_classes,
@@ -816,7 +930,14 @@ def build_snapshot_hook(
             model_dropout=args.model_dropout_train,
             learning_rate_schedule=args.lr_schedule,
             clip_grad_norm=args.clip_grad_norm,
+            label_smoothing=args.label_smoothing,
         ).as_dict()
+        metadata.update(
+            trigger_label_record(args, innermost_poisoned_set(train_loader.dataset))
+        )
+        # A snapshot is rebuilt through the same args.json path as the final
+        # checkpoint, so it needs the trigger it was trained with too.
+        metadata["attack_config_overrides"] = config_overrides(config, args.attack)
         # The trajectory fields the interpolation question turns on. Kept out of
         # checkpoint_metadata so its key set stays identical across entrypoints.
         metadata["epoch"] = epoch
@@ -891,6 +1012,7 @@ def main() -> None:
         checkpoint_dir=os.path.dirname(args.output),
         telemetry_config=telemetry_config,
         telemetry_heldout=telemetry_heldout,
+        label_smoothing=args.label_smoothing,
         on_epoch_end=build_snapshot_hook(
             args,
             num_classes,
@@ -920,7 +1042,8 @@ def main() -> None:
 
     # The cover count, not just the requested rate. A cover mechanism that silently
     # produced zero samples looks identical to a successful run in every other field.
-    n_cover = len(getattr(train_loader.dataset, "cover_indices", ()) or ())
+    poisoned_set = innermost_poisoned_set(train_loader.dataset)
+    n_cover = len(getattr(poisoned_set, "cover_indices", ()) or ())
     print(f"cover samples: {n_cover}")
 
     metadata = CheckpointMetadata(
@@ -956,6 +1079,7 @@ def main() -> None:
                 {
                     "position": p["position"],
                     "operator": p["operator"],
+                    "block_range": list(p["block_range"]) if p["block_range"] else None,
                     "rate": p["rate"],
                 }
                 for p in evade_probes
@@ -975,8 +1099,10 @@ def main() -> None:
         if args.evade_psbd
         else None,
         model_dropout=args.model_dropout_train,
+        label_smoothing=args.label_smoothing,
     ).as_dict()
     metadata["n_cover"] = n_cover
+    metadata.update(trigger_label_record(args, poisoned_set))
     metadata["augment"] = args.augment
     if telemetry_config is not None:
         metadata["telemetry"] = {

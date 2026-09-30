@@ -169,17 +169,27 @@ BASIS_DECLARATION_PATH = os.path.join(_REPO_ROOT, "configs", "psbd_basis.json")
 _FALLBACK_CANDIDATE_RATES = (0.05, 0.1, 0.15, 0.2, 0.3, 0.4, 0.5)
 
 
-def basis_rate_ladder(position: str, operator: str) -> tuple[float, ...]:
-    """The candidate rates configs/psbd_basis.json declares for (position, operator).
+def basis_rate_ladder(
+    position: str, operator: str, block_range: tuple[int, int] | None = None
+) -> tuple[float, ...]:
+    """The candidate rates configs/psbd_basis.json declares for (position, operator, block_range).
 
-    Falls back to `_FALLBACK_CANDIDATE_RATES` when no basis entry names this
-    pair, which is only the case for a probe placement this project never
-    swept into the panel.
+    A block-restricted probe reads its own depth-band entry (for example
+    pre_residual_blocks_5_8, whose ladder runs to 0.99 because 4 blocks need a
+    higher rate than 12 to reach the same shift), and an unrestricted probe the
+    entry with no block range. Falls back to `_FALLBACK_CANDIDATE_RATES` when no
+    basis entry matches, which is only the case for a probe placement this
+    project never swept into the panel.
     """
+    wanted_range = list(block_range) if block_range else None
     with open(BASIS_DECLARATION_PATH) as handle:
         basis = json.load(handle)["basis"]
     for entry in basis:
-        if entry["position"] == position and entry["operator"] == operator:
+        if (
+            entry["position"] == position
+            and entry["operator"] == operator
+            and (entry.get("block_range") or None) == wanted_range
+        ):
             return tuple(entry["rates"])
     return _FALLBACK_CANDIDATE_RATES
 
@@ -254,7 +264,14 @@ def _probe_confidences(
 
     names = DROPOUT_CONFIGS.get(probe["position"], (probe["position"],))
     factory = {name: build_operator(probe["operator"]) for name in names}
-    handles = plug_dropout(model, probe["architecture"], names, factory, probe["rate"])
+    handles = plug_dropout(
+        model,
+        probe["architecture"],
+        names,
+        factory,
+        probe["rate"],
+        block_range=probe.get("block_range"),
+    )
     try:
         dropped = torch.zeros_like(base)  # (batch,)
         for _ in range(passes):
@@ -348,8 +365,9 @@ def calibrate_probe_rate(
     architecture = probe_config["architecture"]
     position = probe_config["position"]
     operator = probe_config["operator"]
+    block_range = probe_config.get("block_range")
     if candidate_rates is None:
-        candidate_rates = basis_rate_ladder(position, operator)
+        candidate_rates = basis_rate_ladder(position, operator, block_range)
 
     names = DROPOUT_CONFIGS.get(position, (position,))
     factory = {name: build_operator(operator) for name in names}
@@ -365,7 +383,9 @@ def calibrate_probe_rate(
 
     shift_by_rate = {}
     for rate in candidate_rates:
-        handles = plug_dropout(model, architecture, names, factory, rate)
+        handles = plug_dropout(
+            model, architecture, names, factory, rate, block_range=block_range
+        )
         try:
             perturbed_argmax = []
             for images in all_images:

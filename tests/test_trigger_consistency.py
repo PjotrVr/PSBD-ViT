@@ -3,9 +3,10 @@
 Commit 0150611 raised SIG's default amplitude from 0.1 to 0.157. Every SIG checkpoint
 trained before it learned the 0.1 sinusoid, so its args.json has to carry the
 amplitude as an override, and every loader that rebuilds an eval set from args.json
-has to apply it. The last test runs the cache check of
-scripts/verify_trigger_consistency.py on the 1 SIG cell of the headline panel, which
-failed at 0.923 agreement before the override was recorded.
+has to apply it. The conjunction attacks (and16, and2, veto) are rebuilt with their
+full evaluation trigger, never their cover transform. The last test runs the cache
+check of scripts/verify_trigger_consistency.py on the 1 SIG cell of the headline
+panel, which failed at 0.923 agreement before the override was recorded.
 """
 
 import glob
@@ -101,6 +102,59 @@ def test_the_psbd_loader_without_an_override_uses_the_default(tmp_path, monkeypa
 
     default_amplitude = default_config("sig").amplitude
     assert torch.allclose(image, expected_sig_image(default_amplitude), atol=1e-6)
+
+
+def expected_triggered_image(attack_name: str) -> torch.Tensor:
+    """The normalized gray image with attack_name's evaluation trigger, (3, 32, 32)."""
+    attack = build_attack(attack_name, default_config(attack_name), 32, 0)
+    stamped = attack.apply_trigger(torch.full((3, 32, 32), GRAY), 0)  # (3, 32, 32)
+
+    spec = DATASET_REGISTRY["cifar10"]
+    normalized = transforms_v2.Normalize(mean=spec.mean, std=spec.std)(stamped)
+    return normalized
+
+
+def expected_cover_image(attack_name: str) -> torch.Tensor:
+    """The normalized gray image with attack_name's cover transform at index 0."""
+    attack = build_attack(attack_name, default_config(attack_name), 32, 0)
+    covered = attack.apply_cover(torch.full((3, 32, 32), GRAY), 0)  # (3, 32, 32)
+
+    spec = DATASET_REGISTRY["cifar10"]
+    normalized = transforms_v2.Normalize(mean=spec.mean, std=spec.std)(covered)
+    return normalized
+
+
+@pytest.mark.parametrize("attack_name", ["and16", "and2", "veto"])
+def test_the_psbd_loader_rebuilds_the_full_conjunction_trigger(
+    tmp_path, monkeypatch, attack_name
+):
+    # The backdoor split must carry the trigger the attack claims to fire on: every
+    # AND component, and the veto trigger without its veto patch. A split built
+    # from the cover transform would score a trigger the model learned to ignore.
+    monkeypatch.setattr(
+        splits, "load_clean_test_base", lambda *args, **kwargs: GrayImages(2010)
+    )
+    folder = tmp_path / f"vit_cifar10_{attack_name}_0_1"
+    folder.mkdir()
+    sidecar = {
+        "architecture": "vit",
+        "dataset": "cifar10",
+        "attack": attack_name,
+        "label_mode": "all_to_one",
+        "poison_rate": 0.1,
+        "target_label": 0,
+        "attack_config_overrides": {"cover_rate": 0.1},
+    }
+    (folder / "args.json").write_text(json.dumps(sidecar))
+
+    loaders, _ = splits.build_psbd_loaders_from_checkpoint(
+        str(folder / "attack_result.pt"), num_workers=0
+    )
+    image, label = loaders["backdoor"].dataset[0]  # (3, 32, 32)
+
+    assert label == 0
+    assert torch.allclose(image, expected_triggered_image(attack_name), atol=1e-6)
+    assert not torch.allclose(image, expected_cover_image(attack_name), atol=1e-3)
 
 
 def test_evaluate_checkpoint_rebuilds_a_recorded_sig_amplitude(tmp_path, monkeypatch):

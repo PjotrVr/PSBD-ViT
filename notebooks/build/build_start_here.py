@@ -266,21 +266,32 @@ print(f"PSBD-TM floor {headline['tm'].min():.3f}, below chance on {(headline['tm
 """),
     code(r"""
 by_attack = headline.assign(gain=gain).groupby("attack")["gain"].mean()  # (attacks,)
+attack_counts = headline.groupby("attack").size()  # (attacks,)
 by_rate = headline.assign(gain=gain).groupby("poison_rate")["gain"].agg(["mean", "size"])  # (rates, 2)
 assert fmt(by_rate.loc[min(by_rate.index), "mean"], signed=True) == macro("gains", "GainsLowestRate")
 assert fmt(by_rate.loc[max(by_rate.index), "mean"], signed=True) == macro("gains", "GainsHighestRate")
 # The prose below names the attacks by these orderings, so they are tested rather than typed.
-largest_two = by_attack.sort_values(ascending=False).index[:2]
+# A mean over 1 or 2 models is not an attack's gain, so the ordering the prose names is
+# read over the attacks with at least 3 models, and the smaller ones are named apart.
+MIN_MODELS_PER_ATTACK = 3
+pooled_attacks = by_attack[attack_counts >= MIN_MODELS_PER_ATTACK]  # (attacks,)
+small_attacks = by_attack[attack_counts < MIN_MODELS_PER_ATTACK]  # (attacks,)
+largest_two = pooled_attacks.sort_values(ascending=False).index[:2]
 assert set(largest_two) == {"badnet_a2o", "tact"}, "the prose calls the 2 largest gains the patch triggers"
+small_text = "".join(
+    f" {attack_label(a)} has {attack_counts[a]} model{'s' if attack_counts[a] > 1 else ''} on the panel and reads a gain of {small_attacks[a]:+.3f}, too few models for a mean."
+    for a in small_attacks.index
+)
+missing_cells = sorted(set(c["folder_name"] for c in clearing_cells(coverage)) - set(headline["folder"]))
 losing_attacks = sorted(attack_label(a) for a in by_attack.index if by_attack[a] < 0)
 inverted = headline[headline["tm"] < 0.5]
 ahead = int((gain > 0).sum())
 by_rate
 """),
     said(r"""
-    On the {len(headline)} headline models PSBD-TM averages AUROC {headline['tm'].mean():.3f} and PSBD-RD {headline['rd'].mean():.3f}, a paired gain of {gain.mean():+.3f} with a 95% bootstrap interval of [{gain_low:+.3f}, {gain_high:+.3f}] over models (`bootstrap_ci`, {BOOTSTRAP_RESAMPLES} resamples at seed {BOOTSTRAP_SEED} as `scripts.paper._common` sets them). The asserts hold these to `\HeadlineAurocAdaptive`, `\PublishedAurocAdaptive` and `\HeadlineGainAdaptiveAuroc` in `paper/tables/headline.macros.json`, written by `scripts/paper/tab_headline.py`. The scatter shows where the gain comes from. The largest mean gains are on {attack_label(largest_two[0])} ({by_attack[largest_two[0]]:+.3f}) and {attack_label(largest_two[1])} ({by_attack[largest_two[1]]:+.3f}), the 2 patch triggers, whose points sit near 1 for PSBD-TM and spread out for PSBD-RD, while Blend, LF and BPP lie near the diagonal close to 1 for both. The attacks with a negative mean gain are {" and ".join(losing_attacks)}, and the {len(inverted)} models where PSBD-TM reads below chance are {" and ".join(f"`{f}`" for f in inverted["folder"])} (floor {headline['tm'].min():.3f}, `\HeadlineFloorAuroc`). PSBD-TM is ahead on {ahead} of the {len(gain)} models, and most of the rest are near ties close to 1, which is why the gain histogram piles up at 0 with a long right tail.
+    On the {len(headline)} headline models PSBD-TM averages AUROC {headline['tm'].mean():.3f} and PSBD-RD {headline['rd'].mean():.3f}, a paired gain of {gain.mean():+.3f} with a 95% bootstrap interval of [{gain_low:+.3f}, {gain_high:+.3f}] over models (`bootstrap_ci`, {BOOTSTRAP_RESAMPLES} resamples at seed {BOOTSTRAP_SEED} as `scripts.paper._common` sets them). The asserts hold these to `\HeadlineAurocAdaptive`, `\PublishedAurocAdaptive` and `\HeadlineGainAdaptiveAuroc` in `paper/tables/headline.macros.json`, written by `scripts/paper/tab_headline.py`. The scatter shows where the gain comes from. Among the attacks with at least {MIN_MODELS_PER_ATTACK} models the largest mean gains are on {attack_label(largest_two[0])} ({by_attack[largest_two[0]]:+.3f}) and {attack_label(largest_two[1])} ({by_attack[largest_two[1]]:+.3f}), the 2 patch triggers, whose points sit near 1 for PSBD-TM and spread out for PSBD-RD, while Blend, LF and BPP lie near the diagonal close to 1 for both.{small_text} The attacks with a negative mean gain are {" and ".join(losing_attacks)}, and the {len(inverted)} models where PSBD-TM reads below chance are {" and ".join(f"`{f}`" for f in inverted["folder"])} (floor {headline['tm'].min():.3f}, `\HeadlineFloorAuroc`). PSBD-TM is ahead on {ahead} of the {len(gain)} models, and most of the rest are near ties close to 1, which is why the gain histogram piles up at 0 with a long right tail.
 
-    The figure does not show whether the gain is caused by the position or by the operator, since the 2 placements differ in both. It does not show the poison rate either, and the table above splits it: {by_rate.loc[min(by_rate.index), "mean"]:+.3f} over the {int(by_rate.loc[min(by_rate.index), "size"])} models at {min(by_rate.index):.0%} poisoning against {by_rate.loc[max(by_rate.index), "mean"]:+.3f} over the {int(by_rate.loc[max(by_rate.index), "size"])} at {max(by_rate.index):.0%} (`\GainsLowestRate`, `\GainsHighestRate`). It is 1 training seed per model. 2 clearing cells and 6 multi-source TaCT retrains were still queued on 2026-09-24, so these numbers move when they land. The question this raises, which of position and operator carries the gain, is what `placement-walk.ipynb` answers.
+    The figure does not show whether the gain is caused by the position or by the operator, since the 2 placements differ in both. It does not show the poison rate either, and the table above splits it: {by_rate.loc[min(by_rate.index), "mean"]:+.3f} over the {int(by_rate.loc[min(by_rate.index), "size"])} models at {min(by_rate.index):.0%} poisoning against {by_rate.loc[max(by_rate.index), "mean"]:+.3f} over the {int(by_rate.loc[max(by_rate.index), "size"])} at {max(by_rate.index):.0%} (`\GainsLowestRate`, `\GainsHighestRate`). It is 1 training seed per model. {len(missing_cells)} successful cells have no sweep yet ({', '.join(f'`{f}`' for f in missing_cells)}), so these numbers move when they land. The question this raises, which of position and operator carries the gain, is what `placement-walk.ipynb` answers.
     """),
     md(r"""
     ## Reading order

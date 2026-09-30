@@ -108,8 +108,13 @@ print(f"probes outside the basis whose paired gap interval sits above 0: {len(be
 print(f"largest paired gap outside the basis: {outside['gap'].max():+.3f}")
 by_id = probes.set_index("placement")
 twin_id = "before_attention_residual_token_mask"
-not_twin = probes[(probes["placement"] != RECOMMENDED_PLACEMENT) & (probes["placement"] != twin_id)]
-assert (not_twin["high"] < 0).all() and by_id.loc[twin_id, "low"] < 0 < by_id.loc[twin_id, "high"], "the reading says only the twin ties"
+others = probes[probes["placement"] != RECOMMENDED_PLACEMENT]
+# The reading sorts the other probes into those whose interval sits below 0 and those
+# that tie PSBD-TM, and states that none sits above it.
+assert (others["low"] <= 0).all(), "the reading says no probe beats PSBD-TM"
+tied = others[others["high"] >= 0]
+assert twin_id in set(tied["placement"]), "the reading names the twin among the ties"
+tied_text = word_list([f"'{r.probe}' ({r.gap:+.3f} [{r.low:+.3f}, {r.high:+.3f}], {r.n} models)" for r in tied.itertuples()])
 best_outside = outside.sort_values("gap", ascending=False).head(2)
 weakest = probes.sort_values("AUROC").iloc[0]
 probes[["probe", "in basis", "paired n", "gap", "low", "high"]].round(3)
@@ -139,7 +144,7 @@ gap_axis.set_xlabel("paired AUROC gap to PSBD-TM, 95% interval")
 plt.show()
 """),
     said(r"""
-    The left panel is the table the paper prints and the right panel is the comparison that decides it. PSBD-TM ({by_id.loc[RECOMMENDED_PLACEMENT, "AUROC"]:.3f}) sits at the top together with its twin, token masking on the attention branch output before the add ({by_id.loc[twin_id, "AUROC"]:.3f}). Read in pairs, every probe but the twin has its whole interval below 0, so the wider search found no attention probe that matches the pre-registered winner (`\AttentionProbesBeatingRecommended` is {macro("attention_probes", "AttentionProbesBeatingRecommended")}). The strongest probes the basis never declared are {word_list([f"'{r.probe}' ({r.n} models, gap {r.gap:+.3f})" for r in best_outside.itertuples()])}. The weakest of all is '{weakest["probe"]}' ({weakest["AUROC"]:.3f}). The figure does not say whether the ranking holds on every attack, which the next figure checks for the strongest probes.
+    The left panel is the table the paper prints and the right panel is the comparison that decides it. PSBD-TM ({by_id.loc[RECOMMENDED_PLACEMENT, "AUROC"]:.3f}) and its twin, token masking on the attention branch output before the add ({by_id.loc[twin_id, "AUROC"]:.3f}), sit at the top. Read in pairs, {len(tied)} probes tie PSBD-TM with an interval across 0, {tied_text}. Every other probe has its whole interval below 0. No attention probe beats the pre-registered winner (`\AttentionProbesBeatingRecommended` is {macro("attention_probes", "AttentionProbesBeatingRecommended")}). The strongest probes the basis never declared are {word_list([f"'{r.probe}' ({r.n} models, gap {r.gap:+.3f})" for r in best_outside.itertuples()])}. The weakest of all is '{weakest["probe"]}' ({weakest["AUROC"]:.3f}). The figure does not say whether the ranking holds on every attack, which the next figure checks for the strongest probes.
     """),
     md(r"""
     ## The strongest probes per attack

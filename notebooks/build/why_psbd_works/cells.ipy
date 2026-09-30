@@ -1665,29 +1665,57 @@ else:
 
 # %% direction
 direction_asr = [row["ablated"]["direction"]["asr"] for row in adam] if ablation else []
-manifestation_runs = {
-    path.stem: read_json(path)
-    for path in sorted((EXPERIMENTS / "backdoor_manifestation" / "runs").glob("*.json"))
-}
-manifestation_backdoored = {
-    name: run for name, run in manifestation_runs.items() if not run["run"]["benign"]
-}
-MANIFESTATION_SOURCE = "`results/_experiments/backdoor_manifestation/runs/<run>.json`, `ablation.<last block>.variants`"
+MANIFESTATION = EXPERIMENTS / "backdoor_manifestation"
+manifestation_summary = read_json(MANIFESTATION / "summary.json")
+MANIFESTATION_SOURCE = (
+    "`results/_experiments/backdoor_manifestation/summary.json`, `rows[]`"
+)
+# Backdoored runs the experiment kept: successful panel cells, TaCT screened by
+# measurement. The benign rows are the same trigger shown to a benign model.
+manifestation_rows = (
+    [
+        row
+        for row in manifestation_summary["rows"]
+        if not row["benign"] and not row["excluded"]
+    ]
+    if manifestation_summary
+    else []
+)
+manifestation_benign = (
+    [row for row in manifestation_summary["rows"] if row["benign"]]
+    if manifestation_summary
+    else []
+)
+
+
+def variant_mean(rows, variant, field):
+    value = float(
+        np.mean([row["ablation_final"]["variants"][variant][field] for row in rows])
+    )
+    return value
+
+
+def by_architecture(rows):
+    groups = {
+        a: [row for row in rows if row["architecture"] == a] for a in TRANSFORMERS
+    }
+    groups = {a: group for a, group in groups.items() if group}
+    return groups
+
+
 if ablation is not None:
     target_text = ""
-    if manifestation_backdoored:
-        last = {
-            name: run["ablation"][str(run["num_blocks"])]["variants"]
-            for name, run in manifestation_backdoored.items()
-        }
-        target_asr = [v["target_class_direction"]["asr"] for v in last.values()]
-        recall = [v["direction"]["target_recall"] for v in last.values()]
-        orthogonal = [v["direction_orthogonal_to_target"]["asr"] for v in last.values()]
+    if manifestation_rows:
         target_text = (
-            f". The first manifestation runs ({len(last)} backdoored models) add the missing control: removing the "
-            f"target class's own mean offset takes ASR to {number(min(target_asr))} to {number(max(target_asr))}, removing "
-            f"the backdoor direction drops target-class recall to {number(min(recall))} to {number(max(recall))}, and the "
-            f"part of the backdoor direction orthogonal to the target leaves ASR at {number(min(orthogonal))} to {number(max(orthogonal))}"
+            ". The manifestation panel adds the control that record lacked. "
+            + ". ".join(
+                f"On {ARCHITECTURE_LABELS[a]} ({len(rows)} models) removing the direction at the last block takes ASR from {number(variant_mean(rows, 'none', 'asr'))} to "
+                f"{number(variant_mean(rows, 'direction', 'asr'))} and target-class recall from {number(variant_mean(rows, 'none', 'target_recall'))} "
+                f"to {number(variant_mean(rows, 'direction', 'target_recall'))}, its part orthogonal to the target leaves ASR at "
+                f"{number(variant_mean(rows, 'direction_orthogonal_to_target', 'asr'))} and the target-class offset alone gives "
+                f"{number(variant_mean(rows, 'target_class_direction', 'asr'))}"
+                for a, rows in by_architecture(manifestation_rows).items()
+            )
         )
     register(
         "C21",
@@ -1696,9 +1724,9 @@ if ablation is not None:
         "Karayalçin et al., and ours (H16)",
         "partial",
         f"removing the rank-1 direction takes ASR to {number(min(direction_asr))} to {number(max(direction_asr))} on the "
-        f"{len(adam)} Adam checkpoints{target_text}",
+        f"{len(adam)} Adam checkpoints{target_text}. The direction is necessary for the backdoor but mostly the target class's axis at the last block, so it is not specific to it",
         "random rank-1 directions, the target-class offset and the target-orthogonal part of the direction",
-        f"{ABLATION_SOURCE}, `ablated.direction` and {MANIFESTATION_SOURCE}",
+        f"{ABLATION_SOURCE}, `ablated.direction` and {MANIFESTATION_SOURCE} `ablation_final`",
     )
 
 survival_record = read_json(
@@ -1905,7 +1933,7 @@ register(
     f"The inverted WaNet cell `{failing['folder']}` is a checkpoint accident and not a recipe that defeats {TM}",
     "ours, plan X2",
     "open",
-    "; ".join(
+    ". ".join(
         f"`{folder}` {TM} {number(reading[RECOMMENDED_PLACEMENT])}, {RD} {number(reading[PUBLISHED_PLACEMENT])}"
         for folder, reading in landed.items()
     )
@@ -1989,54 +2017,225 @@ if routing is not None and why_summary is not None:
     )
 
 # %% manifestation
-MANIFESTATION = EXPERIMENTS / "backdoor_manifestation"
-manifestation_summary = read_json(MANIFESTATION / "summary.json")
-if manifestation_backdoored:
-    variants = (
-        "none",
-        "direction",
-        "target_class_direction",
-        "direction_orthogonal_to_target",
-        "other_trigger_direction",
-        "benign_direction",
-        "top_tac_20",
-        "random_direction_0",
+MANIFESTATION_VARIANTS = (
+    ("none", "no removal"),
+    ("direction", "backdoor direction"),
+    ("top_tac_300", "300 top-TAC coordinates"),
+    ("random_coordinates_300", "300 random coordinates"),
+    ("variance_matched_pc", "variance-matched clean PC"),
+    ("benign_direction", "benign model's direction"),
+    ("target_class_direction", "target-class offset"),
+    ("direction_orthogonal_to_target", "direction minus its target part"),
+)
+if not manifestation_rows:
+    for cid in ("C27a", "C27b", "C27c", "C27d"):
+        register(
+            cid,
+            "s9",
+            "backdoor manifestation",
+            "ours",
+            "pending",
+            "pending",
+            "benign controls",
+            MANIFESTATION_SOURCE,
+        )
+else:
+    onset_attacks = [
+        a for a in ATTACK_ORDER if any(row["attack"] == a for row in manifestation_rows)
+    ]
+    figure, axes = plt.subplots(
+        1, 3, figsize=(16, 3.8), gridspec_kw={"width_ratios": [2, 3, 1.3]}
     )
-    names = sorted(manifestation_backdoored)
-    figure, axis = plt.subplots(figsize=(12, 3.3))
-    width = 0.8 / len(variants)
-    plotted = {}
-    for index, variant in enumerate(variants):
+    plotted = {"onset": {}, "ablation": {}, "recall": {}}
+    for index, architecture in enumerate(TRANSFORMERS):
+        for column, attack in enumerate(onset_attacks):
+            values = [
+                row["onset_layer"]
+                for row in manifestation_rows
+                if row["architecture"] == architecture and row["attack"] == attack
+            ]
+            if not values:
+                continue
+            axes[0].scatter(
+                column + (index - 0.5) * 0.3 + jitter(len(values), 0.05),
+                values,
+                s=16,
+                color=OKABE_ITO[index],
+                label=ARCHITECTURE_LABELS[architecture] if column == 0 else None,
+            )
+            plotted["onset"][f"{architecture}|{attack}"] = values
+    axes[0].set_xticks(
+        np.arange(len(onset_attacks)),
+        [attack_label(a) for a in onset_attacks],
+        rotation=30,
+    )
+    axes[0].set_ylabel("onset layer (half the largest direction norm)")
+    axes[0].set_title("where the direction appears")
+    axes[0].legend(fontsize=6)
+    groups = by_architecture(manifestation_rows)
+    width = 0.8 / len(groups)
+    for index, (architecture, rows) in enumerate(groups.items()):
         values = [
-            manifestation_backdoored[name]["ablation"][
-                str(manifestation_backdoored[name]["num_blocks"])
-            ]["variants"][variant]["asr"]
-            for name in names
+            variant_mean(rows, variant, "asr") for variant, _ in MANIFESTATION_VARIANTS
         ]
-        axis.bar(
-            np.arange(len(names)) + index * width,
+        axes[1].bar(
+            np.arange(len(values)) + index * width,
             values,
             width=width,
-            color=OKABE_ITO[index % len(OKABE_ITO)],
-            label=variant.replace("_", " "),
+            color=OKABE_ITO[index],
+            label=f"{ARCHITECTURE_LABELS[architecture]} ({len(rows)})",
         )
-        plotted[variant] = dict(zip(names, values))
-    axis.set_xticks(np.arange(len(names)) + 0.4, names, rotation=20, fontsize=6)
-    axis.set_ylabel("ASR after removal at the last block")
-    axis.set_title("first reads of the manifestation panel")
-    axis.legend(fontsize=6)
-    save_figure(figure, "manifestation_first_reads", [MANIFESTATION_SOURCE], plotted)
-register(
-    "C27",
-    "s9",
-    "Where each attack lives inside ViT-B/16 and Swin-S: depth of onset, readout, neurons or direction, per category",
-    "ours, `experiments/backdoor_manifestation/`",
-    "pending",
-    f"{len(manifestation_backdoored)} backdoored and {len(manifestation_runs) - len(manifestation_backdoored)} benign-control "
-    f"runs have landed, summary {'present' if manifestation_summary else 'not written yet'}",
-    "benign models probed with the same trigger, isotropic, energy-matched and target-class directions",
-    "`results/_experiments/backdoor_manifestation/runs/` and `summary.json`",
-)
+        plotted["ablation"][architecture] = dict(
+            zip([v for v, _ in MANIFESTATION_VARIANTS], values)
+        )
+        recall = [
+            variant_mean(rows, variant, "target_recall")
+            for variant in ("none", "direction", "target_class_direction")
+        ]
+        axes[2].bar(
+            np.arange(3) + index * width, recall, width=width, color=OKABE_ITO[index]
+        )
+        plotted["recall"][architecture] = recall
+    axes[1].set_xticks(
+        np.arange(len(MANIFESTATION_VARIANTS)) + 0.2,
+        [label for _, label in MANIFESTATION_VARIANTS],
+        rotation=30,
+        fontsize=6,
+    )
+    axes[1].set_ylabel("mean ASR after removal, last block")
+    axes[1].set_title("removals and their controls")
+    axes[1].legend(fontsize=6)
+    axes[2].set_xticks(
+        np.arange(3) + 0.2,
+        ["none", "direction", "target offset"],
+        rotation=30,
+        fontsize=6,
+    )
+    axes[2].set_ylabel("target-class recall")
+    axes[2].set_title("what the removal costs")
+    save_figure(figure, "backdoor_manifestation", [MANIFESTATION_SOURCE], plotted)
+
+    # The class token's attention on the trigger tokens in blocks 9 to 12, triggered
+    # against clean, for the patch attacks and for benign models shown the same trigger.
+    def attention_range(rows):
+        values = [
+            row["attention_final_mass_ratio"]
+            for row in rows
+            if row["attention_final_mass_ratio"] is not None
+        ]
+        text = (
+            f"{number(min(values), 1)} to {number(max(values), 1)}"
+            if values
+            else "pending"
+        )
+        return text
+
+    vit_rows = [row for row in manifestation_rows if row["architecture"] == "vit"]
+    patch_text = ". ".join(
+        f"{attack_label(attack)} {attention_range([r for r in vit_rows if r['attack'] == attack])} times against "
+        f"{attention_range([r for r in manifestation_benign if r['architecture'] == 'vit' and r['name'].endswith('__' + attack)])} on benign models"
+        for attack in ("badnet_a2o", "tact")
+    )
+    vit_onsets = {
+        attack: float(
+            np.median([r["onset_layer"] for r in vit_rows if r["attack"] == attack])
+        )
+        for attack in onset_attacks
+        if any(r["attack"] == attack for r in vit_rows)
+    }
+    onset_order = ", ".join(
+        f"{attack_label(a)} {number(v, 1)}"
+        for a, v in sorted(vit_onsets.items(), key=lambda item: item[1])
+    )
+    register(
+        "C27a",
+        "s9",
+        "Patch triggers are routed to the class token late, and global triggers enter earlier",
+        "ours, `experiments/backdoor_manifestation/`",
+        "true"
+        if vit_onsets.get("badnet_a2o", 0)
+        > max(vit_onsets.get(a, 0) for a in ("blend", "bpp"))
+        else "partial",
+        f"the class token's attention on the trigger tokens in blocks 9 to 12 grows, triggered against clean, by {patch_text}. "
+        f"Median ViT onset layer: {onset_order}",
+        "benign models shown the same trigger",
+        f"{MANIFESTATION_SOURCE} `attention_final_mass_ratio` and `onset_layer`",
+    )
+
+    jaccards = []
+    for group in manifestation_summary["top_dimension_overlap"].values():
+        names, matrix = group["names"], np.array(group["jaccard"])  # (runs, runs)
+        backdoored = [i for i, name in enumerate(names) if "benign" not in name]
+        jaccards += [
+            matrix[i, j] for n, i in enumerate(backdoored) for j in backdoored[n + 1 :]
+        ]
+    coordinate_text = ". ".join(
+        f"{ARCHITECTURE_LABELS[a]} {number(variant_mean(rows, 'top_tac_300', 'asr'))} against "
+        f"{number(variant_mean(rows, 'random_coordinates_300', 'asr'))} for 300 random coordinates"
+        for a, rows in groups.items()
+    )
+    register(
+        "C27b",
+        "s9",
+        "A set of TAC backdoor neurons carries the backdoor",
+        "Zheng et al. (TAC), the backdoor-neuron literature",
+        "false",
+        f"the top-20 TAC sets of backdoored runs on the same architecture and dataset overlap at a mean Jaccard of "
+        f"{number(float(np.mean(jaccards)))} against chance {number(manifestation_summary['chance_jaccard'])}, so they are model specific. "
+        f"Zeroing the 300 top-TAC coordinates of 768 at the last block leaves ASR at {coordinate_text}",
+        "300 random coordinates and the 300 largest-magnitude ones",
+        f"{MANIFESTATION_SOURCE} `ablation_final.variants.top_tac_300` and `top_dimension_overlap`",
+    )
+
+    control_variants = (
+        "variance_matched_pc",
+        "random_direction_0",
+        "other_trigger_direction",
+        "benign_direction",
+    )
+    control_asr = [
+        variant_mean(rows, v, "asr")
+        for rows in groups.values()
+        for v in control_variants
+    ]
+    tact_text = ". ".join(
+        f"{ARCHITECTURE_LABELS[a]} TaCT {number(variant_mean([r for r in rows if r['attack'] == 'tact'], 'direction', 'asr'))} "
+        f"({sum(r['attack'] == 'tact' for r in rows)} model{'' if sum(r['attack'] == 'tact' for r in rows) == 1 else 's'})"
+        for a, rows in groups.items()
+        if any(r["attack"] == "tact" for r in rows)
+    )
+    register(
+        "C27c",
+        "s9",
+        "Removing 1 direction at the last block removes the backdoor, and no control direction does",
+        "ours, `experiments/backdoor_manifestation/`",
+        "true" if min(control_asr) > KEEP_FLOOR else "partial",
+        ". ".join(
+            f"On {ARCHITECTURE_LABELS[a]} ASR falls from {number(variant_mean(rows, 'none', 'asr'))} to {number(variant_mean(rows, 'direction', 'asr'))}"
+            for a, rows in groups.items()
+        )
+        + f". Every control direction leaves {number(min(control_asr))} to {number(max(control_asr))}. "
+        f"TaCT is the exception: after removal {tact_text}",
+        "variance-matched clean PC, isotropic random directions, the other trigger's direction and the benign model's direction",
+        f"{MANIFESTATION_SOURCE} `ablation_final.variants`",
+    )
+    register(
+        "C27d",
+        "s9",
+        "That direction is specific to the backdoor rather than to the target class",
+        "ours, qualifying `experiments/backdoor_neurons/` finding 6",
+        "false",
+        ". ".join(
+            f"{ARCHITECTURE_LABELS[a]}: removal drops target-class recall from {number(variant_mean(rows, 'none', 'target_recall'))} "
+            f"to {number(variant_mean(rows, 'direction', 'target_recall'))}, the direction minus its target part leaves ASR at "
+            f"{number(variant_mean(rows, 'direction_orthogonal_to_target', 'asr'))}, and the target-class offset alone gives ASR "
+            f"{number(variant_mean(rows, 'target_class_direction', 'asr'))}"
+            for a, rows in groups.items()
+        )
+        + ". The direction is necessary for the backdoor but mostly the target class's axis at the last block",
+        "the target-class offset and the target-orthogonal part of the direction, with per-class recall",
+        f"{MANIFESTATION_SOURCE} `ablation_final.variants.*.target_recall`",
+    )
 
 # %% cache_readouts_load
 READOUTS = EXPERIMENTS / "cache_readouts"
@@ -2288,19 +2487,6 @@ SET_ASIDE_RULE = "weighted_0.9_0.1"
 # pre-registration picked, reported beside it.
 PARTNER, OTHER_PARTNER = "middle_band", "late_band"
 PARTNER_LABELS = {"middle_band": "blocks 5 to 8", "late_band": "blocks 9 to 12"}
-ONSET_SOURCE = "experiments/backdoor_direction_layers/README.md"
-
-
-def onset_table(path):
-    # The onset table is read from the README because the experiment wrote no JSON
-    # record. Rows look like "| `blend` | global blended | **5** |".
-    rows = re.findall(
-        r"^\| `(\w+)` \| [^|]+ \| \**(\d+)\** \|$", Path(path).read_text(), flags=re.M
-    )
-    table = {attack: int(layer) for attack, layer in rows}
-    return table
-
-
 if readout_verdicts is not None and None not in fusion.values():
     held_out_summary = fusion["holdout"]["summary"]["adaptive"]
     panel_summary = fusion["panel"]["summary"]["adaptive"]
@@ -2400,11 +2586,21 @@ if readout_verdicts is not None and None not in fusion.values():
             f"{number(tact_fusion['tm_alone']['q0.10:tpr']['mean'])} to {number(tact_fusion[PICKED_RULE]['q0.10:tpr']['mean'])} "
             f"over {tact_models} TaCT model{'' if tact_models == 1 else 's'}."
         )
-    onsets = onset_table(ONSET_SOURCE)
-    onset_text = ", ".join(
-        f"{attack_label(a)} {layer}"
-        for a, layer in sorted(onsets.items(), key=lambda item: item[1])
-        if a in PANEL_ATTACK.values()
+    # The onset of the backdoor direction per attack, the median over the ViT runs of
+    # the manifestation panel, the traceable replacement for the README table of
+    # experiments/backdoor_direction_layers/.
+    onset_groups = defaultdict(list)
+    for row in manifestation_rows:
+        if row["architecture"] == "vit":
+            onset_groups[row["attack"]].append(row["onset_layer"])
+    onset_text = (
+        ", ".join(
+            f"{attack_label(a)} {number(float(np.median(v)), 1)} ({len(v)} models)"
+            for a, v in sorted(
+                onset_groups.items(), key=lambda item: np.median(item[1])
+            )
+        )
+        or "pending"
     )
     register(
         "C34",
@@ -2424,9 +2620,99 @@ if readout_verdicts is not None and None not in fusion.values():
         f"adaptive rate on {partner_panel['n_models']} of {partner_panel['n_models'] + len(partner_panel['missing'])} panel models, the late band on "
         f"{other_panel['n_models']}. It is the paper's best residual placement "
         f"(`\\BestResidualGain` {macro('BestResidualGain')} [{macro('BestResidualGainLow')}, {macro('BestResidualGainHigh')}]). "
-        f"Direction onset by attack from `{ONSET_SOURCE}`, which has no JSON record behind it: {onset_text}",
+        f"Median ViT onset layer of the backdoor direction ({MANIFESTATION_SOURCE} `onset_layer`): {onset_text}",
         f"{TM} alone on the same models and passes, each score thresholded at its own clean-validation quantile, and the late band as the alternative partner",
         f"{FUSION_SOURCE}, `fusion_rules_panel.json` `summary.adaptive.<partner>.by_attack` and `.missing`, `paper/headline.json` `BestResidualGain`",
+    )
+    # What the per-attack readings support, both rules and both sets. The global
+    # attacks are the test of the band's rationale, so their changes are read as a
+    # range with the share of paired intervals that exclude 0.
+    GLOBAL_ATTACKS = ("blend", "lf", "bpp")
+    global_changes = {PICKED_RULE: [], ROBUSTNESS_RULE: []}
+    global_excluding = {PICKED_RULE: [], ROBUSTNESS_RULE: []}
+    for summary in (held_out_summary, panel_summary):
+        for attack in GLOBAL_ATTACKS:
+            reading = summary[PARTNER]["by_attack"].get(attack)
+            if reading is None:
+                continue
+            for rule in global_changes:
+                for b in low_budgets:
+                    entry = reading[rule][f"{b}:tpr"]
+                    change = entry["mean"] - reading["tm_alone"][f"{b}:tpr"]["mean"]
+                    global_changes[rule].append(change)
+                    low, high = entry["ci95"]
+                    if low > 0 or high < 0:
+                        global_excluding[rule].append(change)
+
+    def global_text(rule):
+        changes, excluding = global_changes[rule], global_excluding[rule]
+        signs = (
+            "small and positive" if min(excluding, default=0) > 0 else "mixed in sign"
+        )
+        text = (
+            f"they run from {signed(min(changes))} to {signed(max(changes))}, and "
+            + (
+                f"{len(excluding)} of {len(changes)} paired intervals exclude 0, all {signs} ({signed(min(excluding))} to {signed(max(excluding))})"
+                if excluding
+                else f"none of the {len(changes)} paired intervals excludes 0"
+            )
+        )
+        return text
+
+    # A rule gains on the global triggers when some intervals exclude 0 and all of
+    # those are positive, and shows no gain when none excludes 0.
+    def global_gain(rule):
+        excluding = global_excluding[rule]
+        label = (
+            "a small gain"
+            if excluding and min(excluding) > 0
+            else "no gain"
+            if not excluding
+            else "a mixed change"
+        )
+        return label
+
+    gains = {rule: global_gain(rule) for rule in (ROBUSTNESS_RULE, PICKED_RULE)}
+    minimum_clause = (
+        "the plain minimum does not"
+        if gains[PICKED_RULE] == "no gain"
+        else f"the plain minimum adds {gains[PICKED_RULE]}"
+    )
+    global_verdict = (
+        f"the plain average adds {gains[ROBUSTNESS_RULE]} and {minimum_clause}"
+    )
+    held_out_badnets = held_out_summary[PARTNER]["by_attack"]["badnet_a2o"][
+        PICKED_RULE
+    ]["q0.01:tpr"]
+    held_out_wanet = held_out_summary[PARTNER]["by_attack"]["wanet"]
+    panel_wanet = panel_summary[PARTNER]["by_attack"]["wanet"]
+    panel_tact = panel_summary[PARTNER]["by_attack"]["tact"]
+    rule_intervals = {
+        rule: held_out_fusion[rule]["q0.01:tpr"]["ci95"]
+        for rule in (PICKED_RULE, ROBUSTNESS_RULE)
+    }
+    rules_overlap = max(low for low, _ in rule_intervals.values()) <= min(
+        high for _, high in rule_intervals.values()
+    )
+    show(
+        "**What C34 supports.** The second probe rescues WaNet: TPR at 1% FPR goes from "
+        f"{number(panel_wanet['tm_alone']['q0.01:tpr']['mean'])} to {number(panel_wanet[PICKED_RULE]['q0.01:tpr']['mean'])} on the "
+        f"panel's {panel_wanet[PICKED_RULE]['q0.01:tpr']['n']} WaNet models and from "
+        f"{number(held_out_wanet['tm_alone']['q0.01:tpr']['mean'])} to {number(held_out_wanet[PICKED_RULE]['q0.01:tpr']['mean'])} on the "
+        f"{held_out_wanet[PICKED_RULE]['q0.01:tpr']['n']} held-out ones. It gives a possible BadNets gain at 1% FPR on the held-out set, "
+        f"{signed(held_out_badnets['mean_difference'])} [{signed(held_out_badnets['ci95'][0])}, {signed(held_out_badnets['ci95'][1])}] over "
+        f"{held_out_badnets['n']} models. On Blend, LF and BPP {global_verdict}, reading their changes against {TM} alone "
+        f"over both sets and every budget. Under the plain minimum {global_text(PICKED_RULE)}. Under the plain average "
+        f"{global_text(ROBUSTNESS_RULE)}. It costs TaCT, TPR at 10% FPR "
+        f"{number(panel_tact['tm_alone']['q0.10:tpr']['mean'])} to {number(panel_tact[PICKED_RULE]['q0.10:tpr']['mean'])} on "
+        f"{panel_tact[PICKED_RULE]['q0.10:tpr']['n']} panel models. That blocks 5 to 8 are where global triggers write their "
+        "direction is the reason the band was chosen, not a measured benefit. The plain minimum and the plain average "
+        + (
+            "cannot be separated on this data, since their held-out intervals at 1% FPR overlap "
+            if rules_overlap
+            else "separate on this data "
+        )
+        + f"({', '.join(f'{rule.replace(chr(95), chr(32))} [{signed(low)}, {signed(high)}]' for rule, (low, high) in rule_intervals.items())})."
     )
     show(
         f"A weighted minimum ({SET_ASIDE_RULE.replace('_', ' ')}, TPR {tpr_by_budget(held_out_fusion[SET_ASIDE_RULE])} with "

@@ -204,14 +204,28 @@ rows, _stem = staircases["operators"]
 operator_table = staircase_table(cells, rows, "operators")
 plot_staircase(operator_table, "operators and token-mask positions, reference: PSBD-TM")
 operators = operator_table.reset_index().set_index("id")
-same_site = ["before_attention_norm_channel_mask", "before_attention_norm_gaussian", "before_attention_norm"]
-assert (operators.loc[same_site, "high"] < 0).all(), "the reading says every other operator at the input loses with an interval below 0"
+same_site = {
+    "before_attention_norm_channel_mask": "channel masking",
+    "before_attention_norm": "dropout",
+    "before_attention_norm_gaussian": "Gaussian noise",
+}
+# The reading sorts the other operators at the input into those token masking beats
+# with an interval below 0 and those it only ties, so neither list is typed.
+beaten = [site for site in same_site if operators.loc[site, "high"] < 0]
+tied = [site for site in same_site if operators.loc[site, "low"] <= 0 <= operators.loc[site, "high"]]
+assert len(beaten) + len(tied) == len(same_site), "no other operator at the input beats token masking"
+assert beaten, "the reading says the operator matters at this position"
+beaten_text = ", ".join(f"{same_site[site]} {operators.loc[site, 'gain']:+.3f}" for site in beaten)
+tied_text = "".join(
+    f" It ties {same_site[site]} ({operators.loc[site, 'gain']:+.3f} [{operators.loc[site, 'low']:+.3f}, {operators.loc[site, 'high']:+.3f}])."
+    for site in tied
+)
 twin_row = operators.loc["before_attention_residual_token_mask"]
 assert twin_row["low"] < 0 < twin_row["high"], "the reading calls the twin a tie"
 operator_table.drop(columns="id").round(3)
 """),
     said(r"""
-    At the attention input token masking beats every other operator with an interval below 0: channel masking {operators.loc["before_attention_norm_channel_mask", "gain"]:+.3f}, dropout {operators.loc["before_attention_norm", "gain"]:+.3f}, Gaussian noise {operators.loc["before_attention_norm_gaussian", "gain"]:+.3f}. So the operator matters at this position, and together with table 2 the headline gain needs both halves, the attention input and whole-token removal. Token masking moved onto the stream after the attention add falls to {operators.loc["after_attention_residual_token_mask", "auroc"]:.3f} and at the MLP input to {operators.loc["before_mlp_norm_token_mask", "auroc"]:.3f}, while its twin on the attention branch output before the add ties PSBD-TM ({twin_row["gain"]:+.3f} [{twin_row["low"]:+.3f}, {twin_row["high"]:+.3f}]). The twin and PSBD-TM both act on the attention branch, and they differ on Swin (`swin-and-robustness.ipynb`). Gaussian noise at the MLP input before its norm reaches the shift target on only {operators.loc["before_mlp_norm_gaussian", "n"]} models. The table does not show why token masking at the attention input works, which `mechanism.ipynb` measures. It also does not show whether acting in fewer blocks would do better, the next table.
+    At the attention input token masking beats {len(beaten)} of the {len(same_site)} other operators with an interval below 0, {beaten_text}.{tied_text} So the operator matters at this position, and together with table 2 the headline gain needs both halves, the attention input and whole-token removal. Token masking moved onto the stream after the attention add falls to {operators.loc["after_attention_residual_token_mask", "auroc"]:.3f} and at the MLP input to {operators.loc["before_mlp_norm_token_mask", "auroc"]:.3f}, while its twin on the attention branch output before the add ties PSBD-TM ({twin_row["gain"]:+.3f} [{twin_row["low"]:+.3f}, {twin_row["high"]:+.3f}]). The twin and PSBD-TM both act on the attention branch, and they differ on Swin (`swin-and-robustness.ipynb`). Gaussian noise at the MLP input before its norm reaches the shift target on only {operators.loc["before_mlp_norm_gaussian", "n"]} models. The table does not show why token masking at the attention input works, which `mechanism.ipynb` measures. It also does not show whether acting in fewer blocks would do better, the next table.
     """),
     md(r"""
     ## 4. Banding the winner
@@ -224,12 +238,37 @@ band_table = staircase_table(cells, rows, "bands")
 plot_staircase(band_table, "token mask at the attention input by band, reference: all 12 blocks")
 bands = band_table.reset_index().set_index("id")
 band_ids = [i for i in bands.index if i != RECOMMENDED_PLACEMENT]
-assert (bands.loc[band_ids, "high"] < 0).all(), "the reading says every band loses with an interval below 0"
-least_loss = bands.loc[band_ids, "gain"].idxmax()
+assert (bands.loc[band_ids, "low"] < 0).all(), "the reading says no band beats all 12 blocks"
+losing_bands = [i for i in band_ids if bands.loc[i, "high"] < 0]
+tied_bands = [i for i in band_ids if i not in losing_bands]
+least_loss = bands.loc[losing_bands, "gain"].idxmax()
+
+
+def upper_first(text):
+    raised = text[:1].upper() + text[1:]
+    return raised
+
+
+def band_name(band_id):
+    name = bands.loc[band_id, "placement"].split(", ")[-1]
+    return name
+
+
+if tied_bands:
+    band_verdict = (
+        f"{word_list([band_name(i) for i in losing_bands])} lose to all 12 blocks with an interval below 0, "
+        f"{band_name(least_loss)} by the least ({bands.loc[least_loss, 'gain']:+.3f} [{bands.loc[least_loss, 'low']:+.3f}, {bands.loc[least_loss, 'high']:+.3f}]). "
+        + upper_first(word_list([f"{band_name(i)} ties it ({bands.loc[i, 'gain']:+.3f} [{bands.loc[i, 'low']:+.3f}, {bands.loc[i, 'high']:+.3f}], {bands.loc[i, 'n']} models)" for i in tied_bands]))
+    )
+else:
+    band_verdict = (
+        f"every band loses to all 12 blocks with an interval below 0, {band_name(least_loss)} by the least "
+        f"({bands.loc[least_loss, 'gain']:+.3f} [{bands.loc[least_loss, 'low']:+.3f}, {bands.loc[least_loss, 'high']:+.3f}])"
+    )
 band_table.drop(columns="id").round(3)
 """),
     said(r"""
-    At the adaptive rule the bands are hard to read, because masking 4 blocks rarely shifts {ADAPTIVE_SHIFT_TARGET:.0%} of clean predictions. The target is reached on {word_list([f"{r['n']} models for {r['placement'].split(', ')[-1]}" for _, r in band_table.reset_index().iloc[1:].iterrows()])}, so each unpaired mean is taken over a different, easier subset. The paired gains settle it: on the models each band reaches, every band loses to all 12 blocks with an interval below 0, {bands.loc[least_loss, "placement"].split(", ")[-1]} by the least ({bands.loc[least_loss, "gain"]:+.3f} [{bands.loc[least_loss, "low"]:+.3f}, {bands.loc[least_loss, "high"]:+.3f}]). `depth-bands.ipynb` reads the same bands at the matched {PLACEMENT_MATCH_TARGET} rule, which every band reaches on every model. The figure does not show where in depth the trigger is read, which `mechanism.ipynb` measures directly.
+    At the adaptive rule the bands are hard to read, because masking 4 blocks rarely shifts {ADAPTIVE_SHIFT_TARGET:.0%} of clean predictions. The target is reached on {word_list([f"{r['n']} models for {r['placement'].split(', ')[-1]}" for _, r in band_table.reset_index().iloc[1:].iterrows()])}, so each unpaired mean is taken over a different, easier subset. The paired gains settle it: on the models each band reaches, {band_verdict}. `depth-bands.ipynb` reads the same bands at the matched {PLACEMENT_MATCH_TARGET} rule, which every band reaches on every model. The figure does not show where in depth the trigger is read, which `mechanism.ipynb` measures directly.
     """),
     md(r"""
     ## Where the gain comes from, per attack
@@ -266,13 +305,21 @@ axis.grid(False)
 figure.colorbar(image, ax=axis, label="mean AUROC, adaptive rule")
 plt.show()
 attack_gain = (per_attack["PSBD-TM"] - per_attack["PSBD-RD"]).sort_values(ascending=False)  # (attacks,)
-assert set(attack_gain.index[:2]) == {"BadNets", "TaCT"}, "the reading names the 2 patch triggers as the largest gains"
+# An attack with 1 or 2 panel models is named apart, since its mean is 1 or 2 models.
+MIN_MODELS_PER_ATTACK = 3
+pooled_gain = attack_gain[models_per_attack[attack_gain.index] >= MIN_MODELS_PER_ATTACK]  # (attacks,)
+small_rows = [a for a in attack_gain.index if models_per_attack[a] < MIN_MODELS_PER_ATTACK]
+assert set(pooled_gain.index[:2]) == {"BadNets", "TaCT"}, "the reading names the 2 patch triggers as the largest gains"
+small_text = "".join(
+    f" {a} has {models_per_attack[a]} panel model{'s' if models_per_attack[a] > 1 else ''}, where PSBD-TM reads {per_attack.loc[a, 'PSBD-TM']:.3f} against {per_attack.loc[a, 'PSBD-RD']:.3f}, too few for a mean."
+    for a in small_rows
+)
 rd_ahead = list(attack_gain.index[attack_gain < 0])
 global_rows = [a for a in ("Blend", "LF", "BPP") if a in per_attack.index]
 per_attack.round(3)
 """),
     said(r"""
-    The largest gains of PSBD-TM over PSBD-RD sit in the 2 patch-trigger rows, BadNets ({per_attack.loc["BadNets", "PSBD-TM"]:.3f} against {per_attack.loc["BadNets", "PSBD-RD"]:.3f}) and TaCT ({per_attack.loc["TaCT", "PSBD-TM"]:.3f} against {per_attack.loc["TaCT", "PSBD-RD"]:.3f}). On {word_list(global_rows)} every placement reads at least {per_attack.loc[global_rows].min().min():.3f}, so the order among them is small. PSBD-RD leads PSBD-TM on {word_list(rd_ahead)}: on WaNet {per_attack.loc["WaNet", "PSBD-RD"]:.3f} against {per_attack.loc["WaNet", "PSBD-TM"]:.3f}. This is the split the paper reports: token masking helps where the trigger lives in a few tokens and ties or trails where the trigger is spread over the image. The TaCT row is {models_per_attack["TaCT"]} models, so it carries little weight. The figure does not show the poison rate, which `start-here.ipynb` splits (`\GainsLowestRate`, `\GainsHighestRate`).
+    Among the attacks with at least {MIN_MODELS_PER_ATTACK} models the largest gains of PSBD-TM over PSBD-RD sit in the 2 patch-trigger rows, BadNets ({per_attack.loc["BadNets", "PSBD-TM"]:.3f} against {per_attack.loc["BadNets", "PSBD-RD"]:.3f}) and TaCT ({per_attack.loc["TaCT", "PSBD-TM"]:.3f} against {per_attack.loc["TaCT", "PSBD-RD"]:.3f}).{small_text} On {word_list(global_rows)} every placement reads at least {per_attack.loc[global_rows].min().min():.3f}, so the order among them is small. PSBD-RD leads PSBD-TM on {word_list(rd_ahead)}: on WaNet {per_attack.loc["WaNet", "PSBD-RD"]:.3f} against {per_attack.loc["WaNet", "PSBD-TM"]:.3f}. This is the split the paper reports: token masking helps where the trigger lives in a few tokens and ties or trails where the trigger is spread over the image. The TaCT row is {models_per_attack["TaCT"]} models, so it carries little weight. The figure does not show the poison rate, which `start-here.ipynb` splits (`\GainsLowestRate`, `\GainsHighestRate`).
     """),
     md(r"""
     ## The full basis, ranked

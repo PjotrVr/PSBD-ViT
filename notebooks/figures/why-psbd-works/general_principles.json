@@ -2,8 +2,8 @@
   "tool": "notebooks/why-psbd-works.ipynb",
   "folder": "results/_experiments",
   "figure": "general_principles.png",
-  "git_commit": "c2b626826bd7c0b1b6f3cc9bdb137de59bf07d48-dirty",
-  "written_at": "2026-09-29T20:51:40.988133+00:00",
+  "git_commit": "a91f34150dc43affd9c4a634c60d03aa3e5ec43a-dirty",
+  "written_at": "2026-09-30T14:16:58.920632+00:00",
   "settings": {
     "sources": [
       "`results/_experiments/why_psbd_works/summary.json`"
@@ -12,62 +12,510 @@
   "plotted": {
     "cells": [
       {
-        "architecture": "vit",
+        "architecture": "swin",
+        "group": "patch",
+        "hypothesis": "margin",
+        "status": "supported",
+        "value": 0.686882
+      },
+      {
+        "architecture": "swin",
+        "group": "patch",
+        "hypothesis": "direction",
+        "status": "partial",
+        "value": 0.5593424309453789
+      },
+      {
+        "architecture": "swin",
+        "group": "patch",
+        "hypothesis": "redundancy",
+        "status": "refuted",
+        "value": 0.008105468750000011
+      },
+      {
+        "architecture": "swin",
+        "group": "patch",
+        "hypothesis": "low_dim",
+        "status": "partial",
+        "value": 0.47846548479627293
+      },
+      {
+        "architecture": "swin",
+        "group": "patch",
+        "hypothesis": "flatness",
+        "status": "refuted",
+        "value": 0.568359375
+      },
+      {
+        "architecture": "swin",
+        "group": "patch",
+        "hypothesis": "neuron_bias",
+        "status": "refuted",
+        "value": 0.002445220947265625
+      },
+      {
+        "architecture": "swin",
+        "group": "patch",
+        "hypothesis": "pass_uncertainty",
+        "status": "refuted",
+        "value": 0.6241226196289062
+      },
+      {
+        "architecture": "swin",
+        "group": "patch",
+        "hypothesis": "missingness",
+        "status": "refuted",
+        "value": 0.13853073120117188
+      },
+      {
+        "architecture": "swin",
         "group": "benign_probe_badnet_a2o",
         "hypothesis": "margin",
         "status": "no data",
         "value": NaN
       },
       {
-        "architecture": "vit",
+        "architecture": "swin",
         "group": "benign_probe_badnet_a2o",
         "hypothesis": "direction",
         "status": "refuted",
-        "value": -0.015140764476997023
+        "value": 0.03789625772487983
       },
       {
-        "architecture": "vit",
+        "architecture": "swin",
         "group": "benign_probe_badnet_a2o",
         "hypothesis": "redundancy",
         "status": "no data",
         "value": NaN
       },
       {
-        "architecture": "vit",
+        "architecture": "swin",
         "group": "benign_probe_badnet_a2o",
         "hypothesis": "low_dim",
-        "status": "partial",
-        "value": 0.376971607770838
+        "status": "refuted",
+        "value": 0.22253015015401872
       },
       {
-        "architecture": "vit",
+        "architecture": "swin",
         "group": "benign_probe_badnet_a2o",
         "hypothesis": "flatness",
         "status": "partial",
-        "value": 0.49664306640625
+        "value": 0.48821258544921875
       },
       {
-        "architecture": "vit",
+        "architecture": "swin",
         "group": "benign_probe_badnet_a2o",
         "hypothesis": "neuron_bias",
         "status": "refuted",
-        "value": 0.00418853759765625
+        "value": 0.00571441650390625
       },
       {
-        "architecture": "vit",
+        "architecture": "swin",
         "group": "benign_probe_badnet_a2o",
         "hypothesis": "pass_uncertainty",
         "status": "supported",
-        "value": 0.5067672729492188
+        "value": 0.5068778991699219
       },
       {
-        "architecture": "vit",
+        "architecture": "swin",
         "group": "benign_probe_badnet_a2o",
         "hypothesis": "missingness",
         "status": "supported",
         "value": 0.00708770751953125
       },
       {
+        "architecture": "swin",
+        "group": "benign_probe_blend",
+        "hypothesis": "margin",
+        "status": "no data",
+        "value": NaN
+      },
+      {
+        "architecture": "swin",
+        "group": "benign_probe_blend",
+        "hypothesis": "direction",
+        "status": "refuted",
+        "value": 0.059185096704051275
+      },
+      {
+        "architecture": "swin",
+        "group": "benign_probe_blend",
+        "hypothesis": "redundancy",
+        "status": "refuted",
+        "value": 0.0
+      },
+      {
+        "architecture": "swin",
+        "group": "benign_probe_blend",
+        "hypothesis": "low_dim",
+        "status": "refuted",
+        "value": 0.18111868734295172
+      },
+      {
+        "architecture": "swin",
+        "group": "benign_probe_blend",
+        "hypothesis": "flatness",
+        "status": "partial",
+        "value": 0.4362144470214844
+      },
+      {
+        "architecture": "swin",
+        "group": "benign_probe_blend",
+        "hypothesis": "neuron_bias",
+        "status": "refuted",
+        "value": 0.00518798828125
+      },
+      {
+        "architecture": "swin",
+        "group": "benign_probe_blend",
+        "hypothesis": "pass_uncertainty",
+        "status": "supported",
+        "value": 0.66766357421875
+      },
+      {
+        "architecture": "swin",
+        "group": "benign_probe_blend",
+        "hypothesis": "missingness",
+        "status": "partial",
+        "value": -0.08682632446289062
+      },
+      {
+        "architecture": "swin",
+        "group": "blend",
+        "hypothesis": "margin",
+        "status": "supported",
+        "value": 0.722594
+      },
+      {
+        "architecture": "swin",
+        "group": "blend",
+        "hypothesis": "direction",
+        "status": "supported",
+        "value": 0.9260364955835385
+      },
+      {
+        "architecture": "swin",
+        "group": "blend",
+        "hypothesis": "redundancy",
+        "status": "partial",
+        "value": 0.25674680679563494
+      },
+      {
+        "architecture": "swin",
+        "group": "blend",
+        "hypothesis": "low_dim",
+        "status": "partial",
+        "value": 0.4964085788667317
+      },
+      {
+        "architecture": "swin",
+        "group": "blend",
+        "hypothesis": "flatness",
+        "status": "refuted",
+        "value": 0.5751872574693127
+      },
+      {
+        "architecture": "swin",
+        "group": "blend",
+        "hypothesis": "neuron_bias",
+        "status": "refuted",
+        "value": 0.000526121907096222
+      },
+      {
+        "architecture": "swin",
+        "group": "blend",
+        "hypothesis": "pass_uncertainty",
+        "status": "refuted",
+        "value": 0.7998696032469792
+      },
+      {
+        "architecture": "swin",
+        "group": "blend",
+        "hypothesis": "missingness",
+        "status": "partial",
+        "value": 0.02293610915639044
+      },
+      {
+        "architecture": "swin",
+        "group": "quantization",
+        "hypothesis": "margin",
+        "status": "supported",
+        "value": 0.9804740000000001
+      },
+      {
+        "architecture": "swin",
+        "group": "quantization",
+        "hypothesis": "direction",
+        "status": "supported",
+        "value": 0.9675343740229236
+      },
+      {
+        "architecture": "swin",
+        "group": "quantization",
+        "hypothesis": "redundancy",
+        "status": "supported",
+        "value": 0.52958984375
+      },
+      {
+        "architecture": "swin",
+        "group": "quantization",
+        "hypothesis": "low_dim",
+        "status": "partial",
+        "value": 0.4609837933383396
+      },
+      {
+        "architecture": "swin",
+        "group": "quantization",
+        "hypothesis": "flatness",
+        "status": "refuted",
+        "value": 0.5396385192871094
+      },
+      {
+        "architecture": "swin",
+        "group": "quantization",
+        "hypothesis": "neuron_bias",
+        "status": "refuted",
+        "value": 2.288818359375e-05
+      },
+      {
+        "architecture": "swin",
+        "group": "quantization",
+        "hypothesis": "pass_uncertainty",
+        "status": "refuted",
+        "value": 0.8885574340820312
+      },
+      {
+        "architecture": "swin",
+        "group": "quantization",
+        "hypothesis": "missingness",
+        "status": "supported",
+        "value": 0.01360321044921875
+      },
+      {
+        "architecture": "swin",
+        "group": "warp",
+        "hypothesis": "margin",
+        "status": "supported",
+        "value": 0.8829093750000001
+      },
+      {
+        "architecture": "swin",
+        "group": "warp",
+        "hypothesis": "direction",
+        "status": "partial",
+        "value": 0.48198565109504804
+      },
+      {
+        "architecture": "swin",
+        "group": "warp",
+        "hypothesis": "redundancy",
+        "status": "refuted",
+        "value": 0.0
+      },
+      {
+        "architecture": "swin",
+        "group": "warp",
+        "hypothesis": "low_dim",
+        "status": "partial",
+        "value": 0.4623780182473829
+      },
+      {
+        "architecture": "swin",
+        "group": "warp",
+        "hypothesis": "flatness",
+        "status": "refuted",
+        "value": 0.3818336669524529
+      },
+      {
+        "architecture": "swin",
+        "group": "warp",
+        "hypothesis": "neuron_bias",
+        "status": "refuted",
+        "value": 0.003598720552944523
+      },
+      {
+        "architecture": "swin",
+        "group": "warp",
+        "hypothesis": "pass_uncertainty",
+        "status": "refuted",
+        "value": 0.8649192716550553
+      },
+      {
+        "architecture": "swin",
+        "group": "warp",
+        "hypothesis": "missingness",
+        "status": "refuted",
+        "value": 0.5582512541207194
+      },
+      {
+        "architecture": "swin",
+        "group": "patch_tact",
+        "hypothesis": "margin",
+        "status": "partial",
+        "value": 0.2005315
+      },
+      {
+        "architecture": "swin",
+        "group": "patch_tact",
+        "hypothesis": "direction",
+        "status": "partial",
+        "value": 0.4534106194907571
+      },
+      {
+        "architecture": "swin",
+        "group": "patch_tact",
+        "hypothesis": "redundancy",
+        "status": "partial",
+        "value": 0.2346078431372549
+      },
+      {
+        "architecture": "swin",
+        "group": "patch_tact",
+        "hypothesis": "low_dim",
+        "status": "partial",
+        "value": 0.9921571390701445
+      },
+      {
+        "architecture": "swin",
+        "group": "patch_tact",
+        "hypothesis": "flatness",
+        "status": "refuted",
+        "value": 0.5631886650534237
+      },
+      {
+        "architecture": "swin",
+        "group": "patch_tact",
+        "hypothesis": "neuron_bias",
+        "status": "refuted",
+        "value": 7.65931372548323e-06
+      },
+      {
+        "architecture": "swin",
+        "group": "patch_tact",
+        "hypothesis": "pass_uncertainty",
+        "status": "refuted",
+        "value": 0.00976116704005821
+      },
+      {
+        "architecture": "swin",
+        "group": "patch_tact",
+        "hypothesis": "missingness",
+        "status": "refuted",
+        "value": 0.32284910912607234
+      },
+      {
+        "architecture": "vit",
+        "group": "patch",
+        "hypothesis": "margin",
+        "status": "supported",
+        "value": 0.451078125
+      },
+      {
+        "architecture": "vit",
+        "group": "patch",
+        "hypothesis": "direction",
+        "status": "supported",
+        "value": 0.8916615033027586
+      },
+      {
+        "architecture": "vit",
+        "group": "patch",
+        "hypothesis": "redundancy",
+        "status": "partial",
+        "value": 0.58037109375
+      },
+      {
+        "architecture": "vit",
+        "group": "patch",
+        "hypothesis": "low_dim",
+        "status": "supported",
+        "value": 0.5223234152829954
+      },
+      {
+        "architecture": "vit",
+        "group": "patch",
+        "hypothesis": "flatness",
+        "status": "partial",
+        "value": 0.6652984619140625
+      },
+      {
+        "architecture": "vit",
+        "group": "patch",
+        "hypothesis": "neuron_bias",
+        "status": "refuted",
+        "value": 0.0028076171875
+      },
+      {
+        "architecture": "vit",
+        "group": "patch",
+        "hypothesis": "pass_uncertainty",
+        "status": "refuted",
+        "value": 0.037090301513671875
+      },
+      {
+        "architecture": "vit",
+        "group": "patch",
+        "hypothesis": "missingness",
+        "status": "supported",
+        "value": 0.019073486328125
+      },
+      {
+        "architecture": "vit",
+        "group": "benign_probe_badnet_a2o",
+        "hypothesis": "margin",
+        "status": "no data",
+        "value": NaN
+      },
+      {
+        "architecture": "vit",
+        "group": "benign_probe_badnet_a2o",
+        "hypothesis": "direction",
+        "status": "refuted",
+        "value": -0.011754176819322969
+      },
+      {
+        "architecture": "vit",
+        "group": "benign_probe_badnet_a2o",
+        "hypothesis": "redundancy",
+        "status": "no data",
+        "value": NaN
+      },
+      {
+        "architecture": "vit",
+        "group": "benign_probe_badnet_a2o",
+        "hypothesis": "low_dim",
+        "status": "refuted",
+        "value": 0.2726105053528355
+      },
+      {
+        "architecture": "vit",
+        "group": "benign_probe_badnet_a2o",
+        "hypothesis": "flatness",
+        "status": "partial",
+        "value": 0.5005569458007812
+      },
+      {
+        "architecture": "vit",
+        "group": "benign_probe_badnet_a2o",
+        "hypothesis": "neuron_bias",
+        "status": "refuted",
+        "value": 0.0027008056640625
+      },
+      {
+        "architecture": "vit",
+        "group": "benign_probe_badnet_a2o",
+        "hypothesis": "pass_uncertainty",
+        "status": "supported",
+        "value": 0.5023193359375
+      },
+      {
+        "architecture": "vit",
+        "group": "benign_probe_badnet_a2o",
+        "hypothesis": "missingness",
+        "status": "supported",
+        "value": 0.00508880615234375
+      },
+      {
         "architecture": "vit",
         "group": "benign_probe_blend",
         "hypothesis": "margin",
@@ -79,217 +527,273 @@
         "group": "benign_probe_blend",
         "hypothesis": "direction",
         "status": "refuted",
-        "value": -0.043873025864042105
+        "value": -0.07303366439102986
       },
       {
         "architecture": "vit",
         "group": "benign_probe_blend",
         "hypothesis": "redundancy",
-        "status": "no data",
-        "value": NaN
+        "status": "refuted",
+        "value": -0.15
       },
       {
         "architecture": "vit",
         "group": "benign_probe_blend",
         "hypothesis": "low_dim",
-        "status": "partial",
-        "value": 0.3052367827506543
+        "status": "refuted",
+        "value": 0.21816437226206387
       },
       {
         "architecture": "vit",
         "group": "benign_probe_blend",
         "hypothesis": "flatness",
-        "status": "refuted",
-        "value": 0.35878753662109375
+        "status": "partial",
+        "value": 0.43270111083984375
       },
       {
         "architecture": "vit",
         "group": "benign_probe_blend",
         "hypothesis": "neuron_bias",
         "status": "refuted",
-        "value": 0.00374603271484375
+        "value": 0.0025634765625
       },
       {
         "architecture": "vit",
         "group": "benign_probe_blend",
         "hypothesis": "pass_uncertainty",
         "status": "supported",
-        "value": 0.9327774047851562
+        "value": 0.7884788513183594
       },
       {
         "architecture": "vit",
         "group": "benign_probe_blend",
         "hypothesis": "missingness",
         "status": "partial",
-        "value": -0.13878631591796875
+        "value": -0.08062362670898438
       },
       {
         "architecture": "vit",
         "group": "blend",
         "hypothesis": "margin",
         "status": "supported",
-        "value": 0.5467375000000001
+        "value": 0.7110150000000001
       },
       {
         "architecture": "vit",
         "group": "blend",
         "hypothesis": "direction",
-        "status": "supported",
-        "value": 0.9113871313398473
-      },
-      {
-        "architecture": "vit",
-        "group": "blend",
-        "hypothesis": "redundancy",
-        "status": "supported",
-        "value": 0.9283467955508475
-      },
-      {
-        "architecture": "vit",
-        "group": "blend",
-        "hypothesis": "low_dim",
-        "status": "supported",
-        "value": 0.5379030129974484
-      },
-      {
-        "architecture": "vit",
-        "group": "blend",
-        "hypothesis": "flatness",
         "status": "partial",
-        "value": 0.8196880534543829
+        "value": 0.6930782824024664
+      },
+      {
+        "architecture": "vit",
+        "group": "blend",
+        "hypothesis": "redundancy",
+        "status": "supported",
+        "value": 0.8875806708409
+      },
+      {
+        "architecture": "vit",
+        "group": "blend",
+        "hypothesis": "low_dim",
+        "status": "supported",
+        "value": 0.5309815641753545
+      },
+      {
+        "architecture": "vit",
+        "group": "blend",
+        "hypothesis": "flatness",
+        "status": "refuted",
+        "value": 0.7409896009033137
       },
       {
         "architecture": "vit",
         "group": "blend",
         "hypothesis": "neuron_bias",
         "status": "refuted",
-        "value": 0.00011457022974048492
+        "value": 8.053660296558629e-05
       },
       {
         "architecture": "vit",
         "group": "blend",
         "hypothesis": "pass_uncertainty",
         "status": "refuted",
-        "value": 0.40904875933113743
+        "value": 0.6685427018381878
       },
       {
         "architecture": "vit",
         "group": "blend",
         "hypothesis": "missingness",
         "status": "supported",
-        "value": -0.008837489758507622
+        "value": 0.002222885263200358
       },
       {
         "architecture": "vit",
         "group": "quantization",
         "hypothesis": "margin",
         "status": "supported",
-        "value": 0.661593
+        "value": 0.8024095000000001
       },
       {
         "architecture": "vit",
         "group": "quantization",
         "hypothesis": "direction",
         "status": "supported",
-        "value": 0.9759601084769487
+        "value": 0.8451229113813316
       },
       {
         "architecture": "vit",
         "group": "quantization",
         "hypothesis": "redundancy",
         "status": "supported",
-        "value": 0.9343253968253967
+        "value": 0.9460164533534098
       },
       {
         "architecture": "vit",
         "group": "quantization",
         "hypothesis": "low_dim",
         "status": "supported",
-        "value": 0.5435419229468211
+        "value": 0.553096654137525
       },
       {
         "architecture": "vit",
         "group": "quantization",
         "hypothesis": "flatness",
         "status": "refuted",
-        "value": 0.7702752976190477
+        "value": 0.7082640383846226
       },
       {
         "architecture": "vit",
         "group": "quantization",
         "hypothesis": "neuron_bias",
         "status": "refuted",
-        "value": 0.00013950892857139685
+        "value": 0.00011607363424614991
       },
       {
         "architecture": "vit",
         "group": "quantization",
         "hypothesis": "pass_uncertainty",
         "status": "refuted",
-        "value": 0.7499612475198413
+        "value": 0.8599307534535965
       },
       {
         "architecture": "vit",
         "group": "quantization",
         "hypothesis": "missingness",
         "status": "supported",
-        "value": 0.010284908234126977
+        "value": 0.01988352995698439
+      },
+      {
+        "architecture": "vit",
+        "group": "patch_tact",
+        "hypothesis": "margin",
+        "status": "partial",
+        "value": 0.18106166666666665
+      },
+      {
+        "architecture": "vit",
+        "group": "patch_tact",
+        "hypothesis": "direction",
+        "status": "partial",
+        "value": 0.5064040070803351
+      },
+      {
+        "architecture": "vit",
+        "group": "patch_tact",
+        "hypothesis": "redundancy",
+        "status": "refuted",
+        "value": 0.13653481306334567
+      },
+      {
+        "architecture": "vit",
+        "group": "patch_tact",
+        "hypothesis": "low_dim",
+        "status": "partial",
+        "value": 0.9893867315667748
+      },
+      {
+        "architecture": "vit",
+        "group": "patch_tact",
+        "hypothesis": "flatness",
+        "status": "refuted",
+        "value": 0.5668692644512001
+      },
+      {
+        "architecture": "vit",
+        "group": "patch_tact",
+        "hypothesis": "neuron_bias",
+        "status": "partial",
+        "value": 0.0899786066453141
+      },
+      {
+        "architecture": "vit",
+        "group": "patch_tact",
+        "hypothesis": "pass_uncertainty",
+        "status": "refuted",
+        "value": 0.20697065193098133
+      },
+      {
+        "architecture": "vit",
+        "group": "patch_tact",
+        "hypothesis": "missingness",
+        "status": "refuted",
+        "value": 0.11287529757740533
       },
       {
         "architecture": "vit",
         "group": "warp",
         "hypothesis": "margin",
         "status": "supported",
-        "value": 0.456212
+        "value": 0.49728933333333325
       },
       {
         "architecture": "vit",
         "group": "warp",
         "hypothesis": "direction",
         "status": "supported",
-        "value": 0.9474204569720266
+        "value": 0.8472742694621594
       },
       {
         "architecture": "vit",
         "group": "warp",
         "hypothesis": "redundancy",
-        "status": "supported",
-        "value": 0.7064516129032258
+        "status": "partial",
+        "value": 0.4929512573824968
       },
       {
         "architecture": "vit",
         "group": "warp",
         "hypothesis": "low_dim",
         "status": "supported",
-        "value": 0.5630022374055529
+        "value": 0.6007762235027507
       },
       {
         "architecture": "vit",
         "group": "warp",
         "hypothesis": "flatness",
         "status": "refuted",
-        "value": 0.6859564012096774
+        "value": 0.6313795033503576
       },
       {
         "architecture": "vit",
         "group": "warp",
         "hypothesis": "neuron_bias",
         "status": "refuted",
-        "value": 0.0002205141129032473
+        "value": 0.0012888407995500506
       },
       {
         "architecture": "vit",
         "group": "warp",
         "hypothesis": "pass_uncertainty",
         "status": "refuted",
-        "value": 0.2335716985887097
+        "value": 0.38375444375209694
       },
       {
         "architecture": "vit",
         "group": "warp",
         "hypothesis": "missingness",
         "status": "refuted",
-        "value": 0.37648847026209675
+        "value": 0.4033029110252039
       }
     ]
   }

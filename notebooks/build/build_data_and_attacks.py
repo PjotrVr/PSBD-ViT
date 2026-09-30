@@ -37,14 +37,16 @@ print("torch", torch.__version__, "device", DEVICE)
     md(r"""
     ## The attack registry
 
-    `ATTACK_NAMES` in `attacks/__init__.py` carries more entries than there are attacks. An attack is a plain record of a name, a function that stamps a trigger, a label policy and a config, not a class hierarchy, so most of the extra entries are label-policy variants of a smaller set of triggers rather than new triggers. `badnet` is an alias for `badnet_a2o`, `generated` carries no default config because it reads somebody else's PNG triggers instead of stamping its own, and every `badnet_a2m*` entry stamps the identical checkerboard under an all-to-many label policy. Filtering those out leaves 1 entry per trigger and label policy, with BadNets under 2 label policies. The cell prints the counts.
+    `ATTACK_NAMES` in `attacks/__init__.py` carries more entries than there are attacks. An attack is a plain record of a name, a function that stamps a trigger, a label policy and a config, not a class hierarchy, so most of the extra entries are label-policy variants of a smaller set of triggers rather than new triggers. `badnet` is an alias for `badnet_a2o`, `generated` carries no default config because it reads somebody else's PNG triggers instead of stamping its own and every `badnet_a2m*` entry stamps the identical checkerboard under an all-to-many label policy. `and16`, `and2` and `veto` are conjunction and veto triggers built for `experiments/evidence_surplus/` and kept out of the panel. Filtering those out leaves 1 entry per trigger and label policy, with BadNets under 2 label policies. The cell prints the counts.
 
     A **label policy** (`label_mode`) says which label a poisoned training image receives. **All-to-one** (a2o) relabels every poisoned image to the single target class. **All-to-all** (a2a) relabels class $y$ to $y+1$ modulo the class count. **Clean-label** keeps the true label and can only poison images that already belong to the target class, which is why SIG and Label-Consistent need their trigger to be learned without any label change.
     """),
     code(r"""
 # badnet is an alias, generated has no default config, and every badnet_a2m*
-# stamps the identical checkerboard under a different label policy.
-SKIP = ("badnet", "generated")
+# stamps the identical checkerboard under a different label policy. and16, and2
+# and veto are the evidence-surplus probes of experiments/evidence_surplus/, which
+# never enter the panel.
+SKIP = ("badnet", "generated", "and16", "and2", "veto")
 TRIGGER_NAMES = [name for name in ATTACK_NAMES if name not in SKIP and "a2m" not in name]
 
 spec = DATASET_REGISTRY[DATASET]

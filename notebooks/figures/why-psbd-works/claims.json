@@ -5,7 +5,7 @@
     "claim": "Clean predictions shift and captured triggered ones do not (claim 1), under PSBD-TM",
     "who": "Li et al., tested with our placement",
     "verdict": "true",
-    "key": "holds on 101 of 117 poisoned transformer models (ViT-B/16 43 of 54 (median triggered shift 0.016), Swin-S 58 of 63 (median triggered shift 0.002))",
+    "key": "holds on 102 of 119 poisoned transformer models (ViT-B/16 44 of 56 (median triggered shift 0.018), Swin-S 58 of 63 (median triggered shift 0.002))",
     "control": "on the benign references the clean and triggered curves coincide on 7 of 7",
     "source": "`results/_experiments/prediction_shift_phenomenon/summary.json`, `overall[].claim_1` and `claim_1_benign`"
   },
@@ -15,7 +15,7 @@
     "claim": "Clean predictions shift and captured triggered ones do not (claim 1), under PSBD-RD",
     "who": "Li et al., tested with our placement",
     "verdict": "partial",
-    "key": "holds on 63 of 119 poisoned transformer models (ViT-B/16 26 of 54 (median triggered shift 0.117), Swin-S 37 of 65 (median triggered shift 0.011))",
+    "key": "holds on 63 of 121 poisoned transformer models (ViT-B/16 26 of 56 (median triggered shift 0.125), Swin-S 37 of 65 (median triggered shift 0.011))",
     "control": "on the benign references the clean and triggered curves coincide on 7 of 7",
     "source": "`results/_experiments/prediction_shift_phenomenon/summary.json`, `overall[].claim_1` and `claim_1_benign`"
   },
@@ -25,7 +25,7 @@
     "claim": "When a clean prediction shifts, it shifts to the attacker's target (claim 2)",
     "who": "Li et al.",
     "verdict": "false",
-    "key": "at least 0.8 of shifts on the target in 51 of 236 poisoned transformer readings (ViT-B/16 PSBD-TM 4 of 54 (median share 0.022), ViT-B/16 PSBD-RD 0 of 54 (median share 0.089), Swin-S PSBD-TM 29 of 63 (median share 0.677), Swin-S PSBD-RD 18 of 65 (median share 0.282))",
+    "key": "at least 0.8 of shifts on the target in 51 of 240 poisoned transformer readings (ViT-B/16 PSBD-TM 4 of 56 (median share 0.021), ViT-B/16 PSBD-RD 0 of 56 (median share 0.089), Swin-S PSBD-TM 29 of 63 (median share 0.677), Swin-S PSBD-RD 18 of 65 (median share 0.282))",
     "control": "benign references, where 1 class takes at least half of the shifts in 5 of 14 readings",
     "source": "`results/_experiments/prediction_shift_phenomenon/summary.json`, `overall[].claim_2` and `cached_rows[].validation_target_share`"
   },
@@ -54,8 +54,8 @@
     "section": "s2",
     "claim": "PSBD at every placement is a 2-sample test on the per-image breaking point p*, and operators differ only in how far they separate it",
     "who": "ours, `experiments/why_psbd_works/critical_rate.py`",
-    "verdict": "open",
-    "key": "first read: Spearman 0.883 between AUROC and A* = P(p*_triggered > p*_clean) over 558 (model, placement) pairs, 100 pairs off by more than 0.1",
+    "verdict": "true",
+    "key": "first read: Spearman 0.874 between AUROC and A* = P(p*_triggered > p*_clean) over 576 (model, placement) pairs, 108 pairs off by more than 0.1",
     "control": "benign references, A* within 0.017 of 0.5 over 44 readings",
     "source": "`results/_experiments/why_psbd_works/critical_rate.json`, `predictions`"
   },
@@ -105,7 +105,7 @@
     "claim": "Clean fragility is a per-image critical rate (a logistic spread across images), not a fixed number of tokens every image needs",
     "who": "ours, `docs/why-psbd-works-theory.md`",
     "verdict": "true",
-    "key": "median critical rate 0.288 to 0.411 by dataset, logistic RMSE 0.005 to 0.015 against 0.057 to 0.111 for the AND law, flip correlation within an image 0.688",
+    "key": "median critical rate 0.288 to 0.411 by dataset, logistic RMSE 0.005 to 0.018 against 0.057 to 0.111 for the AND law, flip correlation within an image 0.688",
     "control": "the homogeneous AND law fitted to the same curves",
     "source": "`results/_experiments/why_psbd_works/cached_reads.json`, `clean_fragility.curves` and `median_intra_image_correlation`"
   },
@@ -115,7 +115,7 @@
     "claim": "The clean images that never flip are the false positives",
     "who": "ours, `docs/why-psbd-works-theory.md`",
     "verdict": "partial",
-    "key": "0.087 of held-out clean images never flip and they make up 0.339 of the false positives",
+    "key": "0.087 of held-out clean images never flip and they make up 0.336 of the false positives",
     "control": "the share they would take if flipping did not matter, their own share 0.087",
     "source": "`results/_experiments/why_psbd_works/cached_reads.json`, `clean_fragility.mean_never_flip_share` and `mean_false_positive_never_flip_share`"
   },
@@ -125,7 +125,7 @@
     "claim": "PSBD-TM's score is just the model's confidence in its answer",
     "who": "reviewer reading P1, `experiments/psu_vs_confidence/`",
     "verdict": "false",
-    "key": "A* averages 0.881 on the 54-model panel against 0.688 for raw confidence. PSBD-TM is above it on 50 of 54 models and by at least 0.02 on 46. Its mean margin is +0.082. The theory note (`docs/why-psbd-works-theory.md`) read the same ceiling as 0.873 with PSBD-TM above it on 52 of 57 models, on the 2026-09-24 panel of 57 models",
+    "key": "A* averages 0.882 on the 56-model panel against 0.668 for raw confidence. PSBD-TM is above it on 51 of 56 models and by at least 0.02 on 47. Its mean margin is +0.069. The theory note (`docs/why-psbd-works-theory.md`) read the same ceiling as 0.873 with PSBD-TM above it on 52 of 57 models, on the 2026-09-24 panel of 57 models",
     "control": "the cross-fitted likelihood ratio of unperturbed confidence, an oracle that reads the triggered labels",
     "source": "`results/_experiments/why_psbd_works/cached_reads.json`, `refutations.confidence_ceiling[].a_star` and `refutations.per_model[]`"
   },
@@ -135,7 +135,7 @@
     "claim": "PSBD-RD's score is just the model's confidence in its answer",
     "who": "reviewer reading P1, `experiments/psu_vs_confidence/`",
     "verdict": "partial",
-    "key": "A* averages 0.881 on the 54-model panel against 0.688 for raw confidence. PSBD-RD is above it on 40 of 54 models and by at least 0.02 on 37. Its mean margin is +0.003",
+    "key": "A* averages 0.882 on the 56-model panel against 0.668 for raw confidence. PSBD-RD is above it on 40 of 56 models and by at least 0.02 on 37. Its mean margin is -0.006",
     "control": "the cross-fitted likelihood ratio of unperturbed confidence, an oracle that reads the triggered labels",
     "source": "`results/_experiments/why_psbd_works/cached_reads.json`, `refutations.confidence_ceiling[].a_star` and `refutations.per_model[]`"
   },
@@ -145,7 +145,7 @@
     "claim": "PSBD flags triggered inputs because they are unusual, out-of-distribution inputs",
     "who": "Doan et al. and folk reading P5",
     "verdict": "false",
-    "key": "on the 4 benign references the same triggered images score PSBD-TM AUROC 0.500 and PSBD-RD 0.499, and the paper's confidence-null record reads 0.505. The foreign minus clean flagged share ranges from -0.086 to 0.531 on the 4 backdoored models measured",
+    "key": "on the 4 benign references the same triggered images score PSBD-TM AUROC 0.500 and PSBD-RD 0.499, and the paper's confidence-null record reads 0.505. The foreign minus clean flagged share ranges from -0.246 to 0.664 on the 26 backdoored models measured",
     "control": "benign models shown the same triggers, and clean images of another dataset",
     "source": "`results/_experiments/why_psbd_works/cached_reads.json`, `refutations.benign[]`, `paper/headline.json` `ConfidenceNullBenignPsu` and `results/_experiments/why_psbd_works/summary.json`, `per_model[].operators.token_mask.flagged`"
   },
@@ -165,7 +165,7 @@
     "claim": "LayerNorm absorption explains why Gaussian noise trails token masking at the attention input",
     "who": "ours, `experiments/residual_stream_mechanism/` before 2026-09-29",
     "verdict": "false",
-    "key": "Gaussian survival is already 0.840 to 0.850 at the smallest injected size and falls by at most 0.073 across sizes 0.1, 0.2, 0.4, so most of the absorption is an attenuation that does not grow with the disturbance, which the matched rule compensates by raising the rate. The gap at the matched rule is still -0.188 [-0.243, -0.139]",
+    "key": "Gaussian survival is already 0.840 to 0.850 at the smallest injected size and falls by at most 0.073 across sizes 0.1, 0.2, 0.4, so most of the absorption is an attenuation that does not grow with the disturbance, which the matched rule compensates by raising the rate. The gap at the matched rule is still -0.173 [-0.231, -0.117]",
     "control": "the matched-shift rule, which equalizes clean disturbance across operators",
     "source": "`results/<folder>/layernorm_absorption.json` `rows[].survival` and `results/_experiments/theory_checks/ladders.json`"
   },
@@ -175,7 +175,7 @@
     "claim": "Token masking leaves exact reads or none while noise degrades every read, which gives a negative gap largest on patch triggers",
     "who": "ours, `docs/why-psbd-works-theory.md`",
     "verdict": "open",
-    "key": "mean gap by attack, most negative first: BadNets -0.365, TaCT -0.242, LF -0.161, BPP -0.154, Blend -0.116, WaNet +0.036. Patch triggers lead the ordering the account predicts. WaNet reads +0.036",
+    "key": "mean gap by attack, most negative first: BadNets -0.365, LF -0.161, BPP -0.154, Blend -0.116, TaCT -0.049, WaNet +0.036. Patch triggers do not lead the ordering the account predicts. WaNet reads +0.036",
     "control": "none yet, the ordering is a consistency check and no experiment isolates the read structure",
     "source": "`results/_experiments/theory_checks/ladders.json`, `before_attention_norm_gaussian` and `before_attention_norm_token_mask` ladders"
   },
@@ -185,7 +185,7 @@
     "claim": "Amplifying the normalization parameters pushes every clean input onto the target, so a poisoned input is the one whose prediction stays (Theorem 3.1)",
     "who": "IBD-PSC (Hou et al.)",
     "verdict": "false",
-    "key": "at the top amplification factor (16) the target takes at least half of the shifted clean predictions on 4 of 54 models, with a median share of 0.000 (largest 1.000), while the largest single class takes 0.791 on average. The detector still works, PSBD-TM leads the calibrated port by only +0.027 [+0.004, +0.049]",
+    "key": "at the top amplification factor (16) the target takes at least half of the shifted clean predictions on 4 of 56 models, with a median share of 0.000 (largest 1.000), while the largest single class takes 0.798 on average. The detector still works, PSBD-TM leads the calibrated port by only +0.018 [-0.017, +0.048]",
     "control": "the share of the largest non-target class and the benign references",
     "source": "`results/_experiments/why_psbd_works/cached_reads.json`, `refutations.per_model[].gain_scale_top` and `paper/headline.json` `DetectorsAurocMargin`"
   },
@@ -195,7 +195,7 @@
     "claim": "A few backdoor neurons carry the trigger, and PSBD works through their robust bias paths",
     "who": "Li et al., the Fine-Pruning and ANP line",
     "verdict": "false",
-    "key": "zeroing the top 20 TAC coordinates leaves ASR at 0.998 or more on the 4 Adam checkpoints. Zeroing the 30 MLP units per late block the trigger raises most keeps 0.972 to 1.000 of triggered answers on 4 models",
+    "key": "zeroing the top 20 TAC coordinates leaves ASR at 0.998 or more on the 4 Adam checkpoints. Zeroing the 30 MLP units per late block the trigger raises most keeps 0.370 to 1.000 of triggered answers on 26 models",
     "control": "as many random coordinates, random rank-1 directions and as many random MLP units",
     "source": "`results/_experiments/backdoor_neurons/backdoor_neuron_ablation.json`, `ablated.top_20` and `results/_experiments/why_psbd_works/summary.json`, `per_model[].neurons`"
   },
@@ -205,9 +205,9 @@
     "claim": "The backdoor is a single linear direction in the residual stream, distinct from the target class",
     "who": "Karayal\u00e7in et al., and ours (H16)",
     "verdict": "partial",
-    "key": "removing the rank-1 direction takes ASR to 0.000 to 0.572 on the 4 Adam checkpoints. The first manifestation runs (27 backdoored models) add the missing control: removing the target class's own mean offset takes ASR to 0.000 to 1.000, removing the backdoor direction drops target-class recall to 0.000 to 0.980, and the part of the backdoor direction orthogonal to the target leaves ASR at 0.798 to 1.000",
+    "key": "removing the rank-1 direction takes ASR to 0.000 to 0.572 on the 4 Adam checkpoints. The manifestation panel adds the control that record lacked. On ViT-B/16 (21 models) removing the direction at the last block takes ASR from 0.986 to 0.038 and target-class recall from 0.961 to 0.436, its part orthogonal to the target leaves ASR at 0.974 and the target-class offset alone gives 0.837. On Swin-S (21 models) removing the direction at the last block takes ASR from 0.991 to 0.180 and target-class recall from 0.971 to 0.613, its part orthogonal to the target leaves ASR at 0.986 and the target-class offset alone gives 0.589. The direction is necessary for the backdoor but mostly the target class's axis at the last block, so it is not specific to it",
     "control": "random rank-1 directions, the target-class offset and the target-orthogonal part of the direction",
-    "source": "`results/_experiments/backdoor_neurons/backdoor_neuron_ablation.json`, `ablated.direction` and `results/_experiments/backdoor_manifestation/runs/<run>.json`, `ablation.<last block>.variants`"
+    "source": "`results/_experiments/backdoor_neurons/backdoor_neuron_ablation.json`, `ablated.direction` and `results/_experiments/backdoor_manifestation/summary.json`, `rows[]` `ablation_final`"
   },
   {
     "id": "C22",
@@ -245,7 +245,7 @@
     "claim": "The inverted WaNet cell `vit_cifar10_wanet_0_1` is a checkpoint accident and not a recipe that defeats PSBD-TM",
     "who": "ours, plan X2",
     "verdict": "open",
-    "key": "pending, no replicate has been swept",
+    "key": "`vit_cifar10_wanet_0_1_seed_1` PSBD-TM 0.858, PSBD-RD 0.949. `vit_cifar10_wanet_0_1_seed_2` PSBD-TM 0.908, PSBD-RD 0.948",
     "control": "the seed-0 cell, PSBD-TM 0.459",
     "source": "`results/vit_cifar10_wanet_0_1_seed_{1,2}/psbd_metrics.json`"
   },
@@ -255,19 +255,49 @@
     "claim": "Global triggers stay legible from any 30% of the tokens, which is why token masking leaves them",
     "who": "Karayal\u00e7in et al. (L23), Naseer et al. (L19)",
     "verdict": "open",
-    "key": "Blend, LF and BPP keep 0.903 to 0.950 of their excess ASR at 30% visible in section D, but WaNet reads 0.183 there and `vit_tiny_wanet_0_1` 0.706 in `why_psbd_works`. Section D's WaNet models are `vit_cifar10_wanet_0_05`, `vit_gtsrb_wanet_0_1`, `vit_tiny_wanet_0_05`, of which 1 is in the panel",
+    "key": "Blend, LF and BPP keep 0.903 to 0.950 of their excess ASR at 30% visible in section D, but WaNet reads 0.183 there and `swin_cifar100_wanet_0_1` 0.000, `swin_tiny_wanet_0_1` 0.000, `vit_cifar10_wanet_0_1` 0.682, `vit_tiny_wanet_0_05` 0.090, `vit_tiny_wanet_0_1` 0.706 in `why_psbd_works`. Section D's WaNet models are `vit_cifar10_wanet_0_05`, `vit_gtsrb_wanet_0_1`, `vit_tiny_wanet_0_05`, of which 1 is in the panel",
     "control": "clean accuracy retention at the same visible fraction, and the excess form that removes collapse onto the target",
     "source": "`results/_experiments/why_token_masking_works/summary.json`, `visible_subsets` and `results/_experiments/why_psbd_works/summary.json`, `per_model[].redundancy`"
   },
   {
-    "id": "C27",
+    "id": "C27a",
     "section": "s9",
-    "claim": "Where each attack lives inside ViT-B/16 and Swin-S: depth of onset, readout, neurons or direction, per category",
+    "claim": "Patch triggers are routed to the class token late, and global triggers enter earlier",
     "who": "ours, `experiments/backdoor_manifestation/`",
-    "verdict": "pending",
-    "key": "27 backdoored and 29 benign-control runs have landed, summary not written yet",
-    "control": "benign models probed with the same trigger, isotropic, energy-matched and target-class directions",
-    "source": "`results/_experiments/backdoor_manifestation/runs/` and `summary.json`"
+    "verdict": "true",
+    "key": "the class token's attention on the trigger tokens in blocks 9 to 12 grows, triggered against clean, by BadNets 73.8 to 449.7 times against 1.3 to 12.8 on benign models. TaCT 6.5 to 24.4 times against 1.2 to 2.5 on benign models. Median ViT onset layer: Blend 6.5, WaNet 7.0, BPP 7.5, LF 9.0, BadNets 9.5, TaCT 12.0",
+    "control": "benign models shown the same trigger",
+    "source": "`results/_experiments/backdoor_manifestation/summary.json`, `rows[]` `attention_final_mass_ratio` and `onset_layer`"
+  },
+  {
+    "id": "C27b",
+    "section": "s9",
+    "claim": "A set of TAC backdoor neurons carries the backdoor",
+    "who": "Zheng et al. (TAC), the backdoor-neuron literature",
+    "verdict": "false",
+    "key": "the top-20 TAC sets of backdoored runs on the same architecture and dataset overlap at a mean Jaccard of 0.052 against chance 0.014, so they are model specific. Zeroing the 300 top-TAC coordinates of 768 at the last block leaves ASR at ViT-B/16 0.924 against 0.986 for 300 random coordinates. Swin-S 0.955 against 0.991 for 300 random coordinates",
+    "control": "300 random coordinates and the 300 largest-magnitude ones",
+    "source": "`results/_experiments/backdoor_manifestation/summary.json`, `rows[]` `ablation_final.variants.top_tac_300` and `top_dimension_overlap`"
+  },
+  {
+    "id": "C27c",
+    "section": "s9",
+    "claim": "Removing 1 direction at the last block removes the backdoor, and no control direction does",
+    "who": "ours, `experiments/backdoor_manifestation/`",
+    "verdict": "true",
+    "key": "On ViT-B/16 ASR falls from 0.986 to 0.038. On Swin-S ASR falls from 0.991 to 0.180. Every control direction leaves 0.985 to 0.992. TaCT is the exception: after removal ViT-B/16 TaCT 0.257 (3 models). Swin-S TaCT 0.987 (1 model)",
+    "control": "variance-matched clean PC, isotropic random directions, the other trigger's direction and the benign model's direction",
+    "source": "`results/_experiments/backdoor_manifestation/summary.json`, `rows[]` `ablation_final.variants`"
+  },
+  {
+    "id": "C27d",
+    "section": "s9",
+    "claim": "That direction is specific to the backdoor rather than to the target class",
+    "who": "ours, qualifying `experiments/backdoor_neurons/` finding 6",
+    "verdict": "false",
+    "key": "ViT-B/16: removal drops target-class recall from 0.961 to 0.436, the direction minus its target part leaves ASR at 0.974, and the target-class offset alone gives ASR 0.837. Swin-S: removal drops target-class recall from 0.971 to 0.613, the direction minus its target part leaves ASR at 0.986, and the target-class offset alone gives ASR 0.589. The direction is necessary for the backdoor but mostly the target class's axis at the last block",
+    "control": "the target-class offset and the target-orthogonal part of the direction, with per-class recall",
+    "source": "`results/_experiments/backdoor_manifestation/summary.json`, `rows[]` `ablation_final.variants.*.target_recall`"
   },
   {
     "id": "C28",
@@ -285,7 +315,7 @@
     "claim": "Token masking in blocks 1 to 8 leaves triggered BadNets predictions alone and breaks clean ones (E1a)",
     "who": "plan E1a, the routing account",
     "verdict": "true",
-    "key": "holds on 24 of 24 BadNets checks of the panel, and fails only on `vit_cifar10_tact_0_01`",
+    "key": "holds on 24 of 24 BadNets checks of the panel, and fails only on `vit_cifar10_tact_0_01`, `vit_gtsrb_tact_0_01_cos`",
     "control": "the paired clean images under the same band and rate",
     "source": "`results/_experiments/cache_readouts/depth_bands_panel.json`, `verdicts.top_rate.E1a`"
   },
@@ -295,7 +325,7 @@
     "claim": "Token masking in blocks 9 to 12 hits triggered patch inputs too (E1b)",
     "who": "plan E1b",
     "verdict": "partial",
-    "key": "mixed, 7 of 15 checks hold on the panel at the top rate",
+    "key": "mixed, 7 of 16 checks hold on the panel at the top rate",
     "control": "the paired clean images under the same band and rate",
     "source": "`results/_experiments/cache_readouts/depth_bands_panel.json`, `verdicts.top_rate.E1b`"
   },
@@ -335,7 +365,7 @@
     "claim": "Flagging an input when either PSBD-TM or residual dropout in blocks 5 to 8 flags it, the plain minimum of their clean-validation percentiles, detects more at low FPR",
     "who": "ours, `experiments/cache_readouts/`, the rule and partner the user chose",
     "verdict": "partial",
-    "key": "on the 26 held-out models TPR at 1%/5%/10% FPR is 0.841/0.953/0.973 fused with blocks 5 to 8 against 0.791/0.946/0.970 for PSBD-TM alone, paired gains +0.049 [-0.008, +0.108] at 1%, +0.007 [-0.008, +0.024] at 5%, +0.003 [-0.003, +0.010] at 10%, at a realized FPR of 0.010 for the 1% budget. The late band ties at 0.830/0.963/0.977. The plain average of the 2 fractional PSUs reads 0.874/0.961/0.976, so the gain comes from adding the second probe and not from the combination rule. On the panel's WaNet models the fused AUROC is 0.948 against 0.779. The cost is on TaCT, which the held-out set does not contain: on the panel its TPR at 10% FPR falls from 0.169 to 0.081 over 3 TaCT models. The middle band reaches the adaptive rate on 54 of 54 panel models, the late band on 39. It is the paper's best residual placement (`\\BestResidualGain` +0.048 [+0.008, +0.092]). Direction onset by attack from `experiments/backdoor_direction_layers/README.md`, which has no JSON record behind it: Blend 5, BPP 6, LF 8, BadNets 9",
+    "key": "on the 26 held-out models TPR at 1%/5%/10% FPR is 0.841/0.953/0.973 fused with blocks 5 to 8 against 0.791/0.946/0.970 for PSBD-TM alone, paired gains +0.049 [-0.008, +0.108] at 1%, +0.007 [-0.008, +0.024] at 5%, +0.003 [-0.003, +0.010] at 10%, at a realized FPR of 0.010 for the 1% budget. The late band ties at 0.830/0.963/0.977. The plain average of the 2 fractional PSUs reads 0.874/0.961/0.976, so the gain comes from adding the second probe and not from the combination rule. On the panel's WaNet models the fused AUROC is 0.948 against 0.779. The cost is on TaCT, which the held-out set does not contain: on the panel its TPR at 10% FPR falls from 0.127 to 0.141 over 4 TaCT models. The middle band reaches the adaptive rate on 56 of 56 panel models, the late band on 41. It is the paper's best residual placement (`\\BestResidualGain` +0.043 [-0.001, +0.090]). Median ViT onset layer of the backdoor direction (`results/_experiments/backdoor_manifestation/summary.json`, `rows[]` `onset_layer`): Blend 6.5 (4 models), WaNet 7.0 (2 models), BPP 7.5 (4 models), LF 9.0 (4 models), BadNets 9.5 (4 models), TaCT 12.0 (3 models)",
     "control": "PSBD-TM alone on the same models and passes, each score thresholded at its own clean-validation quantile, and the late band as the alternative partner",
     "source": "`results/_experiments/cache_readouts/fusion_rules_holdout.json`, `summary.adaptive.<partner>.all`, `fusion_rules_panel.json` `summary.adaptive.<partner>.by_attack` and `.missing`, `paper/headline.json` `BestResidualGain`"
   },
@@ -345,7 +375,7 @@
     "claim": "The fusion's gain is not the extra passes: PSBD-TM alone at k = 6 does not match the fusion at 3 plus 3 passes",
     "who": "compute control asked for by the coordinator",
     "verdict": "open",
-    "key": "no record compares them yet. 19 of 54 panel models have a PSBD-TM k = 20 cache",
+    "key": "no record compares them yet. 40 of 56 panel models have a PSBD-TM k = 20 cache",
     "control": "PSBD-TM at twice the passes, the same compute as the fusion",
     "source": "`results/<folder>/psbd/before_attention_norm_token_mask_k20/`, pending"
   },
@@ -354,9 +384,9 @@
     "section": "s11",
     "claim": "H-margin: The triggered decision keeps its logit margin under perturbation while the clean margin collapses",
     "who": "memo L1, P1",
-    "verdict": "open",
-    "key": "blend supported (0.547), quantization supported (0.662), warp supported (0.456). Not yet measured: patch",
-    "control": "benign models probed with a patch and a global trigger: benign_probe_badnet_a2o no data, benign_probe_blend no data",
+    "verdict": "partial",
+    "key": "patch supported (0.687), blend supported (0.723), quantization supported (0.980), warp supported (0.883), patch_tact partial (0.201), patch supported (0.451), blend supported (0.711), quantization supported (0.802), patch_tact partial (0.181), warp supported (0.497)",
+    "control": "benign models probed with a patch and a global trigger: benign_probe_badnet_a2o no data, benign_probe_blend no data, benign_probe_badnet_a2o no data, benign_probe_blend no data",
     "source": "`results/_experiments/why_psbd_works/summary.json`, `verdicts.<architecture>.<group>.margin`"
   },
   {
@@ -364,9 +394,9 @@
     "section": "s11",
     "claim": "H-direction: The triggered feature is dominated by a backdoor direction the perturbation dents less than clean class evidence",
     "who": "Karayal\u00e7in et al., memo L8",
-    "verdict": "open",
-    "key": "blend supported (0.911), quantization supported (0.976), warp supported (0.947). Not yet measured: patch",
-    "control": "benign models probed with a patch and a global trigger: benign_probe_badnet_a2o refuted, benign_probe_blend refuted",
+    "verdict": "partial",
+    "key": "patch partial (0.559), blend supported (0.926), quantization supported (0.968), warp partial (0.482), patch_tact partial (0.453), patch supported (0.892), blend partial (0.693), quantization supported (0.845), patch_tact partial (0.506), warp supported (0.847)",
+    "control": "benign models probed with a patch and a global trigger: benign_probe_badnet_a2o refuted, benign_probe_blend refuted, benign_probe_badnet_a2o refuted, benign_probe_blend refuted",
     "source": "`results/_experiments/why_psbd_works/summary.json`, `verdicts.<architecture>.<group>.direction`"
   },
   {
@@ -374,9 +404,9 @@
     "section": "s11",
     "claim": "H-redundancy: Trigger evidence is repeated across tokens",
     "who": "memo L19, L23",
-    "verdict": "open",
-    "key": "blend supported (0.928), quantization supported (0.934), warp supported (0.706). Not yet measured: patch",
-    "control": "benign models probed with a patch and a global trigger: benign_probe_badnet_a2o no data, benign_probe_blend no data",
+    "verdict": "partial",
+    "key": "patch refuted (0.008), blend partial (0.257), quantization supported (0.530), warp refuted (0.000), patch_tact partial (0.235), patch partial (0.580), blend supported (0.888), quantization supported (0.946), patch_tact refuted (0.137), warp partial (0.493)",
+    "control": "benign models probed with a patch and a global trigger: benign_probe_badnet_a2o no data, benign_probe_blend refuted, benign_probe_badnet_a2o no data, benign_probe_blend refuted",
     "source": "`results/_experiments/why_psbd_works/summary.json`, `verdicts.<architecture>.<group>.redundancy`"
   },
   {
@@ -384,9 +414,9 @@
     "section": "s11",
     "claim": "H-low-dim: The triggered decision depends on few dimensions or a small part of the input",
     "who": "Cognitive Distillation, memo L6, L9",
-    "verdict": "open",
-    "key": "blend supported (0.538), quantization supported (0.544), warp supported (0.563). Not yet measured: patch",
-    "control": "benign models probed with a patch and a global trigger: benign_probe_badnet_a2o partial, benign_probe_blend partial",
+    "verdict": "partial",
+    "key": "patch partial (0.478), blend partial (0.496), quantization partial (0.461), warp partial (0.462), patch_tact partial (0.992), patch supported (0.522), blend supported (0.531), quantization supported (0.553), patch_tact partial (0.989), warp supported (0.601)",
+    "control": "benign models probed with a patch and a global trigger: benign_probe_badnet_a2o refuted, benign_probe_blend refuted, benign_probe_badnet_a2o refuted, benign_probe_blend refuted",
     "source": "`results/_experiments/why_psbd_works/summary.json`, `verdicts.<architecture>.<group>.low_dim`"
   },
   {
@@ -394,9 +424,9 @@
     "section": "s11",
     "claim": "H-flatness: Triggered inputs sit in a flatter region and the statistic estimates curvature",
     "who": "memo L2, P4",
-    "verdict": "open",
-    "key": "blend partial (0.820), quantization refuted (0.770), warp refuted (0.686). Not yet measured: patch",
-    "control": "benign models probed with a patch and a global trigger: benign_probe_badnet_a2o partial, benign_probe_blend refuted",
+    "verdict": "partial",
+    "key": "patch refuted (0.568), blend refuted (0.575), quantization refuted (0.540), warp refuted (0.382), patch_tact refuted (0.563), patch partial (0.665), blend refuted (0.741), quantization refuted (0.708), patch_tact refuted (0.567), warp refuted (0.631)",
+    "control": "benign models probed with a patch and a global trigger: benign_probe_badnet_a2o partial, benign_probe_blend partial, benign_probe_badnet_a2o partial, benign_probe_blend partial",
     "source": "`results/_experiments/why_psbd_works/summary.json`, `verdicts.<architecture>.<group>.flatness`"
   },
   {
@@ -404,9 +434,9 @@
     "section": "s11",
     "claim": "H-neuron-bias: Shifted clean predictions fall onto the target, so removing the target's gain costs AUROC",
     "who": "Li et al., memo L10, P6",
-    "verdict": "open",
-    "key": "blend refuted (0.000), quantization refuted (0.000), warp refuted (0.000). Not yet measured: patch",
-    "control": "benign models probed with a patch and a global trigger: benign_probe_badnet_a2o refuted, benign_probe_blend refuted",
+    "verdict": "partial",
+    "key": "patch refuted (0.002), blend refuted (0.001), quantization refuted (0.000), warp refuted (0.004), patch_tact refuted (0.000), patch refuted (0.003), blend refuted (0.000), quantization refuted (0.000), patch_tact partial (0.090), warp refuted (0.001)",
+    "control": "benign models probed with a patch and a global trigger: benign_probe_badnet_a2o refuted, benign_probe_blend refuted, benign_probe_badnet_a2o refuted, benign_probe_blend refuted",
     "source": "`results/_experiments/why_psbd_works/summary.json`, `verdicts.<architecture>.<group>.neuron_bias`"
   },
   {
@@ -414,9 +444,9 @@
     "section": "s11",
     "claim": "pass uncertainty: The statistic is MC-dropout uncertainty over the passes",
     "who": "Li et al.'s framing, memo P2",
-    "verdict": "open",
-    "key": "blend refuted (0.409), quantization refuted (0.750), warp refuted (0.234). Not yet measured: patch",
-    "control": "benign models probed with a patch and a global trigger: benign_probe_badnet_a2o supported, benign_probe_blend supported",
+    "verdict": "false",
+    "key": "patch refuted (0.624), blend refuted (0.800), quantization refuted (0.889), warp refuted (0.865), patch_tact refuted (0.010), patch refuted (0.037), blend refuted (0.669), quantization refuted (0.860), patch_tact refuted (0.207), warp refuted (0.384)",
+    "control": "benign models probed with a patch and a global trigger: benign_probe_badnet_a2o supported, benign_probe_blend supported, benign_probe_badnet_a2o supported, benign_probe_blend supported",
     "source": "`results/_experiments/why_psbd_works/summary.json`, `verdicts.<architecture>.<group>.pass_uncertainty`"
   },
   {
@@ -424,9 +454,9 @@
     "section": "s11",
     "claim": "missingness: A zeroed token is native missingness, so substituting another token does as well",
     "who": "Jain et al., memo L22",
-    "verdict": "open",
-    "key": "blend supported (-0.009), quantization supported (0.010), warp refuted (0.376). Not yet measured: patch",
-    "control": "benign models probed with a patch and a global trigger: benign_probe_badnet_a2o supported, benign_probe_blend partial",
+    "verdict": "partial",
+    "key": "patch refuted (0.139), blend partial (0.023), quantization supported (0.014), warp refuted (0.558), patch_tact refuted (0.323), patch supported (0.019), blend supported (0.002), quantization supported (0.020), patch_tact refuted (0.113), warp refuted (0.403)",
+    "control": "benign models probed with a patch and a global trigger: benign_probe_badnet_a2o supported, benign_probe_blend partial, benign_probe_badnet_a2o supported, benign_probe_blend partial",
     "source": "`results/_experiments/why_psbd_works/summary.json`, `verdicts.<architecture>.<group>.missingness`"
   },
   {
@@ -435,7 +465,7 @@
     "claim": "The target class is easy, so any image predicted as the target scores low",
     "who": "reviewer reading P10",
     "verdict": "partial",
-    "key": "clean target-class images flagged by PSBD-TM: BadNets 0.726 (partial), Blend 0.401 (partial), BPP 0.413 (partial), LF 0.737 (partial), TaCT 0.032 (refuted), WaNet 0.554 (partial), against 0.201 on the benign references and a base rate of 0.25",
+    "key": "clean target-class images flagged by PSBD-TM: BadNets 0.726 (partial), Blend 0.401 (partial), BPP 0.413 (partial), LF 0.737 (partial), TaCT 0.024 (refuted), WaNet 0.554 (partial), Label-Consistent 0.347 (refuted), against 0.201 on the benign references and a base rate of 0.25",
     "control": "benign references and the base rate of the quantile threshold",
     "source": "`results/_experiments/why_psbd_works/summary.json`, `panel_verdicts.target_easy`"
   }

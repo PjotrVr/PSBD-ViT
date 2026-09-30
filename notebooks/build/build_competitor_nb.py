@@ -546,14 +546,39 @@ for name, value in checks.items():
 print(f"best competitor here: {best}, in the paper: {paper_macros['DetectorsAurocBestCompetitorName']}")
 """)
 
-md(r"""
-**What it proves.** On this panel PSBD-TM has the highest mean AUROC, and the calibrated IBD-PSC is the closest competitor with a paired gap whose interval sits just above 0, which the paper reports as a narrow lead. Beatrix, TED and PSBD-RD follow. Several competitors fall below chance on many models, which a one-sided AUROC shows and a two-sided one would hide. Accuracy and cost are unrelated: the 2 most expensive defenses, CD-L and SentiNet, are in the lower half. **What it does not.** A mean over the compared models weights the attacks by how many models each contributes, and 4 attacks contribute 12 models each while SIG contributes 1. Every competitor is a port adapted to ViT, and each page in `docs/detectors/` lists how far the port departs from its paper.
+code(r"""
+from IPython.display import Markdown, display
+
+# Every clause below is read off the ranking and the paper's margin macros, so a panel
+# change restates it instead of leaving a stale sentence.
+margin_low = paper_macros["DetectorsAurocMarginLow"].replace("$-$", "-")
+margin_high = paper_macros["DetectorsAurocMarginHigh"].replace("$-$", "-")
+margin_crosses = float(margin_low) <= 0
+assert ranking.index[0] == "PSBD-TM", "the reading says PSBD-TM has the highest mean AUROC"
+followers = [f"`{name}`" for name in ranking.index[2:5]]
+follower_text = ", ".join(followers[:-1]) + " and " + followers[-1]
+counts = per_model[per_model["defense"] == "PSBD-TM"].groupby("attack").size()  # (attacks,)
+largest = counts[counts == counts.max()].index
+smallest = counts[counts == counts.min()]
+below_chance = ranking[ranking["below chance"] > 0].sort_values("below chance", ascending=False)
+gap_text = (
+    f"a paired gap of {paper_macros['DetectorsAurocMargin']} with an interval from {margin_low} to {margin_high} that includes 0, so the paper's lead over it is a tie within the interval"
+    if margin_crosses
+    else f"a paired gap of {paper_macros['DetectorsAurocMargin']} whose interval from {margin_low} to {margin_high} sits above 0, which the paper reports as a narrow lead"
+)
+display(Markdown(
+    f"**What it proves.** On this panel PSBD-TM has the highest mean AUROC ({ranking.loc['PSBD-TM', 'mean AUROC']:.3f}), and `{best}` is the closest competitor ({competitors.loc[best, 'mean AUROC']:.3f}), {gap_text}. "
+    f"{follower_text} follow. "
+    f"{len(below_chance)} defenses fall below chance on at least 1 model, `{below_chance.index[0]}` on the most ({int(below_chance.iloc[0]['below chance'])}), which a one-sided AUROC shows and a two-sided one would hide. "
+    f"**What it does not.** A mean over the compared models weights the attacks by how many models each contributes: {len(largest)} attacks contribute {counts.max()} models each while {' and '.join(smallest.index)} contribute{'s' if len(smallest) == 1 else ''} {smallest.min()}. "
+    "Every competitor is a port adapted to ViT, and each page in `docs/detectors/` lists how far the port departs from its paper."
+))
 """)
 
 md(r"""
 ## Step 12. Summary
 
-The 11 competitors perturb or read 4 different things. STRIP, SCALE-UP, TeCo and CD-L perturb the input. IBD-PSC perturbs the model's parameters, as PSBD perturbs its activations. Beatrix and TED read internal features without perturbing anything, and SentiNet transplants part of the input into other images. On ViT-B/16 the detectors that read or perturb the model's inside (IBD-PSC once calibrated, Beatrix, TED and PSBD) do better than those that perturb the input, and the input perturbations fail on the triggers their mechanism cannot see: whole-image triggers for CD-L and SentiNet, low-amplitude ones for SCALE-UP and TeCo, content-dependent and warping ones for STRIP. The class-conditional methods, Beatrix and TED, lose most on Tiny ImageNet, where the shared clean split is thinnest per class. PSBD-TM's advantage over its nearest competitor comes mostly from the patch triggers. PSBD-RD and TeCo lead it on WaNet, and on the single SIG model PSBD-TM inverts. The per-detector pages in `docs/detectors/` hold every number behind these statements, generated from the same records by `scripts/detector_doc_results.py`.
+The 11 competitors perturb or read 4 different things. STRIP, SCALE-UP, TeCo and CD-L perturb the input. IBD-PSC perturbs the model's parameters, as PSBD perturbs its activations. Beatrix and TED read internal features without perturbing anything, and SentiNet transplants part of the input into other images. On ViT-B/16 the detectors that read or perturb the model's inside (IBD-PSC once calibrated, Beatrix, TED and PSBD) do better than those that perturb the input, and the input perturbations fail on the triggers their mechanism cannot see: whole-image triggers for CD-L and SentiNet, low-amplitude ones for SCALE-UP and TeCo, content-dependent and warping ones for STRIP. The class-conditional methods, Beatrix and TED, lose most on Tiny ImageNet, where the shared clean split is thinnest per class. The per-attack figures of the steps above show where PSBD-TM's advantage over its nearest competitor comes from and where other defenses lead it. The per-detector pages in `docs/detectors/` hold every number behind these statements, generated from the same records by `scripts/detector_doc_results.py`.
 """)
 
 nb = nbf.v4.new_notebook()

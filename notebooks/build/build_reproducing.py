@@ -153,7 +153,7 @@ print(f"seed-averaged paired gain on these cells {macro('seeds', 'SeedGainMean')
     md(r"""
     ## What is still running
 
-    On 2026-09-24 2 clearing cells were queued on GPU without their PSBD sweeps (`vit_gtsrb_tact_0_01_cos` and `vit_gtsrb_lc_0_05_tl1_adv`, the 2 clearing cells outside the 57-model headline), and 6 multi-source TaCT retrains (`_src{k}` folders, `docs/runs/2026-09-24-tact-multisource.md`) were queued to replace the source-mapped models. The cell lists the clearing cells missing from the headline panel as the ledger reads them now. When the jobs land, `scripts/coverage_ledger.py` and `build_all.py` are rerun. Every panel number moves with them, and so does every assert in these notebooks that checks one.
+    On 2026-09-24 2 clearing cells were queued on GPU without their PSBD sweeps (`vit_gtsrb_tact_0_01_cos` and `vit_gtsrb_lc_0_05_tl1_adv`), and 6 multi-source TaCT retrains (`_src{k}` folders, `docs/runs/2026-09-24-tact-multisource.md`) were queued to replace the source-mapped models. The 2 clearing cells got their sweeps on 2026-09-30 and joined the headline panel. The cell lists the clearing cells missing from the headline panel as the ledger reads them now. When the jobs land, `scripts/coverage_ledger.py` and `build_all.py` are rerun. Every panel number moves with them, and so does every assert in these notebooks that checks one.
     """),
     code(r"""
 import glob

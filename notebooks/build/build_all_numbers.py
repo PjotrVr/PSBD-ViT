@@ -295,13 +295,25 @@ code(r"""
 implanted_means = {rate: cell_means(at_rate(populations["implanted"], rate), "auroc", "attack", ATTACK_ORDER)[0] for rate in RATES}
 low_rate, high_rate = RATES[0], RATES[-1]
 low_means, high_means = implanted_means[low_rate], implanted_means[high_rate]
-rd_fails = [attack for attack in low_means.index if low_means.loc[attack, "PSBD-RD"] < 0.65]
+rd_low = [attack for attack in low_means.index if low_means.loc[attack, "PSBD-RD"] < 0.65]
+# Only the rows where PSBD-TM reads higher carry the gain, so a row where both are low is named apart.
+rd_fails = [attack for attack in rd_low if low_means.loc[attack, "PSBD-TM"] > low_means.loc[attack, "PSBD-RD"]]
+both_low = [attack for attack in rd_low if attack not in rd_fails]
+both_low_rows = [
+    f"{attack_label(attack)} ({low_means.loc[attack, 'PSBD-RD']:.2f}, against {low_means.loc[attack, 'PSBD-TM']:.2f} for PSBD-TM)"
+    for attack in both_low
+]
+both_low_text = (
+    f" It also reads below 0.65 on {word_list(both_low_rows)}, where PSBD-TM reads lower still."
+    if both_low
+    else ""
+)
 rd_leads = [attack for attack in high_means.index if high_means.loc[attack, "PSBD-RD"] > high_means.loc[attack, "PSBD-TM"] + 0.05]
 sentinet_below = int((pd.concat(implanted_means.values())["sentinet"] < 0.5).sum())
 total_rows = sum(len(frame) for frame in implanted_means.values())
 matched_below = int((pd.concat(implanted_means.values())[f"PSBD-TM {MATCHED_SUFFIX}"] < pd.concat(implanted_means.values())["PSBD-TM"]).sum())
 say(f'''
-On the implanted population at {low_rate:.0%} poisoning PSBD-RD reads at most 0.65 on {word_list(list(f"{attack_label(attack)} ({low_means.loc[attack, 'PSBD-RD']:.2f}, against {low_means.loc[attack, 'PSBD-TM']:.2f} for PSBD-TM)" for attack in rd_fails))}, which is where the paper's gain comes from. At {high_rate:.0%} PSBD-RD leads PSBD-TM by more than 0.05 on {word_list(list(f"{attack_label(attack)} ({high_means.loc[attack, 'PSBD-RD']:.2f} against {high_means.loc[attack, 'PSBD-TM']:.2f})" for attack in rd_leads))}. The SIG row is marked under audit, and on its single model the PSBD cache and the detector records were also scored on different triggered images (the walkthrough notebook shows this), so on that row the PSBD columns and the competitor columns are not the same comparison. PSBD-TM at the matched rule sits below PSBD-TM at the adaptive rule on {matched_below} of {total_rows} attack rows, since the matched rate is smaller and disturbs the clean model less. SentiNet reads below 0.5 on {sentinet_below} of {total_rows} attack rows, which the paper attributes to its Grad-CAM mask missing the trigger. Across the 3 populations the cells change only where a removed model sat, the SIG row and the WaNet rows. The next figures break the same readings out by dataset.
+On the implanted population at {low_rate:.0%} poisoning PSBD-RD reads at most 0.65 on {word_list(list(f"{attack_label(attack)} ({low_means.loc[attack, 'PSBD-RD']:.2f}, against {low_means.loc[attack, 'PSBD-TM']:.2f} for PSBD-TM)" for attack in rd_fails))}, which is where the paper's gain comes from.{both_low_text} At {high_rate:.0%} PSBD-RD leads PSBD-TM by more than 0.05 on {word_list(list(f"{attack_label(attack)} ({high_means.loc[attack, 'PSBD-RD']:.2f} against {high_means.loc[attack, 'PSBD-TM']:.2f})" for attack in rd_leads))}. The SIG row is marked under audit, and on its single model the PSBD cache and the detector records were also scored on different triggered images (the walkthrough notebook shows this), so on that row the PSBD columns and the competitor columns are not the same comparison. PSBD-TM at the matched rule sits below PSBD-TM at the adaptive rule on {matched_below} of {total_rows} attack rows, since the matched rate is smaller and disturbs the clean model less. SentiNet reads below 0.5 on {sentinet_below} of {total_rows} attack rows, which the paper attributes to its Grad-CAM mask missing the trigger. Across the 3 populations the cells change only where a removed model sat, the SIG row and the WaNet rows. The next figures break the same readings out by dataset.
 ''')
 """)
 

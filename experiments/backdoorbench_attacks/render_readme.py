@@ -52,16 +52,72 @@ def main():
     ]
 
     sections = [
+        status_section(rows),
         inventory_section(inventory),
         evaluation_section(rows, summary),
         detection_section(rows),
         attack_means_section(summary),
         verdict_section(rows),
+        fusion_section(rows),
         timing_section(rows),
     ]
     body = "\n\n".join(sections)
     write_between_markers(README, body)
     print(f"rendered {README}")
+
+
+def status_section(rows):
+    swept = [row["folder"] for row in rows if row.get("status") == "swept"]
+    pending = [row["folder"] for row in rows if row.get("status") != "swept"]
+    lines = [
+        "## Status",
+        "",
+        f"{len(swept)} of the {len(rows)} readable in-scope models are swept and read."
+        + (
+            " Not yet swept or below the success bar: "
+            + ", ".join(f"`{folder}`" for folder in pending)
+            + ". The jobs records under `jobs/` say which."
+            if pending
+            else " The queue is complete."
+        ),
+    ]
+    section = "\n".join(lines)
+    return section
+
+
+def fusion_section(rows):
+    judged = [
+        row
+        for row in rows
+        if row.get("judged") and row.get("detection", {}).get("methods")
+    ]
+    if not judged:
+        return "## Final method against PSBD-TM alone\n\nNo judged model is swept yet."
+
+    lines = [
+        "## Final method against PSBD-TM alone",
+        "",
+        "Change in TPR from PSBD-TM alone to each fusion rule, per judged model, at the "
+        "same nominal FPR. Positive means the final method detects more.",
+        "",
+        "| model | minimum, 1% FPR | minimum, 5% FPR | minimum, 10% FPR | average, 1% FPR | average, 5% FPR | average, 10% FPR |",
+        "|---|---|---|---|---|---|---|",
+    ]
+    for row in judged:
+        methods = row["detection"]["methods"]
+        cells = [
+            methods[rule]["at_fpr"][quantile]["tpr"]
+            - methods["psbd_tm"]["at_fpr"][quantile]["tpr"]
+            for rule in ("final_min", "final_mean")
+            for quantile in ("q0.01", "q0.05", "q0.10")
+        ]
+        lines.append(
+            f"| `{row['folder']}` | "
+            + " | ".join(f"{cell:+.3f}" for cell in cells)
+            + " |"
+        )
+    section = "\n".join(lines)
+    return section
 
 
 def inventory_section(inventory):

@@ -55,20 +55,19 @@ inside_gpu_window() {
     return 0
 }
 
-# Queues on the first slot for up to 30 seconds and then tries the second, in a
-# loop, so a free second slot is taken while the first is held by a long job
-# (the pattern of experiments/why_psbd_works/gpu_slot.sh). -E 75 tells a busy
+# Takes whichever slot is free and otherwise waits on the first slot as a
+# blocking waiter. The Lustre lock queue serves blocking waiters roughly in
+# arrival order, so a waiter that times out and requeues (flock -w) goes to the
+# back each time and starved for 40 minutes on 2026-09-30. -E 75 tells a busy
 # slot apart from a stage that ran and failed.
 on_free_slot() {
-    local status
-    while true; do
-        flock -w 30 -E 75 "${LOCKS[0]}" "$@"
-        status=$?
-        ((status != 75)) && return "$status"
-        flock -n -E 75 "${LOCKS[1]}" "$@"
+    local lock status
+    for lock in "${LOCKS[@]}"; do
+        flock -n -E 75 "$lock" "$@"
         status=$?
         ((status != 75)) && return "$status"
     done
+    flock "${LOCKS[0]}" "$@"
 }
 
 stage() {

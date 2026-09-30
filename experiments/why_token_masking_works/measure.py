@@ -44,9 +44,14 @@ from data.splits import (  # noqa: E402
 from defenses.decision import PUBLISHED_PLACEMENT, RECOMMENDED_PLACEMENT  # noqa: E402
 from defenses.inference import forward_logits  # noqa: E402
 from defenses.operators import TokenMask, _keep_scale  # noqa: E402
-from experiments._paths import experiment_result_path, experiment_results_dir  # noqa: E402
+from experiments._paths import experiment_results_dir  # noqa: E402
 from experiments.residual_stream_mechanism.activation_patching import (  # noqa: E402
     trigger_tokens,
+)
+from experiments.why_token_masking_works.tokens import (  # noqa: E402
+    cached_baseline_agreement,
+    model_seed,
+    successful_vit_folders,
 )
 from models.backbones import load_checkpoint  # noqa: E402
 from models.positions import plug_dropout, unplug_dropout  # noqa: E402
@@ -60,6 +65,13 @@ SLUG = "why_token_masking_works"
 PAIR_COUNT = 256
 FORWARD_PASSES = 10
 RANDOM_DRAWS = 3
+# The audit of 2026-09-29 found every model drawing the same 3 permutations.
+# Draws are now seeded per model (tokens.model_seed) and D takes 20 of them.
+SUBSET_DRAWS = 20
+# SIG checkpoints are quarantined until attacks/sig.py's amplitude drift is fixed
+# (docs/audits/2026-09-29-experiment-audit.md).
+QUARANTINED_ATTACKS = ("sig",)
+REPRODUCTION_FLOOR = 0.98
 KEEP_FRACTIONS = (1.0, 0.6, 0.3, 0.1)
 SPAN_COUNTS = (1, 2, 4, 8, 12)
 # D runs on 1 model per attack and dataset, the first of these rates that cleared.
@@ -95,7 +107,6 @@ RD_POSITIONS = ("after_attention_residual", "after_mlp_residual")
 BANDS = {"blocks_1_4": (1, 4), "blocks_5_8": (5, 8), "blocks_9_12": (9, 12)}
 LATE_BLOCKS = slice(8, 12)
 MASK_SEED = 0
-DRAW_SEED = 0
 GPU_MEMORY_GB = 6.0
 BATCH_SIZE = 250
 
@@ -111,6 +122,8 @@ def parse_args():
     # Separate from --results-dir so a smoke run reads the real psbd_metrics.json
     # and coverage ledger but writes somewhere disposable.
     parser.add_argument("--output-root", default="results")
+    # The rerun of 2026-09-29 writes beside the first run rather than over it.
+    parser.add_argument("--subdirectory", default="")
     parser.add_argument("--pairs", type=int, default=PAIR_COUNT)
     parser.add_argument("--passes", type=int, default=FORWARD_PASSES)
     parser.add_argument("--batch-size", type=int, default=BATCH_SIZE)
@@ -121,7 +134,10 @@ def parse_args():
 
 def main():
     args = parse_args()
-    output_dir = experiment_results_dir(SLUG, args.output_root)
+    output_dir = os.path.join(
+        experiment_results_dir(SLUG, args.output_root), args.subdirectory
+    )
+    os.makedirs(output_dir, exist_ok=True)
 
     if not args.summarize_only:
         device = torch.device("cuda", torch.cuda.current_device())
@@ -131,7 +147,7 @@ def main():
             folder for folder in subset_folders if folder not in patch_folders
         ]
         for folder in folders:
-            out_path = experiment_result_path(SLUG, f"{folder}.json", args.output_root)
+            out_path = os.path.join(output_dir, f"{folder}.json")
             if os.path.exists(out_path):
                 print(f"[skip] {folder}", flush=True)
                 continue
@@ -160,6 +176,9 @@ def measure_model(folder, run_subsets, args, device):
     baseline = predict_pairs(model, pairs, args.batch_size, device)
     pairs["clean_base"] = baseline["clean"]  # (n,)
     pairs["triggered_base"] = baseline["triggered"]  # (n,)
+    agreement = cached_baseline_agreement(args.results_dir, folder, pairs)
+    assert min(agreement.values()) >= REPRODUCTION_FLOOR, f"{folder} {agreement}"
+    pairs["draw_seed"] = model_seed(folder)
 
     record = {
         "folder": folder,
@@ -170,6 +189,8 @@ def measure_model(folder, run_subsets, args, device):
         "trigger_positions": trigger.tolist(),
         "tm_rate": tm_rate,
         "rd_rate": rd_rate,
+        "draw_seed": pairs["draw_seed"],
+        "baseline_agreement_with_cache": agreement,
         "baseline": readout(
             pairs, baseline["clean"][None], baseline["triggered"][None]
         ),
@@ -212,7 +233,9 @@ def measure_deterministic_masking(model, pairs, batch_size, device):
     # were masked and not about how many.
     draws = []
     for draw in range(RANDOM_DRAWS):
-        positions = random_non_trigger_positions(trigger, len(trigger), draw, device)
+        positions = random_non_trigger_positions(
+            trigger, len(trigger), pairs["draw_seed"] + draw, device
+        )
         draws.append(
             fixed_mask_readout(
                 model, pairs, positions, (1, NUM_BLOCKS), batch_size, device
@@ -235,7 +258,9 @@ def measure_stochastic_token_mask(model, pairs, rate, passes, batch_size, device
     )
     assert len(recorders) == NUM_BLOCKS, f"expected 12 probes, got {len(recorders)}"
     try:
-        seed_everything(MASK_SEED, verbose=False)
+        # Seeded per model, so 2 models at the same rate do not draw
+        # identical masks and pooled counts are independent replicates.
+        seed_everything(MASK_SEED + pairs["draw_seed"], verbose=False)
         clean_passes = recorded_passes(
             model,
             recorders,
@@ -292,7 +317,7 @@ def measure_stochastic_token_mask(model, pairs, rate, passes, batch_size, device
 def measure_residual_dropout(model, pairs, rate, passes, batch_size, device):
     trigger = pairs["trigger"]
     everything_but_trigger = random_non_trigger_positions(
-        trigger, PATCH_TOKENS - len(trigger), 0, device
+        trigger, PATCH_TOKENS - len(trigger), pairs["draw_seed"], device
     )
     everything_but_trigger = torch.cat(
         [torch.zeros(1, dtype=torch.long, device=device), everything_but_trigger]
@@ -313,7 +338,9 @@ def measure_residual_dropout(model, pairs, rate, passes, batch_size, device):
 
     draws = []
     for draw in range(RANDOM_DRAWS):
-        positions = random_non_trigger_positions(trigger, len(trigger), draw, device)
+        positions = random_non_trigger_positions(
+            trigger, len(trigger), pairs["draw_seed"] + draw, device
+        )
         draws.append(
             dropout_readout(
                 model,
@@ -341,8 +368,8 @@ def measure_visible_subsets(model, pairs, batch_size, device):
             continue
         visible_count = round(fraction * PATCH_TOKENS)
         draws = []
-        for draw in range(RANDOM_DRAWS):
-            generator = torch.Generator().manual_seed(DRAW_SEED + draw)
+        for draw in range(SUBSET_DRAWS):
+            generator = torch.Generator().manual_seed(pairs["draw_seed"] + draw)
             order = torch.randperm(PATCH_TOKENS, generator=generator) + 1  # (196,)
             masked = order[visible_count:].to(device)  # (196 - visible,)
             reading = fixed_mask_readout(
@@ -450,7 +477,9 @@ def dropout_readout(model, pairs, factory, rate, passes, batch_size, device):
         rate,
     )
     try:
-        seed_everything(MASK_SEED, verbose=False)
+        # Seeded per model, so 2 models at the same rate do not draw
+        # identical masks and pooled counts are independent replicates.
+        seed_everything(MASK_SEED + pairs["draw_seed"], verbose=False)
         clean = torch.stack(
             [predict(model, pairs["clean"], batch_size, device) for _ in range(passes)]
         )  # (k, n)
@@ -531,8 +560,8 @@ def mean_readout(readings):
     return mean
 
 
-def random_non_trigger_positions(trigger, count, draw, device):
-    generator = torch.Generator().manual_seed(DRAW_SEED + draw)
+def random_non_trigger_positions(trigger, count, seed, device):
+    generator = torch.Generator().manual_seed(seed)
     order = torch.randperm(PATCH_TOKENS, generator=generator) + 1  # (196,)
     candidates = order[~torch.isin(order, trigger.cpu())]  # (196 - trigger_count,)
     positions = candidates[:count].to(device)  # (count,)
@@ -608,7 +637,13 @@ def adaptive_rates(results_dir, folder):
 
 
 def panel_folders(results_dir):
-    cells = clearing_cells(load_coverage(results_dir))
+    cells = [
+        cell
+        for cell in clearing_cells(load_coverage(results_dir))
+        if cell["attack"] not in QUARANTINED_ATTACKS
+        and cell["folder_name"] in successful_vit_folders(results_dir)
+        and load_psbd_metrics(results_dir, cell["folder_name"]) is not None
+    ]
     patch_folders = [c["folder_name"] for c in cells if c["attack"] in PATCH_ATTACKS]
 
     by_attack_and_dataset = collections.defaultdict(dict)

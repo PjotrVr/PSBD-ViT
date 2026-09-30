@@ -16,6 +16,7 @@ Run a builder from the repository root with `cd notebooks/build && PYTHONPATH=..
 | `build_placement_walk.py` | `placement-walk.ipynb` |
 | `build_placements_nb.py` | `placements-and-operators.ipynb` |
 | `build_mechanism.py` | `mechanism.ipynb` |
+| `build_why_psbd_tm.py` | `why-psbd-tm.ipynb` |
 | `build_competitor_nb.py` | `competitor-defenses.ipynb` |
 | `build_detectors_per_attack.py` | `detectors-per-attack.ipynb` |
 | `build_attention_probes.py` | `attention-probes.ipynb` |

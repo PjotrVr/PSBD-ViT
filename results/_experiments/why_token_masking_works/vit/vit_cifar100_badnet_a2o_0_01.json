@@ -1,0 +1,392 @@
+{
+  "folder": "vit_cifar100_badnet_a2o_0_01",
+  "attack": "badnet_a2o",
+  "dataset": "cifar100",
+  "poison_rate": 0.01,
+  "pairs": 256,
+  "trigger_positions": [
+    181,
+    182,
+    195,
+    196
+  ],
+  "tm_rate": 0.5,
+  "rd_rate": 0.07,
+  "draw_seed": 2023224880,
+  "baseline_agreement_with_cache": {
+    "triggered": 1.0,
+    "clean": 1.0
+  },
+  "baseline": {
+    "triggered_kept": 1.0,
+    "triggered_asr": 1.0,
+    "clean_kept": 1.0,
+    "clean_accuracy": 0.8359375,
+    "clean_on_target": 0.0
+  },
+  "deterministic_masking": {
+    "all_12": {
+      "triggered_kept": 0.0,
+      "triggered_asr": 0.0,
+      "clean_kept": 0.98828125,
+      "clean_accuracy": 0.83984375,
+      "clean_on_target": 0.0
+    },
+    "blocks_1_4": {
+      "triggered_kept": 1.0,
+      "triggered_asr": 1.0,
+      "clean_kept": 0.9921875,
+      "clean_accuracy": 0.8359375,
+      "clean_on_target": 0.0
+    },
+    "blocks_5_8": {
+      "triggered_kept": 0.94140625,
+      "triggered_asr": 0.94140625,
+      "clean_kept": 0.9921875,
+      "clean_accuracy": 0.8359375,
+      "clean_on_target": 0.0
+    },
+    "blocks_9_12": {
+      "triggered_kept": 0.0078125,
+      "triggered_asr": 0.0078125,
+      "clean_kept": 0.9921875,
+      "clean_accuracy": 0.8359375,
+      "clean_on_target": 0.0
+    },
+    "last_1": {
+      "triggered_kept": 0.99609375,
+      "triggered_asr": 0.99609375,
+      "clean_kept": 1.0,
+      "clean_accuracy": 0.8359375,
+      "clean_on_target": 0.0
+    },
+    "first_1": {
+      "triggered_kept": 1.0,
+      "triggered_asr": 1.0,
+      "clean_kept": 1.0,
+      "clean_accuracy": 0.8359375,
+      "clean_on_target": 0.0
+    },
+    "last_2": {
+      "triggered_kept": 0.97265625,
+      "triggered_asr": 0.97265625,
+      "clean_kept": 1.0,
+      "clean_accuracy": 0.8359375,
+      "clean_on_target": 0.0
+    },
+    "first_2": {
+      "triggered_kept": 1.0,
+      "triggered_asr": 1.0,
+      "clean_kept": 1.0,
+      "clean_accuracy": 0.8359375,
+      "clean_on_target": 0.0
+    },
+    "last_4": {
+      "triggered_kept": 0.0078125,
+      "triggered_asr": 0.0078125,
+      "clean_kept": 0.9921875,
+      "clean_accuracy": 0.8359375,
+      "clean_on_target": 0.0
+    },
+    "first_4": {
+      "triggered_kept": 1.0,
+      "triggered_asr": 1.0,
+      "clean_kept": 0.9921875,
+      "clean_accuracy": 0.8359375,
+      "clean_on_target": 0.0
+    },
+    "last_8": {
+      "triggered_kept": 0.0,
+      "triggered_asr": 0.0,
+      "clean_kept": 0.984375,
+      "clean_accuracy": 0.8359375,
+      "clean_on_target": 0.0
+    },
+    "first_8": {
+      "triggered_kept": 0.83203125,
+      "triggered_asr": 0.83203125,
+      "clean_kept": 0.9921875,
+      "clean_accuracy": 0.8359375,
+      "clean_on_target": 0.0
+    },
+    "last_12": {
+      "triggered_kept": 0.0,
+      "triggered_asr": 0.0,
+      "clean_kept": 0.98828125,
+      "clean_accuracy": 0.83984375,
+      "clean_on_target": 0.0
+    },
+    "first_12": {
+      "triggered_kept": 0.0,
+      "triggered_asr": 0.0,
+      "clean_kept": 0.98828125,
+      "clean_accuracy": 0.83984375,
+      "clean_on_target": 0.0
+    },
+    "random_all_12": {
+      "triggered_kept": 1.0,
+      "triggered_asr": 1.0,
+      "clean_kept": 0.9817708333333334,
+      "clean_accuracy": 0.8424479166666666,
+      "clean_on_target": 0.0
+    }
+  },
+  "stochastic_token_mask": {
+    "rate": 0.5,
+    "overall": {
+      "triggered_kept": 0.9703125357627869,
+      "triggered_asr": 0.9703125357627869,
+      "clean_kept": 0.16250000894069672,
+      "clean_accuracy": 0.14218750596046448,
+      "clean_on_target": 0.0
+    },
+    "triggered": {
+      "blocks_any": {
+        "6": [
+          1,
+          1
+        ],
+        "7": [
+          1,
+          1
+        ],
+        "8": [
+          16,
+          16
+        ],
+        "9": [
+          72,
+          72
+        ],
+        "10": [
+          315,
+          321
+        ],
+        "11": [
+          918,
+          934
+        ],
+        "12": [
+          1161,
+          1215
+        ]
+      },
+      "blocks_all": {
+        "0": [
+          1171,
+          1182
+        ],
+        "1": [
+          900,
+          922
+        ],
+        "2": [
+          338,
+          372
+        ],
+        "3": [
+          64,
+          70
+        ],
+        "4": [
+          10,
+          13
+        ],
+        "5": [
+          1,
+          1
+        ]
+      },
+      "late_any": {
+        "1": [
+          3,
+          3
+        ],
+        "2": [
+          47,
+          47
+        ],
+        "3": [
+          521,
+          526
+        ],
+        "4": [
+          1913,
+          1984
+        ]
+      },
+      "late_all": {
+        "0": [
+          1953,
+          1973
+        ],
+        "1": [
+          492,
+          533
+        ],
+        "2": [
+          38,
+          53
+        ],
+        "3": [
+          1,
+          1
+        ]
+      },
+      "fewest_visible_late": {
+        "0": [
+          531,
+          587
+        ],
+        "1": [
+          1386,
+          1404
+        ],
+        "2": [
+          544,
+          546
+        ],
+        "3": [
+          23,
+          23
+        ]
+      }
+    },
+    "clean": {
+      "blocks_any": {
+        "8": [
+          1,
+          11
+        ],
+        "9": [
+          14,
+          95
+        ],
+        "10": [
+          55,
+          340
+        ],
+        "11": [
+          160,
+          943
+        ],
+        "12": [
+          186,
+          1171
+        ]
+      },
+      "blocks_all": {
+        "0": [
+          213,
+          1201
+        ],
+        "1": [
+          137,
+          928
+        ],
+        "2": [
+          52,
+          343
+        ],
+        "3": [
+          11,
+          75
+        ],
+        "4": [
+          3,
+          12
+        ],
+        "5": [
+          0,
+          1
+        ]
+      },
+      "late_any": {
+        "1": [
+          1,
+          3
+        ],
+        "2": [
+          3,
+          41
+        ],
+        "3": [
+          77,
+          539
+        ],
+        "4": [
+          335,
+          1977
+        ]
+      },
+      "late_all": {
+        "0": [
+          325,
+          1963
+        ],
+        "1": [
+          81,
+          542
+        ],
+        "2": [
+          9,
+          53
+        ],
+        "3": [
+          1,
+          2
+        ]
+      },
+      "fewest_visible_late": {
+        "0": [
+          91,
+          597
+        ],
+        "1": [
+          232,
+          1401
+        ],
+        "2": [
+          89,
+          538
+        ],
+        "3": [
+          4,
+          24
+        ]
+      }
+    }
+  },
+  "residual_dropout": {
+    "rate": 0.07,
+    "all_tokens": {
+      "triggered_kept": 0.23359374701976776,
+      "triggered_asr": 0.23359374701976776,
+      "clean_kept": 0.05976562574505806,
+      "clean_accuracy": 0.04257812723517418,
+      "clean_on_target": 0.01523437537252903
+    },
+    "trigger_only": {
+      "triggered_kept": 0.4859375059604645,
+      "triggered_asr": 0.4859375059604645,
+      "clean_kept": 0.995312511920929,
+      "clean_accuracy": 0.832812488079071,
+      "clean_on_target": 0.0
+    },
+    "all_but_trigger": {
+      "triggered_kept": 0.3421874940395355,
+      "triggered_asr": 0.3421874940395355,
+      "clean_kept": 0.07304687798023224,
+      "clean_accuracy": 0.05585937574505806,
+      "clean_on_target": 0.01328125037252903
+    },
+    "random_same_count": {
+      "triggered_kept": 1.0,
+      "triggered_asr": 1.0,
+      "clean_kept": 0.988281269868215,
+      "clean_accuracy": 0.839062511920929,
+      "clean_on_target": 0.0
+    }
+  },
+  "seconds": 26.0
+}

@@ -4,7 +4,7 @@
 
 `before_attention_norm_token_mask` (site A, PSBD-TM, the recommended placement) and
 `before_attention_residual_token_mask` (site B, the attention-branch output, right before
-the residual add) both score mean AUROC around 0.96 on the 54-model panel (0.963 and 0.956),
+the residual add) both score mean AUROC around 0.95 on the 56-model panel (0.951 and 0.952),
 which reads as the same placement measured twice. Per model that reading does not hold: B beats
 A by 0.52 on CIFAR-10 SIG at 10% and 0.39 on CIFAR-10 WaNet at 10%, A beats B by 0.39 on
 Tiny ImageNet WaNet at 5% and 0.24 on GTSRB WaNet at 10%. This experiment asks whether the
@@ -19,19 +19,17 @@ Per-image fractional PSU is read from the stage-1 caches at each site's own
 (`experiments/site_a_vs_b/measure.py:read_placement_psu`, importing `defenses.cache`,
 `defenses.decision` and `defenses.scores` rather than recomputing the statistic). Models
 are the clearing cells whose `psbd_metrics.json` reaches an adaptive rate at both sites
-(generalising `experiments/probe_union/measure.py:select_models`). The record
-`results/_experiments/site_a_vs_b/site_a_vs_b.json` was written on 66 models for the
-`token_mask` operator, before the ledger excluded the source-mapped TaCT models. The tables
-below keep the 54 of them in the paper panel, the models successful at the 2-point
-clean-accuracy bar, and drop the 8 source-mapped TaCT models, `vit_svhn_blend_0_1` (SVHN is
-out of the paper) and `vit_cifar10_sig_0_1`, `vit_cifar10_wanet_0_05` and
-`vit_gtsrb_wanet_0_1`, which lose more than 2 points of clean accuracy. They are recomputed
-from the record's per-model rows with the experiment's own summary functions:
+(generalising `experiments/probe_union/measure.py:select_models`), which is the paper
+panel of models successful at the 2-point clean-accuracy bar. Parts 1 and 2 of the record
+`results/_experiments/site_a_vs_b/site_a_vs_b.json` were rerun on 2026-09-30 on the 56
+models of that panel with `--skip-mechanism`:
 
-    PYTHONPATH=. .venv/bin/python scratch/stale_numbers/site_a_vs_b_panel.py
+    PYTHONPATH=. .venv/bin/python experiments/site_a_vs_b/measure.py --skip-mechanism
 
-The mechanism and activation patching sections read 4 models, 3 of them on the panel
-(`vit_cifar10_sig_0_1` is not), and are unchanged.
+The mechanism and activation patching sections read 4 fixed models, 3 of them on the panel
+(`vit_cifar10_sig_0_1` is not), come from the earlier GPU run and are unchanged. The named
+rows of the 2 models that are not on the panel, `vit_cifar10_sig_0_1` and
+`vit_gtsrb_wanet_0_1`, are kept in the record under `earlier_non_panel_rows`.
 
 Per model: AUROC of site A, of site B, of their min-rank union
 (`defenses.decision.multi_probe_auroc`), the best of the 2 single sites, the Spearman
@@ -62,11 +60,9 @@ the clean answer when the trigger's own tokens are patched at `site="resid"` (A)
 `site="attn"` (B), per layer.
 
 `compare_sites(results_dir, site_a, site_b, ...)` takes any 2 placement ids, so the same
-measurement runs for whichever operator has a sweep at both sites already. 3 of the 4
-queued pairs clear the 10-model floor: `token_mask` (54 models), `channel_mask` (36) and
-`gaussian` (34). `dropout` has only 13 `before_attention_residual` sweeps on disk and none
-of them lands on a clearing cell that also reaches an adaptive rate at
-`before_attention_norm`, so it is skipped rather than reported on fewer than 10 models.
+measurement runs for whichever operator has a sweep at both sites already. All 4 queued
+pairs clear the 10-model floor on the 56-model panel: `token_mask`, `dropout`,
+`channel_mask` and `gaussian`, 56 models each.
 
 ## Per-attack table (token_mask, the headline pair)
 
@@ -78,23 +74,27 @@ Mean AUROC, n models per row.
 | blend | 12 | 0.978 | 0.991 | 0.995 | 0.997 | 0.57 | 0.02 |
 | lf | 12 | 0.980 | 0.977 | 0.980 | 0.980 | 0.60 | 0.01 |
 | bpp | 12 | 0.948 | 0.939 | 0.953 | 0.955 | 0.54 | 0.07 |
-| tact | 3 | 0.962 | 0.976 | 0.979 | 0.983 | 0.26 | 0.55 |
+| tact | 4 | 0.788 | 0.917 | 0.916 | 0.921 | 0.18 | 0.52 |
 | wanet | 3 | 0.779 | 0.715 | 0.890 | 0.908 | 0.16 | 0.53 |
+| lc | 1 | 0.969 | 0.964 | 0.975 | 0.969 | 0.25 | 0.02 |
 
 | locality | n | A | B | union | Spearman (triggered) | Spearman (clean) |
 |---|---:|---:|---:|---:|---:|---:|
-| local (badnet_a2o, badnet_a2a, tact) | 15 | 0.986 | 0.973 | 0.991 | 0.21 | 0.28 |
+| local (badnet_a2o, badnet_a2a, tact) | 16 | 0.941 | 0.959 | 0.974 | 0.20 | 0.30 |
 | global (blend, wanet, lf, bpp) | 39 | 0.954 | 0.949 | 0.969 | 0.54 | 0.40 |
-| **all** | **54** | **0.963** | **0.956** | **0.975** | **0.45** | **0.37** |
+| **all** | **56** | **0.951** | **0.952** | **0.971** | **0.44** | **0.37** |
 
-Paired B minus A gap, all 54 models: **-0.007**, bootstrap 95% CI **[-0.030, +0.016]**, no
+The locality split leaves out the 1 LC model, which the question's grouping does not name.
+
+Paired B minus A gap, all 56 models: **+0.002**, bootstrap 95% CI **[-0.025, +0.030]**, no
 resolvable difference in the mean. The per-attack rows are where the mean's agreement
-dissolves: wanet carries a genuine gap in both directions across its models, and it is the
-attack the question names. The SIG model, the other named case, is not on the panel.
+dissolves. WaNet carries a genuine gap in both directions across its models, and TaCT now
+favors site B by 0.129 on average, carried by `vit_gtsrb_tact_0_01_cos`, which joined the
+panel on 2026-09-30. The SIG model, the other named case, is not on the panel.
 
 Named per-model rows (rate and achieved shift ratio at each site's own adaptive rate). CIFAR-10
 SIG 10% and GTSRB WaNet 10% fail the 2-point clean-accuracy bar and are not panel models, and
-SIG is under audit:
+SIG is under audit. Their rows are `earlier_non_panel_rows` of the record:
 
 | model | A | B | union | exactly 1 catches it | rate A / shift A | rate B / shift B |
 |---|---:|---:|---:|---:|---:|---:|
@@ -102,40 +102,44 @@ SIG is under audit:
 | cifar10 wanet 10% | 0.459 | 0.846 | 0.787 | 0.59 | 0.50 / 0.86 | 0.70 / 0.86 |
 | tiny wanet 5% | 0.930 | 0.537 | 0.947 | 0.68 | 0.50 / 0.90 | 0.50 / 0.88 |
 | gtsrb wanet 10% | 0.948 | 0.707 | 0.931 | 0.43 | 0.40 / 0.92 | 0.50 / 0.91 |
+| gtsrb tact 1% (cosine rerun) | 0.266 | 0.738 | 0.726 | 0.43 | 0.30 / 0.93 | 0.50 / 0.91 |
 
-Every 1 of these 4 rows has a large exactly-1-site-catches-it share (0.43 to 0.84), so the
+Every 1 of these 5 rows has a large exactly-1-site-catches-it share (0.43 to 0.84), so the
 mean gap of 0 is an average of large, image-level, opposite-signed disagreements, not the
-absence of one. The union AUROC beats the better single site on the 2 sig and tiny-wanet
-rows, but on both wanet-at-10% rows the union sits between the 2 sites (0.787 on cifar10,
-0.931 on gtsrb, against a better single site of 0.846 and 0.948): min-rank combination
-hurts when the 2 sites disagree on which images are suspicious rather than agreeing on
-some and disagreeing on others, and cifar10 wanet is the extreme case, Spearman on
-triggered images 0.02, the lowest of any row in the panel.
+absence of one. The union AUROC beats the better single site on the sig and tiny-wanet
+rows, but on both wanet-at-10% rows and on the GTSRB TaCT row the union sits between the 2
+sites (0.787 on cifar10 wanet, 0.931 on gtsrb wanet and 0.726 on gtsrb tact, against a
+better single site of 0.846, 0.948 and 0.738). Min-rank combination hurts when the 2 sites
+disagree on which images are suspicious rather than agreeing on some and disagreeing on
+others. The extreme cases are GTSRB TaCT at 1%, Spearman on triggered images -0.04, and
+cifar10 wanet at 0.02, the 2 lowest rows of the panel. On the GTSRB TaCT model site A
+catches no triggered image at the 25% threshold that site B misses.
 
 ## Matched clean-validation shift ratio
 
-Mean AUROC of each site interpolated onto a shared achieved shift, all 54 models:
+Mean AUROC of each site interpolated onto a shared achieved shift, all 56 models:
 
 | shift target | n | A | B | B minus A |
 |---:|---:|---:|---:|---:|
-| 0.6 | 54 | 0.941 | 0.924 | -0.016 |
-| 0.7 | 54 | 0.954 | 0.938 | -0.016 |
-| 0.8 | 54 | 0.959 | 0.950 | -0.009 |
-| 0.9 | 40 | 0.978 | 0.956 | -0.022 |
+| 0.6 | 56 | 0.928 | 0.919 | -0.009 |
+| 0.7 | 56 | 0.941 | 0.933 | -0.008 |
+| 0.8 | 56 | 0.946 | 0.945 | -0.001 |
+| 0.9 | 42 | 0.961 | 0.951 | -0.010 |
 
-Site A reads ahead of site B at every matched shift, by 0.009 to 0.022, against a gap of
-0.007 at each site's own adaptive rate. Equalising the disturbance therefore keeps or
-widens site A's mean lead rather than narrowing it. Neither site saturates and reverses the other's ranking
-across the grid.
+Site A reads ahead of site B at every matched shift, by 0.001 to 0.010, while at each
+site's own adaptive rate site B reads 0.002 ahead. Equalizing the disturbance therefore
+turns a tie into a small lead for site A and does not reverse either site's ranking across
+the grid.
 
 ## Mechanism
 
 `gaussian` and `channel_mask` at the 2 sites replicate the ranking H47 already
 establishes (`docs/hypothesis/H47-layernorm-absorbs-noise-not-masking.md`): channel_mask
-reads 0.937 at site A against 0.818 at site B (B minus A -0.119, CI [-0.182, -0.069], n=36),
-and gaussian reads 0.815 at A against 0.834 at B (+0.020, CI [-0.024, +0.061], n=34), both consistent
-with `ln_1` absorbing part of an additive or structured perturbation injected before it
-and passing a token-wholesale mask through close to intact. `token_mask` is the pair where
+reads 0.919 at site A against 0.810 at site B (B minus A -0.109, CI [-0.157, -0.067], n=56),
+dropout reads 0.905 against 0.840 (-0.064, CI [-0.100, -0.031], n=56) and gaussian reads
+0.840 against 0.834 (-0.007, CI [-0.053, +0.034], n=56). The gaussian pair no longer
+separates in either direction, so it neither supports nor contradicts `ln_1` absorbing
+additive noise injected before it. `token_mask` is the pair where
 neither operator effect explains the per-model swings, since token masking survives the
 norm at both sites (H47's own measurement), so the swings trace to what the 2 sites
 physically zero.
@@ -199,9 +203,10 @@ disturbing a large causally concentrated write the way site A's mask does.
 ## Verdict
 
 Site A and site B are 2 complementary probes, not the same placement seen twice. The panel
-mean agrees only because equal and opposite per-model gaps cancel: B beats A by up to 0.52
-on SIG and WaNet at 10%, A beats B by up to 0.39 on WaNet at 5% and on every 1 of those
-rows 43 to 84% of triggered images are caught by exactly 1 site. The physical reason is
+mean agrees only because equal and opposite per-model gaps cancel. B beats A by up to 0.52
+on SIG and WaNet at 10% and by 0.47 on GTSRB TaCT at 1%, A beats B by up to 0.39 on WaNet
+at 5% and on every 1 of those rows 43 to 84% of triggered images are caught by exactly 1
+site. The physical reason is
 forced by where each site sits in the block: site B's mask lands after attention has
 already written this block's class-token value and before anything mixes across tokens
 again, so it provably leaves the class token in this block untouched, 0.000 relative
@@ -215,7 +220,7 @@ for 6 to 11 layers, while restoring 1 block's own attention write alone (site B'
 never exceeds 0.35 recovery at any layer, so site B accumulates its signal over 12 small
 per-block disturbances rather than disturbing 1 causally concentrated write. The min-rank
 union of the 2 sites beats the better single site on the sig and tiny-wanet rows and loses
-to it on both wanet-at-10% rows, so the 2 sites are worth reading together when they agree
+to it on both wanet-at-10% rows and on GTSRB TaCT, so the 2 sites are worth reading together when they agree
 and worth distrusting a naive combination of when they disagree sharply, as wanet does.
 
 ## Files

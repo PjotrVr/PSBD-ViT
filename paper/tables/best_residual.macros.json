@@ -2,17 +2,17 @@
   "generator": "scripts/paper/tab_best_residual.py",
   "inputs": [
     "configs/psbd_basis.json",
-    "results/<folder>/psbd_metrics.json (54 models)"
+    "results/<folder>/psbd_metrics.json (56 models)"
   ],
-  "written_at": "2026-09-29T18:03:15.416773+00:00",
-  "git_commit": "b2d32cf11708d5de965d3e13604c863a3ad9b493-dirty",
+  "written_at": "2026-09-30T13:08:31.929470+00:00",
+  "git_commit": "257fa16f3d6cf6ee17ee984d58eef143db7ecc4c-dirty",
   "macros": {
     "BestResidualCandidates": {
       "value": "8",
       "meaning": "residual placements, token masks excluded, present on every headline model"
     },
     "BestResidualModels": {
-      "value": "54",
+      "value": "56",
       "meaning": "models behind the comparison"
     },
     "BestResidualName": {
@@ -20,19 +20,19 @@
       "meaning": "the best residual placement"
     },
     "BestResidualAuroc": {
-      "value": "0.915",
+      "value": "0.908",
       "meaning": "its mean AUROC at the adaptive rule"
     },
     "BestResidualGain": {
-      "value": "+0.048",
+      "value": "+0.043",
       "meaning": "mean paired AUROC gain of PSBD-TM over the best residual placement"
     },
     "BestResidualGainLow": {
-      "value": "+0.008",
+      "value": "$-$0.001",
       "meaning": "lower bound of the 95% bootstrap interval on that gain"
     },
     "BestResidualGainHigh": {
-      "value": "+0.092",
+      "value": "+0.090",
       "meaning": "upper bound of the 95% bootstrap interval on that gain"
     },
     "BestResidualBadnetATwooAuroc": {
@@ -40,8 +40,8 @@
       "meaning": "mean AUROC of the best residual placement on badnet_a2o, over 12 models, a dash when none is in the panel"
     },
     "BestResidualTactAuroc": {
-      "value": "0.715",
-      "meaning": "mean AUROC of the best residual placement on tact, over 3 models, a dash when none is in the panel"
+      "value": "0.728",
+      "meaning": "mean AUROC of the best residual placement on tact, over 4 models, a dash when none is in the panel"
     },
     "BestResidualWanetAuroc": {
       "value": "0.951",

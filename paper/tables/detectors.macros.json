@@ -1,15 +1,15 @@
 {
   "generator": "scripts/paper/tab_detectors.py",
   "inputs": [
-    "results/coverage/coverage.json (54 of 56 successful cells carry every defense)",
+    "results/coverage/coverage.json (56 of 62 successful cells carry every defense)",
     "results/*/detectors/*_metrics.json",
     "results/*/psbd_metrics.json"
   ],
-  "written_at": "2026-09-29T18:07:13.740671+00:00",
-  "git_commit": "c62daf5e51a53e1f7a769cdd8575c831ac19f3ef-dirty",
+  "written_at": "2026-09-30T13:12:26.357143+00:00",
+  "git_commit": "257fa16f3d6cf6ee17ee984d58eef143db7ecc4c-dirty",
   "macros": {
     "DetectorsComparedModels": {
-      "value": "54",
+      "value": "56",
       "meaning": "backdoored models in the detector comparison"
     },
     "DetectorsIbdPscFactor": {
@@ -37,15 +37,15 @@
       "meaning": "shown defenses with a higher mean auroc than the published placement"
     },
     "DetectorsAurocOurs": {
-      "value": "0.963",
+      "value": "0.951",
       "meaning": "mean auroc of the recommended placement over the compared models"
     },
     "DetectorsAurocPublished": {
-      "value": "0.885",
+      "value": "0.876",
       "meaning": "mean auroc of the published placement over the same models"
     },
     "DetectorsAurocBestCompetitor": {
-      "value": "0.936",
+      "value": "0.933",
       "meaning": "mean auroc of the strongest competitor detector, IBD-PSC$^\\ast$"
     },
     "DetectorsAurocBestCompetitorName": {
@@ -53,15 +53,15 @@
       "meaning": "the strongest competitor detector by mean auroc"
     },
     "DetectorsAurocMargin": {
-      "value": "+0.027",
+      "value": "+0.018",
       "meaning": "mean auroc of the recommended placement minus the strongest competitor"
     },
     "DetectorsAurocSentinet": {
-      "value": "0.418",
+      "value": "0.421",
       "meaning": "mean auroc of the SentiNet port, whose Grad-CAM mask misses the trigger"
     },
     "DetectorsAurocIbdPsc": {
-      "value": "0.732",
+      "value": "0.713",
       "meaning": "mean auroc of IBD-PSC at the paper's fixed amplification factor"
     },
     "DetectorsAurocBelowChanceColumns": {
@@ -69,15 +69,15 @@
       "meaning": "competitor detectors whose mean auroc sits below chance"
     },
     "DetectorsAurocMarginLow": {
-      "value": "+0.004",
+      "value": "$-$0.017",
       "meaning": "lower bound of the 95% paired bootstrap interval on detectors_auroc_margin"
     },
     "DetectorsAurocMarginHigh": {
-      "value": "+0.049",
+      "value": "+0.048",
       "meaning": "upper bound of the 95% paired bootstrap interval on detectors_auroc_margin"
     },
     "DetectorsComparedModelsFivePoint": {
-      "value": "56",
+      "value": "58",
       "meaning": "at the 5-point clean-accuracy bar, backdoored models in the detector comparison"
     },
     "DetectorsAurocDefensesRankedFivePoint": {
@@ -89,23 +89,23 @@
       "meaning": "at the 5-point clean-accuracy bar, rank of the recommended placement among every defense by mean auroc"
     },
     "DetectorsAurocRankPublishedFivePoint": {
-      "value": "4th",
+      "value": "5th",
       "meaning": "at the 5-point clean-accuracy bar, rank the published placement would take among the shown defenses by mean auroc"
     },
     "DetectorsAurocBeatingPublishedFivePoint": {
-      "value": "3",
+      "value": "4",
       "meaning": "at the 5-point clean-accuracy bar, shown defenses with a higher mean auroc than the published placement"
     },
     "DetectorsAurocOursFivePoint": {
-      "value": "0.962",
+      "value": "0.950",
       "meaning": "at the 5-point clean-accuracy bar, mean auroc of the recommended placement over the compared models"
     },
     "DetectorsAurocPublishedFivePoint": {
-      "value": "0.887",
+      "value": "0.879",
       "meaning": "at the 5-point clean-accuracy bar, mean auroc of the published placement over the same models"
     },
     "DetectorsAurocBestCompetitorFivePoint": {
-      "value": "0.926",
+      "value": "0.924",
       "meaning": "at the 5-point clean-accuracy bar, mean auroc of the strongest competitor detector, IBD-PSC$^\\ast$"
     },
     "DetectorsAurocBestCompetitorNameFivePoint": {
@@ -113,15 +113,15 @@
       "meaning": "at the 5-point clean-accuracy bar, the strongest competitor detector by mean auroc"
     },
     "DetectorsAurocMarginFivePoint": {
-      "value": "+0.036",
+      "value": "+0.027",
       "meaning": "at the 5-point clean-accuracy bar, mean auroc of the recommended placement minus the strongest competitor"
     },
     "DetectorsAurocSentinetFivePoint": {
-      "value": "0.415",
+      "value": "0.418",
       "meaning": "at the 5-point clean-accuracy bar, mean auroc of the SentiNet port, whose Grad-CAM mask misses the trigger"
     },
     "DetectorsAurocIbdPscFivePoint": {
-      "value": "0.724",
+      "value": "0.706",
       "meaning": "at the 5-point clean-accuracy bar, mean auroc of IBD-PSC at the paper's fixed amplification factor"
     },
     "DetectorsAurocBelowChanceColumnsFivePoint": {
@@ -129,11 +129,11 @@
       "meaning": "at the 5-point clean-accuracy bar, competitor detectors whose mean auroc sits below chance"
     },
     "DetectorsAurocMarginLowFivePoint": {
-      "value": "+0.012",
+      "value": "$-$0.009",
       "meaning": "at the 5-point clean-accuracy bar, lower bound of the 95% paired bootstrap interval on detectors_auroc_margin"
     },
     "DetectorsAurocMarginHighFivePoint": {
-      "value": "+0.061",
+      "value": "+0.057",
       "meaning": "at the 5-point clean-accuracy bar, upper bound of the 95% paired bootstrap interval on detectors_auroc_margin"
     },
     "DetectorsAurocDatasetsOursLeads": {
@@ -161,15 +161,15 @@
       "meaning": "shown defenses with a higher mean tpr10 than the published placement"
     },
     "DetectorsTprOneZeroOurs": {
-      "value": "0.887",
+      "value": "0.872",
       "meaning": "mean tpr10 of the recommended placement over the compared models"
     },
     "DetectorsTprOneZeroPublished": {
-      "value": "0.736",
+      "value": "0.722",
       "meaning": "mean tpr10 of the published placement over the same models"
     },
     "DetectorsTprOneZeroBestCompetitor": {
-      "value": "0.825",
+      "value": "0.808",
       "meaning": "mean tpr10 of the strongest competitor detector, IBD-PSC$^\\ast$"
     },
     "DetectorsTprOneZeroBestCompetitorName": {
@@ -177,15 +177,15 @@
       "meaning": "the strongest competitor detector by mean tpr10"
     },
     "DetectorsTprOneZeroMargin": {
-      "value": "+0.062",
+      "value": "+0.064",
       "meaning": "mean tpr10 of the recommended placement minus the strongest competitor"
     },
     "DetectorsTprOneZeroSentinet": {
-      "value": "0.101",
+      "value": "0.116",
       "meaning": "mean tpr10 of the SentiNet port, whose Grad-CAM mask misses the trigger"
     },
     "DetectorsTprOneZeroIbdPsc": {
-      "value": "0.400",
+      "value": "0.386",
       "meaning": "mean tpr10 of IBD-PSC at the paper's fixed amplification factor"
     },
     "DetectorsTprOneZeroBelowChanceColumns": {
@@ -193,11 +193,11 @@
       "meaning": "competitor detectors whose mean tpr10 sits below chance"
     },
     "DetectorsTprOneZeroMarginLow": {
-      "value": "+0.004",
+      "value": "+0.006",
       "meaning": "lower bound of the 95% paired bootstrap interval on detectors_tpr10_margin"
     },
     "DetectorsTprOneZeroMarginHigh": {
-      "value": "+0.121",
+      "value": "+0.125",
       "meaning": "upper bound of the 95% paired bootstrap interval on detectors_tpr10_margin"
     },
     "DetectorsTprOneZeroDefensesRankedFivePoint": {
@@ -217,15 +217,15 @@
       "meaning": "at the 5-point clean-accuracy bar, shown defenses with a higher mean tpr10 than the published placement"
     },
     "DetectorsTprOneZeroOursFivePoint": {
-      "value": "0.887",
+      "value": "0.873",
       "meaning": "at the 5-point clean-accuracy bar, mean tpr10 of the recommended placement over the compared models"
     },
     "DetectorsTprOneZeroPublishedFivePoint": {
-      "value": "0.743",
+      "value": "0.729",
       "meaning": "at the 5-point clean-accuracy bar, mean tpr10 of the published placement over the same models"
     },
     "DetectorsTprOneZeroBestCompetitorFivePoint": {
-      "value": "0.803",
+      "value": "0.787",
       "meaning": "at the 5-point clean-accuracy bar, mean tpr10 of the strongest competitor detector, IBD-PSC$^\\ast$"
     },
     "DetectorsTprOneZeroBestCompetitorNameFivePoint": {
@@ -233,15 +233,15 @@
       "meaning": "at the 5-point clean-accuracy bar, the strongest competitor detector by mean tpr10"
     },
     "DetectorsTprOneZeroMarginFivePoint": {
-      "value": "+0.085",
+      "value": "+0.086",
       "meaning": "at the 5-point clean-accuracy bar, mean tpr10 of the recommended placement minus the strongest competitor"
     },
     "DetectorsTprOneZeroSentinetFivePoint": {
-      "value": "0.099",
+      "value": "0.113",
       "meaning": "at the 5-point clean-accuracy bar, mean tpr10 of the SentiNet port, whose Grad-CAM mask misses the trigger"
     },
     "DetectorsTprOneZeroIbdPscFivePoint": {
-      "value": "0.387",
+      "value": "0.374",
       "meaning": "at the 5-point clean-accuracy bar, mean tpr10 of IBD-PSC at the paper's fixed amplification factor"
     },
     "DetectorsTprOneZeroBelowChanceColumnsFivePoint": {
@@ -265,23 +265,23 @@
       "meaning": "rank of the recommended placement among every defense by mean tpr20"
     },
     "DetectorsTprTwoZeroRankPublished": {
-      "value": "3rd",
+      "value": "4th",
       "meaning": "rank the published placement would take among the shown defenses by mean tpr20"
     },
     "DetectorsTprTwoZeroBeatingPublished": {
-      "value": "2",
+      "value": "3",
       "meaning": "shown defenses with a higher mean tpr20 than the published placement"
     },
     "DetectorsTprTwoZeroOurs": {
-      "value": "0.916",
+      "value": "0.900",
       "meaning": "mean tpr20 of the recommended placement over the compared models"
     },
     "DetectorsTprTwoZeroPublished": {
-      "value": "0.798",
+      "value": "0.785",
       "meaning": "mean tpr20 of the published placement over the same models"
     },
     "DetectorsTprTwoZeroBestCompetitor": {
-      "value": "0.900",
+      "value": "0.892",
       "meaning": "mean tpr20 of the strongest competitor detector, IBD-PSC$^\\ast$"
     },
     "DetectorsTprTwoZeroBestCompetitorName": {
@@ -289,27 +289,27 @@
       "meaning": "the strongest competitor detector by mean tpr20"
     },
     "DetectorsTprTwoZeroMargin": {
-      "value": "+0.016",
+      "value": "+0.008",
       "meaning": "mean tpr20 of the recommended placement minus the strongest competitor"
     },
     "DetectorsTprTwoZeroSentinet": {
-      "value": "0.173",
+      "value": "0.185",
       "meaning": "mean tpr20 of the SentiNet port, whose Grad-CAM mask misses the trigger"
     },
     "DetectorsTprTwoZeroIbdPsc": {
-      "value": "0.517",
+      "value": "0.500",
       "meaning": "mean tpr20 of IBD-PSC at the paper's fixed amplification factor"
     },
     "DetectorsTprTwoZeroBelowChanceColumns": {
-      "value": "2",
+      "value": "3",
       "meaning": "competitor detectors whose mean tpr20 sits below chance"
     },
     "DetectorsTprTwoZeroMarginLow": {
-      "value": "$-$0.028",
+      "value": "$-$0.048",
       "meaning": "lower bound of the 95% paired bootstrap interval on detectors_tpr20_margin"
     },
     "DetectorsTprTwoZeroMarginHigh": {
-      "value": "+0.059",
+      "value": "+0.058",
       "meaning": "upper bound of the 95% paired bootstrap interval on detectors_tpr20_margin"
     },
     "DetectorsTprTwoZeroDefensesRankedFivePoint": {
@@ -329,15 +329,15 @@
       "meaning": "at the 5-point clean-accuracy bar, shown defenses with a higher mean tpr20 than the published placement"
     },
     "DetectorsTprTwoZeroOursFivePoint": {
-      "value": "0.916",
+      "value": "0.901",
       "meaning": "at the 5-point clean-accuracy bar, mean tpr20 of the recommended placement over the compared models"
     },
     "DetectorsTprTwoZeroPublishedFivePoint": {
-      "value": "0.803",
+      "value": "0.791",
       "meaning": "at the 5-point clean-accuracy bar, mean tpr20 of the published placement over the same models"
     },
     "DetectorsTprTwoZeroBestCompetitorFivePoint": {
-      "value": "0.879",
+      "value": "0.872",
       "meaning": "at the 5-point clean-accuracy bar, mean tpr20 of the strongest competitor detector, IBD-PSC$^\\ast$"
     },
     "DetectorsTprTwoZeroBestCompetitorNameFivePoint": {
@@ -345,27 +345,27 @@
       "meaning": "at the 5-point clean-accuracy bar, the strongest competitor detector by mean tpr20"
     },
     "DetectorsTprTwoZeroMarginFivePoint": {
-      "value": "+0.037",
+      "value": "+0.029",
       "meaning": "at the 5-point clean-accuracy bar, mean tpr20 of the recommended placement minus the strongest competitor"
     },
     "DetectorsTprTwoZeroSentinetFivePoint": {
-      "value": "0.169",
+      "value": "0.182",
       "meaning": "at the 5-point clean-accuracy bar, mean tpr20 of the SentiNet port, whose Grad-CAM mask misses the trigger"
     },
     "DetectorsTprTwoZeroIbdPscFivePoint": {
-      "value": "0.501",
+      "value": "0.485",
       "meaning": "at the 5-point clean-accuracy bar, mean tpr20 of IBD-PSC at the paper's fixed amplification factor"
     },
     "DetectorsTprTwoZeroBelowChanceColumnsFivePoint": {
-      "value": "3",
+      "value": "4",
       "meaning": "at the 5-point clean-accuracy bar, competitor detectors whose mean tpr20 sits below chance"
     },
     "DetectorsTprTwoZeroMarginLowFivePoint": {
-      "value": "$-$0.012",
+      "value": "$-$0.031",
       "meaning": "at the 5-point clean-accuracy bar, lower bound of the 95% paired bootstrap interval on detectors_tpr20_margin"
     },
     "DetectorsTprTwoZeroMarginHighFivePoint": {
-      "value": "+0.092",
+      "value": "+0.089",
       "meaning": "at the 5-point clean-accuracy bar, upper bound of the 95% paired bootstrap interval on detectors_tpr20_margin"
     }
   }

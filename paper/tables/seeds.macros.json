@@ -2,30 +2,30 @@
   "generator": "scripts/paper/tab_seeds.py",
   "inputs": [
     "results/coverage/coverage.json",
-    "results/<folder>[_seed_N]/psbd_metrics.json (14 cells)",
+    "results/<folder>[_seed_N]/psbd_metrics.json (15 cells)",
     "checkpoints/<folder>_seed_N/args.json"
   ],
-  "written_at": "2026-09-29T18:11:25.728346+00:00",
-  "git_commit": "d73d3277d007fd75b3a4166a7911b1e07a2761b7-dirty",
+  "written_at": "2026-09-30T13:16:32.793872+00:00",
+  "git_commit": "257fa16f3d6cf6ee17ee984d58eef143db7ecc4c-dirty",
   "macros": {
     "SeedsPerCell": {
       "value": "3",
       "meaning": "training seeds per replicated cell"
     },
     "SeedCells": {
-      "value": "14",
+      "value": "15",
       "meaning": "successful cells with 3 training seeds at both placements"
     },
     "SeedSdRecommended": {
-      "value": "0.012",
+      "value": "0.028",
       "meaning": "mean over replicated cells of the recommended placement's AUROC standard deviation across 3 seeds"
     },
     "SeedSdPublished": {
-      "value": "0.076",
+      "value": "0.071",
       "meaning": "mean over replicated cells of the published placement's AUROC standard deviation across 3 seeds"
     },
     "SeedSdGain": {
-      "value": "0.069",
+      "value": "0.081",
       "meaning": "mean over replicated cells of the paired gain's standard deviation across 3 seeds"
     },
     "SeedSdGainMax": {
@@ -33,7 +33,7 @@
       "meaning": "largest per-cell standard deviation of the paired gain across 3 seeds"
     },
     "SeedGainMean": {
-      "value": "+0.128",
+      "value": "+0.106",
       "meaning": "mean over replicated cells of the seed-averaged paired gain, recommended minus published at the adaptive rule"
     },
     "SeedGainSignFlips": {

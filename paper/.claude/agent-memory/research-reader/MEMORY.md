@@ -1,0 +1,2 @@
+- [Metadata sources on Supek](reference_metadata_sources.md) — DBLP blocked by Anubis. Use OpenAlex, Crossref, CVF, PMLR, NeurIPS, arXiv. pypdf in .venv
+- [Bibliography audit 2026-09-24](project_psbd_bibliography_audit.md) — PSBD is a training-data detector, PatchDrop prior art, attack-implementation deviations

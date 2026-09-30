@@ -2,74 +2,74 @@
   "generator": "scripts/paper/tab_headline.py",
   "inputs": [
     "results/coverage/coverage.json",
-    "results/<folder>/psbd_metrics.json (56 cells)"
+    "results/<folder>/psbd_metrics.json (62 cells)"
   ],
-  "written_at": "2026-09-29T18:08:35.483347+00:00",
-  "git_commit": "d73d3277d007fd75b3a4166a7911b1e07a2761b7-dirty",
+  "written_at": "2026-09-30T13:13:44.941939+00:00",
+  "git_commit": "257fa16f3d6cf6ee17ee984d58eef143db7ecc4c-dirty",
   "macros": {
     "HeadlinePairedCells": {
-      "value": "54",
+      "value": "56",
       "meaning": "successful cells carrying both compared placements, the population of the headline means and the paired gain"
     },
     "HeadlineAurocAdaptive": {
-      "value": "0.963",
-      "meaning": "mean AUROC of the recommended placement at the adaptive rule, over the 54 cells carrying both compared placements"
+      "value": "0.951",
+      "meaning": "mean AUROC of the recommended placement at the adaptive rule, over the 56 cells carrying both compared placements"
     },
     "HeadlineAurocMatched": {
-      "value": "0.938",
-      "meaning": "mean AUROC of the recommended placement at the matched 0.6 rule, over the 54 cells it covers of the 56 successful cells"
+      "value": "0.925",
+      "meaning": "mean AUROC of the recommended placement at the matched 0.6 rule, over the 56 cells it covers of the 62 successful cells"
     },
     "PublishedAurocAdaptive": {
-      "value": "0.885",
-      "meaning": "mean AUROC of the published placement at the adaptive rule, over the 54 cells carrying both compared placements"
+      "value": "0.876",
+      "meaning": "mean AUROC of the published placement at the adaptive rule, over the 56 cells carrying both compared placements"
     },
     "HeadlineGainAdaptiveAuroc": {
-      "value": "+0.078",
-      "meaning": "mean AUROC gain of the recommended placement over the published placement, both at the adaptive rule, paired over the 54 cells carrying both"
+      "value": "+0.075",
+      "meaning": "mean AUROC gain of the recommended placement over the published placement, both at the adaptive rule, paired over the 56 cells carrying both"
     },
     "HeadlineGainAdaptiveAurocLow": {
-      "value": "+0.026",
+      "value": "+0.017",
       "meaning": "lower bound of the 95% bootstrap interval on headline_gain_adaptive_auroc"
     },
     "HeadlineGainAdaptiveAurocHigh": {
-      "value": "+0.135",
+      "value": "+0.138",
       "meaning": "upper bound of the 95% bootstrap interval on headline_gain_adaptive_auroc"
     },
     "HeadlineGainMatchedAuroc": {
-      "value": "+0.053",
-      "meaning": "mean AUROC gain of the recommended placement at the matched 0.6 rule over the published placement at the adaptive rule, paired over the 54 cells carrying both"
+      "value": "+0.049",
+      "meaning": "mean AUROC gain of the recommended placement at the matched 0.6 rule over the published placement at the adaptive rule, paired over the 56 cells carrying both"
     },
     "HeadlineTprAtOnePercent": {
-      "value": "0.747",
-      "meaning": "mean TPR of the recommended placement at the adaptive rule, at the 1% FPR budget, over the 54 cells it covers"
+      "value": "0.735",
+      "meaning": "mean TPR of the recommended placement at the adaptive rule, at the 1% FPR budget, over the 56 cells it covers"
     },
     "HeadlineFloorAuroc": {
-      "value": "0.459",
-      "meaning": "minimum single-cell AUROC of the recommended placement at the adaptive rule, over the 54 paired cells"
+      "value": "0.266",
+      "meaning": "minimum single-cell AUROC of the recommended placement at the adaptive rule, over the 56 paired cells"
     },
     "HeadlineInversions": {
-      "value": "1",
-      "meaning": "cells where the recommended placement at the adaptive rule scores AUROC below 0.5, out of the 54 paired cells"
+      "value": "2",
+      "meaning": "cells where the recommended placement at the adaptive rule scores AUROC below 0.5, out of the 56 paired cells"
     },
     "PrimaryGainAdaptiveAuroc": {
       "value": "+0.047",
       "meaning": "mean paired AUROC gain of recommended over published, both at the adaptive rule, on the primary datasets cifar100 and tiny"
     },
     "HardGainAdaptiveAuroc": {
-      "value": "+0.039",
+      "value": "+0.034",
       "meaning": "mean paired AUROC gain of recommended over published, both at the adaptive rule, on the hard attacks"
     },
     "CifarOneZeroZeroOnePercentGain": {
       "value": "+0.100",
-      "meaning": "mean paired AUROC gain of recommended over published, both at the adaptive rule, on cifar100 at 1% poisoning only, n=4"
+      "meaning": "mean paired AUROC gain of recommended over published, both at the adaptive rule, on cifar100 at 1% poisoning only, n=5"
     },
     "DeploymentPrevalence": {
       "value": "1\\%",
       "meaning": "share of triggered inputs at deployment the precision macros assume"
     },
     "RealizedFprOneZero": {
-      "value": "0.093",
-      "meaning": "mean false-positive rate on clean test images of the recommended placement at the q0.10 threshold, over 54 cells"
+      "value": "0.091",
+      "meaning": "mean false-positive rate on clean test images of the recommended placement at the q0.10 threshold, over 56 cells"
     },
     "RealizedFprOneZeroMin": {
       "value": "0.000",
@@ -84,8 +84,8 @@
       "meaning": "share of flags that are triggered at the q0.10 threshold when the deployment prevalence of triggered inputs is 0.01, from the mean TPR and FPR"
     },
     "RealizedFprTwoZero": {
-      "value": "0.186",
-      "meaning": "mean false-positive rate on clean test images of the recommended placement at the q0.20 threshold, over 54 cells"
+      "value": "0.183",
+      "meaning": "mean false-positive rate on clean test images of the recommended placement at the q0.20 threshold, over 56 cells"
     },
     "RealizedFprTwoZeroMin": {
       "value": "0.006",
@@ -100,44 +100,44 @@
       "meaning": "share of flags that are triggered at the q0.20 threshold when the deployment prevalence of triggered inputs is 0.01, from the mean TPR and FPR"
     },
     "HeadlinePairedCellsFivePoint": {
-      "value": "56",
+      "value": "58",
       "meaning": "at the 5-point clean-accuracy bar, successful cells carrying both compared placements, the population of the headline means and the paired gain"
     },
     "HeadlineAurocAdaptiveFivePoint": {
-      "value": "0.962",
-      "meaning": "at the 5-point clean-accuracy bar, mean AUROC of the recommended placement at the adaptive rule, over the 56 cells carrying both compared placements"
+      "value": "0.950",
+      "meaning": "at the 5-point clean-accuracy bar, mean AUROC of the recommended placement at the adaptive rule, over the 58 cells carrying both compared placements"
     },
     "HeadlineAurocMatchedFivePoint": {
-      "value": "0.937",
-      "meaning": "at the 5-point clean-accuracy bar, mean AUROC of the recommended placement at the matched 0.6 rule, over the 56 cells it covers of the 58 successful cells"
+      "value": "0.925",
+      "meaning": "at the 5-point clean-accuracy bar, mean AUROC of the recommended placement at the matched 0.6 rule, over the 58 cells it covers of the 64 successful cells"
     },
     "PublishedAurocAdaptiveFivePoint": {
-      "value": "0.887",
-      "meaning": "at the 5-point clean-accuracy bar, mean AUROC of the published placement at the adaptive rule, over the 56 cells carrying both compared placements"
+      "value": "0.879",
+      "meaning": "at the 5-point clean-accuracy bar, mean AUROC of the published placement at the adaptive rule, over the 58 cells carrying both compared placements"
     },
     "HeadlineGainAdaptiveAurocFivePoint": {
-      "value": "+0.075",
-      "meaning": "at the 5-point clean-accuracy bar, mean AUROC gain of the recommended placement over the published placement, both at the adaptive rule, paired over the 56 cells carrying both"
+      "value": "+0.072",
+      "meaning": "at the 5-point clean-accuracy bar, mean AUROC gain of the recommended placement over the published placement, both at the adaptive rule, paired over the 58 cells carrying both"
     },
     "HeadlineGainAdaptiveAurocLowFivePoint": {
-      "value": "+0.026",
+      "value": "+0.017",
       "meaning": "at the 5-point clean-accuracy bar, lower bound of the 95% bootstrap interval on headline_gain_adaptive_auroc"
     },
     "HeadlineGainAdaptiveAurocHighFivePoint": {
-      "value": "+0.129",
+      "value": "+0.132",
       "meaning": "at the 5-point clean-accuracy bar, upper bound of the 95% bootstrap interval on headline_gain_adaptive_auroc"
     },
     "HeadlineGainMatchedAurocFivePoint": {
-      "value": "+0.050",
-      "meaning": "at the 5-point clean-accuracy bar, mean AUROC gain of the recommended placement at the matched 0.6 rule over the published placement at the adaptive rule, paired over the 56 cells carrying both"
+      "value": "+0.046",
+      "meaning": "at the 5-point clean-accuracy bar, mean AUROC gain of the recommended placement at the matched 0.6 rule over the published placement at the adaptive rule, paired over the 58 cells carrying both"
     },
     "HeadlineFloorAurocFivePoint": {
-      "value": "0.459",
-      "meaning": "at the 5-point clean-accuracy bar, minimum single-cell AUROC of the recommended placement at the adaptive rule, over the 56 paired cells"
+      "value": "0.266",
+      "meaning": "at the 5-point clean-accuracy bar, minimum single-cell AUROC of the recommended placement at the adaptive rule, over the 58 paired cells"
     },
     "HeadlineInversionsFivePoint": {
-      "value": "1",
-      "meaning": "at the 5-point clean-accuracy bar, cells where the recommended placement at the adaptive rule scores AUROC below 0.5, out of the 56 paired cells"
+      "value": "2",
+      "meaning": "at the 5-point clean-accuracy bar, cells where the recommended placement at the adaptive rule scores AUROC below 0.5, out of the 58 paired cells"
     }
   }
 }

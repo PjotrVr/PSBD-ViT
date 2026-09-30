@@ -3,19 +3,19 @@
   "inputs": [
     "results/<folder>/psbd_metrics.json"
   ],
-  "written_at": "2026-09-29T18:00:44.726814+00:00",
-  "git_commit": "b2d32cf11708d5de965d3e13604c863a3ad9b493-dirty",
+  "written_at": "2026-09-30T13:06:05.445018+00:00",
+  "git_commit": "257fa16f3d6cf6ee17ee984d58eef143db7ecc4c-dirty",
   "macros": {
     "ShiftToTargetShareAll": {
-      "value": "0.183",
+      "value": "0.177",
       "meaning": "A1: mean target-class share of shifted clean predictions, all clearing cells, recommended placement, matched-0.6 rate rule"
     },
     "ShiftToTargetExcessAll": {
-      "value": "+0.182 [+0.112, +0.256]",
+      "value": "+0.175 [+0.109, +0.246]",
       "meaning": "A1: mean paired excess over the matched-dataset benign reference, all successful cells, matched-0.6 rate rule, 95% bootstrap interval"
     },
     "ShiftToTargetBenignShare": {
-      "value": "0.002",
+      "value": "0.001",
       "meaning": "A1: mean target-class share on the 4 benign references, matched-0.6 rate rule"
     },
     "ShiftToTargetHeadlineCell": {
@@ -23,7 +23,7 @@
       "meaning": "A1: target-class share on vit_cifar100_badnet_a2o_0_01, recommended placement, adaptive-0.8 rate rule"
     },
     "ShiftToTargetNoDriftAttacks": {
-      "value": "Blend and TaCT",
+      "value": "Blend, Label-Consistent and TaCT",
       "meaning": "attacks whose excess stays under 0.02 on every dataset"
     },
     "ShiftToTargetDriftAttacks": {

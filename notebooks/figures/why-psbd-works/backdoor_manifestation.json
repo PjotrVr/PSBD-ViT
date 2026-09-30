@@ -1,0 +1,116 @@
+{
+  "tool": "notebooks/why-psbd-works.ipynb",
+  "folder": "results/_experiments",
+  "figure": "backdoor_manifestation.png",
+  "git_commit": "a91f34150dc43affd9c4a634c60d03aa3e5ec43a-dirty",
+  "written_at": "2026-09-30T14:16:20.703948+00:00",
+  "settings": {
+    "sources": [
+      "`results/_experiments/backdoor_manifestation/summary.json`, `rows[]`"
+    ]
+  },
+  "plotted": {
+    "onset": {
+      "vit|badnet_a2o": [
+        8,
+        10,
+        9,
+        10
+      ],
+      "vit|tact": [
+        12,
+        12,
+        9
+      ],
+      "vit|blend": [
+        6,
+        5,
+        8,
+        7
+      ],
+      "vit|lf": [
+        9,
+        9,
+        6,
+        9
+      ],
+      "vit|bpp": [
+        9,
+        7,
+        6,
+        8
+      ],
+      "vit|wanet": [
+        7,
+        7
+      ],
+      "swin|badnet_a2o": [
+        18,
+        13,
+        23,
+        18
+      ],
+      "swin|tact": [
+        23
+      ],
+      "swin|blend": [
+        5,
+        5,
+        5,
+        5
+      ],
+      "swin|lf": [
+        9,
+        9,
+        8,
+        17
+      ],
+      "swin|bpp": [
+        10,
+        9,
+        5,
+        9
+      ],
+      "swin|wanet": [
+        17,
+        15,
+        15,
+        23
+      ]
+    },
+    "ablation": {
+      "vit": {
+        "none": 0.9858285472506568,
+        "direction": 0.03827889478721079,
+        "top_tac_300": 0.9241576961108616,
+        "random_coordinates_300": 0.9857094997451419,
+        "variance_matched_pc": 0.986185093720754,
+        "benign_direction": 0.9858285472506568,
+        "target_class_direction": 0.8367743492126465,
+        "direction_orthogonal_to_target": 0.9740422368049622
+      },
+      "swin": {
+        "none": 0.9914285739262899,
+        "direction": 0.17963986613211178,
+        "top_tac_300": 0.9554732016154698,
+        "random_coordinates_300": 0.9911904789152599,
+        "variance_matched_pc": 0.991071431409745,
+        "benign_direction": 0.9915476214318049,
+        "target_class_direction": 0.5894017753501734,
+        "direction_orthogonal_to_target": 0.9859523829959688
+      }
+    },
+    "recall": {
+      "vit": [
+        0.960608028230213,
+        0.4362713254633404,
+        0.07922379220170635
+      ],
+      "swin": [
+        0.9705088876542591,
+        0.6134867526236034,
+        0.105174328067473
+      ]
+    }
+  }
+}

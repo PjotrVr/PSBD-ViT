@@ -1,11 +1,12 @@
 #!/bin/bash
 # The night queue of the final method's GPU work on the login A100, inference only.
 # It waits for 17:00 and for the analysis agents' done markers, so their leftovers
-# run first, then runs item 1, 2 and 3 of README.md in order. Every sweep holds
+# run first, then runs items 0 to 3 of README.md in order. Every sweep holds
 # scratch/gpu.lock for 1 model only and caps itself at 0.15 of the card's memory,
 # so it interleaves with the other agents' queues. No job starts from 06:30 to
-# 17:00, and a stopped run resumes where it left off, since gpu_jobs.py lists only
-# work not yet cached. It never touches another process.
+# 17:00. The longest job (16 PSBD-RD rates) takes about 6 minutes, so every job
+# ends before the 07:00 curfew. A stopped run resumes where it left off, since
+# gpu_jobs.py lists only work not yet cached. It never touches another process.
 #
 #     nohup experiments/final_method/gpu_driver.sh > /dev/null 2>&1 &
 cd /lustre/home/pstika/projects/PSBD-ViT || exit 1
@@ -70,6 +71,11 @@ run_item() {
 
 wait_for_start
 echo "$(date -Is) driver start" >> "$SUMMARY"
+
+# Item 0, the trigger size series, then its CPU readout and verdicts.
+if run_item item_0_trigger_size; then
+    python experiments/evidence_surplus/trigger_size/measure.py >> "$SUMMARY" 2>&1
+fi
 
 # Item 1 found its band already cached on every scorable Swin model, and the
 # pre-registered Swin readout was read once on 2026-09-30, so it is not rerun.

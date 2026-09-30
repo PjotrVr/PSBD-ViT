@@ -367,8 +367,9 @@ The final method spends 6 perturbed passes per input. `compute_control.py` gives
 
 ## GPU plan for the night of 2026-09-30
 
-`gpu_driver.sh` runs on the login A100 from 17:00 and starts no job after 06:30. It waits for the analysis agents' done markers (`scratch/gpu_done_{general,tm,phenomenon,manifestation}`) so their leftovers go first. It then runs 3 items in order. Every sweep holds `scratch/gpu.lock` for 1 model, caps itself at 0.15 of the card's memory and leaves the CPU analysis to run outside the lock. `gpu_jobs.py` lists only work not yet cached, so the queue resumes after any stop. The driver touches `scratch/gpu_done_final_method` at the end. It is not started yet.
+`gpu_driver.sh` runs on the login A100 from 17:00 and starts no job after 06:30, so every job ends before the 07:00 curfew. It waits for the analysis agents' done markers (`scratch/gpu_done_{general,tm,phenomenon,manifestation}`) so their leftovers go first. It then runs 4 items in order. Every sweep holds `scratch/gpu.lock` for 1 model, caps itself at 0.15 of the card's memory and leaves the CPU analysis to run outside the lock. `gpu_jobs.py` lists only work not yet cached, so the queue resumes after any stop. The driver touches `scratch/gpu_done_final_method` at the end. It is not started yet.
 
+0. Trigger size series. PSBD-TM and PSBD-RD on the standard ladders at k = 3 for the 12 BadNets 5% checkpoints with patch sizes 2 to 16 (`experiments/evidence_surplus/trigger_size/`, pre-registered in its `PREDICTIONS.md`), then `cli.analyze` and its readout.
 1. Swin second probe. `cli.sweep --block-range` counts Swin-S blocks 1 to 24 in forward order across its 4 stages of 2, 2, 18 and 2 (`models.positions.resolve_targets`), so the middle third is `--block-range 9 16`, blocks 5 to 12 of stage 3. Every Swin panel model that PSBD-TM can score already holds that band's full ladder. The 2 that lack it are the 2 PSBD-TM cannot score, and the readout above is done. The item holds no job and stays in the driver only to catch a model added to the panel since.
 2. Compute control. PSBD-TM at 6 passes at the k = 3 adaptive rate on the ViT and Swin panel models that hold neither a `_k6` nor a `_k20` cache at that rate, then `compute_control.py` for both.
 3. The final method on the evaders. The middle band on every evasive checkpoint that clears the ASR bar, with the ladder 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 0.95, 0.99 on ViT and 0.8, 0.9, 0.95, 0.99 on Swin. The ladders start 1 step below the lowest rate at which the band reaches the target on the panel, and `fusion_readout.py` flags a model whose lowest rate already reaches it. Then `fusion_readout.py --set evaders`.
@@ -377,11 +378,12 @@ The estimate reads 21 s per rate at 3 passes on ViT and 34 s on Swin, from the f
 
 | item | jobs | by architecture | hours | cumulative hours |
 |---|---|---|---|---|
-| item_1_swin_band | 0 | vit 0, swin 0 | 0.0 | 0.0 |
-| item_2_k6 | 98 | vit 35, swin 63 | 2.5 | 2.5 |
-| item_3_evaders | 73 | vit 42, swin 31 | 3.8 | 6.4 |
+| item_0_trigger_size | 24 | vit 24, swin 0 | 2.1 | 2.1 |
+| item_1_swin_band | 0 | vit 0, swin 0 | 0.0 | 2.1 |
+| item_2_k6 | 98 | vit 35, swin 63 | 2.5 | 4.6 |
+| item_3_evaders | 73 | vit 42, swin 31 | 3.8 | 8.4 |
 
-The 3 items need 6.4 h of an uncontended card against a window of 13.5 h. The analysis leftovers and the k = 20 queue of `scratch/k20_driver.sh` wait for the same markers and take the same lock, and their length is not known here. If they take more than the difference, the Swin half of item 3 is what does not fit, since it runs last. The resumable job lists carry it to the next night.
+The 4 items need 8.4 h of an uncontended card against a window of 13.5 h. The analysis leftovers and the k = 20 queue of `scratch/k20_driver.sh` wait for the same markers and take the same lock, and their length is not known here. If they take more than the difference, the Swin half of item 3 is what does not fit, since it runs last. The resumable job lists carry it to the next night.
 
 ## Commands
 

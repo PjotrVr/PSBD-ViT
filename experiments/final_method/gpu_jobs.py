@@ -5,6 +5,8 @@ driver runs them, and only for work not already cached, so a rerun after an
 interruption resumes where the last one stopped. The driver calls this again
 before each item, since an earlier item or another agent may have filled a cache.
 
+    item_0_trigger_size  PSBD-TM and PSBD-RD on the standard ladders for the 12
+                       trigger size checkpoints of experiments/evidence_surplus/trigger_size/
     item_1_swin_band   Swin-S middle third, pre_residual blocks 9 to 16, full ladder,
                        on the Swin panel models that lack it
     item_2_k6          PSBD-TM at 6 passes at the k = 3 adaptive rate, on the ViT and
@@ -61,7 +63,13 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
         "--item",
-        choices=("item_1_swin_band", "item_2_k6", "item_3_evaders", "plan"),
+        choices=(
+            "item_0_trigger_size",
+            "item_1_swin_band",
+            "item_2_k6",
+            "item_3_evaders",
+            "plan",
+        ),
         required=True,
     )
     item = parser.parse_args().item
@@ -169,6 +177,52 @@ def missing_rates(folder, placement, rates):
     return missing
 
 
+# The trigger size series of experiments/evidence_surplus/trigger_size/, both
+# placements on the ladders every panel cache uses.
+TRIGGER_SIZE_FOLDERS = tuple(
+    f"vit_{dataset}_badnet_a2o_0_05_trig_p{patch}"
+    for dataset in ("cifar100", "gtsrb")
+    for patch in (2, 3, 5, 8, 12, 16)
+)
+TRIGGER_SIZE_SWEEPS = {
+    "before_attention_norm_token_mask": (
+        ["--position", "before_attention_norm", "--operator", "token_mask"],
+        (0.05, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9),
+    ),
+    "post_residual": (
+        ["--position", "post_residual", "--operator", "dropout"],
+        (
+            0.005,
+            0.01,
+            0.02,
+            0.03,
+            0.05,
+            0.07,
+            0.09,
+            0.1,
+            0.2,
+            0.3,
+            0.4,
+            0.5,
+            0.6,
+            0.7,
+            0.8,
+            0.9,
+        ),
+    ),
+}
+
+
+def item_0():
+    jobs = []
+    for folder in TRIGGER_SIZE_FOLDERS:
+        for placement, (arguments, ladder) in TRIGGER_SIZE_SWEEPS.items():
+            rates = missing_rates(folder, placement, ladder)
+            if rates:
+                jobs.append((folder, [*arguments, "--rates", *[str(r) for r in rates]]))
+    return jobs
+
+
 def item_1():
     # A model whose PSBD-TM never reaches the adaptive target cannot be scored by
     # the final method under the adaptive rule, so its band is not swept.
@@ -238,7 +292,12 @@ def item_3():
     return jobs
 
 
-ITEMS = {"item_1_swin_band": item_1, "item_2_k6": item_2, "item_3_evaders": item_3}
+ITEMS = {
+    "item_0_trigger_size": item_0,
+    "item_1_swin_band": item_1,
+    "item_2_k6": item_2,
+    "item_3_evaders": item_3,
+}
 
 
 if __name__ == "__main__":

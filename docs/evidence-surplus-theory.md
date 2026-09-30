@@ -16,7 +16,7 @@ The records already on disk constrain any account of PSBD on ViT-B/16 and Swin-S
 | triggered minus clean median margin retention under PSBD-TM | BadNets 0.451, Blend and LF 0.711, WaNet 0.497, BPP 0.802, TaCT 0.181 (ViT) | H-margin |
 | margin-matched AUROC under PSBD-TM | 0.996 on BadNets, 0.998 on Blend and LF, 0.805 on WaNet (ViT) | H-margin |
 | median unperturbed margin, clean against triggered | BadNets 6.18 against 12.46, WaNet 6.51 against 9.91 (ViT) | H-margin |
-| PSBD-TM beats the best function of confidence $A^*(P_c)$ | by 0.082 on average, on 50 of 54 models of the 2026-09-29 build, not recomputed on the 56-model panel | claim C13 |
+| PSBD-TM beats the best function of confidence $A^*(P_c)$ | by 0.069 on average, on 51 of 56 models | claim C13 |
 | survival of a triggered BadNets answer with $J$ of 4 late blocks fully masked | 0.987, 0.965, 0.917, 0.748, 0.216 for $J$ = 0 to 4 | `docs/why-psbd-works-theory.md` |
 | trigger tokens masked in all 12 blocks against as many random tokens | 0.002 against 1.000 of triggered answers kept | claim C7 |
 | clean critical rate, median per dataset | CIFAR-10 0.411, CIFAR-100 0.302, GTSRB 0.326, Tiny 0.288, logistic spread 0.16 to 0.20 | clean fragility table |

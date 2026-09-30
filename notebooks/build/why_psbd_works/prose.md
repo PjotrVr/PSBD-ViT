@@ -146,10 +146,10 @@ WaNet is where the 2 placements disagree most, and it holds the panel's only mod
 The coherence probe fits a linear classifier on a single patch token, or on the class token, to tell the exact warp from a random warp of the same image, at blocks 4 to 8 and 12.
 
 <!-- x2 -->
-The replicates of the inverted cell carry the same recipe and data with seeds 1 and 2. Their sweeps are queued, and the verdict stays open until both are swept.
+The replicates of the inverted WaNet cell carry the same recipe and data with seeds 1 and 2. The key number above lists the replicates whose sweeps have landed, and the verdict stays open until the WaNet experiments of section 7 close.
 
 <!-- s7_limits -->
-**What this does not show.** X1 also reads WaNet models outside the panel, which miss the 2-point clean-accuracy bar and are marked off panel in the figure. The probe shows the warp is legible per token, which leaves open why random masking reaches WaNet's evidence (section 10's depth bands point to the early and middle blocks). Where the inverted cell's triggered shifts do land is plan item X1b.
+**What this does not show.** X1 also reads WaNet models outside the panel, which miss the 2-point clean-accuracy bar and are marked off panel in the figure. The probe shows the warp is legible per token, which leaves open why random masking reaches WaNet's evidence (section 10's depth bands point to the early and middle blocks). Where the inverted WaNet cell's triggered shifts do land is plan item X1b.
 
 <!-- s8 -->
 <a id="s8"></a>

@@ -1821,7 +1821,7 @@ register(
     "WaNet's noise mode sends a masked triggered input back to its true class",
     "WaNet's training recipe, plan account E8",
     "false" if failing["triggered_changed_to_true"] < E8_TRUE_CLASS_SHARE else "true",
-    f"on the inverted cell `{failing['folder']}` ({TM} {number(failing['psbd_tm'])}, {RD} {number(failing['psbd_rd'])}) "
+    f"on the inverted WaNet cell `{failing['folder']}` ({TM} {number(failing['psbd_tm'])}, {RD} {number(failing['psbd_rd'])}) "
     f"{number(failing['triggered_changed'])} of triggered passes change and {number(failing['triggered_changed_to_true'])} "
     f"of those reach the true class. On the other {len(others)} WaNet models few triggered passes change "
     f"({number(others['triggered_changed'].min())} to {number(others['triggered_changed'].max())})",

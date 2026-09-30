@@ -20,8 +20,8 @@ The diagrams under `figures/` are TikZ sources compiled by `figures/render.py`
 
 1. `start-here.ipynb`. The vocabulary, the ViT block with every perturbation
    position, the PSBD pipeline from k perturbed passes to the verdict, which
-   command writes which file, the 98-cell model panel and the headline in 1
-   figure: PSBD-TM against PSBD-RD on the 57 headline models.
+   command writes which file, the model panel and the headline in 1 figure:
+   PSBD-TM against PSBD-RD on the headline models (`\HeadlinePairedCells`).
 2. `how-every-number-is-computed.ipynb`. Every formula behind a number in the
    paper, with its code path.
 3. `data-and-attacks.ipynb`. Every trigger drawn on 1 image and across the 4

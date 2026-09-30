@@ -82,6 +82,12 @@ The diagrams under `figures/` are TikZ sources compiled by `figures/render.py`
     not hold (confidence, MC-dropout uncertainty, out of distribution, trigger
     neurons, neuron bias, an easy target class) their own step and ends on a
     grid of verdicts. It reads the JSON of `experiments/why_psbd_works/` only.
+    `why-psbd-tm.ipynb` follows a patch trigger through
+    ViT-B/16 and Swin-S in 12 steps: where it is read, what PSBD-TM's masks and
+    PSBD-RD's dropout do to it, the site and the operator separated on the
+    cached sweeps and in a causal grid at matched clean damage, the trigger
+    signal each probe leaves per block, and the explanations that fail. It reads
+    the records of `experiments/why_token_masking_works/` only.
 13. `competitor-defenses.ipynb`. The 11 ported detectors, what each does and how
     each was checked against its reference: the idea, a figure of what each
     perturbs or reads, the source of its scoring function, its score

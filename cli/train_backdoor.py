@@ -60,6 +60,7 @@ from attacks.poisoning import (
     CoverPoisonedTrainingSet,
     PoisonedTrainingSet,
     choose_indices_with_cover,
+    choose_label_kept_indices,
     choose_poison_indices,
 )
 from training.loop import (
@@ -143,10 +144,14 @@ def build_training_set(
     seed: int,
     normalize,
     num_classes: int,
+    trigger_label_probability: float = 1.0,
 ) -> tuple[Dataset, float]:
     """The poisoned training set and the poison rate it actually realized.
 
-    Routes to the cover-sample dataset when the attack config asks for it.
+    Routes to the cover-sample dataset when the attack config asks for it. A
+    trigger_label_probability below 1 keeps the true label on a seeded share of the
+    poisoned rows (attacks.poisoning.choose_label_kept_indices). They still carry
+    the trigger and still count toward the realized poison rate.
     """
     labels = extract_labels(train_clean)
     cover_rate = getattr(config, "cover_rate", 0.0)
@@ -156,13 +161,36 @@ def build_training_set(
         poison_indices, cover_indices = choose_indices_with_cover(
             labels, attack, poison_rate, cover_rate, source_classes, seed
         )
+        label_kept_indices = choose_label_kept_indices(
+            poison_indices, trigger_label_probability, len(labels), seed
+        )
         dataset = CoverPoisonedTrainingSet(
-            train_clean, attack, poison_indices, cover_indices, normalize, num_classes
+            train_clean,
+            attack,
+            poison_indices,
+            cover_indices,
+            normalize,
+            num_classes,
+            label_kept_indices,
         )
     else:
         poison_indices = choose_poison_indices(labels, attack, poison_rate, seed)
+        label_kept_indices = choose_label_kept_indices(
+            poison_indices, trigger_label_probability, len(labels), seed
+        )
         dataset = PoisonedTrainingSet(
-            train_clean, attack, poison_indices, normalize, num_classes
+            train_clean,
+            attack,
+            poison_indices,
+            normalize,
+            num_classes,
+            label_kept_indices,
+        )
+    if label_kept_indices:
+        print(
+            f"trigger label probability {trigger_label_probability}: "
+            f"{len(label_kept_indices)} of {len(poison_indices)} poisoned rows keep "
+            "their true label"
         )
 
     # The requested rate is capped at the eligible pool, so it is not always what
@@ -228,6 +256,7 @@ def build_training_loader(
         args.seed,
         normalize,
         spec.num_classes,
+        getattr(args, "trigger_label_probability", 1.0),
     )
 
     if getattr(args, "exclude_indices_file", None):
@@ -712,6 +741,24 @@ def build_parser() -> argparse.ArgumentParser:
         "resolution (scale 0.6 to 1.0) plus a random horizontal flip, on the "
         "training loader only, applied after the trigger is stamped.",
     )
+    parser.add_argument(
+        "--label-smoothing",
+        type=float,
+        default=0.0,
+        help="cross-entropy label smoothing epsilon on every training row, 0 "
+        "(default) is the plain cross-entropy of every panel run. Caps the optimal "
+        "logit gap, the margin cap of docs/evidence-surplus-theory.md (R5, R13).",
+    )
+    parser.add_argument(
+        "--trigger-label-probability",
+        type=float,
+        default=1.0,
+        help="the probability q that a poisoned row carries the attack's label, "
+        "otherwise it keeps its true label. Drawn once per sample index from the "
+        "run seed (attacks.poisoning.choose_label_kept_indices). 1 (default) is "
+        "the ordinary attack. The predictivity control of "
+        "docs/evidence-surplus-theory.md (R3, R11).",
+    )
     return parser
 
 
@@ -795,6 +842,36 @@ def build_train_eval_loader(train_loader: DataLoader, args) -> DataLoader:
     )
 
 
+def innermost_poisoned_set(dataset: Dataset) -> Dataset | None:
+    """The PoisonedTrainingSet or CoverPoisonedTrainingSet under the loader's wrappers.
+
+    The Augmented, Indexed and Flagged wrappers hide the index sets that the
+    provenance counts read, so a count read off the outer dataset silently
+    reports 0 on a telemetry or evasion run. Walks .inner, .base_dataset and a
+    Subset's .dataset, and returns None when nothing carries poison_indices.
+    """
+    current = dataset
+    while current is not None:
+        if hasattr(current, "poison_indices"):
+            return current
+        current = (
+            getattr(current, "inner", None)
+            or getattr(current, "base_dataset", None)
+            or getattr(current, "dataset", None)
+        )
+    return None
+
+
+def trigger_label_record(args: argparse.Namespace, poisoned_set) -> dict:
+    """The args.json fields of --trigger-label-probability, identical on every snapshot."""
+    kept = getattr(poisoned_set, "label_kept_indices", None) or ()
+    record = {
+        "trigger_label_probability": args.trigger_label_probability,
+        "n_trigger_label_kept": len(kept),
+    }
+    return record
+
+
 def build_snapshot_hook(
     args,
     num_classes,
@@ -853,7 +930,14 @@ def build_snapshot_hook(
             model_dropout=args.model_dropout_train,
             learning_rate_schedule=args.lr_schedule,
             clip_grad_norm=args.clip_grad_norm,
+            label_smoothing=args.label_smoothing,
         ).as_dict()
+        metadata.update(
+            trigger_label_record(args, innermost_poisoned_set(train_loader.dataset))
+        )
+        # A snapshot is rebuilt through the same args.json path as the final
+        # checkpoint, so it needs the trigger it was trained with too.
+        metadata["attack_config_overrides"] = config_overrides(config, args.attack)
         # The trajectory fields the interpolation question turns on. Kept out of
         # checkpoint_metadata so its key set stays identical across entrypoints.
         metadata["epoch"] = epoch
@@ -928,6 +1012,7 @@ def main() -> None:
         checkpoint_dir=os.path.dirname(args.output),
         telemetry_config=telemetry_config,
         telemetry_heldout=telemetry_heldout,
+        label_smoothing=args.label_smoothing,
         on_epoch_end=build_snapshot_hook(
             args,
             num_classes,
@@ -957,7 +1042,8 @@ def main() -> None:
 
     # The cover count, not just the requested rate. A cover mechanism that silently
     # produced zero samples looks identical to a successful run in every other field.
-    n_cover = len(getattr(train_loader.dataset, "cover_indices", ()) or ())
+    poisoned_set = innermost_poisoned_set(train_loader.dataset)
+    n_cover = len(getattr(poisoned_set, "cover_indices", ()) or ())
     print(f"cover samples: {n_cover}")
 
     metadata = CheckpointMetadata(
@@ -1013,8 +1099,10 @@ def main() -> None:
         if args.evade_psbd
         else None,
         model_dropout=args.model_dropout_train,
+        label_smoothing=args.label_smoothing,
     ).as_dict()
     metadata["n_cover"] = n_cover
+    metadata.update(trigger_label_record(args, poisoned_set))
     metadata["augment"] = args.augment
     if telemetry_config is not None:
         metadata["telemetry"] = {

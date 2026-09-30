@@ -311,12 +311,79 @@ def choose_indices_with_cover(
     return poison_indices, cover_indices
 
 
+# Salts the per-index draw of choose_label_kept_indices so it never shares a
+# stream with the poison and cover draws, which read the same run seed.
+TRIGGER_LABEL_STREAM = 1
+
+
+def choose_label_kept_indices(
+    poison_indices: set[int],
+    trigger_label_probability: float,
+    dataset_size: int,
+    seed: int,
+) -> set[int]:
+    """The poisoned indices that keep their true label, for a trigger that predicts the target with probability q.
+
+    original form
+        y_i = t if u_i < q else y_i^true,   u_i ~ U(0, 1) drawn once per index i
+    symbol table
+        q   trigger_label_probability, the chance a triggered row carries the target
+        t   the attack's poisoned label
+        u_i 1 uniform per dataset index, from a generator seeded with (seed, 1)
+
+    Peng, Xiong et al.'s under-confidence construction with a constant p_t, the
+    predictivity control of docs/evidence-surplus-theory.md (runs R3 and R11). The
+    uniforms cover every dataset index, not just the poisoned ones, so whether an
+    index keeps its label depends on the seed and the index alone and never on
+    which other indices were poisoned. q = 1 keeps no label, the ordinary attack.
+    """
+    if not 0.0 < trigger_label_probability <= 1.0:
+        raise ValueError(
+            "trigger_label_probability must lie in (0, 1], got "
+            f"{trigger_label_probability}"
+        )
+    if trigger_label_probability == 1.0:
+        return set()
+
+    generator = np.random.default_rng([seed, TRIGGER_LABEL_STREAM])
+    uniforms = generator.random(dataset_size)  # (dataset_size,)
+    kept = {
+        index
+        for index in poison_indices
+        if uniforms[index] >= trigger_label_probability
+    }
+    return kept
+
+
+def training_label(
+    attack: Attack,
+    original_label: int,
+    num_classes: int,
+    index: int,
+    label_kept_indices: set[int],
+) -> int:
+    """The label a triggered training row carries: its true label if kept, else the poisoned one."""
+    if index in label_kept_indices:
+        return original_label
+
+    label = poisoned_label(
+        attack.label_mode,
+        original_label,
+        attack.target_label,
+        num_classes,
+        attack.num_targets,
+    )
+    return label
+
+
 class PoisonedTrainingSet(Dataset):
     """A clean dataset of 0-to-1 images with the chosen indices poisoned.
 
     Normalization is applied last so the model still receives normalized inputs.
     An empty poison_indices turns this into a plain normalized clean set, which is
-    how the clean splits of an evaluation run are built.
+    how the clean splits of an evaluation run are built. label_kept_indices, a
+    subset of poison_indices, carry the trigger with their true label
+    (choose_label_kept_indices).
     """
 
     def __init__(
@@ -326,12 +393,14 @@ class PoisonedTrainingSet(Dataset):
         poison_indices: set[int],
         normalize: Callable[[torch.Tensor], torch.Tensor],
         num_classes: int,
+        label_kept_indices: set[int] | None = None,
     ):
         self.base_dataset = base_dataset
         self.attack = attack
         self.poison_indices = poison_indices
         self.normalize = normalize
         self.num_classes = num_classes
+        self.label_kept_indices = label_kept_indices or set()
 
     def __len__(self) -> int:
         return len(self.base_dataset)
@@ -341,12 +410,12 @@ class PoisonedTrainingSet(Dataset):
 
         if index in self.poison_indices:
             image = self.attack.apply_trigger(image, index)
-            label = poisoned_label(
-                self.attack.label_mode,
+            label = training_label(
+                self.attack,
                 int(label),
-                self.attack.target_label,
                 self.num_classes,
-                self.attack.num_targets,
+                index,
+                self.label_kept_indices,
             )
 
         normalized = self.normalize(image)  # (C, H, W)
@@ -421,7 +490,8 @@ class CoverPoisonedTrainingSet(Dataset):
 
     Poisoned samples get the trigger and the poisoned label. Cover samples get the
     trigger (or the attack's own cover transform) and keep their label. Everything
-    else stays clean.
+    else stays clean. label_kept_indices, a subset of poison_indices, carry the
+    trigger with their true label (choose_label_kept_indices).
     """
 
     def __init__(
@@ -432,6 +502,7 @@ class CoverPoisonedTrainingSet(Dataset):
         cover_indices: set[int],
         normalize: Callable[[torch.Tensor], torch.Tensor],
         num_classes: int,
+        label_kept_indices: set[int] | None = None,
     ):
         self.base_dataset = base_dataset
         self.attack = attack
@@ -439,6 +510,7 @@ class CoverPoisonedTrainingSet(Dataset):
         self.cover_indices = cover_indices
         self.normalize = normalize
         self.num_classes = num_classes
+        self.label_kept_indices = label_kept_indices or set()
 
     def __len__(self) -> int:
         return len(self.base_dataset)
@@ -448,12 +520,12 @@ class CoverPoisonedTrainingSet(Dataset):
 
         if index in self.poison_indices:
             image = self.attack.apply_trigger(image, index)
-            label = poisoned_label(
-                self.attack.label_mode,
+            label = training_label(
+                self.attack,
                 int(label),
-                self.attack.target_label,
                 self.num_classes,
-                self.attack.num_targets,
+                index,
+                self.label_kept_indices,
             )
         elif index in self.cover_indices:
             cover = self.attack.apply_cover or self.attack.apply_trigger

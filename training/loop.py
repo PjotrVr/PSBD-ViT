@@ -346,6 +346,9 @@ class CheckpointMetadata:
     clip_grad_norm: float | None = None
     best_validation_accuracy: float | None = None
     final_validation_accuracy: float | None = None
+    # 0.0 for every checkpoint trained before the option existed, the plain
+    # cross-entropy of every panel run.
+    label_smoothing: float = 0.0
 
     def as_dict(self) -> dict:
         """The args.json layout, the same keys in the same order on every entrypoint."""
@@ -381,6 +384,7 @@ class CheckpointMetadata:
             # in the sidecar without reading its log.
             "best_validation_accuracy": self.best_validation_accuracy,
             "final_validation_accuracy": self.final_validation_accuracy,
+            "label_smoothing": self.label_smoothing,
         }
         return payload
 
@@ -499,6 +503,7 @@ def train_classifier(
     checkpoint_dir: str | None = None,
     telemetry_config: TelemetryConfig | None = None,
     telemetry_heldout: HeldoutPairs | None = None,
+    label_smoothing: float = 0.0,
 ) -> tuple[nn.Module, TrainingTrajectory]:
     """A freshly trained model and its validation trajectory, printed per epoch.
 
@@ -521,9 +526,18 @@ def train_classifier(
     the same model a run without it trains. telemetry_heldout holds the fixed
     held-out pairs the heavy and epoch probes read, and without it only the
     light window and the module norms are written.
+
+    label_smoothing, 0.0 by default, is the cross-entropy's epsilon on every
+    training row (poisoned, cover and clean alike) and on both SAM passes and the
+    evasive path, which all read the same criterion. It caps the optimal logit
+    gap at ln((1 - eps + eps / K) / (eps / K)) for K classes, the margin cap of
+    docs/evidence-surplus-theory.md (runs R5, R8 and R13). The telemetry's loss
+    split stays the plain cross-entropy, so its curves read the same on every run.
     """
+    if not 0.0 <= label_smoothing < 1.0:
+        raise ValueError(f"label_smoothing must lie in [0, 1), got {label_smoothing}")
     model = build_model(architecture, num_classes, model_dropout).to(device)
-    criterion = nn.CrossEntropyLoss()
+    criterion = nn.CrossEntropyLoss(label_smoothing=label_smoothing)
     optimizer = build_optimizer(model, use_sam, learning_rate, weight_decay, rho)
     scheduler = build_scheduler(optimizer, learning_rate_schedule, epochs)
     validation_accuracies: list[float] = []

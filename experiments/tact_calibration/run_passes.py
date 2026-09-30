@@ -13,6 +13,7 @@ validation split first, the way cli.analyze would pick it.
 import argparse
 import json
 import os
+import shutil
 import time
 
 import torch
@@ -27,7 +28,15 @@ from cli.sweep import (
     sweep_rates,
     write_run_provenance,
 )
-from defenses.cache import load_or_build_baseline, write_split_manifest
+from data.splits import SPLITS
+from defenses.cache import (
+    baseline_path,
+    dropout_pass_path,
+    load_baseline,
+    load_or_build_baseline,
+    run_provenance_path,
+    write_split_manifest,
+)
 from defenses.decision import ADAPTIVE_SHIFT_TARGET
 from defenses.inference import compute_dropout_pass_probs
 from defenses.scores import shift_ratio
@@ -187,6 +196,8 @@ def run_model(entry, device):
             continue
 
         cache_name = cache_config_name(position, block_range, operator, FORWARD_PASSES)
+        reused = reuse_main_cache(folder, psbd_dir, cache_name, rate, baselines)
+        record["placements"][placement]["reused_from"] = reused
         if not already_complete(psbd_dir, cache_name, (rate,)):
             args = sweep_namespace(folder, spec, rate)
             write_run_provenance(psbd_dir, args, position, device)
@@ -218,6 +229,38 @@ def run_model(entry, device):
     record["peak_allocated_mib"] = torch.cuda.max_memory_allocated() / 2**20
     record["device"] = torch.cuda.get_device_name(device)
     return record
+
+
+def reuse_main_cache(folder, psbd_dir, cache_name, rate, baselines):
+    # An earlier login-node run already wrote 20-pass PSBD-TM caches at the
+    # adaptive rate for many panel models, with the same code, GPU, seed and batch
+    # size. On vit_cifar10_tact_0_01 a rerun matched it bit for bit, so a cache is
+    # copied instead of recomputed when its baselines equal the ones built here.
+    main_dir = os.path.join(RESULTS_DIR, folder, "psbd")
+    if already_complete(psbd_dir, cache_name, (rate,)):
+        return None
+    if not already_complete(main_dir, cache_name, (rate,)):
+        return None
+    for split, (probs, labels, loader_labels) in baselines.items():
+        main_probs, main_labels, main_loader_labels = load_baseline(
+            baseline_path(main_dir, split)
+        )
+        if not (
+            torch.equal(probs, main_probs)
+            and torch.equal(labels, main_labels)
+            and torch.equal(loader_labels, main_loader_labels)
+        ):
+            return None
+
+    for split in SPLITS:
+        target = dropout_pass_path(psbd_dir, cache_name, rate, split)
+        os.makedirs(os.path.dirname(target), exist_ok=True)
+        shutil.copy2(dropout_pass_path(main_dir, cache_name, rate, split), target)
+    shutil.copy2(
+        run_provenance_path(main_dir, cache_name),
+        run_provenance_path(psbd_dir, cache_name),
+    )
+    return main_dir
 
 
 def sweep_namespace(folder, spec, rate):

@@ -2,7 +2,7 @@
 
 ## Question
 
-`docs/why-psbd-works-theory.md` derives what each explanation of PSBD on ViT predicts as a number and checks each derivation against the cached results. These scripts are those checks. They read the cached per-pass tensors under `results/<folder>/psbd/` and `psbd_metrics.json` for the 54 successful ViT models of `scripts/paper/_common.py`, and reproduce PSBD-TM 0.963, PSBD-RD 0.885 and the matched Gaussian minus token mask gap -0.188 as a population check.
+`docs/why-psbd-works-theory.md` derives what each explanation of PSBD on ViT predicts as a number and checks each derivation against the cached results. These scripts are those checks. They read the cached per-pass tensors under `results/<folder>/psbd/` and `psbd_metrics.json` for the successful ViT models of `scripts/paper/_common.py` that carry a cache (56 on 2026-09-30). They reproduce PSBD-TM 0.951 and PSBD-RD 0.876 (`lrconf2.py`, the values of `\HeadlineAurocAdaptive` and `\PublishedAurocAdaptive`) as a population check.
 
 ## Scripts
 
@@ -24,4 +24,4 @@ Run each script on CPU from the repository root with `PYTHONPATH=. .venv/bin/pyt
 
 ## Status
 
-Written on 2026-09-29 as research reads, not as generators. No macro reads them. The SIG model (`vit_cifar10_sig_0_1`) enters the pooled numbers and is under audit (`docs/audits/2026-09-29-experiment-audit.md`). Rerun every script when the panel changes.
+Written on 2026-09-29 as research reads, not as generators. Rerun on 2026-09-30 on the 56-model panel, which rewrote `ladders.json` and `cache_read.json`. No macro reads them. The SIG model (`vit_cifar10_sig_0_1`) enters the pooled numbers and is under audit (`docs/audits/2026-09-29-experiment-audit.md`). Rerun every script when the panel changes.

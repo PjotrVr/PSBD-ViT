@@ -22,19 +22,18 @@ LOG_DIR=$MAIN/scratch/resnet_tact
 mkdir -p "$LOG_DIR"
 CAPPED="python -m experiments.resnet_tact.capped"
 
-# The ladder and pass count of the existing ResNet-18 reproductions
-# (results/resnet18_gtsrb_badnet_a2o_0_1/psbd/run_post_residual.json).
-RATES="0.005 0.01 0.02 0.03 0.05 0.07 0.09 0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9"
-
-# folder, dataset, attack, poison rate, source classes ("-" keeps TaCT's default).
-TACT_RUNS=(
+# folder, dataset, attack, poison rate, source classes ("-" keeps TaCT's default),
+# in the order the night runs them: the GTSRB models and their benign reference
+# first, then CIFAR-10.
+MODELS=(
     "resnet18_gtsrb_tact_0_05_src6 gtsrb tact 0.05 1,2,3,4,5,6"
     "resnet18_gtsrb_tact_0_1_src12 gtsrb tact 0.1 1,2,3,4,5,6,7,8,9,10,11,12"
+    "resnet18_gtsrb_benign gtsrb benign - -"
     "resnet18_cifar10_tact_0_01 cifar10 tact 0.01 -"
     "resnet18_cifar10_tact_0_05_src3 cifar10 tact 0.05 1,2,3"
     "resnet18_cifar10_badnet_a2o_0_1 cifar10 badnet_a2o 0.1 -"
+    "resnet18_cifar10_benign cifar10 benign - -"
 )
-BENIGN_DATASETS=(gtsrb cifar10)
 SUFFICIENCY=(
     resnet18_gtsrb_tact_0_05_src6
     resnet18_gtsrb_tact_0_1_src12
@@ -88,59 +87,35 @@ stage() {
     fi
 }
 
-train_backdoor() {
-    local folder=$1 dataset=$2 attack=$3 rate=$4 sources=$5
-    [[ -f "$CHECKPOINTS/$folder/attack_result.pt" ]] && return 0
-    local override=()
-    [[ "$sources" != "-" ]] && override=(--attack-override "source_classes=$sources")
-    stage "train.$folder" $CAPPED cli.train_backdoor \
-        --dataset "$dataset" --attack "$attack" --poison-rate "$rate" \
-        --target-label 0 --architecture resnet18 --epochs 100 --seed 0 \
-        --num-workers 4 --raw-data-dir "$RAW" "${override[@]}" \
-        --output "$CHECKPOINTS/$folder/attack_result.pt"
+model_done() {
+    local folder=$1 attack=$2
+    [[ -f "$CHECKPOINTS/$folder/attack_result.pt" ]] || return 1
+    [[ "$attack" == "benign" || -f "$RESULTS/$folder/psbd_metrics.json" ]]
 }
 
-sweep_and_analyze() {
-    local folder=$1
-    [[ -f "$RESULTS/$folder/psbd_metrics.json" ]] && return 0
-    [[ -f "$CHECKPOINTS/$folder/attack_result.pt" ]] || return 0
-    stage "sweep.$folder" $CAPPED cli.sweep --checkpoint-folder "$folder" \
-        --position post_residual --operator dropout --rates $RATES \
-        --forward-passes 3 --skip-existing \
-        --checkpoints-dir "$CHECKPOINTS" --results-dir "$RESULTS" --raw-data-dir "$RAW"
-    python -m cli.analyze --checkpoint-folder "$folder" \
-        --checkpoints-dir "$CHECKPOINTS" --results-dir "$RESULTS" \
-        >"$LOG_DIR/analyze.$folder.log" 2>&1
-}
-
-# Each model is swept right after it trains, so the GTSRB TaCT models read out
-# before the longer CIFAR-10 runs start.
-for run in "${TACT_RUNS[@]}"; do
+for run in "${MODELS[@]}"; do
     read -r folder dataset attack rate sources <<<"$run"
-    train_backdoor "$folder" "$dataset" "$attack" "$rate" "$sources"
-    sweep_and_analyze "$folder"
+    model_done "$folder" "$attack" && continue
+    stage "model.$folder" bash experiments/resnet_tact/one_model.sh \
+        "$folder" "$dataset" "$attack" "$rate" "$sources"
 done
 
-for dataset in "${BENIGN_DATASETS[@]}"; do
-    folder=resnet18_${dataset}_benign
-    [[ -f "$CHECKPOINTS/$folder/attack_result.pt" ]] && continue
-    stage "train.$folder" $CAPPED cli.train_benign \
-        --datasets "$dataset" --architecture resnet18 --epochs 100 --seed 0 \
-        --num-workers 4 --raw-data-dir "$RAW" --weights-dir "$CHECKPOINTS"
-done
-
+missing_sufficiency=()
 for folder in "${SUFFICIENCY[@]}"; do
     [[ -f "results/_experiments/resnet_tact/sufficiency/$folder.json" ]] && continue
-    [[ -f "$CHECKPOINTS/$folder/attack_result.pt" ]] || continue
-    stage "sufficiency.$folder" python experiments/why_psbd_works/sufficiency.py \
-        --models "$folder" --output-slug resnet_tact --gpu-memory-gb 8 \
+    [[ -f "$CHECKPOINTS/$folder/attack_result.pt" ]] && missing_sufficiency+=("$folder")
+done
+if ((${#missing_sufficiency[@]})); then
+    stage sufficiency python experiments/why_psbd_works/sufficiency.py \
+        --models "${missing_sufficiency[@]}" --output-slug resnet_tact --gpu-memory-gb 8 \
         --checkpoints-dir "$CHECKPOINTS" --raw-data-dir "$RAW" --results-dir results
-done
+fi
 
+present_tact=()
 for folder in "${TACT_FOLDERS[@]}"; do
-    [[ -f "$CHECKPOINTS/$folder/attack_result.pt" ]] || continue
-    stage "baselines.$folder" $CAPPED cli.baselines --checkpoint-folder "$folder" \
-        --detectors ted beatrix --skip-existing \
-        --checkpoints-dir "$CHECKPOINTS" --results-dir "$RESULTS" --raw-data-dir "$RAW"
+    [[ -f "$CHECKPOINTS/$folder/attack_result.pt" ]] && present_tact+=("$folder")
 done
+stage baselines $CAPPED cli.baselines --checkpoint-folder "${present_tact[@]}" \
+    --detectors ted beatrix --skip-existing \
+    --checkpoints-dir "$CHECKPOINTS" --results-dir "$RESULTS" --raw-data-dir "$RAW"
 echo "$(date +%T) resnet tact queue finished"

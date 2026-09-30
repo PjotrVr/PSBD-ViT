@@ -25,6 +25,8 @@ import torch
 import cli.analyze
 import cli.sweep
 from data.backdoorbench import BACKDOORBENCH_RESULTS_PREFIX
+from experiments.backdoorbench_attacks.common import SWEEPS_DIR, write_json
+from utils.provenance import current_git_commit
 
 PLACEMENTS = ("before_attention_norm_token_mask", "pre_residual_blocks_5_8")
 BASIS_PATH = "configs/psbd_basis.json"
@@ -65,7 +67,16 @@ def main():
         raise SystemExit(
             f"{args.folder}: incomplete {missing}, metrics {os.path.exists(metrics_path)}"
         )
-    print(f"[done] {args.folder} in {time.perf_counter() - started:.0f} s", flush=True)
+    timing = {
+        "folder": args.folder,
+        "placements": list(PLACEMENTS),
+        "wall_seconds": time.perf_counter() - started,
+        "finished_at": time.strftime("%Y-%m-%dT%H:%M:%S"),
+        "device": torch.cuda.get_device_name(0),
+        "git_commit": current_git_commit(),
+    }
+    write_json(timing, os.path.join(SWEEPS_DIR, f"{args.folder}.json"))
+    print(f"[done] {args.folder} in {timing['wall_seconds']:.0f} s", flush=True)
 
 
 def parse_args():

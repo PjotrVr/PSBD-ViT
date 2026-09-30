@@ -10,6 +10,8 @@ RECORDS_DIR = experiment_results_dir(SLUG)
 INVENTORY_PATH = os.path.join(RECORDS_DIR, "inventory.json")
 EVALUATION_DIR = os.path.join(RECORDS_DIR, "evaluation")
 MODEL_RECORDS_DIR = os.path.join(RECORDS_DIR, "models")
+SWEEPS_DIR = os.path.join(RECORDS_DIR, "sweeps")
+JOBS_DIR = os.path.join(RECORDS_DIR, "jobs")
 SUMMARY_PATH = os.path.join(RECORDS_DIR, "summary.json")
 
 LEADERBOARD_PATH = os.path.join(os.path.dirname(__file__), "leaderboard_vit_b_16.json")

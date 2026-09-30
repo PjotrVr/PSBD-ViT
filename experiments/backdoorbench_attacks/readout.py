@@ -198,13 +198,19 @@ def score_detection(psbd_dir):
 
 
 def stored_adaptive_auroc(psbd_dir):
-    # cli.analyze's own adaptive AUROC, which the fractional PSU read here must
-    # equal, the check cache_readouts runs against every model it reads.
+    # cli.analyze's fractional-PSU AUROC at its own adaptive rate, which the
+    # fractional PSU read here must equal, the check cache_readouts runs against
+    # every model it reads. The "adaptive" block of psbd_metrics.json is absolute
+    # PSU, so the control reads rates[].detection_psu_ratio instead.
     metrics = read_json(os.path.join(os.path.dirname(psbd_dir), "psbd_metrics.json"))
     block = metrics["placements"][PSBD_TM]
+    rate = block["adaptive_rate"]
+    by_rate = {entry["rate"]: entry for entry in block["rates"]}
     control = {
-        "adaptive_rate": block["adaptive_rate"],
-        "auroc": block["adaptive"]["auroc"] if block["adaptive"] else None,
+        "adaptive_rate": rate,
+        "auroc": by_rate[rate]["detection_psu_ratio"]["q0.25"]["auroc"]
+        if rate
+        else None,
     }
     return control
 

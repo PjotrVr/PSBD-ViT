@@ -172,9 +172,9 @@ def detection_section(rows):
         "## Detection per model",
         "",
         "TPR at 1%, 5% and 10% FPR (thresholds at the clean-validation quantile) and "
-        "AUROC, each probe at its adaptive rate, read from `models/<folder>.json`. The "
-        "PSBD-TM AUROC must equal `cli.analyze`'s stored adaptive AUROC, the control "
-        "column.",
+        "AUROC, each probe at its adaptive rate, read from `models/<folder>.json`. As a "
+        "control, the PSBD-TM AUROC must equal the fractional-PSU AUROC `cli.analyze` "
+        "stored at the same rate, counted below the table.",
         "",
         "| model | judged | method | rate | TPR at 1% FPR | TPR at 5% FPR | TPR at 10% FPR | AUROC |",
         "|---|---|---|---|---|---|---|---|",

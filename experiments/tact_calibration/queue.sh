@@ -1,10 +1,12 @@
 #!/usr/bin/env bash
 # Runs run_passes.py over the plan in order (tuning, dev, holdout, rest), resumably.
 #
-# A model whose run_record.json exists is skipped, so a restart on a later night
-# continues where this one stopped. Each model holds 1 of the 2 shared GPU lock
-# slots for its whole run, and no model starts between 06:15 and 17:00, which leaves
-# the slowest model (about 15 minutes) room to finish before the 07:00 curfew.
+# A model with a run_record.json or a failed.json is skipped, so a restart on a
+# later night continues where this one stopped. Each lock hold runs pending models
+# for about 40 minutes (run_passes.py's budget), because up to 6 agents wait on the
+# 2 shared slots and a slot released after every model is rarely won back. No
+# model starts between 06:15 and 17:00, which leaves the slowest model (about 15
+# minutes) room to finish before the 07:00 curfew.
 #
 #   bash experiments/tact_calibration/queue.sh
 
@@ -17,8 +19,7 @@ export OMP_NUM_THREADS=4
 MODELS=results/_experiments/tact_calibration/models
 PLAN=results/_experiments/tact_calibration/plan.json
 LOCKS=(scratch/gpu.lock scratch/gpu2.lock)
-LOG_DIR=results/_experiments/tact_calibration/logs
-mkdir -p "$LOG_DIR"
+LOG=results/_experiments/tact_calibration/logs/run_passes.log
 
 inside_gpu_window() {
     local now
@@ -47,21 +48,33 @@ on_free_slot() {
     flock "${LOCKS[0]}" "$@"
 }
 
-folders=$(python -c "import json; print(' '.join(m['folder'] for m in json.load(open('$PLAN'))['models']))")
-for folder in $folders; do
-    if [[ -f "$MODELS/$folder/run_record.json" ]]; then
-        continue
-    fi
-    if ! inside_gpu_window; then
-        echo "$(date +%T) outside the GPU window, stopping before $folder"
+pending_folders() {
+    python - "$PLAN" "$MODELS" <<'PY'
+import json, os, sys
+plan, models = sys.argv[1], sys.argv[2]
+folders = [m["folder"] for m in json.load(open(plan))["models"]]
+done = ("run_record.json", "failed.json")
+print(" ".join(f for f in folders if not any(os.path.exists(os.path.join(models, f, d)) for d in done)))
+PY
+}
+
+previous=""
+while true; do
+    pending=$(pending_folders)
+    if [[ -z "$pending" ]]; then
+        echo "$(date +%T) queue finished"
         exit 0
     fi
-    echo "$(date +%T) start $folder"
-    if on_free_slot python -m experiments.tact_calibration.run_passes run --folder "$folder" \
-        >"$LOG_DIR/$folder.log" 2>&1; then
-        echo "$(date +%T) done $folder"
-    else
-        echo "$(date +%T) FAILED $folder, see $LOG_DIR/$folder.log"
+    if [[ "$pending" == "$previous" ]]; then
+        echo "$(date +%T) a lock hold made no progress, stopping"
+        exit 1
     fi
+    if ! inside_gpu_window; then
+        echo "$(date +%T) outside the GPU window, stopping with $(wc -w <<<"$pending") models left"
+        exit 0
+    fi
+    previous=$pending
+    echo "$(date +%T) waiting for a slot, $(wc -w <<<"$pending") models left"
+    # shellcheck disable=SC2086
+    on_free_slot python -m experiments.tact_calibration.run_passes run --folders $pending >>"$LOG" 2>&1
 done
-echo "$(date +%T) queue finished"

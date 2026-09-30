@@ -7,7 +7,7 @@ retrains) gets its adaptive rate from a 3-pass ladder on the standard 2000-image
 validation split first, the way cli.analyze would pick it.
 
     python -m experiments.tact_calibration.run_passes plan
-    python -m experiments.tact_calibration.run_passes run --folder vit_cifar10_tact_0_01
+    python -m experiments.tact_calibration.run_passes run --folders vit_cifar10_tact_0_01
 """
 
 import argparse
@@ -54,6 +54,10 @@ BASIS_PATH = os.path.join("configs", "psbd_basis.json")
 FORWARD_PASSES = 20
 LADDER_PASSES = 3
 MEMORY_FRACTION = 0.15
+BATCH_BUDGET_MINUTES = 40
+# No model starts from 06:15 to 17:00, so the last one ends before the 07:00 curfew.
+NIGHT_CUTOFF = 615
+NIGHT_START = 1700
 
 # (placement id in configs/psbd_basis.json, position, operator, block range)
 PLACEMENTS = (
@@ -82,7 +86,8 @@ REST_DATASET_ORDER = ("cifar100", "tiny", "gtsrb", "cifar10")
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("stage", choices=("plan", "run"))
-    parser.add_argument("--folder")
+    parser.add_argument("--folders", nargs="+")
+    parser.add_argument("--budget-minutes", type=float, default=BATCH_BUDGET_MINUTES)
     arguments = parser.parse_args()
 
     if arguments.stage == "plan":
@@ -92,11 +97,44 @@ def main():
         return
 
     with open(PLAN_PATH) as handle:
-        entry = {m["folder"]: m for m in json.load(handle)["models"]}[arguments.folder]
+        entries = {m["folder"]: m for m in json.load(handle)["models"]}
     torch.cuda.set_per_process_memory_fraction(MEMORY_FRACTION, 0)
-    record = run_model(entry, torch.device("cuda"))
-    write_json(record, os.path.join(MODELS_ROOT, entry["folder"], "run_record.json"))
-    print(json.dumps(record))
+    started = time.perf_counter()
+
+    # The lock is held for a batch of models rather than 1, because a slot that
+    # is released after every model goes to 1 of up to 6 waiting agents. The
+    # budget keeps each hold near 40 minutes, and no model starts after the
+    # night cutoff.
+    for folder in arguments.folders:
+        elapsed_minutes = (time.perf_counter() - started) / 60
+        if elapsed_minutes > arguments.budget_minutes or past_cutoff():
+            break
+        model_dir = os.path.join(MODELS_ROOT, folder)
+        if os.path.exists(os.path.join(model_dir, "run_record.json")):
+            continue
+        print(f"{time.strftime('%T')} start {folder}", flush=True)
+        try:
+            record = run_model(entries[folder], torch.device("cuda"))
+        except Exception as error:
+            # A bad checkpoint must not stall the queue on the same model all
+            # night. The marker keeps the queue from retrying it.
+            write_json(
+                {"folder": folder, "error": f"{type(error).__name__}: {error}"},
+                os.path.join(model_dir, "failed.json"),
+            )
+            print(f"{time.strftime('%T')} FAILED {folder}: {error}", flush=True)
+            continue
+        write_json(record, os.path.join(model_dir, "run_record.json"))
+        print(
+            f"{time.strftime('%T')} done {folder} {record['wall_seconds']:.0f} s",
+            flush=True,
+        )
+
+
+def past_cutoff():
+    now = int(time.strftime("%H%M"))
+    outside = NIGHT_CUTOFF <= now < NIGHT_START
+    return outside
 
 
 def build_plan():

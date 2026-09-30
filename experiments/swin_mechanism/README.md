@@ -158,7 +158,8 @@ weaker backdoor. The CIFAR-10 SIG pair is under audit
 amplitude 0.1 and the code now builds 0.157, which affects every fresh forward pass on it
 here, and the Swin SIG checkpoints still need their trigger date checked. None of the 12
 checkpoints is diverged or source-mapped. On the ViT side, CIFAR-10 SIG 10% and GTSRB WaNet
-10% lose more than 2 points of clean accuracy and are not in the paper panel of 54 models.
+10% lose more than 2 points of clean accuracy and are not in the paper panel (56 models on
+2026-09-30).
 
 ## Verdict
 

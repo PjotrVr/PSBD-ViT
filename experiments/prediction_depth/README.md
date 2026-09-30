@@ -72,12 +72,14 @@ deviation, so the false-positive budget is set exactly as before.
 
 ## The headline: a tie on AUROC, a gain at 1% FPR on the hard attacks
 
-Read on the paper panel of 54 models successful at the 2-point clean-accuracy bar,
-`depth_soft` against PSBD-TM at the adaptive 0.8 rule, paired within model on the same
+Read on the 54 models of the paper panel that carry a `prediction_depth.json` record, out of
+the 56 successful at the 2-point clean-accuracy bar on 2026-09-30. The 2 models that joined
+the panel that day, `vit_gtsrb_lc_0_05_tl1_adv` and `vit_gtsrb_tact_0_01_cos`, have no depth
+record yet, which needs a GPU pass. `depth_soft` against PSBD-TM at the adaptive 0.8 rule, paired within model on the same
 splits, AUROC at q0.25 and TPR at the q0.01 budget, with the paper generator's own reader
 (`scripts.paper.mech_prediction_depth.measure_cell`):
 
-    PYTHONPATH=. .venv/bin/python scratch/stale_numbers/prediction_depth_panel.py
+    PYTHONPATH=. .venv/bin/python experiments/prediction_depth/panel.py
 
 | cells | n | AUROC depth | AUROC PSBD-TM | AUROC delta | **TPR@1% depth** | **TPR@1% PSBD-TM** | TPR delta | wins |
 |---|---|---|---|---|---|---|---|---|

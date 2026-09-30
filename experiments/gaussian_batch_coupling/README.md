@@ -38,11 +38,10 @@ level. Nothing about the quantile rule is affected.
 **`before_mlp` is safe.** Coverage is -1.1% to +2.3%, well inside the 1 to 2%
 band where the confound cannot carry a result. The best gaussian cell,
 `gaussian @ before_mlp`, stands. It was ranked 2nd overall when this was written. On the
-paper panel of 54 models successful at the 2-point clean-accuracy bar it reads 0.904 at the
-adaptive 0.8 rule, 7th of the 23 basis placements swept on every model, and 0.886 at the
-matched 0.6 rule, 8th of 27
-(`PYTHONPATH=. .venv/bin/python scratch/stale_numbers/panel_auroc.py --placements
-before_mlp_gaussian`).
+paper panel of 56 models successful at the 2-point clean-accuracy bar (2026-09-30) it reads
+0.906 at the adaptive 0.8 rule, 7th of the 23 basis placements read on every model, and
+0.888 at the matched 0.6 rule, 6th of 27 (`panel_ranks.py` in this directory over each
+model's `psbd_metrics.json`, the same reader as `scripts/paper/tab_headline.py`).
 
 **`before_attention_norm` is not.** The backdoor split received 13 to 32% more
 noise than the clean split it is compared against. The mechanism is direct:
@@ -87,9 +86,9 @@ other operator already drew per sample, but it does not rescue this result.
 
 `gaussian @ before_attention_norm` needed re-sweeping with the per-sample std before any
 claim rested on it. Its caches and those of `before_mlp_gaussian` on all 57 clearing models
-were re-swept on 2026-09-09 (commits `7464006` and `3735bed`) after the fix. On the 54-model
-panel `before_attention_norm_gaussian` reads 0.836 at the adaptive 0.8 rule and 0.750 at the
-matched 0.6 rule, the placement the paper's gaussian minus token mask gap
-(`\GaussianMinusTokenMaskAttentionNorm`, -0.188 on the 54) is read at. `experiments/theory_predictions/` (flag 2) found older `results/detection_summary.csv`
+were re-swept on 2026-09-09 (commits `7464006` and `3735bed`) after the fix. On the 56-model
+panel of 2026-09-30 `before_attention_norm_gaussian` reads 0.840 at the adaptive 0.8 rule and
+0.752 at the matched 0.6 rule, the placement the paper's gaussian minus token mask gap
+(`\GaussianMinusTokenMaskAttentionNorm`, -0.173 on the 56) is read at. `experiments/theory_predictions/` (flag 2) found older `results/detection_summary.csv`
 gaussian rows still backed only by the superseded operator's archive, so any number read
 from that CSV rather than from `psbd_metrics.json` needs checking.

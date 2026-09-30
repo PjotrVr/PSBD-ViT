@@ -80,7 +80,7 @@ problem:
 
 The CIFAR-10 WaNet 5% and GTSRB WaNet 10% models lose 3.9 and 3.3 points of clean accuracy
 against their benign references, so they clear the ASR bar but are not in the paper panel of
-54 models successful at the 2-point bar (`results/coverage/coverage.json`). They are read here
+models successful at the 2-point bar (56 on 2026-09-30, `results/coverage/coverage.json`). They are read here
 as WaNet backdoors, which they are.
 
 Token masking succeeds strongly on the very same attack and dataset at 5%

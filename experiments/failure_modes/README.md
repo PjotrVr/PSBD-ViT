@@ -23,7 +23,7 @@ audit (`docs/audits/2026-09-29-experiment-audit.md`): it was trained at SIG ampl
 the code now builds 0.157, and the margin and patching rows here come from fresh forward
 passes on the rebuilt trigger.
 
-The paper panel is now the 54 models successful at the 2-point clean-accuracy bar. Of the 4
+The paper panel is now the 56 models successful at the 2-point clean-accuracy bar (2026-09-30). Of the 4
 models left here only CIFAR-10 WaNet 10% is on it. CIFAR-10 SIG 10% (clean accuracy 10.6
 points below its benign reference), CIFAR-10 WaNet 5% (3.9 points) and GTSRB WaNet 10% (3.3
 points) clear the ASR bar but fail the 2-point bar (`results/coverage/coverage.json`), so the

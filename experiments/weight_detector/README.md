@@ -121,8 +121,8 @@ outside CIFAR-100 WaNet a low hit share is not standing in for a dead backdoor.
 `vit_cifar100_tact_0_1` clears ASR but is source-mapped: it reads 0.00 clean source-class
 accuracy, sends its whole source class to the target with no trigger, and the ledger
 excludes it from the panel, so its row does not test a trigger backdoor. Without it the
-experiment holds 14 backdoored checkpoints, 12 of them in the paper panel of 54 models
-successful at the 2-point clean-accuracy bar.
+experiment holds 14 backdoored checkpoints, 12 of them in the paper panel of models
+successful at the 2-point clean-accuracy bar (56 on 2026-09-30).
 
 ## Verdicts against the paper's claims
 

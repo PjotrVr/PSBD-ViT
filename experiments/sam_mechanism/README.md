@@ -72,8 +72,8 @@ reading, fractional PSU on the full PSBD split at the adaptive 0.8 rule from
 on every row: 0.988 and 0.999 (BadNet 1%), 0.979 and 0.995 (Blend), 0.921 and 0.981 (BPP),
 0.967 and 0.996 (LF), 0.937 and 0.712 (WaNet), 0.992 and 0.999 (BadNet 5%). None of the 12
 checkpoints is diverged or source-mapped. The Adam WaNet model, `vit_cifar10_wanet_0_05`,
-loses 3.9 points of clean accuracy and is not in the paper panel of 54 models successful at
-the 2-point bar, and every other Adam checkpoint here is.
+loses 3.9 points of clean accuracy and is not in the paper panel of models successful at
+the 2-point bar (56 on 2026-09-30), and every other Adam checkpoint here is.
 
 SAM amplifies the footprint on 5 of the 6 pairs. The peak relative direction
 norm rises 9% to 41% and the final-layer mean TAC rises 8% to 31%, which is the

@@ -1,4 +1,4 @@
-"""3 checks a reviewer would ask for, on the 65-cell panel `scripts/paper/tab_headline.py` reads.
+"""3 checks a reviewer would ask for, on the panel `scripts/paper/tab_headline.py` reads.
 
 Every number below comes from the same stage-1 caches (`results/<folder>/psbd/`)
 and the same scoring functions every other table in the repo reads, imported
@@ -125,6 +125,10 @@ CHECK2_BOOTSTRAP_SEED = 0
 # pair's own coverage (union_set's model_has_probes filter) still decides
 # which models that particular pair is read on.
 CHECK2B_MIN_COVERAGE = 60
+# Panel models whose caches landed on 2026-09-30, after every check 2 selection. They
+# sit on selection datasets, so letting them vote would re-pick the pair after the
+# fact. Check 2 leaves them out of its selection half, and check 1 reads them.
+JOINED_AFTER_SELECTION = ("vit_gtsrb_lc_0_05_tl1_adv", "vit_gtsrb_tact_0_01_cos")
 
 CHECK3_POSITION = "before_attention_norm"
 CHECK3_OPERATOR = "token_mask"
@@ -415,7 +419,10 @@ def run_check2(
     models = select_models(results_dir)
     candidates = basis_ids_present_on_all_models(models, declaration_path)
     selection_models = [
-        model for model in models if model["dataset"] in select_datasets
+        model
+        for model in models
+        if model["dataset"] in select_datasets
+        and model["folder_name"] not in JOINED_AFTER_SELECTION
     ]
     heldout_models = [model for model in models if model["dataset"] in heldout_datasets]
 
@@ -520,7 +527,10 @@ def run_check2_relaxed_coverage(
     models = select_models(results_dir)
     candidates = placements_present_on_at_least(models, declaration_path, min_coverage)
     selection_models = [
-        model for model in models if model["dataset"] in select_datasets
+        model
+        for model in models
+        if model["dataset"] in select_datasets
+        and model["folder_name"] not in JOINED_AFTER_SELECTION
     ]
     heldout_models = [model for model in models if model["dataset"] in heldout_datasets]
 

@@ -1,8 +1,8 @@
 # Reviewer checks
 
 3 checks a reviewer would ask for, run on the paper panel: the backdoored ViT-B/16 models
-that `scripts/paper/tab_headline.py`'s `common_coverage` selects, which since 2026-09-29 are
-the 54 models successful at the 2-point clean-accuracy bar whose stage 2 reached both PSBD-TM
+that `scripts/paper/tab_headline.py`'s `common_coverage` selects, which since 2026-09-30 are
+the 56 models successful at the 2-point clean-accuracy bar whose stage 2 reached both PSBD-TM
 (`before_attention_norm_token_mask`) and PSBD-RD (`post_residual`, our adaptation of the
 original ConvNet placement). `measure.py` imports `tab_headline.measure_cell` and
 `common_coverage` directly rather than re-deriving the count.
@@ -16,14 +16,19 @@ that tree, so the canonical caches are never touched.
 
 The first run (2026-09-11, `results/_experiments/reviewer_checks/reviewer_checks.json`) read
 69 models, including the 8 source-mapped TaCT models and 3 models that fail the 2-point bar.
-Checks 1 and 2 were rerun on CPU on 2026-09-29 on the 54 and written to a new record,
-`results/_experiments/reviewer_checks/reviewer_checks_2026-09-29.json`, with check 3 copied
-from the first run because it needs a GPU:
+Checks 1 and 2 were rerun on CPU on 2026-09-29 on the 54-model panel of that day
+(`reviewer_checks_2026-09-29.json`) and again on 2026-09-30 on the 56 models of the current
+panel, written to `results/_experiments/reviewer_checks/reviewer_checks_2026-09-30.json`,
+with check 3 copied from the first run because it needs a GPU:
 
-    PYTHONPATH=. .venv/bin/python scratch/stale_numbers/reviewer_checks_rerun.py
+    PYTHONPATH=. .venv/bin/python experiments/reviewer_checks/rerun_panel.py
 
-Every number below for checks 1 and 2 is read from the new record, and every number for
-check 3 from the first run.
+Every number below for checks 1 and 2 is read from the 2026-09-30 record, and every number
+for check 3 from the first run. The 2 models that joined the panel on 2026-09-30,
+`vit_gtsrb_lc_0_05_tl1_adv` and `vit_gtsrb_tact_0_01_cos`, enter check 1. Check 2 keeps
+them out of its selection half (`measure.JOINED_AFTER_SELECTION`), since both are GTSRB
+models and letting them vote would re-pick the pair after the fact. With them in, the
+search picks `mlp_norm_out_gain_scale` plus PSBD-RD instead.
 
 ## Check 1: the size of the defender's clean set
 
@@ -40,35 +45,35 @@ picks a rate from that smaller sample, and the threshold and detection report
 (`defenses.decision.detection_report`) are read at the subset's own PSU
 distribution at that rate. The clean and backdoor analysis pool never shrinks,
 only the defender's own held-out set does. Both PSBD-TM and PSBD-RD are
-checked, over all 69 panel models.
+checked, over all 56 panel models.
 
 | Subset size | PSBD-TM rate (mean) | PSBD-TM AUROC @ 10% | PSBD-TM TPR @ 10% | PSBD-TM AUROC @ 20% | PSBD-TM TPR @ 20% | PSBD-RD rate (mean) | PSBD-RD AUROC @ 10% | PSBD-RD TPR @ 10% |
 |---:|---:|---:|---:|---:|---:|---:|---:|---:|
-| 100  | 0.546 | 0.960 | 0.880 | 0.960 | 0.910 | 0.075 | 0.883 | 0.729 |
-| 200  | 0.547 | 0.962 | 0.884 | 0.962 | 0.913 | 0.074 | 0.886 | 0.733 |
-| 500  | 0.547 | 0.963 | 0.887 | 0.963 | 0.916 | 0.073 | 0.886 | 0.737 |
-| 1000 | 0.546 | 0.963 | 0.887 | 0.963 | 0.916 | 0.073 | 0.884 | 0.735 |
-| 2000 (canonical) | see below | 0.963\* | -- | -- | -- | 0.885\* | -- | -- |
+| 100  | 0.539 | 0.947 | 0.865 | 0.947 | 0.894 | 0.075 | 0.875 | 0.715 |
+| 200  | 0.540 | 0.949 | 0.869 | 0.949 | 0.897 | 0.073 | 0.877 | 0.719 |
+| 500  | 0.539 | 0.950 | 0.872 | 0.950 | 0.900 | 0.073 | 0.877 | 0.724 |
+| 1000 | 0.537 | 0.950 | 0.872 | 0.950 | 0.900 | 0.073 | 0.875 | 0.721 |
+| 2000 (canonical) | see below | 0.951\* | -- | -- | -- | 0.876\* | -- | -- |
 
-\*The 2000-image row is the canonical reading on the same 54 models, AUROC at q0.25 at the
-adaptive 0.8 rule (`scratch/stale_numbers/panel_auroc.py`). AUROC does not depend on the
-quantile, so it is on the same basis as the subset rows.
+\*The 2000-image row is the canonical reading on the same 56 models, AUROC at q0.25 at the
+adaptive 0.8 rule (`\HeadlineAurocAdaptive` and `\PublishedAurocAdaptive`). AUROC does not
+depend on the quantile, so it is on the same basis as the subset rows.
 
 Draw-to-draw spread (mean over models of each model's standard deviation across its 5
 draws, PSBD-TM AUROC at 10%): 0.005 at 100 images, 0.004 at 200, 0.0007 at 500, 0.0007 at
-1000. PSBD-RD's spread runs from 0.009 at 100 and 200 images down to 0.002 at 1000.
+1000. PSBD-RD's spread runs from 0.008 and 0.009 at 100 and 200 images down to 0.002 at 1000.
 
 The worst single model never drops out entirely. PSBD-TM's worst model is
-`vit_cifar10_wanet_0_1` at every subset size (AUROC 0.46), the 1 inverted cell left on the
-panel, and PSBD-RD's worst is `vit_cifar10_badnet_a2o_0_01` (AUROC 0.31) at 100 and 200
+`vit_gtsrb_tact_0_01_cos` at every subset size (AUROC 0.27, TPR 0 at 10%), the lower of the 2
+inverted cells on the panel beside `vit_cifar10_wanet_0_1`, and PSBD-RD's worst is `vit_cifar10_badnet_a2o_0_01` (AUROC 0.31) at 100 and 200
 images and `vit_gtsrb_badnet_a2o_0_01` (AUROC 0.27 and 0.22) at 500 and 1000.
 
 **Answer.** The paper's numbers hold under a much smaller clean set. Mean AUROC moves by at
-most 0.003 for either placement across the entire 100-to-1000 range, inside the
-draw-to-draw noise at 100 images, and it sits on the canonical 2000-image figures. The rate
-rule is stable too: PSBD-TM's mean selected rate stays at 0.546 to 0.547 and PSBD-RD's at
-0.073 to 0.075. A defender with 100 clean images loses almost nothing over 1 with 2000, on
-this panel. The gap between PSBD-TM and PSBD-RD (about 0.08 AUROC at every subset size) is
+most 0.003 for either placement across the entire 100-to-1000 range, and it sits on the
+canonical 2000-image figures. The rate rule is stable too: PSBD-TM's mean selected rate stays
+at 0.537 to 0.540 and PSBD-RD's at 0.073 to 0.075. A defender with 100 clean images loses
+almost nothing over 1 with 2000, on this panel. The gap between PSBD-TM and PSBD-RD (about
+0.07 AUROC at every subset size) is
 also unchanged, so the headline placement comparison does not depend on holding a large
 clean set either. The first run on 69 models read the same shape at lower levels (PSBD-TM
 0.925 to 0.929, PSBD-RD 0.821 to 0.824), a historical reading that included the
@@ -83,7 +88,7 @@ min-rank probe union (`experiments/probe_union/pair_search.py`) chosen the same
 way on the selection half generalize to the held-out half, or does its apparent
 gain come from having been picked on the same models it is later read on?
 
-**Method.** Candidates are the 23 basis placements present on all 54 panel models
+**Method.** Candidates are the 23 basis placements present on all 56 panel models
 (`experiments.probe_union.measure.basis_ids_present_on_all_models`).
 Every pair among them is scored by the min-rank union
 (`defenses.decision.multi_probe_auroc`/`multi_probe_detection`) on the 28
@@ -122,7 +127,7 @@ held-out half?
 
 **Method.** Same selection protocol and same search, but the candidate rule admits any
 basis placement present on at least 87% of the panel models, the share of the first run's
-60 of 69 (`CHECK2B_MIN_COVERAGE`, set to 47 of 54 for the rerun). On the current caches all
+60 of 69 (`CHECK2B_MIN_COVERAGE`, set to 49 of 56 for the rerun). On the current caches all
 23 candidates already sit on every model, so the relaxed search reads the same 23 and picks
 the same pair. Beside it, PSBD-TM plus the attention branch output is read on the held-out
 models directly.
@@ -138,7 +143,7 @@ candidate is already on every model. The deployment pair ties PSBD-TM alone on t
 half (+0.001, CI [-0.002, +0.004]) with a slightly lower TPR at 10%. The first run read it at
 +0.008 (CI [-0.002, +0.018]) and the search then picked `mlp_norm_out_gain_scale` plus PSBD-RD,
 the placement whose standalone `gain_scale` headline of +0.258 is withdrawn
-(`docs/audit-2026-09-07.md`). Both readings are historical. On the 54-model panel no pair,
+(`docs/audit-2026-09-07.md`). Both readings are historical. On the 56-model panel no pair,
 chosen or deployed, beats PSBD-TM alone on CIFAR-100 and Tiny.
 
 ## Check 3: the mask seed
@@ -176,11 +181,13 @@ canonical cache), 1 and 2 for each model, via
 deviation across seeds 0, 1 and 2 is at most 0.010 on any of the 10 models, and the widest
 range is 0.017, on the SIG model (0.418 to 0.435). The mean standard deviation across models
 is 0.0016 over all 10 and 0.0014 over the 9 without the source-mapped TaCT model, 2 orders of
-magnitude below the PSBD-TM minus PSBD-RD gap of 0.078 on the 54-model panel. The 1
+magnitude below the PSBD-TM minus PSBD-RD gap of 0.075 on the 56-model panel
+(`\HeadlineGainAdaptiveAuroc`). The 1
 outlier is TPR at 10% on `vit_cifar100_tact_0_01` (std 0.057), which is a
 poison-rate artifact rather than a mask-seed one: at 1% poisoning the
 eligible TaCT backdoor pool is small, so a handful of samples crossing the
 threshold moves TPR by several points while AUROC on the same model barely
-moves (0.901 to 0.909). Both models CLAUDE.md names as inverted,
+moves (0.901 to 0.909). The 2 inverted models of the first run,
 `vit_cifar10_wanet_0_1` and `vit_cifar10_sig_0_1`, stay inverted at every
-seed, so that finding is not a seed-0 accident either.
+seed, so that finding is not a seed-0 accident either. The panel's lowest model since
+2026-09-30, `vit_gtsrb_tact_0_01_cos`, has no mask-seed replicate yet, which needs a GPU run.

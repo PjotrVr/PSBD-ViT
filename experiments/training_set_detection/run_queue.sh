@@ -37,19 +37,23 @@ inside_gpu_window() {
 }
 
 # -E 75 makes a held lock exit with 75, which tells a busy slot apart from a
-# stage that ran and failed. Both slots are polled, since a process blocked on
-# the first slot never notices the second one coming free.
+# stage that ran and failed. The first slot is waited on in 60-second turns and
+# the second tried between them, since a process blocked on the first slot never
+# notices the second one coming free and a bare poll loses every release to the
+# processes already blocked.
 on_free_slot() {
-    local lock status
+    local status
     while true; do
-        for lock in "${LOCKS[@]}"; do
-            flock -n -E 75 "$lock" "$@"
-            status=$?
-            if ((status != 75)); then
-                return "$status"
-            fi
-        done
-        sleep 20
+        flock -w 60 -E 75 "${LOCKS[0]}" "$@"
+        status=$?
+        if ((status != 75)); then
+            return "$status"
+        fi
+        flock -n -E 75 "${LOCKS[1]}" "$@"
+        status=$?
+        if ((status != 75)); then
+            return "$status"
+        fi
     done
 }
 

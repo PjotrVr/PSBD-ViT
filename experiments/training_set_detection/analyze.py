@@ -202,8 +202,18 @@ def measure_model(folder, successful_2pt):
         )
     row["spectral_signatures"] = spectral_signatures_reading(groups, baseline)
     row["paper_rule"] = paper_rule_table(row)
+    row["gpu_seconds"] = gpu_seconds(folder)
     row["test_time"] = test_time_readings(folder)
     return row
+
+
+def gpu_seconds(folder):
+    total = 0.0
+    for name in os.listdir(common.raw_dir(folder)):
+        if name.endswith(".pt"):
+            part = load_part(folder, name[: -len(".pt")])
+            total += float(part.get("seconds", 0.0))
+    return total
 
 
 def reconstruction_checks(groups, baseline):

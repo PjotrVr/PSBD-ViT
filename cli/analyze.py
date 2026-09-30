@@ -45,7 +45,7 @@ from defenses.scores import (
     shift_ratio,
     shift_target_histogram,
 )
-from data.splits import read_checkpoint_metadata
+from data.backdoorbench import resolve_checkpoint
 
 
 def parse_args() -> argparse.Namespace:
@@ -293,9 +293,7 @@ def analyze_checkpoint(folder: str, checkpoints_dir: str, results_dir: str) -> d
     """The full stage-2 record for a checkpoint, every placement on disk."""
     psbd_dir = os.path.join(results_dir, folder, "psbd")
     manifest = read_split_manifest(psbd_dir)
-    metadata = read_checkpoint_metadata(
-        os.path.join(checkpoints_dir, folder, "attack_result.pt")
-    )
+    _, metadata = resolve_checkpoint(folder, checkpoints_dir)
     num_classes = DATASET_REGISTRY[metadata["dataset"]].num_classes
     # A benign model has no target class, so the shift-to-target question does
     # not apply to it and is recorded as null rather than as class 0.

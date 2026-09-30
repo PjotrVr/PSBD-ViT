@@ -20,6 +20,11 @@ import random
 import statistics
 
 BOOTSTRAP_DRAWS = 5000
+# Panel models whose caches landed on 2026-09-30, after every selection this protocol
+# made. They sit on a selection dataset, and letting them vote would re-pick the
+# winner after the fact, so the selection split leaves them out. They stay in the
+# whole-panel readings of panel.py.
+JOINED_AFTER_SELECTION = ("vit_gtsrb_lc_0_05_tl1_adv", "vit_gtsrb_tact_0_01_cos")
 
 
 def load(path: str) -> dict:
@@ -74,7 +79,9 @@ def bootstrap_interval(values: list, seed: int = 0) -> tuple:
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--fusion", default="results/coverage/probe_fusion.json")
+    parser.add_argument(
+        "--fusion", default="results/_experiments/probe_fusion/probe_fusion.json"
+    )
     parser.add_argument("--declaration", default="configs/psbd_basis.json")
     parser.add_argument("--coverage", default="results/coverage/coverage.json")
     parser.add_argument("--reference", default="before_attention_norm_token_mask")
@@ -95,8 +102,13 @@ def main() -> None:
     cells = implanted_cells(report, ledger)
     names = {name for cell in cells.values() for name in cell["combinations"]}
 
+    selection_cells = {
+        folder: cell
+        for folder, cell in cells.items()
+        if folder not in JOINED_AFTER_SELECTION
+    }
     selection = {
-        name: deltas(cells, name, args.reference, select_on, args.rule)
+        name: deltas(selection_cells, name, args.reference, select_on, args.rule)
         for name in names
     }
     selection = {
@@ -126,7 +138,7 @@ def main() -> None:
     print(f"   95% CI      [{lower:+.4f}, {upper:+.4f}]")
     print(f"   wins        {sum(1 for value in held if value > 0)}/{len(held)}")
     print(
-        f"   verdict     {'HOLDS' if lower > 0 else 'NOT SUPPORTED, the interval spans zero'}"
+        f"   verdict     {'HOLDS' if lower > 0 else 'HURTS' if upper < 0 else 'NOT SUPPORTED, the interval spans zero'}"
     )
 
     per_attack = collections.defaultdict(list)

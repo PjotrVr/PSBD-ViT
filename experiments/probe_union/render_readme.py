@@ -215,7 +215,6 @@ def conclusion(
         if len(rescued) == len(inverted)
         else f"lifts {len(rescued)} of the {len(inverted)} inverted models above chance"
     )
-    branch = gains["psbd_tm_attn_branch"]
     branch_tact_word = (
         "lifts" if tact_mean["psbd_tm_attn_branch"] > tact_mean["psbd_tm"] else "lowers"
     )

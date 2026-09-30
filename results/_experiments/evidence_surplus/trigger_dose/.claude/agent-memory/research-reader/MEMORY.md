@@ -1,0 +1,1 @@
+- [Faded trigger memo](reference_faded_trigger_memo.md) — results/research/faded-trigger-defenses.md: TITIM precedent, attractor tail at 1% FPR, surplus window bound, ranked ideas

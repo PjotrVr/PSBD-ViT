@@ -1,0 +1,274 @@
+{
+ "run": {
+  "name": "vit_cifar10_benign__badnet_a2o",
+  "folder": "vit_cifar10_benign",
+  "architecture": "vit",
+  "dataset": "cifar10",
+  "attack": "badnet_a2o",
+  "benign": true,
+  "probe_attack": "badnet_a2o",
+  "probe_target": 0,
+  "target": 0
+ },
+ "n_pairs": 800,
+ "n_eval": 400,
+ "n_eval_off_target": 397,
+ "asr_eval": 0.012500000186264515,
+ "clean_accuracy_eval": 0.9624999761581421,
+ "search_factor": 4.0,
+ "bisection_steps": 12,
+ "layers": [
+  {
+   "layer": 1,
+   "direction_norm": 0.025182979181408882,
+   "search_limit": 0.09629292786121368,
+   "backdoor": {
+    "n": 397,
+    "median_actual": 0.02405259571969509,
+    "reachable_share": 0.0,
+    "median_needed": null,
+    "median_surplus": null,
+    "surplus_quartiles": null
+   },
+   "random": {
+    "n": 397,
+    "median_actual": -7.52929481677711e-05,
+    "reachable_share": 0.0,
+    "median_needed": null,
+    "median_surplus": null,
+    "surplus_quartiles": null
+   }
+  },
+  {
+   "layer": 2,
+   "direction_norm": 0.11878123134374619,
+   "search_limit": 0.46235960721969604,
+   "backdoor": {
+    "n": 397,
+    "median_actual": 0.11555013060569763,
+    "reachable_share": 0.0,
+    "median_needed": null,
+    "median_surplus": null,
+    "surplus_quartiles": null
+   },
+   "random": {
+    "n": 397,
+    "median_actual": -0.0036227921955287457,
+    "reachable_share": 0.0,
+    "median_needed": null,
+    "median_surplus": null,
+    "surplus_quartiles": null
+   }
+  },
+  {
+   "layer": 3,
+   "direction_norm": 0.29876574873924255,
+   "search_limit": 1.1114017963409424,
+   "backdoor": {
+    "n": 397,
+    "median_actual": 0.2778504490852356,
+    "reachable_share": 0.0,
+    "median_needed": null,
+    "median_surplus": null,
+    "surplus_quartiles": null
+   },
+   "random": {
+    "n": 397,
+    "median_actual": -0.001356474356725812,
+    "reachable_share": 0.0,
+    "median_needed": null,
+    "median_surplus": null,
+    "surplus_quartiles": null
+   }
+  },
+  {
+   "layer": 4,
+   "direction_norm": 0.4451256990432739,
+   "search_limit": 1.6663473844528198,
+   "backdoor": {
+    "n": 397,
+    "median_actual": 0.41656529903411865,
+    "reachable_share": 0.0,
+    "median_needed": null,
+    "median_surplus": null,
+    "surplus_quartiles": null
+   },
+   "random": {
+    "n": 397,
+    "median_actual": 0.014384262263774872,
+    "reachable_share": 0.0,
+    "median_needed": null,
+    "median_surplus": null,
+    "surplus_quartiles": null
+   }
+  },
+  {
+   "layer": 5,
+   "direction_norm": 0.710473895072937,
+   "search_limit": 2.6493489742279053,
+   "backdoor": {
+    "n": 397,
+    "median_actual": 0.662014365196228,
+    "reachable_share": 0.002518891589716077,
+    "median_needed": 1.7515714168548584,
+    "median_surplus": 0.339,
+    "surplus_quartiles": null
+   },
+   "random": {
+    "n": 397,
+    "median_actual": -0.014887169003486633,
+    "reachable_share": 0.0,
+    "median_needed": null,
+    "median_surplus": null,
+    "surplus_quartiles": null
+   }
+  },
+  {
+   "layer": 6,
+   "direction_norm": 0.8245648145675659,
+   "search_limit": 3.1192355155944824,
+   "backdoor": {
+    "n": 397,
+    "median_actual": 0.7782518267631531,
+    "reachable_share": 0.0,
+    "median_needed": null,
+    "median_surplus": null,
+    "surplus_quartiles": null
+   },
+   "random": {
+    "n": 397,
+    "median_actual": -0.032573502510786057,
+    "reachable_share": 0.0,
+    "median_needed": null,
+    "median_surplus": null,
+    "surplus_quartiles": null
+   }
+  },
+  {
+   "layer": 7,
+   "direction_norm": 1.0766417980194092,
+   "search_limit": 4.0003132820129395,
+   "backdoor": {
+    "n": 397,
+    "median_actual": 0.9948274493217468,
+    "reachable_share": 0.002518891589716077,
+    "median_needed": 2.581256866455078,
+    "median_surplus": 0.3958,
+    "surplus_quartiles": null
+   },
+   "random": {
+    "n": 397,
+    "median_actual": 0.005249406211078167,
+    "reachable_share": 0.0,
+    "median_needed": null,
+    "median_surplus": null,
+    "surplus_quartiles": null
+   }
+  },
+  {
+   "layer": 8,
+   "direction_norm": 1.223496913909912,
+   "search_limit": 4.523950576782227,
+   "backdoor": {
+    "n": 397,
+    "median_actual": 1.1288316249847412,
+    "reachable_share": 0.0,
+    "median_needed": null,
+    "median_surplus": null,
+    "surplus_quartiles": null
+   },
+   "random": {
+    "n": 397,
+    "median_actual": 0.005203800275921822,
+    "reachable_share": 0.0,
+    "median_needed": null,
+    "median_surplus": null,
+    "surplus_quartiles": null
+   }
+  },
+  {
+   "layer": 9,
+   "direction_norm": 1.2692073583602905,
+   "search_limit": 4.712704181671143,
+   "backdoor": {
+    "n": 397,
+    "median_actual": 1.1758596897125244,
+    "reachable_share": 0.0,
+    "median_needed": null,
+    "median_surplus": null,
+    "surplus_quartiles": null
+   },
+   "random": {
+    "n": 397,
+    "median_actual": -0.005436880514025688,
+    "reachable_share": 0.0,
+    "median_needed": null,
+    "median_surplus": null,
+    "surplus_quartiles": null
+   }
+  },
+  {
+   "layer": 10,
+   "direction_norm": 1.2936713695526123,
+   "search_limit": 4.81644344329834,
+   "backdoor": {
+    "n": 397,
+    "median_actual": 1.200771450996399,
+    "reachable_share": 0.0,
+    "median_needed": null,
+    "median_surplus": null,
+    "surplus_quartiles": null
+   },
+   "random": {
+    "n": 397,
+    "median_actual": -0.00035397522151470184,
+    "reachable_share": 0.0,
+    "median_needed": null,
+    "median_surplus": null,
+    "surplus_quartiles": null
+   }
+  },
+  {
+   "layer": 11,
+   "direction_norm": 1.3085404634475708,
+   "search_limit": 4.907260894775391,
+   "backdoor": {
+    "n": 397,
+    "median_actual": 1.2260663509368896,
+    "reachable_share": 0.0,
+    "median_needed": null,
+    "median_surplus": null,
+    "surplus_quartiles": null
+   },
+   "random": {
+    "n": 397,
+    "median_actual": 0.017181377857923508,
+    "reachable_share": 0.0,
+    "median_needed": null,
+    "median_surplus": null,
+    "surplus_quartiles": null
+   }
+  },
+  {
+   "layer": 12,
+   "direction_norm": 1.3309831619262695,
+   "search_limit": 4.970405578613281,
+   "backdoor": {
+    "n": 397,
+    "median_actual": 1.2412188053131104,
+    "reachable_share": 0.002518891589716077,
+    "median_needed": 3.208435535430908,
+    "median_surplus": 0.3739,
+    "surplus_quartiles": null
+   },
+   "random": {
+    "n": 397,
+    "median_actual": -0.0032140836119651794,
+    "reachable_share": 0.0,
+    "median_needed": null,
+    "median_surplus": null,
+    "surplus_quartiles": null
+   }
+  }
+ ]
+}

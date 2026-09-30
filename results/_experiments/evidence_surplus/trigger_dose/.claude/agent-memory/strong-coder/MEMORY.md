@@ -1,0 +1,1 @@
+- [Faded trigger defense](project-faded-trigger-defense.md) — pooled MW, ladder scores, conformal per-class rules, matched filter; regimes; queue behind final_method

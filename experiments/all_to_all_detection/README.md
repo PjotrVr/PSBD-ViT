@@ -565,13 +565,13 @@ ViT-B/16:
 <!-- results:begin -->
 | statistic | n | AUROC | PSU-TM, same models | change [95% CI] | TPR at 0.01, 0.05, 0.10 FPR | PSU-TM TPR, same models | realized clean FPR |
 |---|---:|---:|---:|---|---|---|---|
-| negative entropy (control) | 54 | 0.316 | 0.963 | -0.647 [-0.720, -0.567] | 0.002, 0.022, 0.032 | 0.747, 0.855, 0.887 | 0.010, 0.050, 0.101 |
-| transition typicality | 54 | 0.546 | 0.963 | -0.417 [-0.525, -0.308] | 0.185, 0.320, 0.370 | 0.747, 0.855, 0.887 | 0.093, 0.145, 0.192 |
-| late fragility | 54 | 0.114 | 0.963 | -0.849 [-0.895, -0.800] | 0.002, 0.010, 0.019 | 0.747, 0.855, 0.887 | 0.011, 0.053, 0.106 |
-| depth profile | 54 | 0.562 | 0.963 | -0.401 [-0.436, -0.366] | 0.015, 0.041, 0.067 | 0.747, 0.855, 0.887 | 0.009, 0.047, 0.095 |
-| either regime | 54 | 0.933 | 0.963 | -0.030 [-0.052, -0.015] | 0.664, 0.824, 0.864 | 0.747, 0.855, 0.887 | 0.011, 0.051, 0.100 |
-| router, entropy (H43) | 54 | 0.960 | 0.963 | -0.003 [-0.008, +0.000] | 0.747, 0.855, 0.887 | 0.747, 0.855, 0.887 | 0.010, 0.047, 0.093 |
-| router, late fragility | 54 | 0.957 | 0.963 | -0.006 [-0.017, +0.000] | 0.748, 0.859, 0.894 | 0.747, 0.855, 0.887 | 0.010, 0.048, 0.095 |
+| negative entropy (control) | 56 | 0.336 | 0.951 | -0.614 [-0.701, -0.518] | 0.002, 0.023, 0.037 | 0.735, 0.841, 0.872 | 0.010, 0.049, 0.100 |
+| transition typicality | 56 | 0.561 | 0.951 | -0.389 [-0.501, -0.275] | 0.179, 0.327, 0.392 | 0.735, 0.841, 0.872 | 0.090, 0.141, 0.187 |
+| late fragility | 56 | 0.129 | 0.951 | -0.822 [-0.880, -0.750] | 0.002, 0.010, 0.018 | 0.735, 0.841, 0.872 | 0.011, 0.053, 0.105 |
+| depth profile | 56 | 0.565 | 0.951 | -0.386 [-0.424, -0.342] | 0.015, 0.043, 0.070 | 0.735, 0.841, 0.872 | 0.009, 0.046, 0.094 |
+| either regime | 56 | 0.923 | 0.951 | -0.027 [-0.048, -0.011] | 0.654, 0.810, 0.849 | 0.735, 0.841, 0.872 | 0.011, 0.050, 0.098 |
+| router, entropy (H43) | 56 | 0.960 | 0.951 | +0.010 [-0.008, +0.037] | 0.735, 0.841, 0.873 | 0.735, 0.841, 0.872 | 0.010, 0.046, 0.092 |
+| router, late fragility | 56 | 0.954 | 0.951 | +0.003 [-0.016, +0.025] | 0.736, 0.845, 0.879 | 0.735, 0.841, 0.872 | 0.010, 0.047, 0.094 |
 <!-- results:end -->
 
 Swin-S:
@@ -588,12 +588,12 @@ Swin-S:
 | router, late fragility | 63 | 0.973 | 0.973 | +0.000 [+0.000, +0.000] | 0.824, 0.905, 0.939 | 0.824, 0.905, 0.939 | 0.009, 0.044, 0.092 |
 <!-- results:end -->
 
-Either regime reads 0.933 on the 54 ViT all-to-one models
-against 0.963 for PSU-TM on the same models, a change of
--0.030 [-0.052, -0.015]. TPR at the smallest budget falls
-from 0.747 to 0.664. On Swin-S it reads 0.961 against 0.973.
-Late fragility alone reads 0.114 on all-to-one and the
-entropy control 0.316, so neither can be deployed without
+Either regime reads 0.923 on the 56 ViT all-to-one models
+against 0.951 for PSU-TM on the same models, a change of
+-0.027 [-0.048, -0.011]. TPR at the smallest budget falls
+from 0.735 to 0.654. On Swin-S it reads 0.961 against 0.973.
+Late fragility alone reads 0.129 on all-to-one and the
+entropy control 0.336, so neither can be deployed without
 knowing the regime.
 
 ## Null control
@@ -667,7 +667,7 @@ of the pool shift d does not flip reliably on all-to-all at
 these poison rates, so the H43 router reads 0.638 and the
 late router 0.634. Entropy separates all-to-all, and it
 perturbs nothing, measures confidence and inverts on
-all-to-one (0.316), so it is not a PSBD detector.
+all-to-one (0.336), so it is not a PSBD detector.
 
 **Idea 4, the late-band probe.** Supported on the
 development models and not confirmed at that strength. Late
@@ -687,7 +687,7 @@ clean prediction no longer needs. On the ViT models at the
 ASR bar late fragility reads 0.863 against 0.451 for PSU-TM
 (Swin-S 0.904 against 0.541 on 4 models), and
 `either_regime` covers both regimes without knowing the
-regime of a model, at 0.803 on all-to-all and 0.933 on the
+regime of a model, at 0.803 on all-to-all and 0.923 on the
 all-to-one panel. On the confirmation datasets the frozen
 detector reads 0.608, with TPR 0.023 at the smallest budget.
 

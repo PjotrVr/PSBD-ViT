@@ -214,7 +214,7 @@ with K = 3, $\epsilon_{\text{prob}}$ = 0.01 and $\epsilon_{\text{logit}}$ = 0.5.
 | `vit_cifar10_benign` | 5 | 2 | 2 | 0.30 to 0.26 | 0.64 to 0.50 | 0.01 to 0.01 | 0.06 to 0.06 |
 | `vit_gtsrb_benign` | 13 | 13 | 1 | 0.57 to 0.49 | 0.63 to 0.56 | 0.01 to 0.01 | 0.05 to 0.05 |
 
-The panel is the 56 successful_2pt ViT cells (`clearing_cells`), not the 54 that carry both headline placements, since every one of the 56 has the cached PSBD-TM sweep this reads. Mean per-model values, plain to null-referenced, with the paired difference and its bootstrap interval over models (10000 resamples), for the fully masked null. The attractor flag rate is the share of attractor-class clean images flagged at 0.05, nominal 0.05.
+The panel is the 56 successful_2pt ViT cells (`clearing_cells`) that carry the cached PSBD-TM sweep this reads, the same 56 as the headline panel of 2026-09-30. The 6 TaCT multi-source retrains that are successful but not yet swept are not in it. Mean per-model values, plain to null-referenced, with the paired difference and its bootstrap interval over models (10000 resamples), for the fully masked null. The attractor flag rate is the share of attractor-class clean images flagged at 0.05, nominal 0.05.
 
 | Group | Models | TPR 0.01 | TPR 0.05 | TPR 0.10 | AUROC | Attractor flag rate 0.05 |
 |---|---|---|---|---|---|---|

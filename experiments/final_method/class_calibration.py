@@ -26,7 +26,8 @@ the average of the 2 calibrated scores of PSBD-TM and the middle band. Every
 score is thresholded at a quantile of its own clean-validation values. m is fixed
 on the development set first (`--stage dev`), written to
 `preregistration_classcal.json`, and only then are the other panel models read
-once (`--stage rest`). `--stage panel` rereads all 54 for the combined table.
+once (`--stage rest`). `--stage panel` rereads every panel model for the combined
+table.
 
     .venv/bin/python -m experiments.final_method.class_calibration --stage dev
 """

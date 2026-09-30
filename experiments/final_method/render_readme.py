@@ -258,6 +258,7 @@ def class_values(records):
         "CC_DEV_N": f"{dev['all']['n']}",
         "CC_REST_N": f"{rest['all']['n']}",
         "CC_PANEL_N": f"{panel['all']['n']}",
+        "CC_LATE": late_models_sentence(records),
         "CC_DEV_TM1": delta(dev_tm),
         "CC_REST_TM1": delta(rest_tm),
         "CC_REST_TM1_FPR": f3(
@@ -298,6 +299,34 @@ def class_values(records):
         ),
     }
     return values
+
+
+def late_models_sentence(records):
+    read_before = {
+        m["folder"]
+        for name in ("class_calibration_dev", "class_calibration_rest")
+        for m in records[name]["models"]
+    }
+    late = [
+        m["folder"]
+        for m in records["class_calibration_panel"]["models"]
+        if m["folder"] not in read_before
+    ]
+    if not late:
+        return ""
+    names = join_words([f"`{folder}`" for folder in late])
+    sentence = (
+        f" {len(late)} panel models, {names}, joined the panel after that read and "
+        "enter only the tables of all panel models."
+    )
+    return sentence
+
+
+def join_words(words):
+    if len(words) == 1:
+        return words[0]
+    text = ", ".join(words[:-1]) + " and " + words[-1]
+    return text
 
 
 def anomaly_values(records):
@@ -358,7 +387,29 @@ def anomaly_values(records):
         gaps.append(alone - rules["weighted_0.9_0.1"]["at_fpr"]["q0.01"]["tpr"])
         recovers += rules["mean_psu"]["at_fpr"]["q0.01"]["tpr"] >= alone - 0.05
     first = anomalies["tact"][0]
-    assert all(t["by_fpr"]["q0.05"]["tpr_source_only"] > 0.5 for t in anomalies["tact"])
+    # The calibration account holds where a source-only threshold recovers the
+    # TPR. A model where it does not is an inversion of the score itself, and the
+    # README names it with its PSBD-TM AUROC and the 2 PSU medians.
+    recovering = [
+        t for t in anomalies["tact"] if t["by_fpr"]["q0.05"]["tpr_source_only"] > 0.5
+    ]
+    assert first in recovering
+    inverted_sentences = []
+    for t in anomalies["tact"]:
+        if t in recovering:
+            continue
+        auroc = by_folder[t["folder"]]["tm_alone"]["auroc"]
+        medians = t["psu_median"]
+        assert auroc < 0.5 and medians["backdoor"] > medians["clean_paired_source"]
+        inverted_sentences.append(
+            f"On `{t['folder']}` the source-only threshold recovers nothing, TPR "
+            f"{f3(t['by_fpr']['q0.05']['tpr_source_only'])} at 5% FPR. Its triggered "
+            f"inputs sit above their clean source-class twins in fractional PSU "
+            f"(median {f3(medians['backdoor'])} against "
+            f"{f3(medians['clean_paired_source'])}) and PSBD-TM's AUROC there is "
+            f"{f3(auroc)}, so on this model the score itself is inverted and the "
+            "calibration account does not apply."
+        )
     helped = sum(
         t["by_fpr"]["q0.05"]["tpr_per_predicted_class"]
         > t["by_fpr"]["q0.05"]["tpr_all_class"] + 0.2
@@ -399,6 +450,10 @@ def anomaly_values(records):
             tact_rows,
         ),
         "TACT_FIRST": f"`{first['folder']}`",
+        "TACT_RECOVERING": join_words([f"`{t['folder']}`" for t in recovering]),
+        "TACT_INVERTED": (" " + " ".join(inverted_sentences))
+        if inverted_sentences
+        else "",
         "TACT_HELPED": f"{helped}",
         "TACT_N": f"{len(anomalies['tact'])}",
         "PARTNER_MAX": f3(partner_max),
@@ -449,6 +504,7 @@ def detector_values(records):
     ]
     missing = d["missing_detector_records"]
     values = {
+        "DET_AUROC_AND_FLOOR": auroc_and_floor_paragraph(d),
         "DET_N": f"{overall['psbd_tm']['n']}",
         "DET_MISSING": "none"
         if not missing
@@ -483,6 +539,60 @@ def detector_values(records):
         "TABLE_DET_ATTACK_ALL": table(["method"] + list(by_attack), all_attack_rows),
     }
     return values
+
+
+def auroc_and_floor_paragraph(d):
+    paired = d["summary"]["paired"]
+    tm_auroc = paired["psbd_tm"]["auroc"]
+    fused_auroc = {m: paired[m]["auroc"] for m in ("final_min", "final_average")}
+    tm_word = "excludes" if tm_auroc["ci95"][0] > 0 else "includes"
+    fused_words = [f"{METHOD_WORDS[m]} {delta(a)}" for m, a in fused_auroc.items()]
+    fused_exclude = all(a["ci95"][0] > 0 for a in fused_auroc.values())
+    auroc_text = (
+        f"In AUROC PSBD-TM alone leads `{tm_auroc['against']}` by {delta(tm_auroc)}, "
+        f"an interval that {tm_word} 0. The fusion "
+        + (
+            "keeps its AUROC lead clear of 0"
+            if fused_exclude
+            else "does not keep its AUROC lead clear of 0"
+        )
+        + f" under both rules, {' and '.join(fused_words)}."
+    )
+
+    # The model with the lowest PSBD-TM AUROC is the panel floor. Whether the
+    # second probe rescues it is read at the headline FPRs first.
+    models = d["models"]
+    floor = min(models, key=lambda folder: models[folder]["psbd_tm"]["auroc"])
+    row = models[floor]
+    competitors = [m for m in d["methods"] if m not in METHOD_WORDS]
+    best = sorted(competitors, key=lambda m: -row[m]["q0.01:tpr"])[:2]
+
+    def reading(method):
+        tprs = " / ".join(f3(row[method][f"{q}:tpr"]) for q in HEADLINE)
+        text = f"{tprs} (AUROC {f3(row[method]['auroc'])})"
+        return text
+
+    min_rescues_auroc = row["final_min"]["auroc"] >= 0.5
+    min_tpr1 = row["final_min"]["q0.01:tpr"]
+    floor_text = (
+        f"The panel floor is `{floor}`, where PSBD-TM alone reads TPR "
+        f"{reading('psbd_tm')} at 1% / 5% / 10% FPR. The min rule reads "
+        f"{reading('final_min')} and the average rule {reading('final_average')}. "
+        + (
+            "The min rule lifts the model above chance in AUROC"
+            if min_rescues_auroc
+            else "The min rule leaves the model below chance in AUROC"
+        )
+        + (
+            ", but it does not rescue detection at the headline FPRs"
+            if min_tpr1 < 0.5
+            else " and rescues detection at 1% FPR"
+        )
+        + f". The 2 competitors with the highest TPR at 1% FPR there are "
+        f"`{best[0]}` at {reading(best[0])} and `{best[1]}` at {reading(best[1])}."
+    )
+    paragraph = f"{auroc_text} {floor_text}"
+    return paragraph
 
 
 def attacker_values(records):
@@ -907,7 +1017,7 @@ The final method is PSBD-TM fused with residual dropout in the middle third of t
 
 ## Calibration by predicted class
 
-Calibrating each score against the clean validation images of the same predicted class helps TaCT a little and costs most of the other attacks. On the @@CC_REST_N@@ models read as the confirmation it lowers PSBD-TM's TPR at 1% FPR on @@CC_ATTACKS_LOWER@@ of @@CC_ATTACKS_N@@ attacks, and the attack it raises is @@CC_ATTACKS_RAISED@@. The idea was that a defender knows each input's predicted class, and that the CIFAR-10 TaCT failure below is a calibration effect. `class_calibration.py` tests 2 forms that need no knowledge of the attack, a class percentile and a class z-score, each shrunk toward the whole validation split with strength $m$ images (the formulas are in its docstring). The shrinkage was chosen on the @@CC_DEV_N@@ successful development models from the grid @@CC_GRID@@ by PSBD-TM's mean TPR over the 3 FPRs, and both forms chose $m$ = @@CC_M@@, the edge of the grid. `preregistration_classcal.json` fixed that rule and 4 predictions at @@CC_PREREG_TIME@@ (SHA-256 `@@CC_HASH@@`) before the other @@CC_REST_N@@ panel models were read.
+Calibrating each score against the clean validation images of the same predicted class helps TaCT a little and costs most of the other attacks. On the @@CC_REST_N@@ models read as the confirmation it lowers PSBD-TM's TPR at 1% FPR on @@CC_ATTACKS_LOWER@@ of @@CC_ATTACKS_N@@ attacks, and the attack it raises is @@CC_ATTACKS_RAISED@@. The idea was that a defender knows each input's predicted class, and that the CIFAR-10 TaCT failure below is a calibration effect. `class_calibration.py` tests 2 forms that need no knowledge of the attack, a class percentile and a class z-score, each shrunk toward the whole validation split with strength $m$ images (the formulas are in its docstring). The shrinkage was chosen on the @@CC_DEV_N@@ successful development models from the grid @@CC_GRID@@ by PSBD-TM's mean TPR over the 3 FPRs, and both forms chose $m$ = @@CC_M@@, the edge of the grid. `preregistration_classcal.json` fixed that rule and 4 predictions at @@CC_PREREG_TIME@@ (SHA-256 `@@CC_HASH@@`) before the other @@CC_REST_N@@ panel models were read.@@CC_LATE@@
 
 The development set said yes and the confirmation said no. The class z-score raised PSBD-TM's TPR at 1% FPR by @@CC_DEV_TM1@@ on the development set and lowered it by @@CC_REST_TM1@@ on the other models, with the realized FPR at the nominal 1% rising to @@CC_REST_TM1_FPR@@. The loss is largest on Tiny ImageNet, where TPR at 1% FPR falls from @@CC_TINY_GLOBAL@@ to @@CC_TINY_Z@@ over @@CC_TINY_N@@ models. All 4 predictions failed.
 
@@ -945,7 +1055,7 @@ The reason is structural. A triggered input is predicted as the target class, so
 
 ## The TaCT calibration effect
 
-On the CIFAR-10 TaCT models the high AUROC and the TPR near 0 measure different populations. AUROC compares triggered inputs with their paired clean images, and every one of those comes from the source class, while the threshold comes from all-class validation. Clean source-class images are more fragile under token masking than the validation average, so they rarely fall below the all-class threshold, and triggered inputs sit between them and the rest. A threshold read from source-class validation alone (@@TACT_FIRST_NSRC@@ images on @@TACT_FIRST@@) recovers most of the TPR at its own FPR. A defender does not know the source class, so this is a finding about what the metric compares and not a deployable fix. The deployable version is a threshold per predicted class. It lifts TPR at 5% FPR by more than 0.2 on @@TACT_HELPED@@ of the @@TACT_N@@ TaCT models (`anomalies.json`, `tact`). The panel-wide test above shows what it costs elsewhere.
+On the CIFAR-10 TaCT models the high AUROC and the TPR near 0 measure different populations. AUROC compares triggered inputs with their paired clean images, and every one of those comes from the source class, while the threshold comes from all-class validation. Clean source-class images are more fragile under token masking than the validation average, so they rarely fall below the all-class threshold, and triggered inputs sit between them and the rest. A threshold read from source-class validation alone (@@TACT_FIRST_NSRC@@ images on @@TACT_FIRST@@) recovers most of the TPR at its own FPR on @@TACT_RECOVERING@@. A defender does not know the source class, so this is a finding about what the metric compares and not a deployable fix. The deployable version is a threshold per predicted class. It lifts TPR at 5% FPR by more than 0.2 on @@TACT_HELPED@@ of the @@TACT_N@@ TaCT models (`anomalies.json`, `tact`). The panel-wide test above shows what it costs elsewhere.@@TACT_INVERTED@@
 
 @@TABLE_TACT_CAL@@
 
@@ -958,6 +1068,8 @@ The collapse of the min rule at 1% FPR on single models comes from the budget sp
 ## The final method against the competitor detectors
 
 On the @@DET_N@@ ViT panel models the final method leads every competitor at 1%, 5% and 10% FPR under both rules. Every paired interval against the best competitor at that FPR excludes 0. The best competitor at 1% FPR is @@DET_BEST_1@@ and at 5% @@DET_BEST_5@@. Detector records missing: @@DET_MISSING@@. The Swin detectors have no records on disk, so no Swin table exists (`detector_comparison.json`).
+
+@@DET_AUROC_AND_FLOOR@@
 
 @@TABLE_DET@@
 

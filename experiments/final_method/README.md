@@ -7,7 +7,7 @@ The final method is PSBD-TM fused with residual dropout in the middle third of t
 
 ## Calibration by predicted class
 
-Calibrating each score against the clean validation images of the same predicted class helps TaCT a little and costs most of the other attacks. On the 45 models read as the confirmation it lowers PSBD-TM's TPR at 1% FPR on 5 of 6 attacks, and the attack it raises is tact. The idea was that a defender knows each input's predicted class, and that the CIFAR-10 TaCT failure below is a calibration effect. `class_calibration.py` tests 2 forms that need no knowledge of the attack, a class percentile and a class z-score, each shrunk toward the whole validation split with strength $m$ images (the formulas are in its docstring). The shrinkage was chosen on the 9 successful development models from the grid 5, 20, 50, 200 by PSBD-TM's mean TPR over the 3 FPRs, and both forms chose $m$ = 5, the edge of the grid. `preregistration_classcal.json` fixed that rule and 4 predictions at 2026-09-29T22:05:30Z (SHA-256 `d3707251403b848a3c0443bf18b349daa497dbeb4c98c24f1a06c28fa7de56d5`) before the other 45 panel models were read.
+Calibrating each score against the clean validation images of the same predicted class helps TaCT a little and costs most of the other attacks. On the 45 models read as the confirmation it lowers PSBD-TM's TPR at 1% FPR on 5 of 6 attacks, and the attack it raises is tact. The idea was that a defender knows each input's predicted class, and that the CIFAR-10 TaCT failure below is a calibration effect. `class_calibration.py` tests 2 forms that need no knowledge of the attack, a class percentile and a class z-score, each shrunk toward the whole validation split with strength $m$ images (the formulas are in its docstring). The shrinkage was chosen on the 9 successful development models from the grid 5, 20, 50, 200 by PSBD-TM's mean TPR over the 3 FPRs, and both forms chose $m$ = 5, the edge of the grid. `preregistration_classcal.json` fixed that rule and 4 predictions at 2026-09-29T22:05:30Z (SHA-256 `d3707251403b848a3c0443bf18b349daa497dbeb4c98c24f1a06c28fa7de56d5`) before the other 45 panel models were read. 2 panel models, `vit_gtsrb_lc_0_05_tl1_adv` and `vit_gtsrb_tact_0_01_cos`, joined the panel after that read and enter only the tables of all panel models.
 
 The development set said yes and the confirmation said no. The class z-score raised PSBD-TM's TPR at 1% FPR by +0.203 [+0.109, +0.300] on the development set and lowered it by -0.209 [-0.335, -0.088] on the other models, with the realized FPR at the nominal 1% rising to 0.017. The loss is largest on Tiny ImageNet, where TPR at 1% FPR falls from 0.793 to 0.194 over 14 models. All 4 predictions failed.
 
@@ -18,21 +18,21 @@ The development set said yes and the confirmation said no. The class z-score rai
 | CC-no-harm | under class_z no attack's mean TPR at 1% FPR falls by more than 0.02 for PSBD-TM alone, which is the test that the rule is more than a TaCT fix | failed |
 | CC-fpr | under class_z the mean realized FPR stays within 0.005 of each nominal FPR for PSBD-TM alone | failed |
 
-The reason is structural. A triggered input is predicted as the target class, so class calibration compares it with the clean validation images the model predicts as the target. Those images are the ones the backdoor has altered. Their PSU median sits below the global median on 41 of 54 panel models (`class_calibration_panel.json`, `models[].target_class_validation`). On Tiny ImageNet, where the loss concentrates, it sits below on 14 of 14 models and the spread is wider than the global one on 13, from only 7 to 14 validation images predicted as the target. The class calibration therefore lowers and widens the bar exactly where triggered inputs land, and does so from a handful of images. Beatrix and TED do best on TaCT here (TPR at 1% FPR 0.729 and 0.831, `detector_comparison.json`) and are class-conditional through their own statistics. Whether their form of conditioning avoids this problem is not tested here.
+The reason is structural. A triggered input is predicted as the target class, so class calibration compares it with the clean validation images the model predicts as the target. Those images are the ones the backdoor has altered. Their PSU median sits below the global median on 42 of 56 panel models (`class_calibration_panel.json`, `models[].target_class_validation`). On Tiny ImageNet, where the loss concentrates, it sits below on 14 of 14 models and the spread is wider than the global one on 13, from only 7 to 14 validation images predicted as the target. The class calibration therefore lowers and widens the bar exactly where triggered inputs land, and does so from a handful of images. Beatrix and TED do best on TaCT here (TPR at 1% FPR 0.796 and 0.850, `detector_comparison.json`) and are class-conditional through their own statistics. Whether their form of conditioning avoids this problem is not tested here.
 
 **All 54 panel models** (`class_calibration_panel.json`, `summary.m=5.all`).
 
 | calibration | method | TPR 1% (minus global) | TPR 5% (minus global) | TPR 10% (minus global) | FPR 1% | FPR 5% | FPR 10% | AUROC |
 |---|---|---|---|---|---|---|---|---|
-| global | PSBD-TM alone | 0.747 (+0.000 [+0.000, +0.000]) | 0.855 (+0.000 [+0.000, +0.000]) | 0.887 (+0.000 [+0.000, +0.000]) | 0.010 | 0.047 | 0.093 | 0.963 |
-| global | final method, min | 0.754 (+0.000 [+0.000, +0.000]) | 0.869 (+0.000 [+0.000, +0.000]) | 0.899 (+0.000 [+0.000, +0.000]) | 0.010 | 0.046 | 0.092 | 0.974 |
-| global | final method, average | 0.764 (+0.000 [+0.000, +0.000]) | 0.860 (+0.000 [+0.000, +0.000]) | 0.896 (+0.000 [+0.000, +0.000]) | 0.010 | 0.047 | 0.094 | 0.973 |
-| class percentile | PSBD-TM alone | 0.671 (-0.076 [-0.167, +0.003]) | 0.733 (-0.121 [-0.230, -0.028]) | 0.840 (-0.047 [-0.121, +0.017]) | 0.010 | 0.049 | 0.097 | 0.929 |
-| class percentile | final method, min | 0.729 (-0.025 [-0.102, +0.045]) | 0.837 (-0.032 [-0.092, +0.020]) | 0.866 (-0.033 [-0.098, +0.024]) | 0.010 | 0.050 | 0.099 | 0.943 |
-| class percentile | final method, average | 0.603 (-0.161 [-0.249, -0.076]) | 0.733 (-0.127 [-0.202, -0.060]) | 0.793 (-0.103 [-0.170, -0.046]) | 0.010 | 0.047 | 0.096 | 0.918 |
-| class z-score | PSBD-TM alone | 0.607 (-0.140 [-0.261, -0.030]) | 0.831 (-0.024 [-0.097, +0.038]) | 0.902 (+0.015 [-0.021, +0.049]) | 0.016 | 0.050 | 0.096 | 0.932 |
-| class z-score | final method, min | 0.754 (-0.001 [-0.088, +0.083]) | 0.849 (-0.020 [-0.072, +0.029]) | 0.898 (-0.001 [-0.045, +0.039]) | 0.021 | 0.057 | 0.104 | 0.947 |
-| class z-score | final method, average | 0.767 (+0.003 [-0.070, +0.073]) | 0.862 (+0.002 [-0.041, +0.043]) | 0.896 (-0.001 [-0.046, +0.036]) | 0.018 | 0.054 | 0.102 | 0.943 |
+| global | PSBD-TM alone | 0.735 (+0.000 [+0.000, +0.000]) | 0.841 (+0.000 [+0.000, +0.000]) | 0.872 (+0.000 [+0.000, +0.000]) | 0.010 | 0.046 | 0.091 | 0.951 |
+| global | final method, min | 0.742 (+0.000 [+0.000, +0.000]) | 0.857 (+0.000 [+0.000, +0.000]) | 0.889 (+0.000 [+0.000, +0.000]) | 0.009 | 0.046 | 0.092 | 0.970 |
+| global | final method, average | 0.740 (+0.000 [+0.000, +0.000]) | 0.845 (+0.000 [+0.000, +0.000]) | 0.881 (+0.000 [+0.000, +0.000]) | 0.010 | 0.046 | 0.092 | 0.967 |
+| class percentile | PSBD-TM alone | 0.664 (-0.072 [-0.159, +0.006]) | 0.724 (-0.117 [-0.218, -0.025]) | 0.827 (-0.045 [-0.115, +0.019]) | 0.010 | 0.049 | 0.097 | 0.924 |
+| class percentile | final method, min | 0.719 (-0.023 [-0.098, +0.044]) | 0.826 (-0.031 [-0.089, +0.021]) | 0.853 (-0.036 [-0.098, +0.021]) | 0.010 | 0.050 | 0.098 | 0.938 |
+| class percentile | final method, average | 0.590 (-0.150 [-0.237, -0.069]) | 0.719 (-0.126 [-0.195, -0.060]) | 0.781 (-0.100 [-0.160, -0.045]) | 0.010 | 0.047 | 0.096 | 0.914 |
+| class z-score | PSBD-TM alone | 0.601 (-0.134 [-0.249, -0.027]) | 0.818 (-0.023 [-0.090, +0.038]) | 0.886 (+0.014 [-0.020, +0.049]) | 0.016 | 0.050 | 0.096 | 0.925 |
+| class z-score | final method, min | 0.743 (+0.001 [-0.081, +0.076]) | 0.838 (-0.019 [-0.070, +0.028]) | 0.887 (-0.002 [-0.044, +0.037]) | 0.020 | 0.056 | 0.104 | 0.942 |
+| class z-score | final method, average | 0.753 (+0.013 [-0.057, +0.080]) | 0.849 (+0.005 [-0.037, +0.043]) | 0.884 (+0.002 [-0.039, +0.038]) | 0.018 | 0.054 | 0.102 | 0.938 |
 
 **The 45 models read once as the confirmation** (`class_calibration_rest.json`).
 
@@ -69,9 +69,9 @@ The reason is structural. A triggered input is predicted as the target class, so
 | badnet_a2o (12) | PSBD-TM alone | 0.776 / 0.963 / 0.987 (0.010) | 0.744 / 0.806 / 0.879 (0.010) | 0.772 / 0.888 / 0.953 (0.016) |
 | badnet_a2o (12) | final method, min | 0.801 / 0.951 / 0.973 (0.010) | 0.802 / 0.875 / 0.881 (0.010) | 0.819 / 0.881 / 0.900 (0.020) |
 | badnet_a2o (12) | final method, average | 0.811 / 0.946 / 0.981 (0.010) | 0.573 / 0.707 / 0.760 (0.010) | 0.816 / 0.871 / 0.895 (0.018) |
-| tact (3) | PSBD-TM alone | 0.012 / 0.078 / 0.169 (0.003) | 0.128 / 0.400 / 0.481 (0.007) | 0.187 / 0.328 / 0.395 (0.007) |
-| tact (3) | final method, min | 0.006 / 0.035 / 0.081 (0.003) | 0.027 / 0.266 / 0.419 (0.002) | 0.171 / 0.269 / 0.342 (0.007) |
-| tact (3) | final method, average | 0.010 / 0.070 / 0.161 (0.003) | 0.013 / 0.111 / 0.190 (0.008) | 0.122 / 0.233 / 0.319 (0.005) |
+| tact (4) | PSBD-TM alone | 0.009 / 0.059 / 0.127 (0.002) | 0.096 / 0.300 / 0.361 (0.006) | 0.140 / 0.246 / 0.296 (0.006) |
+| tact (4) | final method, min | 0.008 / 0.065 / 0.141 (0.003) | 0.029 / 0.220 / 0.334 (0.003) | 0.133 / 0.232 / 0.313 (0.007) |
+| tact (4) | final method, average | 0.007 / 0.053 / 0.121 (0.003) | 0.010 / 0.094 / 0.181 (0.008) | 0.092 / 0.192 / 0.278 (0.006) |
 | blend (12) | PSBD-TM alone | 0.829 / 0.915 / 0.943 (0.011) | 0.910 / 0.958 / 0.968 (0.010) | 0.780 / 0.968 / 0.981 (0.017) |
 | blend (12) | final method, min | 0.771 / 0.927 / 0.961 (0.010) | 0.913 / 0.980 / 0.988 (0.011) | 0.956 / 0.981 / 0.988 (0.021) |
 | blend (12) | final method, average | 0.826 / 0.926 / 0.957 (0.010) | 0.855 / 0.952 / 0.975 (0.010) | 0.964 / 0.984 / 0.991 (0.019) |
@@ -84,6 +84,9 @@ The reason is structural. A triggered input is predicted as the target class, so
 | wanet (3) | PSBD-TM alone | 0.372 / 0.572 / 0.647 (0.012) | 0.084 / 0.137 / 0.235 (0.011) | 0.082 / 0.249 / 0.675 (0.022) |
 | wanet (3) | final method, min | 0.671 / 0.873 / 0.918 (0.011) | 0.294 / 0.463 / 0.536 (0.011) | 0.337 / 0.588 / 0.836 (0.030) |
 | wanet (3) | final method, average | 0.576 / 0.686 / 0.772 (0.012) | 0.103 / 0.263 / 0.441 (0.010) | 0.277 / 0.699 / 0.825 (0.023) |
+| lc (1) | PSBD-TM alone | 0.833 / 0.921 / 0.950 (0.011) | 0.908 / 0.943 / 0.951 (0.010) | 0.908 / 0.951 / 0.958 (0.014) |
+| lc (1) | final method, min | 0.805 / 0.915 / 0.959 (0.010) | 0.851 / 0.943 / 0.956 (0.011) | 0.876 / 0.955 / 0.967 (0.013) |
+| lc (1) | final method, average | 0.168 / 0.867 / 0.946 (0.012) | 0.469 / 0.647 / 0.752 (0.011) | 0.746 / 0.921 / 0.953 (0.014) |
 
 **Per dataset, all 54 models** (`summary.m=5.by_dataset`).
 
@@ -95,9 +98,9 @@ The reason is structural. A triggered input is predicted as the target class, so
 | cifar100 (12) | PSBD-TM alone | 0.790 / 0.935 / 0.964 (0.009) | 0.668 / 0.735 / 0.889 (0.009) | 0.710 / 0.903 / 0.927 (0.016) |
 | cifar100 (12) | final method, min | 0.783 / 0.931 / 0.966 (0.010) | 0.786 / 0.883 / 0.912 (0.011) | 0.850 / 0.904 / 0.943 (0.023) |
 | cifar100 (12) | final method, average | 0.860 / 0.950 / 0.973 (0.010) | 0.784 / 0.867 / 0.902 (0.010) | 0.870 / 0.919 / 0.942 (0.022) |
-| gtsrb (13) | PSBD-TM alone | 0.860 / 0.897 / 0.930 (0.010) | 0.807 / 0.872 / 0.973 (0.010) | 0.923 / 0.959 / 0.970 (0.012) |
-| gtsrb (13) | final method, min | 0.866 / 0.891 / 0.913 (0.009) | 0.880 / 0.929 / 0.959 (0.009) | 0.929 / 0.950 / 0.963 (0.012) |
-| gtsrb (13) | final method, average | 0.830 / 0.887 / 0.925 (0.010) | 0.813 / 0.885 / 0.916 (0.011) | 0.919 / 0.945 / 0.961 (0.012) |
+| gtsrb (15) | PSBD-TM alone | 0.801 / 0.839 / 0.869 (0.009) | 0.760 / 0.818 / 0.906 (0.010) | 0.860 / 0.894 / 0.904 (0.012) |
+| gtsrb (15) | final method, min | 0.806 / 0.843 / 0.876 (0.009) | 0.822 / 0.873 / 0.901 (0.009) | 0.865 / 0.895 / 0.914 (0.012) |
+| gtsrb (15) | final method, average | 0.730 / 0.827 / 0.865 (0.009) | 0.736 / 0.813 / 0.855 (0.010) | 0.847 / 0.885 / 0.907 (0.012) |
 | tiny (14) | PSBD-TM alone | 0.793 / 0.955 / 0.975 (0.012) | 0.580 / 0.613 / 0.733 (0.011) | 0.194 / 0.775 / 0.945 (0.025) |
 | tiny (14) | final method, min | 0.890 / 0.972 / 0.979 (0.011) | 0.810 / 0.840 / 0.851 (0.011) | 0.723 / 0.860 / 0.960 (0.035) |
 | tiny (14) | final method, average | 0.885 / 0.970 / 0.979 (0.011) | 0.634 / 0.809 / 0.868 (0.009) | 0.790 / 0.928 / 0.964 (0.029) |
@@ -112,6 +115,9 @@ The reason is structural. A triggered input is predicted as the target class, so
 | `vit_cifar10_tact_0_05` | 0.01 | 0.024 | 0.005 | 0.005 | 0.000 |
 | `vit_cifar10_tact_0_05` | 0.05 | 0.184 | 0.005 | 0.014 | 0.000 |
 | `vit_cifar10_tact_0_05` | 0.10 | 0.374 | 0.005 | 0.024 | 0.000 |
+| `vit_gtsrb_tact_0_01_cos` | 0.01 | 0.753 | 0.000 | 0.000 | 0.000 |
+| `vit_gtsrb_tact_0_01_cos` | 0.05 | 0.853 | 0.000 | 0.000 | 0.000 |
+| `vit_gtsrb_tact_0_01_cos` | 0.10 | 0.916 | 0.000 | 0.000 | 0.000 |
 | `vit_gtsrb_tact_0_05` | 0.01 | 0.150 | 0.000 | 0.000 | 0.030 |
 | `vit_gtsrb_tact_0_05` | 0.05 | 0.454 | 0.000 | 0.000 | 0.230 |
 | `vit_gtsrb_tact_0_05` | 0.10 | 0.633 | 0.000 | 0.000 | 0.502 |
@@ -120,13 +126,14 @@ The reason is structural. A triggered input is predicted as the target class, so
 |---|---|---|---|---|
 | `vit_cifar10_tact_0_01` | 0.896 | 0.995 | 0.882 | 0.904 |
 | `vit_cifar10_tact_0_05` | 0.942 | 0.999 | 0.989 | 0.972 |
+| `vit_gtsrb_tact_0_01_cos` | 0.966 | 0.970 | 0.977 | 0.974 |
 | `vit_gtsrb_tact_0_05` | 0.967 | 0.974 | 0.993 | 0.627 |
 
 ![calibration by predicted class](figures/class_calibration.png)
 
 ## The TaCT calibration effect
 
-On the CIFAR-10 TaCT models the high AUROC and the TPR near 0 measure different populations. AUROC compares triggered inputs with their paired clean images, and every one of those comes from the source class, while the threshold comes from all-class validation. Clean source-class images are more fragile under token masking than the validation average, so they rarely fall below the all-class threshold, and triggered inputs sit between them and the rest. A threshold read from source-class validation alone (204 images on `vit_cifar10_tact_0_01`) recovers most of the TPR at its own FPR. A defender does not know the source class, so this is a finding about what the metric compares and not a deployable fix. The deployable version is a threshold per predicted class. It lifts TPR at 5% FPR by more than 0.2 on 2 of the 3 TaCT models (`anomalies.json`, `tact`). The panel-wide test above shows what it costs elsewhere.
+On the CIFAR-10 TaCT models the high AUROC and the TPR near 0 measure different populations. AUROC compares triggered inputs with their paired clean images, and every one of those comes from the source class, while the threshold comes from all-class validation. Clean source-class images are more fragile under token masking than the validation average, so they rarely fall below the all-class threshold, and triggered inputs sit between them and the rest. A threshold read from source-class validation alone (204 images on `vit_cifar10_tact_0_01`) recovers most of the TPR at its own FPR on `vit_cifar10_tact_0_01`, `vit_cifar10_tact_0_05` and `vit_gtsrb_tact_0_05`. A defender does not know the source class, so this is a finding about what the metric compares and not a deployable fix. The deployable version is a threshold per predicted class. It lifts TPR at 5% FPR by more than 0.2 on 3 of the 4 TaCT models (`anomalies.json`, `tact`). The panel-wide test above shows what it costs elsewhere. On `vit_gtsrb_tact_0_01_cos` the source-only threshold recovers nothing, TPR 0.000 at 5% FPR. Its triggered inputs sit above their clean source-class twins in fractional PSU (median 0.974 against 0.970) and PSBD-TM's AUROC there is 0.266, so on this model the score itself is inverted and the calibration account does not apply.
 
 | model | nominal FPR | global threshold TPR (source FPR) | other-class FPR | source-only threshold TPR (FPR) | per-predicted-class TPR (FPR) |
 |---|---|---|---|---|---|
@@ -136,6 +143,9 @@ On the CIFAR-10 TaCT models the high AUROC and the TPR near 0 measure different 
 | `vit_cifar10_tact_0_05` | 0.01 | 0.000 (0.005) | 0.015 | 0.256 (0.018) | 0.304 (0.028) |
 | `vit_cifar10_tact_0_05` | 0.05 | 0.000 (0.005) | 0.061 | 0.864 (0.052) | 0.487 (0.078) |
 | `vit_cifar10_tact_0_05` | 0.10 | 0.000 (0.005) | 0.120 | 0.985 (0.127) | 0.550 (0.139) |
+| `vit_gtsrb_tact_0_01_cos` | 0.01 | 0.000 (0.000) | 0.008 | 0.000 (0.026) | 0.479 (0.026) |
+| `vit_gtsrb_tact_0_01_cos` | 0.05 | 0.000 (0.000) | 0.040 | 0.000 (0.056) | 0.557 (0.048) |
+| `vit_gtsrb_tact_0_01_cos` | 0.10 | 0.000 (0.000) | 0.091 | 0.002 (0.093) | 0.650 (0.079) |
 | `vit_gtsrb_tact_0_05` | 0.01 | 0.030 (0.000) | 0.013 | 0.884 (0.026) | 0.975 (0.026) |
 | `vit_gtsrb_tact_0_05` | 0.05 | 0.230 (0.000) | 0.057 | 0.907 (0.053) | 0.977 (0.053) |
 | `vit_gtsrb_tact_0_05` | 0.10 | 0.502 (0.000) | 0.115 | 0.914 (0.099) | 0.979 (0.101) |
@@ -152,62 +162,65 @@ The collapse of the min rule at 1% FPR on single models comes from the budget sp
 
 ## The final method against the competitor detectors
 
-On the 54 ViT panel models the final method leads every competitor at 1%, 5% and 10% FPR under both rules. Every paired interval against the best competitor at that FPR excludes 0. The best competitor at 1% FPR is `ted` and at 5% `ibd_psc_calibrated`. Detector records missing: none. The Swin detectors have no records on disk, so no Swin table exists (`detector_comparison.json`).
+On the 56 ViT panel models the final method leads every competitor at 1%, 5% and 10% FPR under both rules. Every paired interval against the best competitor at that FPR excludes 0. The best competitor at 1% FPR is `ted` and at 5% `ibd_psc_calibrated`. Detector records missing: none. The Swin detectors have no records on disk, so no Swin table exists (`detector_comparison.json`).
+
+In AUROC PSBD-TM alone leads `ibd_psc_calibrated` by +0.018 [-0.016, +0.047], an interval that includes 0. The fusion keeps its AUROC lead clear of 0 under both rules, final method, min +0.038 [+0.016, +0.059] and final method, average +0.034 [+0.010, +0.058]. The panel floor is `vit_gtsrb_tact_0_01_cos`, where PSBD-TM alone reads TPR 0.000 / 0.000 / 0.000 (AUROC 0.266) at 1% / 5% / 10% FPR. The min rule reads 0.015 / 0.154 / 0.321 (AUROC 0.765) and the average rule 0.000 / 0.000 / 0.000 (AUROC 0.613). The min rule lifts the model above chance in AUROC, but it does not rescue detection at the headline FPRs. The 2 competitors with the highest TPR at 1% FPR there are `beatrix` at 1.000 / 1.000 / 1.000 (AUROC 1.000) and `ted` at 0.904 / 1.000 / 1.000 (AUROC 0.997).
 
 | method | models | TPR 1% (FPR) | TPR 5% (FPR) | TPR 10% (FPR) | AUROC |
 |---|---|---|---|---|---|
-| `final_average` | 54 | 0.764 (0.010) | 0.860 (0.047) | 0.896 (0.094) | 0.973 |
-| `final_min` | 54 | 0.754 (0.010) | 0.869 (0.046) | 0.899 (0.092) | 0.974 |
-| `psbd_tm` | 54 | 0.747 (0.010) | 0.855 (0.047) | 0.887 (0.093) | 0.963 |
-| `ted` | 54 | 0.518 (0.011) | 0.633 (0.050) | 0.702 (0.103) | 0.885 |
-| `beatrix` | 54 | 0.445 (0.006) | 0.604 (0.031) | 0.666 (0.064) | 0.896 |
-| `strip` | 54 | 0.436 (0.009) | 0.620 (0.047) | 0.706 (0.096) | 0.857 |
-| `ibd_psc_calibrated` | 54 | 0.384 (0.007) | 0.725 (0.046) | 0.825 (0.093) | 0.936 |
-| `cd_l` | 54 | 0.341 (0.009) | 0.451 (0.044) | 0.536 (0.094) | 0.808 |
-| `teco` | 54 | 0.265 (0.009) | 0.410 (0.047) | 0.492 (0.094) | 0.743 |
-| `scale_up_data_limited` | 54 | 0.226 (0.010) | 0.298 (0.053) | 0.350 (0.099) | 0.636 |
-| `confidence` | 54 | 0.099 (0.010) | 0.245 (0.047) | 0.339 (0.097) | 0.688 |
-| `ibd_psc` | 54 | 0.082 (0.004) | 0.290 (0.038) | 0.400 (0.092) | 0.732 |
-| `sentinet` | 54 | 0.059 (0.014) | 0.072 (0.062) | 0.101 (0.111) | 0.418 |
-| `scale_up` | 54 | 0.021 (0.000) | 0.193 (0.018) | 0.340 (0.045) | 0.728 |
+| `final_min` | 56 | 0.742 (0.009) | 0.857 (0.046) | 0.889 (0.092) | 0.970 |
+| `final_average` | 56 | 0.740 (0.010) | 0.845 (0.046) | 0.881 (0.092) | 0.967 |
+| `psbd_tm` | 56 | 0.735 (0.010) | 0.841 (0.046) | 0.872 (0.091) | 0.951 |
+| `ted` | 56 | 0.533 (0.011) | 0.646 (0.050) | 0.712 (0.103) | 0.889 |
+| `beatrix` | 56 | 0.450 (0.006) | 0.616 (0.030) | 0.678 (0.063) | 0.899 |
+| `strip` | 56 | 0.424 (0.009) | 0.608 (0.047) | 0.696 (0.097) | 0.852 |
+| `ibd_psc_calibrated` | 56 | 0.371 (0.007) | 0.704 (0.045) | 0.808 (0.092) | 0.933 |
+| `cd_l` | 56 | 0.329 (0.009) | 0.436 (0.044) | 0.520 (0.092) | 0.799 |
+| `teco` | 56 | 0.264 (0.009) | 0.414 (0.047) | 0.497 (0.093) | 0.748 |
+| `scale_up_data_limited` | 56 | 0.241 (0.010) | 0.310 (0.053) | 0.365 (0.099) | 0.644 |
+| `confidence` | 56 | 0.096 (0.010) | 0.236 (0.046) | 0.327 (0.095) | 0.668 |
+| `ibd_psc` | 56 | 0.079 (0.005) | 0.280 (0.043) | 0.386 (0.100) | 0.713 |
+| `sentinet` | 56 | 0.069 (0.017) | 0.087 (0.075) | 0.116 (0.126) | 0.421 |
+| `scale_up` | 56 | 0.021 (0.000) | 0.186 (0.017) | 0.328 (0.043) | 0.726 |
 
 **Paired differences against the best competitor at each FPR.**
 
 | method | TPR 1% minus best | TPR 5% minus best | TPR 10% minus best | AUROC minus best |
 |---|---|---|---|---|
-| PSBD-TM alone | +0.229 [+0.095, +0.364] against `ted` | +0.130 [+0.056, +0.209] against `ibd_psc_calibrated` | +0.062 [+0.007, +0.123] against `ibd_psc_calibrated` | +0.027 [+0.006, +0.049] against `ibd_psc_calibrated` |
-| final method, min | +0.236 [+0.098, +0.376] against `ted` | +0.144 [+0.065, +0.227] against `ibd_psc_calibrated` | +0.074 [+0.010, +0.141] against `ibd_psc_calibrated` | +0.038 [+0.018, +0.059] against `ibd_psc_calibrated` |
-| final method, average | +0.246 [+0.105, +0.386] against `ted` | +0.135 [+0.058, +0.216] against `ibd_psc_calibrated` | +0.071 [+0.015, +0.132] against `ibd_psc_calibrated` | +0.037 [+0.017, +0.058] against `ibd_psc_calibrated` |
+| PSBD-TM alone | +0.202 [+0.070, +0.338] against `ted` | +0.136 [+0.060, +0.215] against `ibd_psc_calibrated` | +0.064 [+0.005, +0.128] against `ibd_psc_calibrated` | +0.018 [-0.016, +0.047] against `ibd_psc_calibrated` |
+| final method, min | +0.209 [+0.072, +0.346] against `ted` | +0.153 [+0.073, +0.234] against `ibd_psc_calibrated` | +0.081 [+0.017, +0.148] against `ibd_psc_calibrated` | +0.038 [+0.016, +0.059] against `ibd_psc_calibrated` |
+| final method, average | +0.207 [+0.070, +0.346] against `ted` | +0.140 [+0.063, +0.220] against `ibd_psc_calibrated` | +0.073 [+0.014, +0.136] against `ibd_psc_calibrated` | +0.034 [+0.010, +0.058] against `ibd_psc_calibrated` |
 
 **Per attack.** Each cell is mean TPR at 1% / 5% / 10% FPR, for our 3 methods and the 4 competitors with the highest TPR at 1% FPR.
 
 | attack (models) | PSBD-TM alone | final method, min | final method, average | `ted` | `beatrix` | `strip` | `ibd_psc_calibrated` |
 |---|---|---|---|---|---|---|---|
 | badnet_a2o (12) | 0.776 / 0.963 / 0.987 | 0.801 / 0.951 / 0.973 | 0.811 / 0.946 / 0.981 | 0.570 / 0.685 / 0.760 | 0.462 / 0.654 / 0.665 | 0.499 / 0.819 / 0.911 | 0.369 / 0.766 / 0.928 |
-| tact (3) | 0.012 / 0.078 / 0.169 | 0.006 / 0.035 / 0.081 | 0.010 / 0.070 / 0.161 | 0.831 / 0.903 / 0.934 | 0.729 / 0.928 / 0.994 | 0.065 / 0.146 / 0.219 | 0.064 / 0.223 / 0.376 |
+| tact (4) | 0.009 / 0.059 / 0.127 | 0.008 / 0.065 / 0.141 | 0.007 / 0.053 / 0.121 | 0.850 / 0.927 / 0.951 | 0.796 / 0.946 / 0.995 | 0.050 / 0.121 / 0.202 | 0.049 / 0.221 / 0.368 |
 | blend (12) | 0.829 / 0.915 / 0.943 | 0.771 / 0.927 / 0.961 | 0.826 / 0.926 / 0.957 | 0.490 / 0.635 / 0.703 | 0.500 / 0.684 / 0.737 | 0.624 / 0.768 / 0.824 | 0.666 / 0.982 / 0.997 |
 | lf (12) | 0.904 / 0.959 / 0.970 | 0.908 / 0.967 / 0.975 | 0.928 / 0.965 / 0.974 | 0.501 / 0.601 / 0.662 | 0.367 / 0.499 / 0.641 | 0.306 / 0.465 / 0.609 | 0.220 / 0.652 / 0.784 |
 | bpp (12) | 0.757 / 0.847 / 0.888 | 0.746 / 0.838 / 0.885 | 0.729 / 0.843 / 0.888 | 0.529 / 0.642 / 0.717 | 0.484 / 0.621 / 0.662 | 0.515 / 0.685 / 0.752 | 0.383 / 0.697 / 0.779 |
 | wanet (3) | 0.372 / 0.572 / 0.647 | 0.671 / 0.873 / 0.918 | 0.576 / 0.686 / 0.772 | 0.141 / 0.246 / 0.333 | 0.028 / 0.121 / 0.179 | 0.007 / 0.054 / 0.110 | 0.306 / 0.431 / 0.519 |
+| lc (1) | 0.833 / 0.921 / 0.950 | 0.805 / 0.915 / 0.959 | 0.168 / 0.867 / 0.946 | 0.943 / 0.960 / 0.960 | 0.183 / 0.862 / 0.980 | 0.231 / 0.521 / 0.676 | 0.008 / 0.099 / 0.360 |
 
 **Per attack, TPR at 1% FPR, every method.**
 
-| method | badnet_a2o | tact | blend | lf | bpp | wanet |
-|---|---|---|---|---|---|---|
-| `final_average` | 0.811 | 0.010 | 0.826 | 0.928 | 0.729 | 0.576 |
-| `final_min` | 0.801 | 0.006 | 0.771 | 0.908 | 0.746 | 0.671 |
-| `psbd_tm` | 0.776 | 0.012 | 0.829 | 0.904 | 0.757 | 0.372 |
-| `ted` | 0.570 | 0.831 | 0.490 | 0.501 | 0.529 | 0.141 |
-| `beatrix` | 0.462 | 0.729 | 0.500 | 0.367 | 0.484 | 0.028 |
-| `strip` | 0.499 | 0.065 | 0.624 | 0.306 | 0.515 | 0.007 |
-| `ibd_psc_calibrated` | 0.369 | 0.064 | 0.666 | 0.220 | 0.383 | 0.306 |
-| `cd_l` | 0.697 | 0.010 | 0.296 | 0.011 | 0.517 | 0.034 |
-| `teco` | 0.673 | 0.304 | 0.252 | 0.028 | 0.048 | 0.455 |
-| `scale_up_data_limited` | 0.583 | 0.333 | 0.158 | 0.193 | 0.000 | 0.004 |
-| `confidence` | 0.157 | 0.002 | 0.103 | 0.145 | 0.028 | 0.053 |
-| `ibd_psc` | 0.048 | 0.000 | 0.117 | 0.126 | 0.004 | 0.301 |
-| `sentinet` | 0.226 | 0.000 | 0.013 | 0.001 | 0.027 | 0.001 |
-| `scale_up` | 0.083 | 0.000 | 0.000 | 0.013 | 0.000 | 0.000 |
+| method | badnet_a2o | tact | blend | lf | bpp | wanet | lc |
+|---|---|---|---|---|---|---|---|
+| `final_min` | 0.801 | 0.008 | 0.771 | 0.908 | 0.746 | 0.671 | 0.805 |
+| `final_average` | 0.811 | 0.007 | 0.826 | 0.928 | 0.729 | 0.576 | 0.168 |
+| `psbd_tm` | 0.776 | 0.009 | 0.829 | 0.904 | 0.757 | 0.372 | 0.833 |
+| `ted` | 0.570 | 0.850 | 0.490 | 0.501 | 0.529 | 0.141 | 0.943 |
+| `beatrix` | 0.462 | 0.796 | 0.500 | 0.367 | 0.484 | 0.028 | 0.183 |
+| `strip` | 0.499 | 0.050 | 0.624 | 0.306 | 0.515 | 0.007 | 0.231 |
+| `ibd_psc_calibrated` | 0.369 | 0.049 | 0.666 | 0.220 | 0.383 | 0.306 | 0.008 |
+| `cd_l` | 0.697 | 0.008 | 0.296 | 0.011 | 0.517 | 0.034 | 0.040 |
+| `teco` | 0.673 | 0.238 | 0.252 | 0.028 | 0.048 | 0.455 | 0.460 |
+| `scale_up_data_limited` | 0.583 | 0.326 | 0.158 | 0.193 | 0.000 | 0.004 | 0.954 |
+| `confidence` | 0.157 | 0.001 | 0.103 | 0.145 | 0.028 | 0.053 | 0.000 |
+| `ibd_psc` | 0.048 | 0.000 | 0.117 | 0.126 | 0.004 | 0.301 | 0.000 |
+| `sentinet` | 0.226 | 0.000 | 0.013 | 0.001 | 0.027 | 0.001 | 0.643 |
+| `scale_up` | 0.083 | 0.000 | 0.000 | 0.013 | 0.000 | 0.000 | 0.000 |
 
 ![final method and the competitor detectors](figures/detector_comparison.png)
 
@@ -356,14 +369,14 @@ Attack success is read from each model's PSBD baseline cache and clean accuracy 
 
 ## Compute control, partial
 
-The final method spends 6 perturbed passes per input. `compute_control.py` gives PSBD-TM alone the same 6 at its k = 3 adaptive rate, from the first 6 passes of the `_k20` caches that exist. It covers 19 ViT panel models so far. The other 35 wait for item 2 of the GPU plan, and Swin waits for it too. The brackets are paired against PSBD-TM at 6 passes. This partial reading is not a result, since the covered models were chosen by which caches another queue happened to fill (`compute_control_vit.json`).
+The final method spends 6 perturbed passes per input. `compute_control.py` gives PSBD-TM alone the same 6 at its k = 3 adaptive rate, from the first 6 passes of the `_k20` caches that exist. It covers 40 ViT panel models so far. The other 16 wait for item 2 of the GPU plan, and Swin waits for it too. The brackets are paired against PSBD-TM at 6 passes. This partial reading is not a result, since the covered models were chosen by which caches another queue happened to fill (`compute_control_vit.json`).
 
 | method | TPR 1% | TPR 5% | TPR 10% | AUROC |
 |---|---|---|---|---|
-| PSBD-TM, 6 passes | 0.795 | 0.949 | 0.967 | 0.976 |
-| PSBD-TM, 3 passes | 0.777 | 0.943 | 0.965 | 0.975 |
-| final method, min, 3 plus 3 | 0.806 (+0.010 [-0.064, +0.085]) | 0.940 (-0.009 [-0.029, +0.010]) | 0.965 (-0.002 [-0.012, +0.008]) | 0.979 (+0.002 [-0.001, +0.006]) |
-| final method, average, 3 plus 3 | 0.848 (+0.053 [+0.005, +0.108]) | 0.953 (+0.003 [-0.008, +0.017]) | 0.971 (+0.003 [-0.004, +0.012]) | 0.980 (+0.004 [+0.001, +0.007]) |
+| PSBD-TM, 6 passes | 0.745 | 0.851 | 0.876 | 0.960 |
+| PSBD-TM, 3 passes | 0.734 | 0.845 | 0.873 | 0.958 |
+| final method, min, 3 plus 3 | 0.724 (-0.021 [-0.079, +0.037]) | 0.862 (+0.011 [-0.017, +0.056]) | 0.893 (+0.018 [-0.011, +0.064]) | 0.972 (+0.012 [-0.004, +0.038]) |
+| final method, average, 3 plus 3 | 0.749 (+0.004 [-0.036, +0.043]) | 0.852 (+0.001 [-0.014, +0.016]) | 0.886 (+0.011 [-0.003, +0.031]) | 0.972 (+0.012 [+0.001, +0.032]) |
 
 ## GPU plan for the night of 2026-09-30
 

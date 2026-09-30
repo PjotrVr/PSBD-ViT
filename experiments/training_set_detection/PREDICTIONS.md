@@ -51,3 +51,13 @@ A model that fails is reported under its own label and kept out of every pooled 
 **P5, reproduction on their architecture.** On both ResNet-18 GTSRB models, `post_residual` with absolute PSU, Li et al.'s rate rule and T at the 25th percentile gives TPR of at least 0.8 (their own failure bar) with realized clean_train FPR at most 0.30. Refuted if either model misses either bound.
 
 **P6, baselines.** On the subset where all methods are scored, the order of PSBD-TM, STRIP and CD-L in mean AUROC on the training set equals their order at test time on the same headline models (from `results/<folder>/detectors/` and the caches). Refuted if any pair swaps.
+
+## Paper-mirror set, added before any training-set score
+
+A second model set mirrors Li et al.'s main table (their attacks and datasets at 10% poisoning) and runs first: `vit_cifar10_badnet_a2o_0_1`, `vit_cifar10_blend_0_1`, `vit_cifar10_wanet_0_1`, `vit_gtsrb_badnet_a2o_0_1`, `vit_gtsrb_blend_0_1`, `vit_tiny_badnet_a2o_0_1`, `vit_tiny_blend_0_1`, `vit_tiny_wanet_0_1`, `vit_gtsrb_lc_0_05_tl1_adv` (their Label-Consistent, the only one we have, at 5% because clean-label GTSRB caps there) and the 2 ResNet-18 GTSRB reproductions. All 9 ViT models exist and are `successful_2pt` in the ledger. The development set follows it as time allows.
+
+R2 and R3 cannot verify a clean-label reconstruction. Its poisoned images already belong to the target class, so R2 is met by any index set, and each poisoned image was trained with its true label, so R3 has no held-out contrast. The Label-Consistent model is checked by R1 and its recorded seed only and is labeled as such in every table.
+
+**P1 to P4 on the paper-mirror set.** The same rules as above, evaluated on the paper-mirror ViT models that pass their checks, as a separate set that is never pooled with the development set.
+
+**P7, the paper's table.** With absolute PSU, Li et al.'s rate rule and T at the 25th percentile, PSBD-TM reaches TPR of at least 0.8 on at least 7 of the 9 paper-mirror ViT models. Refuted if fewer than 7 do.

@@ -1025,7 +1025,7 @@ The development set said yes and the confirmation said no. The class z-score rai
 
 The reason is structural. A triggered input is predicted as the target class, so class calibration compares it with the clean validation images the model predicts as the target. Those images are the ones the backdoor has altered. Their PSU median sits below the global median on @@CC_TARGET_BELOW@@ of @@CC_TARGET_N@@ panel models (`class_calibration_panel.json`, `models[].target_class_validation`). On Tiny ImageNet, where the loss concentrates, it sits below on @@CC_TINY_BELOW@@ of @@CC_TINY_ROWS@@ models and the spread is wider than the global one on @@CC_TINY_WIDER@@, from only @@CC_TINY_NC_LOW@@ to @@CC_TINY_NC_HIGH@@ validation images predicted as the target. The class calibration therefore lowers and widens the bar exactly where triggered inputs land, and does so from a handful of images. Beatrix and TED do best on TaCT here (TPR at 1% FPR @@CC_BEATRIX_TACT@@ and @@CC_TED_TACT@@, `detector_comparison.json`) and are class-conditional through their own statistics. Whether their form of conditioning avoids this problem is not tested here.
 
-**All 54 panel models** (`class_calibration_panel.json`, `summary.m=@@CC_M@@.all`).
+**All @@CC_PANEL_N@@ panel models** (`class_calibration_panel.json`, `summary.m=@@CC_M@@.all`).
 
 @@TABLE_CC_PANEL@@
 
@@ -1037,11 +1037,11 @@ The reason is structural. A triggered input is predicted as the target class, so
 
 @@TABLE_CC_DEV@@
 
-**Per attack, all 54 models.** Each cell is mean TPR at 1% / 5% / 10% FPR with the realized FPR at 1% in brackets (`summary.m=@@CC_M@@.by_attack`).
+**Per attack, all @@CC_PANEL_N@@ models.** Each cell is mean TPR at 1% / 5% / 10% FPR with the realized FPR at 1% in brackets (`summary.m=@@CC_M@@.by_attack`).
 
 @@TABLE_CC_ATTACK@@
 
-**Per dataset, all 54 models** (`summary.m=@@CC_M@@.by_dataset`).
+**Per dataset, all @@CC_PANEL_N@@ models** (`summary.m=@@CC_M@@.by_dataset`).
 
 @@TABLE_CC_DATASET@@
 

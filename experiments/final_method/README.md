@@ -20,7 +20,7 @@ The development set said yes and the confirmation said no. The class z-score rai
 
 The reason is structural. A triggered input is predicted as the target class, so class calibration compares it with the clean validation images the model predicts as the target. Those images are the ones the backdoor has altered. Their PSU median sits below the global median on 42 of 56 panel models (`class_calibration_panel.json`, `models[].target_class_validation`). On Tiny ImageNet, where the loss concentrates, it sits below on 14 of 14 models and the spread is wider than the global one on 13, from only 7 to 14 validation images predicted as the target. The class calibration therefore lowers and widens the bar exactly where triggered inputs land, and does so from a handful of images. Beatrix and TED do best on TaCT here (TPR at 1% FPR 0.796 and 0.850, `detector_comparison.json`) and are class-conditional through their own statistics. Whether their form of conditioning avoids this problem is not tested here.
 
-**All 54 panel models** (`class_calibration_panel.json`, `summary.m=5.all`).
+**All 56 panel models** (`class_calibration_panel.json`, `summary.m=5.all`).
 
 | calibration | method | TPR 1% (minus global) | TPR 5% (minus global) | TPR 10% (minus global) | FPR 1% | FPR 5% | FPR 10% | AUROC |
 |---|---|---|---|---|---|---|---|---|
@@ -62,7 +62,7 @@ The reason is structural. A triggered input is predicted as the target class, so
 | class z-score | final method, min | 0.657 (+0.150 [-0.005, +0.286]) | 0.742 (+0.122 [-0.014, +0.260]) | 0.786 (+0.104 [-0.011, +0.236]) | 0.012 | 0.049 | 0.094 | 0.878 |
 | class z-score | final method, average | 0.643 (+0.224 [+0.110, +0.368]) | 0.728 (+0.178 [+0.092, +0.263]) | 0.776 (+0.132 [+0.065, +0.200]) | 0.011 | 0.046 | 0.090 | 0.871 |
 
-**Per attack, all 54 models.** Each cell is mean TPR at 1% / 5% / 10% FPR with the realized FPR at 1% in brackets (`summary.m=5.by_attack`).
+**Per attack, all 56 models.** Each cell is mean TPR at 1% / 5% / 10% FPR with the realized FPR at 1% in brackets (`summary.m=5.by_attack`).
 
 | group (models) | method | global, TPR 1 / 5 / 10% (FPR 1%) | class percentile, TPR 1 / 5 / 10% (FPR 1%) | class z-score, TPR 1 / 5 / 10% (FPR 1%) |
 |---|---|---|---|---|
@@ -88,7 +88,7 @@ The reason is structural. A triggered input is predicted as the target class, so
 | lc (1) | final method, min | 0.805 / 0.915 / 0.959 (0.010) | 0.851 / 0.943 / 0.956 (0.011) | 0.876 / 0.955 / 0.967 (0.013) |
 | lc (1) | final method, average | 0.168 / 0.867 / 0.946 (0.012) | 0.469 / 0.647 / 0.752 (0.011) | 0.746 / 0.921 / 0.953 (0.014) |
 
-**Per dataset, all 54 models** (`summary.m=5.by_dataset`).
+**Per dataset, all 56 models** (`summary.m=5.by_dataset`).
 
 | group (models) | method | global, TPR 1 / 5 / 10% (FPR 1%) | class percentile, TPR 1 / 5 / 10% (FPR 1%) | class z-score, TPR 1 / 5 / 10% (FPR 1%) |
 |---|---|---|---|---|

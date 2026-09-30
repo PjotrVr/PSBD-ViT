@@ -285,13 +285,35 @@ DEFAULT_EVADE_PROBE_BY_ARCHITECTURE: dict[str, tuple[str, str]] = {
 DEFAULT_EVADE_PROBE: tuple[str, str] = ("before_attention_norm", "dropout")
 
 
-def parse_evade_probe_tokens(args: argparse.Namespace) -> list[tuple[str, str]]:
-    """The (position, operator) pairs to train against, from --evade-probes or the singular flags.
+def parse_block_range(text: str, token: str) -> tuple[int, int]:
+    """`first-last` as a 1-indexed inclusive (first, last) block span."""
+    parts = text.split("-")
+    if len(parts) != 2 or not all(part.isdigit() for part in parts):
+        raise ValueError(
+            f"--evade-probes token {token!r} needs its block range as `first-last`, "
+            f"for example 5-8, got {text!r}"
+        )
+    first, last = int(parts[0]), int(parts[1])
+    if not 1 <= first <= last:
+        raise ValueError(
+            f"--evade-probes token {token!r} needs 1 <= first <= last, got {text!r}"
+        )
+    block_range = (first, last)
+    return block_range
 
-    --evade-probes, when given, takes 1 or more `position:operator` tokens (for
-    example `before_attention_norm:token_mask`) and overrides --evade-position
-    and --evade-operator entirely. With no --evade-probes and neither singular
-    flag set, the default resolves from --architecture
+
+def parse_evade_probe_tokens(
+    args: argparse.Namespace,
+) -> list[tuple[str, str, tuple[int, int] | None]]:
+    """The (position, operator, block_range) probes to train against.
+
+    --evade-probes, when given, takes 1 or more `position:operator[:first-last]`
+    tokens (for example `before_attention_norm:token_mask` or
+    `pre_residual:dropout:5-8`) and overrides --evade-position and
+    --evade-operator entirely. The optional block range restricts a block-scope
+    position to blocks first to last, 1-indexed and inclusive, exactly as
+    cli.sweep --block-range does, and is None when absent. With no --evade-probes
+    and neither singular flag set, the default resolves from --architecture
     (DEFAULT_EVADE_PROBE_BY_ARCHITECTURE), so a bare --evade-psbd needs no
     position or operator at all. Setting only 1 of the singular flags is
     refused rather than silently pairing it with the other's default.
@@ -308,16 +330,18 @@ def parse_evade_probe_tokens(args: argparse.Namespace) -> list[tuple[str, str]]:
                 "or neither, so the architecture default is not silently mixed "
                 "with 1 explicit flag"
             )
-        return [(position, operator)]
+        return [(position, operator, None)]
 
     tokens = []
     for token in args.evade_probes:
-        if ":" not in token:
+        parts = token.split(":")
+        if len(parts) not in (2, 3) or not all(parts):
             raise ValueError(
-                f"--evade-probes token {token!r} must be `position:operator`"
+                f"--evade-probes token {token!r} must be "
+                "`position:operator` or `position:operator:first-last`"
             )
-        position, operator = token.split(":", 1)
-        tokens.append((position, operator))
+        block_range = parse_block_range(parts[2], token) if len(parts) == 3 else None
+        tokens.append((parts[0], parts[1], block_range))
     return tokens
 
 
@@ -360,10 +384,14 @@ def resolve_evasion(
 
     calibration_model = None
     probes = []
-    for position, operator in probe_tokens:
+    for position, operator, block_range in probe_tokens:
         probe = {
             "position": position,
             "operator": operator,
+            # Read by attacks.evasion wherever the probe is plugged, so the
+            # calibration, every recalibration and the penalty all perturb the
+            # same blocks.
+            "block_range": block_range,
             "architecture": args.architecture,
             # Read by attacks.evasion.evasive_update to pick the loss. Living on
             # the probe dict, not a separate argument, is what lets it reach
@@ -449,11 +477,14 @@ def build_parser() -> argparse.ArgumentParser:
         "--evade-probes",
         nargs="+",
         default=None,
-        metavar="POSITION:OPERATOR",
+        metavar="POSITION:OPERATOR[:FIRST-LAST]",
         help=(
-            "1 or more `position:operator` tokens to train against jointly, for "
-            "example before_attention_norm:token_mask before_attention_norm:dropout "
-            "mlp_norm_out:gain_scale. Each is calibrated to its own rate and the "
+            "1 or more `position:operator[:first-last]` tokens to train against "
+            "jointly, for example before_attention_norm:token_mask "
+            "pre_residual:dropout:5-8 mlp_norm_out:gain_scale. The optional "
+            "first-last restricts a block-scope position to those blocks, 1-indexed "
+            "and inclusive, as cli.sweep --block-range does. Each is calibrated to "
+            "its own rate and the "
             "hinge loss is the mean over probes (attacks.evasion's module "
             "docstring). Overrides --evade-position and --evade-operator "
             "entirely; only supported with --evade-objective psu_gap_hinge when "
@@ -956,6 +987,7 @@ def main() -> None:
                 {
                     "position": p["position"],
                     "operator": p["operator"],
+                    "block_range": list(p["block_range"]) if p["block_range"] else None,
                     "rate": p["rate"],
                 }
                 for p in evade_probes

@@ -10,6 +10,7 @@ settings are compared on equal terms.
     PYTHONPATH=<worktree> .venv/bin/python <worktree>/experiments/training_set_detection/analyze.py
 """
 
+import argparse
 import json
 import os
 import sys
@@ -73,9 +74,14 @@ DETECTORS = ("strip", "cd_l")
 
 
 def main():
+    args = parse_args()
     started = time.perf_counter()
+    records_dir = RECORDS_DIR
+    if args.smoke:
+        common.RAW_ROOT = os.path.join("scratch", common.SLUG, "smoke_raw")
+        records_dir = os.path.join("scratch", common.SLUG, "smoke_records")
     panel = {cell["folder_name"] for cell in clearing_cells(load_coverage(RESULTS_DIR))}
-    models_dir = os.path.join(RECORDS_DIR, "models")
+    models_dir = os.path.join(records_dir, "models")
     os.makedirs(models_dir, exist_ok=True)
 
     rows = {}
@@ -105,12 +111,21 @@ def main():
         "wall_seconds": time.perf_counter() - started,
     }
     summary["verdicts"] = judge(summary, rows)
-    write_json(summary, os.path.join(RECORDS_DIR, "summary.json"))
-    print(f"wrote {RECORDS_DIR}/summary.json in {summary['wall_seconds']:.0f} s")
+    write_json(summary, os.path.join(records_dir, "summary.json"))
+    print(f"wrote {records_dir}/summary.json in {summary['wall_seconds']:.0f} s")
+
+
+def parse_args():
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument(
+        "--smoke", action="store_true", help="read the smoke parts under scratch/"
+    )
+    args = parser.parse_args()
+    return args
 
 
 def model_complete(folder):
-    needed = ["groups", "baseline", "strip", "cd_l"]
+    needed = ["groups", "baseline"]
     needed += [f"ladder_{p}" for p in placements_for(folder)]
     complete = all(has_part(folder, part) for part in needed)
     return complete
@@ -164,15 +179,6 @@ def measure_model(folder, successful_2pt):
         for rule in RATE_RULES
     }
 
-    detector_scores = {name: load_part(folder, name) for name in DETECTORS}
-    row["detectors"] = {
-        name: readout(subset_groups(detector_scores[name]), population)
-        for name in DETECTORS
-    }
-    row["detector_validation_checks"] = {
-        "strip": detector_scores["strip"].get("validation_check"),
-        "cd_l": detector_scores["cd_l"].get("validation_source"),
-    }
     # PSBD read on the CD-L subset, so every method of P6 is scored on the same
     # images.
     row["common_subset"] = {
@@ -181,14 +187,19 @@ def measure_model(folder, successful_2pt):
         )
         for method in scores["ours"]["fractional"]
     }
-    row["common_subset"].update(
-        {
-            name: readout(
-                prefix(subset_groups(detector_scores[name]), CD_L_SUBSET), population
-            )
-            for name in DETECTORS
-        }
-    )
+    row["detectors"] = {}
+    row["detector_validation_checks"] = {}
+    for name in DETECTORS:
+        if not has_part(folder, name):
+            continue
+        part = load_part(folder, name)
+        row["detectors"][name] = readout(subset_groups(part), population)
+        row["common_subset"][name] = readout(
+            prefix(subset_groups(part), CD_L_SUBSET), population
+        )
+        row["detector_validation_checks"][name] = part.get(
+            "validation_check", part.get("validation_source")
+        )
     row["spectral_signatures"] = spectral_signatures_reading(groups, baseline)
     row["paper_rule"] = paper_rule_table(row)
     row["test_time"] = test_time_readings(folder)

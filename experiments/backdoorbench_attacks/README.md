@@ -1,6 +1,6 @@
 # PSBD-TM and the final method on BackdoorBench's own ViT-B/16 checkpoints
 
-The ViT panel covers BadNets, Blend, BPP, LF, WaNet, TaCT and 1 LC model, all trained in this repository on 1 recipe. `backdoor_bench_checkpoints/` holds BackdoorBench's own ViT-B/16 checkpoints, trained on BackdoorBench's recipe, including attack families the panel has never met. This experiment asks whether PSBD-TM and the final method (PSBD-TM fused with `pre_residual_blocks_5_8`) detect those families, and so whether the method holds on models trained outside this repository. The predictions were committed before any sweep ran (`PREDICTIONS.md`, commit `a2dccc6`).
+The ViT panel covers BadNets, Blend, BPP, LF, WaNet, TaCT and 1 LC model, all trained in this repository on 1 recipe. `backdoor_bench_checkpoints/` holds BackdoorBench's own ViT-B/16 checkpoints, trained on BackdoorBench's recipe, including attack families the panel has never met. We did not train these models. They are BackdoorBench's released checkpoints, read as they are, so any result here also shows how the method behaves on models trained outside this repository and its recipe. This experiment asks whether PSBD-TM and the final method (PSBD-TM fused with `pre_residual_blocks_5_8`) detect those families, and so whether the method holds on models trained outside this repository. The predictions were committed before any sweep ran (`PREDICTIONS.md`, commit `a2dccc6`).
 
 ## Scope
 

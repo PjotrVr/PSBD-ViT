@@ -65,7 +65,7 @@ draws, PSBD-TM AUROC at 10%): 0.005 at 100 images, 0.004 at 200, 0.0007 at 500, 
 
 The worst single model never drops out entirely. PSBD-TM's worst model is
 `vit_gtsrb_tact_0_01_cos` at every subset size (AUROC 0.27, TPR 0 at 10%), the lower of the 2
-inverted cells on the panel beside `vit_cifar10_wanet_0_1`, and PSBD-RD's worst is `vit_cifar10_badnet_a2o_0_01` (AUROC 0.31) at 100 and 200
+panel cells PSBD-TM fails on with AUROC below 0.5 (the other is `vit_cifar10_wanet_0_1`). PSBD-RD's worst is `vit_cifar10_badnet_a2o_0_01` (AUROC 0.31) at 100 and 200
 images and `vit_gtsrb_badnet_a2o_0_01` (AUROC 0.27 and 0.22) at 500 and 1000.
 
 **Answer.** The paper's numbers hold under a much smaller clean set. Mean AUROC moves by at
@@ -187,7 +187,23 @@ outlier is TPR at 10% on `vit_cifar100_tact_0_01` (std 0.057), which is a
 poison-rate artifact rather than a mask-seed one: at 1% poisoning the
 eligible TaCT backdoor pool is small, so a handful of samples crossing the
 threshold moves TPR by several points while AUROC on the same model barely
-moves (0.901 to 0.909). The 2 inverted models of the first run,
-`vit_cifar10_wanet_0_1` and `vit_cifar10_sig_0_1`, stay inverted at every
-seed, so that finding is not a seed-0 accident either. The panel's lowest model since
-2026-09-30, `vit_gtsrb_tact_0_01_cos`, has no mask-seed replicate yet, which needs a GPU run.
+moves (0.901 to 0.909). The 2 models PSBD-TM fails on in the first run,
+`vit_cifar10_wanet_0_1` and `vit_cifar10_sig_0_1`, fail at every seed with AUROC
+below 0.5, so that finding is not a seed-0 accident either. The panel's lowest model since
+2026-09-30, `vit_gtsrb_tact_0_01_cos`, was rerun at seeds 1 and 2 on 2026-10-01 in the
+follow-up below.
+
+<!-- results:begin -->
+<!-- Rendered by render_check3_followup.py from results/_experiments/reviewer_checks/check3_followup_2026-10-01.json. -->
+
+**Follow-up of 2026-10-01.** The models that joined the panel after the first run, rerun with the same protocol by `mask_seed_followup.py`. TPR at the 1%, 5% and 10% quantiles of clean validation first, then AUROC, at seeds 0, 1 and 2.
+
+| Model | Rate | Seed | TPR@1% | TPR@5% | TPR@10% | AUROC |
+|---|---:|---:|---:|---:|---:|---:|
+| vit_gtsrb_tact_0_01_cos | 0.3 | 0 | 0.000 | 0.000 | 0.000 | 0.266 |
+| vit_gtsrb_tact_0_01_cos | 0.3 | 1 | 0.000 | 0.000 | 0.000 | 0.278 |
+| vit_gtsrb_tact_0_01_cos | 0.3 | 2 | 0.000 | 0.000 | 0.000 | 0.284 |
+
+On `vit_gtsrb_tact_0_01_cos` the AUROC standard deviation across the 3 seeds is 0.0095 and its range 0.018, and TPR at 10% is 0.000 at every seed. PSBD-TM fails on it at every seed, AUROC below 0.5, so its floor is not a seed-0 accident.
+<!-- results:end -->
+

@@ -1,0 +1,49 @@
+{
+  "position": "before_attention_norm",
+  "operator": "token_mask",
+  "mask_seeds": [
+    0,
+    1,
+    2
+  ],
+  "results_dir": "results/_experiments/reviewer_checks/mask_seeds",
+  "models": [
+    {
+      "folder": "vit_gtsrb_tact_0_01_cos",
+      "rate": 0.3,
+      "by_seed": {
+        "0": {
+          "auroc": 0.26560207636090427,
+          "tpr": 0.0,
+          "tpr_by_quantile": {
+            "q0.01": 0.0,
+            "q0.05": 0.0,
+            "q0.10": 0.0
+          }
+        },
+        "1": {
+          "auroc": 0.27827470801174786,
+          "tpr": 0.0,
+          "tpr_by_quantile": {
+            "q0.01": 0.0,
+            "q0.05": 0.0,
+            "q0.10": 0.0
+          }
+        },
+        "2": {
+          "auroc": 0.28408851854381534,
+          "tpr": 0.0,
+          "tpr_by_quantile": {
+            "q0.01": 0.0,
+            "q0.05": 0.0,
+            "q0.10": 0.0
+          }
+        }
+      },
+      "auroc_std": 0.009452905465542108,
+      "tpr_std": 0.0
+    }
+  ],
+  "git_commit": "3d9c130b805587ca8bf4e75e74211f077cc0eb1a-dirty",
+  "written_at": "2026-10-01T22:16:42.155323+00:00"
+}

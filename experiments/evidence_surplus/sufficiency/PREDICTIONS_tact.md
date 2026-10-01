@@ -34,3 +34,34 @@ The refinement is refuted if prediction 1 fails on 2 or more of the 6 models, or
 ## Honest status
 
 This refinement was formed after seeing the 6 records in the table above, so it is post hoc for those models. It is a genuine prediction only for the 8 excess values listed above, which nobody has measured. The paper may cite it as predicted only for those 8.
+
+## Result (2026-10-01, 23:55)
+
+Measured with `python -m experiments.why_psbd_works.sufficiency --output-slug evidence_surplus` on the 8 models, records under `results/_experiments/evidence_surplus/sufficiency/`. TPR is PSBD-TM's at 10% FPR, adaptive rule, k = 3 (`experiments/tact_calibration` for the 6 held-out models, `psbd_metrics.json` for the rest). The content-hidden excess is the `content.excess` field: the triggered image with every non-trigger token masked at the attention input of every block, against its clean twin under the same mask.
+
+| model | source classes | blank-carrier excess | content-hidden excess | TPR at 10% FPR |
+|---|---|---|---|---|
+| `vit_cifar10_tact_0_01` | 1 | -0.031 | 0.000 | 0.005 |
+| `vit_cifar10_tact_0_05` | 1 | 0.422 | 0.000 | 0.000 |
+| `vit_gtsrb_tact_0_05` | 1 | 0.953 | 0.000 | 0.502 |
+| `vit_gtsrb_tact_0_01_cos` | 1 | 0.000 | 0.000 | 0.000 |
+| `vit_cifar100_tact_0_01_src5` | 5 | 0.031 | 1.000 | 0.796 |
+| `vit_cifar100_tact_0_05_src25` | 25 | 1.000 | 1.000 | 0.683 |
+| `vit_cifar10_tact_0_1_src5` | 5 | 0.094 | 1.000 | 0.990 |
+| `vit_gtsrb_tact_0_1_src12` | 12 | 0.984 | 0.000 | 0.978 |
+| `vit_tiny_tact_0_01_src10` | 10 | 0.031 | 1.000 | 0.825 |
+| `vit_tiny_tact_0_05_src50` | 50 | 0.984 | 1.000 | 0.859 |
+
+Verdicts.
+
+1. Fails. 3 of the 6 held-out models read a blank-carrier excess below 0.5 (0.031, 0.094, 0.031) and are detected anyway.
+2. Fails. `vit_cifar10_tact_0_05` reads 0.422, not below 0.2.
+3. Fails. Spearman 0.373 over the 10 models, below 0.6.
+
+The refinement is refuted as registered. Blank-carrier sufficiency does not predict TaCT detection.
+
+## What the readings show instead (post hoc, a hypothesis)
+
+The content-hidden excess separates the single-source from the multi-source models. It is 0 on all 4 single-source models and 1 on 5 of the 6 multi-source ones. The 6th (`vit_gtsrb_tact_0_1_src12`) reads 0 there and 0.984 on blank carriers. The content-hidden test is the closer analogue of PSBD-TM, which also masks tokens at the attention input. On the multi-source models the trigger tokens alone keep the target once the rest of the image is masked, so the decision keeps its surplus under the same removal PSBD-TM applies. On the single-source models the decision needs the source content, which masking removes.
+
+This reading was found after seeing the table, so it is not a confirmed result. It needs fresh TaCT models whose content-hidden excess is predicted before it is measured. The TaCT multi-source sweeps queued on PBS (tms_d1 to d6) and the veto attack in the evidence-surplus training jobs (R7) are the next chances.

@@ -14,6 +14,10 @@ A benign checkpoint has no attack of its own, so probing it needs --probe-attack
 to name the trigger. That is the sweep's negative control, and chance-level
 detection is the expected result.
 
+A folder named bb_<folder> reads BackdoorBench's backdoor_bench_checkpoints/<folder>
+through data.backdoorbench with the same split and cache layout. It writes
+results/bb_<folder>/psbd/.
+
 Example
     python -m cli.sweep --checkpoint-folder vit_cifar10_badnet_a2o_0_1 \
         --position-config before_attention_norm --perturbation token_mask
@@ -52,10 +56,14 @@ from models.positions import (
     plug_dropout,
     unplug_dropout,
 )
+from data.backdoorbench import (
+    build_psbd_loaders_from_backdoorbench,
+    is_backdoorbench_folder,
+    resolve_checkpoint,
+)
 from data.splits import (
     PSBD_SPLIT_SEED,
     build_psbd_loaders_from_checkpoint,
-    read_checkpoint_metadata,
 )
 from utils.provenance import current_git_commit
 
@@ -240,10 +248,24 @@ def load_model_and_loaders(
     The clean test set behind these loaders is lru_cached per process, so the second
     and later checkpoints of a batch reuse it and pay only the model load.
     """
-    checkpoint_path = os.path.join(args.checkpoints_dir, folder, "attack_result.pt")
-    metadata = read_checkpoint_metadata(checkpoint_path)
+    checkpoint_path, metadata = resolve_checkpoint(folder, args.checkpoints_dir)
     architecture = resolve_architecture(checkpoint_path, metadata)
     model = load_checkpoint(architecture, checkpoint_path, device)
+
+    # A BackdoorBench checkpoint's triggered test set is its own PNG folder, so
+    # there is no trigger to name and nothing for a probe override to replace.
+    if is_backdoorbench_folder(folder):
+        if args.probe_attack is not None:
+            raise ValueError(f"{folder}: --probe-attack does not apply to bb_ folders")
+        loaders, manifest = build_psbd_loaders_from_backdoorbench(
+            checkpoint_path,
+            seed=PSBD_SPLIT_SEED,
+            raw_data_dir=args.raw_data_dir,
+            batch_size=args.batch_size,
+            num_workers=args.num_workers,
+            max_samples=args.max_samples,
+        )
+        return model, architecture, loaders, manifest, metadata
 
     loaders, manifest = build_psbd_loaders_from_checkpoint(
         checkpoint_path,

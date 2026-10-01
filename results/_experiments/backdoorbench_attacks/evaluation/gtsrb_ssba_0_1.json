@@ -1,0 +1,34 @@
+{
+  "folder": "gtsrb_ssba_0_1",
+  "dataset": "gtsrb",
+  "attack": "ssba",
+  "label_mode": "all_to_one",
+  "target_label": 0,
+  "poison_rate": 0.1,
+  "architecture": "vit",
+  "source": "backdoorbench",
+  "bd_test_format": ".png",
+  "leaderboard": {
+    "asr": 0.9176000000000001,
+    "clean_accuracy": 0.7996,
+    "robust_accuracy": 0.0554
+  },
+  "backdoorbench_normalization": {
+    "mean": [
+      0.0,
+      0.0,
+      0.0
+    ],
+    "std": [
+      1.0,
+      1.0,
+      1.0
+    ],
+    "n_clean": 12630,
+    "n_backdoor": 12570,
+    "clean_accuracy": 0.7992874109263658,
+    "asr": 0.9179793158313445
+  },
+  "device": "NVIDIA A100-PCIE-40GB",
+  "wall_seconds": 23.471955324988812
+}

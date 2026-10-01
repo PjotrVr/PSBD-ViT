@@ -1,0 +1,3774 @@
+{
+  "experiment": "backdoorbench_attacks inventory",
+  "weights_dir": "backdoor_bench_checkpoints",
+  "footprint_samples": 300,
+  "changed_levels": 4,
+  "models": [
+    {
+      "folder": "cifar100_badnet_0_01",
+      "dataset": "cifar100",
+      "attack": "badnet",
+      "poison_rate": 0.01,
+      "contents": [
+        "attack_result.pt",
+        "bd_test_dataset",
+        "bd_train_dataset"
+      ],
+      "leaderboard": {
+        "asr": 0.4951,
+        "clean_accuracy": 0.8439,
+        "robust_accuracy": 0.4414
+      },
+      "status": "readable",
+      "model_name": "vit_b_16",
+      "img_size": [
+        32,
+        32,
+        3
+      ],
+      "num_classes": 100,
+      "label_mode": "all_to_one",
+      "target_label": 0,
+      "n_test": 10000,
+      "n_bd_test": 9900,
+      "bd_test_format": ".png",
+      "images_match_record": true,
+      "label_alignment": 1.0,
+      "footprint": {
+        "n": 300,
+        "mean_abs_levels": 1.209690754932429,
+        "changed_pixel_share": 0.008072916666666667,
+        "changed_token_share": 0.01891156462585034,
+        "consistent_pixel_share": 0.0087890625,
+        "height": 32
+      }
+    },
+    {
+      "folder": "cifar100_badnet_0_05",
+      "dataset": "cifar100",
+      "attack": "badnet",
+      "poison_rate": 0.05,
+      "contents": [
+        "attack_result.pt",
+        "bd_test_dataset",
+        "bd_train_dataset"
+      ],
+      "leaderboard": {
+        "asr": 0.8289,
+        "clean_accuracy": 0.8309000000000001,
+        "robust_accuracy": 0.15
+      },
+      "status": "readable",
+      "model_name": "vit_b_16",
+      "img_size": [
+        32,
+        32,
+        3
+      ],
+      "num_classes": 100,
+      "label_mode": "all_to_one",
+      "target_label": 0,
+      "n_test": 10000,
+      "n_bd_test": 9900,
+      "bd_test_format": ".png",
+      "images_match_record": true,
+      "label_alignment": 1.0,
+      "footprint": {
+        "n": 300,
+        "mean_abs_levels": 1.209690754932429,
+        "changed_pixel_share": 0.008072916666666667,
+        "changed_token_share": 0.01891156462585034,
+        "consistent_pixel_share": 0.0087890625,
+        "height": 32
+      }
+    },
+    {
+      "folder": "cifar100_badnet_0_1",
+      "dataset": "cifar100",
+      "attack": "badnet",
+      "poison_rate": 0.1,
+      "contents": [
+        "attack_result.pt",
+        "bd_test_dataset",
+        "bd_train_dataset"
+      ],
+      "leaderboard": {
+        "asr": 0.8490000000000001,
+        "clean_accuracy": 0.8193,
+        "robust_accuracy": 0.1326
+      },
+      "status": "readable",
+      "model_name": "vit_b_16",
+      "img_size": [
+        32,
+        32,
+        3
+      ],
+      "num_classes": 100,
+      "label_mode": "all_to_one",
+      "target_label": 0,
+      "n_test": 10000,
+      "n_bd_test": 9900,
+      "bd_test_format": ".png",
+      "images_match_record": true,
+      "label_alignment": 1.0,
+      "footprint": {
+        "n": 300,
+        "mean_abs_levels": 1.209690754932429,
+        "changed_pixel_share": 0.008072916666666667,
+        "changed_token_share": 0.01891156462585034,
+        "consistent_pixel_share": 0.0087890625,
+        "height": 32
+      }
+    },
+    {
+      "folder": "cifar100_blended_0_01",
+      "dataset": "cifar100",
+      "attack": "blended",
+      "poison_rate": 0.01,
+      "contents": [
+        "attack_result.pt",
+        "bd_test_dataset",
+        "bd_train_dataset"
+      ],
+      "leaderboard": {
+        "asr": 0.94,
+        "clean_accuracy": 0.8449,
+        "robust_accuracy": 0.051100000000000007
+      },
+      "status": "readable",
+      "model_name": "vit_b_16",
+      "img_size": [
+        32,
+        32,
+        3
+      ],
+      "num_classes": 100,
+      "label_mode": "all_to_one",
+      "target_label": 0,
+      "n_test": 10000,
+      "n_bd_test": 9900,
+      "bd_test_format": ".png",
+      "images_match_record": true,
+      "label_alignment": 1.0,
+      "footprint": {
+        "n": 300,
+        "mean_abs_levels": 20.23850913365682,
+        "changed_pixel_share": 0.9406901041666667,
+        "changed_token_share": 0.9821598639455781,
+        "consistent_pixel_share": 1.0,
+        "height": 32
+      }
+    },
+    {
+      "folder": "cifar100_blended_0_05",
+      "dataset": "cifar100",
+      "attack": "blended",
+      "poison_rate": 0.05,
+      "contents": [
+        "attack_result.pt",
+        "bd_test_dataset",
+        "bd_train_dataset"
+      ],
+      "leaderboard": {
+        "asr": 0.9945999999999999,
+        "clean_accuracy": 0.8404,
+        "robust_accuracy": 0.004699999999999999
+      },
+      "status": "readable",
+      "model_name": "vit_b_16",
+      "img_size": [
+        32,
+        32,
+        3
+      ],
+      "num_classes": 100,
+      "label_mode": "all_to_one",
+      "target_label": 0,
+      "n_test": 10000,
+      "n_bd_test": 9900,
+      "bd_test_format": ".png",
+      "images_match_record": true,
+      "label_alignment": 1.0,
+      "footprint": {
+        "n": 300,
+        "mean_abs_levels": 20.23850913365682,
+        "changed_pixel_share": 0.9406901041666667,
+        "changed_token_share": 0.9821598639455781,
+        "consistent_pixel_share": 1.0,
+        "height": 32
+      }
+    },
+    {
+      "folder": "cifar100_blended_0_1",
+      "dataset": "cifar100",
+      "attack": "blended",
+      "poison_rate": 0.1,
+      "contents": [
+        "attack_result.pt",
+        "bd_test_dataset",
+        "bd_train_dataset"
+      ],
+      "leaderboard": {
+        "asr": 0.997,
+        "clean_accuracy": 0.8434999999999999,
+        "robust_accuracy": 0.0026
+      },
+      "status": "readable",
+      "model_name": "vit_b_16",
+      "img_size": [
+        32,
+        32,
+        3
+      ],
+      "num_classes": 100,
+      "label_mode": "all_to_one",
+      "target_label": 0,
+      "n_test": 10000,
+      "n_bd_test": 9900,
+      "bd_test_format": ".png",
+      "images_match_record": true,
+      "label_alignment": 1.0,
+      "footprint": {
+        "n": 300,
+        "mean_abs_levels": 20.23850913365682,
+        "changed_pixel_share": 0.9406901041666667,
+        "changed_token_share": 0.9821598639455781,
+        "consistent_pixel_share": 1.0,
+        "height": 32
+      }
+    },
+    {
+      "folder": "cifar100_blind_0_1",
+      "dataset": "cifar100",
+      "attack": "blind",
+      "poison_rate": 0.1,
+      "contents": [
+        "attack_result.pt",
+        "bd_test_dataset"
+      ],
+      "leaderboard": null,
+      "status": "readable",
+      "model_name": "vit_b_16",
+      "img_size": [
+        32,
+        32,
+        3
+      ],
+      "num_classes": 100,
+      "label_mode": "all_to_one",
+      "target_label": 0,
+      "n_test": 10000,
+      "n_bd_test": 9900,
+      "bd_test_format": ".jpg",
+      "images_match_record": true,
+      "label_alignment": 1.0,
+      "footprint": {
+        "n": 300,
+        "mean_abs_levels": 7.454296864668528,
+        "changed_pixel_share": 0.7938346354166667,
+        "changed_token_share": 0.9562925170068028,
+        "consistent_pixel_share": 1.0,
+        "height": 32
+      }
+    },
+    {
+      "folder": "cifar100_bpp_0_01",
+      "dataset": "cifar100",
+      "attack": "bpp",
+      "poison_rate": 0.01,
+      "contents": [
+        "attack_result.pt",
+        "bd_test_dataset",
+        "bd_train_dataset",
+        "cross_test_dataset"
+      ],
+      "leaderboard": {
+        "asr": 0.8889,
+        "clean_accuracy": 0.7456999999999999,
+        "robust_accuracy": 0.0926
+      },
+      "status": "readable",
+      "model_name": "vit_b_16",
+      "img_size": [
+        32,
+        32,
+        3
+      ],
+      "num_classes": 100,
+      "label_mode": "all_to_one",
+      "target_label": 0,
+      "n_test": 10000,
+      "n_bd_test": 9900,
+      "bd_test_format": ".png",
+      "images_match_record": true,
+      "label_alignment": 1.0,
+      "footprint": {
+        "n": 300,
+        "mean_abs_levels": 8.779224199056625,
+        "changed_pixel_share": 0.93287109375,
+        "changed_token_share": 0.9688605442176872,
+        "consistent_pixel_share": 1.0,
+        "height": 32
+      }
+    },
+    {
+      "folder": "cifar100_bpp_0_05",
+      "dataset": "cifar100",
+      "attack": "bpp",
+      "poison_rate": 0.05,
+      "contents": [
+        "attack_result.pt",
+        "bd_test_dataset",
+        "bd_train_dataset",
+        "cross_test_dataset"
+      ],
+      "leaderboard": {
+        "asr": 0.9658,
+        "clean_accuracy": 0.7336,
+        "robust_accuracy": 0.0282
+      },
+      "status": "readable",
+      "model_name": "vit_b_16",
+      "img_size": [
+        32,
+        32,
+        3
+      ],
+      "num_classes": 100,
+      "label_mode": "all_to_one",
+      "target_label": 0,
+      "n_test": 10000,
+      "n_bd_test": 9900,
+      "bd_test_format": ".png",
+      "images_match_record": true,
+      "label_alignment": 1.0,
+      "footprint": {
+        "n": 300,
+        "mean_abs_levels": 8.779224199056625,
+        "changed_pixel_share": 0.93287109375,
+        "changed_token_share": 0.9688605442176872,
+        "consistent_pixel_share": 1.0,
+        "height": 32
+      }
+    },
+    {
+      "folder": "cifar100_bpp_0_1",
+      "dataset": "cifar100",
+      "attack": "bpp",
+      "poison_rate": 0.1,
+      "contents": [
+        "attack_result.pt",
+        "bd_test_dataset",
+        "bd_train_dataset",
+        "cross_test_dataset"
+      ],
+      "leaderboard": {
+        "asr": 0.9954999999999999,
+        "clean_accuracy": 0.7409,
+        "robust_accuracy": 0.0037
+      },
+      "status": "readable",
+      "model_name": "vit_b_16",
+      "img_size": [
+        32,
+        32,
+        3
+      ],
+      "num_classes": 100,
+      "label_mode": "all_to_one",
+      "target_label": 0,
+      "n_test": 10000,
+      "n_bd_test": 9900,
+      "bd_test_format": ".png",
+      "images_match_record": true,
+      "label_alignment": 1.0,
+      "footprint": {
+        "n": 300,
+        "mean_abs_levels": 8.779224199056625,
+        "changed_pixel_share": 0.93287109375,
+        "changed_token_share": 0.9688605442176872,
+        "consistent_pixel_share": 1.0,
+        "height": 32
+      }
+    },
+    {
+      "folder": "cifar100_inputaware_0_01",
+      "dataset": "cifar100",
+      "attack": "inputaware",
+      "poison_rate": 0.01,
+      "contents": [
+        "attack_result.pt",
+        "bd_test_dataset",
+        "bd_train_dataset",
+        "cross_test_dataset"
+      ],
+      "leaderboard": {
+        "asr": 0.5349,
+        "clean_accuracy": 0.7492,
+        "robust_accuracy": 0.4172
+      },
+      "status": "readable",
+      "model_name": "vit_b_16",
+      "img_size": [
+        32,
+        32,
+        3
+      ],
+      "num_classes": 100,
+      "label_mode": "all_to_one",
+      "target_label": 0,
+      "n_test": 10000,
+      "n_bd_test": 9900,
+      "bd_test_format": ".png",
+      "images_match_record": true,
+      "label_alignment": 1.0,
+      "footprint": {
+        "n": 300,
+        "mean_abs_levels": 3.85291450381279,
+        "changed_pixel_share": 0.031689453125,
+        "changed_token_share": 0.08914965986394559,
+        "consistent_pixel_share": 0.0,
+        "height": 32
+      }
+    },
+    {
+      "folder": "cifar100_inputaware_0_05",
+      "dataset": "cifar100",
+      "attack": "inputaware",
+      "poison_rate": 0.05,
+      "contents": [
+        "attack_result.pt",
+        "bd_test_dataset",
+        "bd_train_dataset",
+        "cross_test_dataset"
+      ],
+      "leaderboard": {
+        "asr": 0.8077,
+        "clean_accuracy": 0.7648999999999999,
+        "robust_accuracy": 0.1753
+      },
+      "status": "readable",
+      "model_name": "vit_b_16",
+      "img_size": [
+        32,
+        32,
+        3
+      ],
+      "num_classes": 100,
+      "label_mode": "all_to_one",
+      "target_label": 0,
+      "n_test": 10000,
+      "n_bd_test": 9900,
+      "bd_test_format": ".png",
+      "images_match_record": true,
+      "label_alignment": 1.0,
+      "footprint": {
+        "n": 300,
+        "mean_abs_levels": 3.447191846370697,
+        "changed_pixel_share": 0.031858723958333335,
+        "changed_token_share": 0.08989795918367345,
+        "consistent_pixel_share": 0.0,
+        "height": 32
+      }
+    },
+    {
+      "folder": "cifar100_inputaware_0_1",
+      "dataset": "cifar100",
+      "attack": "inputaware",
+      "poison_rate": 0.1,
+      "contents": [
+        "attack_result.pt",
+        "bd_test_dataset",
+        "bd_train_dataset",
+        "cross_test_dataset"
+      ],
+      "leaderboard": {
+        "asr": 0.9162,
+        "clean_accuracy": 0.7543000000000001,
+        "robust_accuracy": 0.0742
+      },
+      "status": "readable",
+      "model_name": "vit_b_16",
+      "img_size": [
+        32,
+        32,
+        3
+      ],
+      "num_classes": 100,
+      "label_mode": "all_to_one",
+      "target_label": 0,
+      "n_test": 10000,
+      "n_bd_test": 9900,
+      "bd_test_format": ".png",
+      "images_match_record": true,
+      "label_alignment": 1.0,
+      "footprint": {
+        "n": 300,
+        "mean_abs_levels": 3.9916579874356586,
+        "changed_pixel_share": 0.031302083333333335,
+        "changed_token_share": 0.08974489795918368,
+        "consistent_pixel_share": 0.0,
+        "height": 32
+      }
+    },
+    {
+      "folder": "cifar100_lc_0_01",
+      "dataset": "cifar100",
+      "attack": "lc",
+      "poison_rate": 0.01,
+      "contents": [
+        "attack_result.pt",
+        "bd_test_dataset",
+        "bd_train_dataset"
+      ],
+      "leaderboard": {
+        "asr": null,
+        "clean_accuracy": null,
+        "robust_accuracy": null
+      },
+      "status": "readable",
+      "model_name": "vit_b_16",
+      "img_size": [
+        32,
+        32,
+        3
+      ],
+      "num_classes": 100,
+      "label_mode": "clean_label",
+      "target_label": 0,
+      "n_test": 10000,
+      "n_bd_test": 9900,
+      "bd_test_format": ".png",
+      "images_match_record": true,
+      "label_alignment": 1.0,
+      "footprint": {
+        "n": 300,
+        "mean_abs_levels": 8.628693549633025,
+        "changed_pixel_share": 0.9891927083333333,
+        "changed_token_share": 0.9981632653061225,
+        "consistent_pixel_share": 1.0,
+        "height": 32
+      }
+    },
+    {
+      "folder": "cifar100_lf_0_01",
+      "dataset": "cifar100",
+      "attack": "lf",
+      "poison_rate": 0.01,
+      "contents": [
+        "attack_result.pt",
+        "bd_test_dataset",
+        "bd_train_dataset"
+      ],
+      "leaderboard": {
+        "asr": 0.0016,
+        "clean_accuracy": 0.8425,
+        "robust_accuracy": 0.8414
+      },
+      "status": "readable",
+      "model_name": "vit_b_16",
+      "img_size": [
+        32,
+        32,
+        3
+      ],
+      "num_classes": 100,
+      "label_mode": "all_to_one",
+      "target_label": 0,
+      "n_test": 10000,
+      "n_bd_test": 9900,
+      "bd_test_format": ".png",
+      "images_match_record": true,
+      "label_alignment": 1.0,
+      "footprint": {
+        "n": 300,
+        "mean_abs_levels": 0.0,
+        "changed_pixel_share": 0.0,
+        "changed_token_share": 0.0,
+        "consistent_pixel_share": 0.0,
+        "height": 32
+      }
+    },
+    {
+      "folder": "cifar100_lf_0_05",
+      "dataset": "cifar100",
+      "attack": "lf",
+      "poison_rate": 0.05,
+      "contents": [
+        "attack_result.pt",
+        "bd_test_dataset",
+        "bd_train_dataset"
+      ],
+      "leaderboard": {
+        "asr": 0.0101,
+        "clean_accuracy": 0.8311,
+        "robust_accuracy": 0.83
+      },
+      "status": "readable",
+      "model_name": "vit_b_16",
+      "img_size": [
+        32,
+        32,
+        3
+      ],
+      "num_classes": 100,
+      "label_mode": "all_to_one",
+      "target_label": 0,
+      "n_test": 10000,
+      "n_bd_test": 9900,
+      "bd_test_format": ".png",
+      "images_match_record": true,
+      "label_alignment": 1.0,
+      "footprint": {
+        "n": 300,
+        "mean_abs_levels": 0.0,
+        "changed_pixel_share": 0.0,
+        "changed_token_share": 0.0,
+        "consistent_pixel_share": 0.0,
+        "height": 32
+      }
+    },
+    {
+      "folder": "cifar100_lf_0_1",
+      "dataset": "cifar100",
+      "attack": "lf",
+      "poison_rate": 0.1,
+      "contents": [
+        "attack_result.pt",
+        "bd_test_dataset",
+        "bd_train_dataset"
+      ],
+      "leaderboard": {
+        "asr": 0.0335,
+        "clean_accuracy": 0.8072,
+        "robust_accuracy": 0.8057
+      },
+      "status": "readable",
+      "model_name": "vit_b_16",
+      "img_size": [
+        32,
+        32,
+        3
+      ],
+      "num_classes": 100,
+      "label_mode": "all_to_one",
+      "target_label": 0,
+      "n_test": 10000,
+      "n_bd_test": 9900,
+      "bd_test_format": ".png",
+      "images_match_record": true,
+      "label_alignment": 1.0,
+      "footprint": {
+        "n": 300,
+        "mean_abs_levels": 0.0,
+        "changed_pixel_share": 0.0,
+        "changed_token_share": 0.0,
+        "consistent_pixel_share": 0.0,
+        "height": 32
+      }
+    },
+    {
+      "folder": "cifar100_lira_0_1",
+      "dataset": "cifar100",
+      "attack": "lira",
+      "poison_rate": 0.1,
+      "contents": [],
+      "leaderboard": null,
+      "status": "no attack_result.pt"
+    },
+    {
+      "folder": "cifar100_sig_0_01",
+      "dataset": "cifar100",
+      "attack": "sig",
+      "poison_rate": 0.01,
+      "contents": [
+        "attack_result.pt",
+        "bd_test_dataset",
+        "bd_train_dataset"
+      ],
+      "leaderboard": {
+        "asr": null,
+        "clean_accuracy": null,
+        "robust_accuracy": null
+      },
+      "status": "readable",
+      "model_name": "vit_b_16",
+      "img_size": [
+        32,
+        32,
+        3
+      ],
+      "num_classes": 100,
+      "label_mode": "clean_label",
+      "target_label": 0,
+      "n_test": 10000,
+      "n_bd_test": 9900,
+      "bd_test_format": ".png",
+      "images_match_record": true,
+      "label_alignment": 1.0,
+      "footprint": {
+        "n": 300,
+        "mean_abs_levels": 23.764152612686157,
+        "changed_pixel_share": 0.8568684895833333,
+        "changed_token_share": 0.9910714285714285,
+        "consistent_pixel_share": 0.875,
+        "height": 32
+      }
+    },
+    {
+      "folder": "cifar100_ssba_0_01",
+      "dataset": "cifar100",
+      "attack": "ssba",
+      "poison_rate": 0.01,
+      "contents": [
+        "attack_result.pt",
+        "bd_test_dataset",
+        "bd_train_dataset"
+      ],
+      "leaderboard": {
+        "asr": 0.6143,
+        "clean_accuracy": 0.8449,
+        "robust_accuracy": 0.3256
+      },
+      "status": "readable",
+      "model_name": "vit_b_16",
+      "img_size": [
+        32,
+        32,
+        3
+      ],
+      "num_classes": 100,
+      "label_mode": "all_to_one",
+      "target_label": 0,
+      "n_test": 10000,
+      "n_bd_test": 9900,
+      "bd_test_format": ".png",
+      "images_match_record": true,
+      "label_alignment": 1.0,
+      "footprint": {
+        "n": 300,
+        "mean_abs_levels": 8.916930314699808,
+        "changed_pixel_share": 0.5153125,
+        "changed_token_share": 0.811734693877551,
+        "consistent_pixel_share": 0.353515625,
+        "height": 32
+      }
+    },
+    {
+      "folder": "cifar100_ssba_0_05",
+      "dataset": "cifar100",
+      "attack": "ssba",
+      "poison_rate": 0.05,
+      "contents": [
+        "attack_result.pt",
+        "bd_test_dataset",
+        "bd_train_dataset"
+      ],
+      "leaderboard": {
+        "asr": 0.9509000000000001,
+        "clean_accuracy": 0.8417,
+        "robust_accuracy": 0.0425
+      },
+      "status": "readable",
+      "model_name": "vit_b_16",
+      "img_size": [
+        32,
+        32,
+        3
+      ],
+      "num_classes": 100,
+      "label_mode": "all_to_one",
+      "target_label": 0,
+      "n_test": 10000,
+      "n_bd_test": 9900,
+      "bd_test_format": ".png",
+      "images_match_record": true,
+      "label_alignment": 1.0,
+      "footprint": {
+        "n": 300,
+        "mean_abs_levels": 8.916930314699808,
+        "changed_pixel_share": 0.5153125,
+        "changed_token_share": 0.811734693877551,
+        "consistent_pixel_share": 0.353515625,
+        "height": 32
+      }
+    },
+    {
+      "folder": "cifar100_ssba_0_1",
+      "dataset": "cifar100",
+      "attack": "ssba",
+      "poison_rate": 0.1,
+      "contents": [
+        "attack_result.pt",
+        "bd_test_dataset",
+        "bd_train_dataset"
+      ],
+      "leaderboard": {
+        "asr": 0.9840000000000001,
+        "clean_accuracy": 0.8388,
+        "robust_accuracy": 0.014199999999999999
+      },
+      "status": "readable",
+      "model_name": "vit_b_16",
+      "img_size": [
+        32,
+        32,
+        3
+      ],
+      "num_classes": 100,
+      "label_mode": "all_to_one",
+      "target_label": 0,
+      "n_test": 10000,
+      "n_bd_test": 9900,
+      "bd_test_format": ".png",
+      "images_match_record": true,
+      "label_alignment": 1.0,
+      "footprint": {
+        "n": 300,
+        "mean_abs_levels": 8.916930314699808,
+        "changed_pixel_share": 0.5153125,
+        "changed_token_share": 0.811734693877551,
+        "consistent_pixel_share": 0.353515625,
+        "height": 32
+      }
+    },
+    {
+      "folder": "cifar100_trojannn_0_01",
+      "dataset": "cifar100",
+      "attack": "trojannn",
+      "poison_rate": 0.01,
+      "contents": [
+        "attack_result.pt",
+        "bd_test_dataset",
+        "bd_train_dataset"
+      ],
+      "leaderboard": {
+        "asr": 0.9872,
+        "clean_accuracy": 0.8462999999999999,
+        "robust_accuracy": 0.0124
+      },
+      "status": "readable",
+      "model_name": "vit_b_16",
+      "img_size": [
+        32,
+        32,
+        3
+      ],
+      "num_classes": 100,
+      "label_mode": "all_to_one",
+      "target_label": 0,
+      "n_test": 10000,
+      "n_bd_test": 9900,
+      "bd_test_format": ".png",
+      "images_match_record": true,
+      "label_alignment": 1.0,
+      "footprint": {
+        "n": 300,
+        "mean_abs_levels": 7.45110459168752,
+        "changed_pixel_share": 0.112314453125,
+        "changed_token_share": 0.14285714285714282,
+        "consistent_pixel_share": 0.1123046875,
+        "height": 32
+      }
+    },
+    {
+      "folder": "cifar100_trojannn_0_05",
+      "dataset": "cifar100",
+      "attack": "trojannn",
+      "poison_rate": 0.05,
+      "contents": [
+        "attack_result.pt",
+        "bd_test_dataset",
+        "bd_train_dataset"
+      ],
+      "leaderboard": {
+        "asr": 0.9984999999999999,
+        "clean_accuracy": 0.8442000000000001,
+        "robust_accuracy": 0.0014000000000000002
+      },
+      "status": "readable",
+      "model_name": "vit_b_16",
+      "img_size": [
+        32,
+        32,
+        3
+      ],
+      "num_classes": 100,
+      "label_mode": "all_to_one",
+      "target_label": 0,
+      "n_test": 10000,
+      "n_bd_test": 9900,
+      "bd_test_format": ".png",
+      "images_match_record": true,
+      "label_alignment": 1.0,
+      "footprint": {
+        "n": 300,
+        "mean_abs_levels": 6.088524317741394,
+        "changed_pixel_share": 0.107548828125,
+        "changed_token_share": 0.14285714285714282,
+        "consistent_pixel_share": 0.107421875,
+        "height": 32
+      }
+    },
+    {
+      "folder": "cifar100_trojannn_0_1",
+      "dataset": "cifar100",
+      "attack": "trojannn",
+      "poison_rate": 0.1,
+      "contents": [
+        "attack_result.pt",
+        "bd_test_dataset",
+        "bd_train_dataset"
+      ],
+      "leaderboard": {
+        "asr": 0.9997,
+        "clean_accuracy": 0.8411,
+        "robust_accuracy": 0.0003
+      },
+      "status": "readable",
+      "model_name": "vit_b_16",
+      "img_size": [
+        32,
+        32,
+        3
+      ],
+      "num_classes": 100,
+      "label_mode": "all_to_one",
+      "target_label": 0,
+      "n_test": 10000,
+      "n_bd_test": 9900,
+      "bd_test_format": ".png",
+      "images_match_record": true,
+      "label_alignment": 1.0,
+      "footprint": {
+        "n": 300,
+        "mean_abs_levels": 6.088524317741394,
+        "changed_pixel_share": 0.107548828125,
+        "changed_token_share": 0.14285714285714282,
+        "consistent_pixel_share": 0.107421875,
+        "height": 32
+      }
+    },
+    {
+      "folder": "cifar100_wanet_0_01",
+      "dataset": "cifar100",
+      "attack": "wanet",
+      "poison_rate": 0.01,
+      "contents": [
+        "attack_result.pt",
+        "bd_test_dataset",
+        "bd_train_dataset",
+        "cross_test_dataset"
+      ],
+      "leaderboard": {
+        "asr": 0.5096,
+        "clean_accuracy": 0.7293000000000001,
+        "robust_accuracy": 0.39380000000000004
+      },
+      "status": "readable",
+      "model_name": "vit_b_16",
+      "img_size": [
+        32,
+        32,
+        3
+      ],
+      "num_classes": 100,
+      "label_mode": "all_to_one",
+      "target_label": 0,
+      "n_test": 10000,
+      "n_bd_test": 9884,
+      "bd_test_format": ".png",
+      "images_match_record": true,
+      "label_alignment": 0.9983812221772562,
+      "footprint": {
+        "n": 300,
+        "mean_abs_levels": 5.3305837670962015,
+        "changed_pixel_share": 0.40972330729166667,
+        "changed_token_share": 0.6582312925170067,
+        "consistent_pixel_share": 0.3818359375,
+        "height": 32
+      }
+    },
+    {
+      "folder": "cifar100_wanet_0_05",
+      "dataset": "cifar100",
+      "attack": "wanet",
+      "poison_rate": 0.05,
+      "contents": [
+        "attack_result.pt",
+        "bd_test_dataset",
+        "bd_train_dataset",
+        "cross_test_dataset"
+      ],
+      "leaderboard": {
+        "asr": 0.8486,
+        "clean_accuracy": 0.7353000000000001,
+        "robust_accuracy": 0.1241
+      },
+      "status": "readable",
+      "model_name": "vit_b_16",
+      "img_size": [
+        32,
+        32,
+        3
+      ],
+      "num_classes": 100,
+      "label_mode": "all_to_one",
+      "target_label": 0,
+      "n_test": 10000,
+      "n_bd_test": 9884,
+      "bd_test_format": ".png",
+      "images_match_record": true,
+      "label_alignment": 0.9983812221772562,
+      "footprint": {
+        "n": 300,
+        "mean_abs_levels": 5.3305837670962015,
+        "changed_pixel_share": 0.40972330729166667,
+        "changed_token_share": 0.6582312925170067,
+        "consistent_pixel_share": 0.3818359375,
+        "height": 32
+      }
+    },
+    {
+      "folder": "cifar100_wanet_0_1",
+      "dataset": "cifar100",
+      "attack": "wanet",
+      "poison_rate": 0.1,
+      "contents": [
+        "attack_result.pt",
+        "bd_test_dataset",
+        "bd_train_dataset",
+        "cross_test_dataset"
+      ],
+      "leaderboard": {
+        "asr": 0.9647,
+        "clean_accuracy": 0.7231000000000001,
+        "robust_accuracy": 0.029300000000000003
+      },
+      "status": "readable",
+      "model_name": "vit_b_16",
+      "img_size": [
+        32,
+        32,
+        3
+      ],
+      "num_classes": 100,
+      "label_mode": "all_to_one",
+      "target_label": 0,
+      "n_test": 10000,
+      "n_bd_test": 9884,
+      "bd_test_format": ".png",
+      "images_match_record": true,
+      "label_alignment": 0.9983812221772562,
+      "footprint": {
+        "n": 300,
+        "mean_abs_levels": 5.3305837670962015,
+        "changed_pixel_share": 0.40972330729166667,
+        "changed_token_share": 0.6582312925170067,
+        "consistent_pixel_share": 0.3818359375,
+        "height": 32
+      }
+    },
+    {
+      "folder": "cifar10_badnet_0_01",
+      "dataset": "cifar10",
+      "attack": "badnet",
+      "poison_rate": 0.01,
+      "contents": [
+        "attack_result.pt",
+        "bd_test_dataset",
+        "bd_train_dataset"
+      ],
+      "leaderboard": {
+        "asr": 0.7273000000000001,
+        "clean_accuracy": 0.965,
+        "robust_accuracy": 0.265
+      },
+      "status": "readable",
+      "model_name": "vit_b_16",
+      "img_size": [
+        32,
+        32,
+        3
+      ],
+      "num_classes": 10,
+      "label_mode": "all_to_one",
+      "target_label": 0,
+      "n_test": 10000,
+      "n_bd_test": 9000,
+      "bd_test_format": ".png",
+      "images_match_record": true,
+      "label_alignment": 1.0,
+      "footprint": {
+        "n": 300,
+        "mean_abs_levels": 1.2059364158303167,
+        "changed_pixel_share": 0.008561197916666667,
+        "changed_token_share": 0.02,
+        "consistent_pixel_share": 0.0087890625,
+        "height": 32
+      }
+    },
+    {
+      "folder": "cifar10_badnet_0_05",
+      "dataset": "cifar10",
+      "attack": "badnet",
+      "poison_rate": 0.05,
+      "contents": [
+        "attack_result.pt",
+        "bd_test_dataset",
+        "bd_train_dataset"
+      ],
+      "leaderboard": {
+        "asr": 0.9107999999999999,
+        "clean_accuracy": 0.9558,
+        "robust_accuracy": 0.0862
+      },
+      "status": "readable",
+      "model_name": "vit_b_16",
+      "img_size": [
+        32,
+        32,
+        3
+      ],
+      "num_classes": 10,
+      "label_mode": "all_to_one",
+      "target_label": 0,
+      "n_test": 10000,
+      "n_bd_test": 9000,
+      "bd_test_format": ".png",
+      "images_match_record": true,
+      "label_alignment": 1.0,
+      "footprint": {
+        "n": 300,
+        "mean_abs_levels": 1.2059364158303167,
+        "changed_pixel_share": 0.008561197916666667,
+        "changed_token_share": 0.02,
+        "consistent_pixel_share": 0.0087890625,
+        "height": 32
+      }
+    },
+    {
+      "folder": "cifar10_badnet_0_1",
+      "dataset": "cifar10",
+      "attack": "badnet",
+      "poison_rate": 0.1,
+      "contents": [
+        "attack_result.pt",
+        "bd_test_dataset",
+        "bd_train_dataset"
+      ],
+      "leaderboard": {
+        "asr": 0.9377,
+        "clean_accuracy": 0.9478,
+        "robust_accuracy": 0.0602
+      },
+      "status": "readable",
+      "model_name": "vit_b_16",
+      "img_size": [
+        32,
+        32,
+        3
+      ],
+      "num_classes": 10,
+      "label_mode": "all_to_one",
+      "target_label": 0,
+      "n_test": 10000,
+      "n_bd_test": 9000,
+      "bd_test_format": ".png",
+      "images_match_record": true,
+      "label_alignment": 1.0,
+      "footprint": {
+        "n": 300,
+        "mean_abs_levels": 1.2059364158303167,
+        "changed_pixel_share": 0.008561197916666667,
+        "changed_token_share": 0.02,
+        "consistent_pixel_share": 0.0087890625,
+        "height": 32
+      }
+    },
+    {
+      "folder": "cifar10_blended_0_01",
+      "dataset": "cifar10",
+      "attack": "blended",
+      "poison_rate": 0.01,
+      "contents": [
+        "attack_result.pt",
+        "bd_test_dataset",
+        "bd_train_dataset"
+      ],
+      "leaderboard": {
+        "asr": 0.9634,
+        "clean_accuracy": 0.9654,
+        "robust_accuracy": 0.0354
+      },
+      "status": "readable",
+      "model_name": "vit_b_16",
+      "img_size": [
+        32,
+        32,
+        3
+      ],
+      "num_classes": 10,
+      "label_mode": "all_to_one",
+      "target_label": 0,
+      "n_test": 10000,
+      "n_bd_test": 9000,
+      "bd_test_format": ".png",
+      "images_match_record": true,
+      "label_alignment": 1.0,
+      "footprint": {
+        "n": 300,
+        "mean_abs_levels": 20.48651041984558,
+        "changed_pixel_share": 0.948095703125,
+        "changed_token_share": 0.9896258503401362,
+        "consistent_pixel_share": 1.0,
+        "height": 32
+      }
+    },
+    {
+      "folder": "cifar10_blended_0_05",
+      "dataset": "cifar10",
+      "attack": "blended",
+      "poison_rate": 0.05,
+      "contents": [
+        "attack_result.pt",
+        "bd_test_dataset",
+        "bd_train_dataset"
+      ],
+      "leaderboard": {
+        "asr": 0.9932,
+        "clean_accuracy": 0.9665,
+        "robust_accuracy": 0.0066
+      },
+      "status": "readable",
+      "model_name": "vit_b_16",
+      "img_size": [
+        32,
+        32,
+        3
+      ],
+      "num_classes": 10,
+      "label_mode": "all_to_one",
+      "target_label": 0,
+      "n_test": 10000,
+      "n_bd_test": 9000,
+      "bd_test_format": ".png",
+      "images_match_record": true,
+      "label_alignment": 1.0,
+      "footprint": {
+        "n": 300,
+        "mean_abs_levels": 20.48651041984558,
+        "changed_pixel_share": 0.948095703125,
+        "changed_token_share": 0.9896258503401362,
+        "consistent_pixel_share": 1.0,
+        "height": 32
+      }
+    },
+    {
+      "folder": "cifar10_blended_0_1",
+      "dataset": "cifar10",
+      "attack": "blended",
+      "poison_rate": 0.1,
+      "contents": [
+        "attack_result.pt",
+        "bd_test_dataset",
+        "bd_train_dataset"
+      ],
+      "leaderboard": {
+        "asr": 0.9968,
+        "clean_accuracy": 0.9654,
+        "robust_accuracy": 0.0031
+      },
+      "status": "readable",
+      "model_name": "vit_b_16",
+      "img_size": [
+        32,
+        32,
+        3
+      ],
+      "num_classes": 10,
+      "label_mode": "all_to_one",
+      "target_label": 0,
+      "n_test": 10000,
+      "n_bd_test": 9000,
+      "bd_test_format": ".png",
+      "images_match_record": true,
+      "label_alignment": 1.0,
+      "footprint": {
+        "n": 300,
+        "mean_abs_levels": 20.48651041984558,
+        "changed_pixel_share": 0.948095703125,
+        "changed_token_share": 0.9896258503401362,
+        "consistent_pixel_share": 1.0,
+        "height": 32
+      }
+    },
+    {
+      "folder": "cifar10_blind_0_1",
+      "dataset": "cifar10",
+      "attack": "blind",
+      "poison_rate": 0.1,
+      "contents": [
+        "attack_result.pt",
+        "bd_test_dataset"
+      ],
+      "leaderboard": null,
+      "status": "readable",
+      "model_name": "vit_b_16",
+      "img_size": [
+        32,
+        32,
+        3
+      ],
+      "num_classes": 10,
+      "label_mode": "all_to_one",
+      "target_label": 0,
+      "n_test": 10000,
+      "n_bd_test": 9000,
+      "bd_test_format": ".jpg",
+      "images_match_record": true,
+      "label_alignment": 1.0,
+      "footprint": {
+        "n": 300,
+        "mean_abs_levels": 7.144622398217519,
+        "changed_pixel_share": 0.7768489583333333,
+        "changed_token_share": 0.9601870748299322,
+        "consistent_pixel_share": 1.0,
+        "height": 32
+      }
+    },
+    {
+      "folder": "cifar10_bpp_0_01",
+      "dataset": "cifar10",
+      "attack": "bpp",
+      "poison_rate": 0.01,
+      "contents": [
+        "attack_result.pt",
+        "bd_test_dataset",
+        "bd_train_dataset",
+        "cross_test_dataset"
+      ],
+      "leaderboard": {
+        "asr": 0.7804000000000001,
+        "clean_accuracy": 0.9163,
+        "robust_accuracy": 0.2041
+      },
+      "status": "readable",
+      "model_name": "vit_b_16",
+      "img_size": [
+        32,
+        32,
+        3
+      ],
+      "num_classes": 10,
+      "label_mode": "all_to_one",
+      "target_label": 0,
+      "n_test": 10000,
+      "n_bd_test": 9000,
+      "bd_test_format": ".png",
+      "images_match_record": true,
+      "label_alignment": 1.0,
+      "footprint": {
+        "n": 300,
+        "mean_abs_levels": 8.994575724601745,
+        "changed_pixel_share": 0.9491048177083333,
+        "changed_token_share": 0.9841156462585035,
+        "consistent_pixel_share": 1.0,
+        "height": 32
+      }
+    },
+    {
+      "folder": "cifar10_bpp_0_05",
+      "dataset": "cifar10",
+      "attack": "bpp",
+      "poison_rate": 0.05,
+      "contents": [
+        "attack_result.pt",
+        "bd_test_dataset",
+        "bd_train_dataset",
+        "cross_test_dataset"
+      ],
+      "leaderboard": {
+        "asr": 0.9901000000000001,
+        "clean_accuracy": 0.9134,
+        "robust_accuracy": 0.0096
+      },
+      "status": "readable",
+      "model_name": "vit_b_16",
+      "img_size": [
+        32,
+        32,
+        3
+      ],
+      "num_classes": 10,
+      "label_mode": "all_to_one",
+      "target_label": 0,
+      "n_test": 10000,
+      "n_bd_test": 9000,
+      "bd_test_format": ".png",
+      "images_match_record": true,
+      "label_alignment": 1.0,
+      "footprint": {
+        "n": 300,
+        "mean_abs_levels": 8.994575724601745,
+        "changed_pixel_share": 0.9491048177083333,
+        "changed_token_share": 0.9841156462585035,
+        "consistent_pixel_share": 1.0,
+        "height": 32
+      }
+    },
+    {
+      "folder": "cifar10_bpp_0_1",
+      "dataset": "cifar10",
+      "attack": "bpp",
+      "poison_rate": 0.1,
+      "contents": [
+        "attack_result.pt",
+        "bd_test_dataset",
+        "bd_train_dataset",
+        "cross_test_dataset"
+      ],
+      "leaderboard": {
+        "asr": 0.9937,
+        "clean_accuracy": 0.9138,
+        "robust_accuracy": 0.0058
+      },
+      "status": "readable",
+      "model_name": "vit_b_16",
+      "img_size": [
+        32,
+        32,
+        3
+      ],
+      "num_classes": 10,
+      "label_mode": "all_to_one",
+      "target_label": 0,
+      "n_test": 10000,
+      "n_bd_test": 9000,
+      "bd_test_format": ".png",
+      "images_match_record": true,
+      "label_alignment": 1.0,
+      "footprint": {
+        "n": 300,
+        "mean_abs_levels": 8.994575724601745,
+        "changed_pixel_share": 0.9491048177083333,
+        "changed_token_share": 0.9841156462585035,
+        "consistent_pixel_share": 1.0,
+        "height": 32
+      }
+    },
+    {
+      "folder": "cifar10_inputaware_0_01",
+      "dataset": "cifar10",
+      "attack": "inputaware",
+      "poison_rate": 0.01,
+      "contents": [
+        "attack_result.pt",
+        "bd_test_dataset",
+        "bd_train_dataset",
+        "cross_test_dataset"
+      ],
+      "leaderboard": {
+        "asr": 0.6121,
+        "clean_accuracy": 0.9087999999999999,
+        "robust_accuracy": 0.3724
+      },
+      "status": "readable",
+      "model_name": "vit_b_16",
+      "img_size": [
+        32,
+        32,
+        3
+      ],
+      "num_classes": 10,
+      "label_mode": "all_to_one",
+      "target_label": 0,
+      "n_test": 10000,
+      "n_bd_test": 9000,
+      "bd_test_format": ".png",
+      "images_match_record": true,
+      "label_alignment": 1.0,
+      "footprint": {
+        "n": 300,
+        "mean_abs_levels": 3.399243712425232,
+        "changed_pixel_share": 0.030986328125,
+        "changed_token_share": 0.08438775510204082,
+        "consistent_pixel_share": 0.0,
+        "height": 32
+      }
+    },
+    {
+      "folder": "cifar10_inputaware_0_05",
+      "dataset": "cifar10",
+      "attack": "inputaware",
+      "poison_rate": 0.05,
+      "contents": [
+        "attack_result.pt",
+        "bd_test_dataset",
+        "bd_train_dataset",
+        "cross_test_dataset"
+      ],
+      "leaderboard": {
+        "asr": 0.8674,
+        "clean_accuracy": 0.9052,
+        "robust_accuracy": 0.1268
+      },
+      "status": "readable",
+      "model_name": "vit_b_16",
+      "img_size": [
+        32,
+        32,
+        3
+      ],
+      "num_classes": 10,
+      "label_mode": "all_to_one",
+      "target_label": 0,
+      "n_test": 10000,
+      "n_bd_test": 9000,
+      "bd_test_format": ".png",
+      "images_match_record": true,
+      "label_alignment": 1.0,
+      "footprint": {
+        "n": 300,
+        "mean_abs_levels": 3.3078710945447285,
+        "changed_pixel_share": 0.03052734375,
+        "changed_token_share": 0.0810204081632653,
+        "consistent_pixel_share": 0.0,
+        "height": 32
+      }
+    },
+    {
+      "folder": "cifar10_inputaware_0_1",
+      "dataset": "cifar10",
+      "attack": "inputaware",
+      "poison_rate": 0.1,
+      "contents": [
+        "attack_result.pt",
+        "bd_test_dataset",
+        "bd_train_dataset",
+        "cross_test_dataset"
+      ],
+      "leaderboard": {
+        "asr": 0.9229999999999999,
+        "clean_accuracy": 0.9165000000000001,
+        "robust_accuracy": 0.0706
+      },
+      "status": "readable",
+      "model_name": "vit_b_16",
+      "img_size": [
+        32,
+        32,
+        3
+      ],
+      "num_classes": 10,
+      "label_mode": "all_to_one",
+      "target_label": 0,
+      "n_test": 10000,
+      "n_bd_test": 9000,
+      "bd_test_format": ".png",
+      "images_match_record": true,
+      "label_alignment": 1.0,
+      "footprint": {
+        "n": 300,
+        "mean_abs_levels": 3.4710525115331015,
+        "changed_pixel_share": 0.030992838541666668,
+        "changed_token_share": 0.08430272108843538,
+        "consistent_pixel_share": 0.0,
+        "height": 32
+      }
+    },
+    {
+      "folder": "cifar10_lc_0_01",
+      "dataset": "cifar10",
+      "attack": "lc",
+      "poison_rate": 0.01,
+      "contents": [
+        "attack_result.pt",
+        "bd_test_dataset",
+        "bd_train_dataset"
+      ],
+      "leaderboard": {
+        "asr": 0.6803,
+        "clean_accuracy": 0.9665,
+        "robust_accuracy": 0.3146
+      },
+      "status": "readable",
+      "model_name": "vit_b_16",
+      "img_size": [
+        32,
+        32,
+        3
+      ],
+      "num_classes": 10,
+      "label_mode": "clean_label",
+      "target_label": 0,
+      "n_test": 10000,
+      "n_bd_test": 9000,
+      "bd_test_format": ".png",
+      "images_match_record": true,
+      "label_alignment": 1.0,
+      "footprint": {
+        "n": 300,
+        "mean_abs_levels": 8.720784505208334,
+        "changed_pixel_share": 0.99474609375,
+        "changed_token_share": 0.9988775510204082,
+        "consistent_pixel_share": 1.0,
+        "height": 32
+      }
+    },
+    {
+      "folder": "cifar10_lc_0_05",
+      "dataset": "cifar10",
+      "attack": "lc",
+      "poison_rate": 0.05,
+      "contents": [
+        "bd_test_dataset",
+        "bd_train_dataset"
+      ],
+      "leaderboard": {
+        "asr": 0.7959999999999999,
+        "clean_accuracy": 0.9648,
+        "robust_accuracy": 0.20370000000000002
+      },
+      "status": "no attack_result.pt"
+    },
+    {
+      "folder": "cifar10_lc_0_1",
+      "dataset": "cifar10",
+      "attack": "lc",
+      "poison_rate": 0.1,
+      "contents": [
+        "bd_test_dataset",
+        "bd_train_dataset"
+      ],
+      "leaderboard": {
+        "asr": null,
+        "clean_accuracy": null,
+        "robust_accuracy": null
+      },
+      "status": "no attack_result.pt"
+    },
+    {
+      "folder": "cifar10_lf_0_01",
+      "dataset": "cifar10",
+      "attack": "lf",
+      "poison_rate": 0.01,
+      "contents": [
+        "attack_result.pt",
+        "bd_test_dataset",
+        "bd_train_dataset"
+      ],
+      "leaderboard": {
+        "asr": 0.0048,
+        "clean_accuracy": 0.9618000000000001,
+        "robust_accuracy": 0.9609000000000001
+      },
+      "status": "readable",
+      "model_name": "vit_b_16",
+      "img_size": [
+        32,
+        32,
+        3
+      ],
+      "num_classes": 10,
+      "label_mode": "all_to_one",
+      "target_label": 0,
+      "n_test": 10000,
+      "n_bd_test": 9000,
+      "bd_test_format": ".png",
+      "images_match_record": true,
+      "label_alignment": 1.0,
+      "footprint": {
+        "n": 300,
+        "mean_abs_levels": 0.0,
+        "changed_pixel_share": 0.0,
+        "changed_token_share": 0.0,
+        "consistent_pixel_share": 0.0,
+        "height": 32
+      }
+    },
+    {
+      "folder": "cifar10_lf_0_05",
+      "dataset": "cifar10",
+      "attack": "lf",
+      "poison_rate": 0.05,
+      "contents": [
+        "attack_result.pt",
+        "bd_test_dataset",
+        "bd_train_dataset"
+      ],
+      "leaderboard": {
+        "asr": 0.0123,
+        "clean_accuracy": 0.9533,
+        "robust_accuracy": 0.9517
+      },
+      "status": "readable",
+      "model_name": "vit_b_16",
+      "img_size": [
+        32,
+        32,
+        3
+      ],
+      "num_classes": 10,
+      "label_mode": "all_to_one",
+      "target_label": 0,
+      "n_test": 10000,
+      "n_bd_test": 9000,
+      "bd_test_format": ".png",
+      "images_match_record": true,
+      "label_alignment": 1.0,
+      "footprint": {
+        "n": 300,
+        "mean_abs_levels": 0.0,
+        "changed_pixel_share": 0.0,
+        "changed_token_share": 0.0,
+        "consistent_pixel_share": 0.0,
+        "height": 32
+      }
+    },
+    {
+      "folder": "cifar10_lf_0_1",
+      "dataset": "cifar10",
+      "attack": "lf",
+      "poison_rate": 0.1,
+      "contents": [
+        "attack_result.pt",
+        "bd_test_dataset",
+        "bd_train_dataset"
+      ],
+      "leaderboard": {
+        "asr": 0.0337,
+        "clean_accuracy": 0.9336,
+        "robust_accuracy": 0.93
+      },
+      "status": "readable",
+      "model_name": "vit_b_16",
+      "img_size": [
+        32,
+        32,
+        3
+      ],
+      "num_classes": 10,
+      "label_mode": "all_to_one",
+      "target_label": 0,
+      "n_test": 10000,
+      "n_bd_test": 9000,
+      "bd_test_format": ".png",
+      "images_match_record": true,
+      "label_alignment": 1.0,
+      "footprint": {
+        "n": 300,
+        "mean_abs_levels": 0.0,
+        "changed_pixel_share": 0.0,
+        "changed_token_share": 0.0,
+        "consistent_pixel_share": 0.0,
+        "height": 32
+      }
+    },
+    {
+      "folder": "cifar10_lira_0_1",
+      "dataset": "cifar10",
+      "attack": "lira",
+      "poison_rate": 0.1,
+      "contents": [],
+      "leaderboard": null,
+      "status": "no attack_result.pt"
+    },
+    {
+      "folder": "cifar10_sig_0_01",
+      "dataset": "cifar10",
+      "attack": "sig",
+      "poison_rate": 0.01,
+      "contents": [
+        "attack_result.pt",
+        "bd_test_dataset",
+        "bd_train_dataset"
+      ],
+      "leaderboard": {
+        "asr": 0.5659000000000001,
+        "clean_accuracy": 0.9673999999999999,
+        "robust_accuracy": 0.4083
+      },
+      "status": "readable",
+      "model_name": "vit_b_16",
+      "img_size": [
+        32,
+        32,
+        3
+      ],
+      "num_classes": 10,
+      "label_mode": "clean_label",
+      "target_label": 0,
+      "n_test": 10000,
+      "n_bd_test": 9000,
+      "bd_test_format": ".png",
+      "images_match_record": true,
+      "label_alignment": 1.0,
+      "footprint": {
+        "n": 300,
+        "mean_abs_levels": 24.122258129119874,
+        "changed_pixel_share": 0.8646484375,
+        "changed_token_share": 0.9951190476190478,
+        "consistent_pixel_share": 0.875,
+        "height": 32
+      }
+    },
+    {
+      "folder": "cifar10_sig_0_05",
+      "dataset": "cifar10",
+      "attack": "sig",
+      "poison_rate": 0.05,
+      "contents": [
+        "attack_result.pt",
+        "bd_test_dataset",
+        "bd_train_dataset"
+      ],
+      "leaderboard": {
+        "asr": 0.8706999999999999,
+        "clean_accuracy": 0.9623999999999999,
+        "robust_accuracy": 0.12539999999999998
+      },
+      "status": "readable",
+      "model_name": "vit_b_16",
+      "img_size": [
+        32,
+        32,
+        3
+      ],
+      "num_classes": 10,
+      "label_mode": "clean_label",
+      "target_label": 0,
+      "n_test": 10000,
+      "n_bd_test": 9000,
+      "bd_test_format": ".png",
+      "images_match_record": true,
+      "label_alignment": 1.0,
+      "footprint": {
+        "n": 300,
+        "mean_abs_levels": 24.122258129119874,
+        "changed_pixel_share": 0.8646484375,
+        "changed_token_share": 0.9951190476190478,
+        "consistent_pixel_share": 0.875,
+        "height": 32
+      }
+    },
+    {
+      "folder": "cifar10_sig_0_1",
+      "dataset": "cifar10",
+      "attack": "sig",
+      "poison_rate": 0.1,
+      "contents": [
+        "attack_result.pt",
+        "bd_test_dataset",
+        "bd_train_dataset"
+      ],
+      "leaderboard": {
+        "asr": null,
+        "clean_accuracy": null,
+        "robust_accuracy": null
+      },
+      "status": "readable",
+      "model_name": "vit_b_16",
+      "img_size": [
+        32,
+        32,
+        3
+      ],
+      "num_classes": 10,
+      "label_mode": "clean_label",
+      "target_label": 0,
+      "n_test": 10000,
+      "n_bd_test": 9000,
+      "bd_test_format": ".png",
+      "images_match_record": true,
+      "label_alignment": 1.0,
+      "footprint": {
+        "n": 300,
+        "mean_abs_levels": 24.122258129119874,
+        "changed_pixel_share": 0.8646484375,
+        "changed_token_share": 0.9951190476190478,
+        "consistent_pixel_share": 0.875,
+        "height": 32
+      }
+    },
+    {
+      "folder": "cifar10_ssba_0_01",
+      "dataset": "cifar10",
+      "attack": "ssba",
+      "poison_rate": 0.01,
+      "contents": [
+        "attack_result.pt",
+        "bd_test_dataset",
+        "bd_train_dataset"
+      ],
+      "leaderboard": {
+        "asr": 0.6379,
+        "clean_accuracy": 0.9655,
+        "robust_accuracy": 0.3496
+      },
+      "status": "readable",
+      "model_name": "vit_b_16",
+      "img_size": [
+        32,
+        32,
+        3
+      ],
+      "num_classes": 10,
+      "label_mode": "all_to_one",
+      "target_label": 0,
+      "n_test": 10000,
+      "n_bd_test": 9000,
+      "bd_test_format": ".png",
+      "images_match_record": true,
+      "label_alignment": 1.0,
+      "footprint": {
+        "n": 300,
+        "mean_abs_levels": 8.904722221692403,
+        "changed_pixel_share": 0.5469661458333334,
+        "changed_token_share": 0.8432823129251701,
+        "consistent_pixel_share": 0.466796875,
+        "height": 32
+      }
+    },
+    {
+      "folder": "cifar10_ssba_0_05",
+      "dataset": "cifar10",
+      "attack": "ssba",
+      "poison_rate": 0.05,
+      "contents": [
+        "attack_result.pt",
+        "bd_test_dataset",
+        "bd_train_dataset"
+      ],
+      "leaderboard": {
+        "asr": 0.9548000000000001,
+        "clean_accuracy": 0.9645999999999999,
+        "robust_accuracy": 0.043899999999999995
+      },
+      "status": "readable",
+      "model_name": "vit_b_16",
+      "img_size": [
+        32,
+        32,
+        3
+      ],
+      "num_classes": 10,
+      "label_mode": "all_to_one",
+      "target_label": 0,
+      "n_test": 10000,
+      "n_bd_test": 9000,
+      "bd_test_format": ".png",
+      "images_match_record": true,
+      "label_alignment": 1.0,
+      "footprint": {
+        "n": 300,
+        "mean_abs_levels": 8.904722221692403,
+        "changed_pixel_share": 0.5469661458333334,
+        "changed_token_share": 0.8432823129251701,
+        "consistent_pixel_share": 0.466796875,
+        "height": 32
+      }
+    },
+    {
+      "folder": "cifar10_ssba_0_1",
+      "dataset": "cifar10",
+      "attack": "ssba",
+      "poison_rate": 0.1,
+      "contents": [
+        "attack_result.pt",
+        "bd_test_dataset",
+        "bd_train_dataset"
+      ],
+      "leaderboard": {
+        "asr": 0.9781,
+        "clean_accuracy": 0.9617,
+        "robust_accuracy": 0.0213
+      },
+      "status": "readable",
+      "model_name": "vit_b_16",
+      "img_size": [
+        32,
+        32,
+        3
+      ],
+      "num_classes": 10,
+      "label_mode": "all_to_one",
+      "target_label": 0,
+      "n_test": 10000,
+      "n_bd_test": 9000,
+      "bd_test_format": ".png",
+      "images_match_record": true,
+      "label_alignment": 1.0,
+      "footprint": {
+        "n": 300,
+        "mean_abs_levels": 8.904722221692403,
+        "changed_pixel_share": 0.5469661458333334,
+        "changed_token_share": 0.8432823129251701,
+        "consistent_pixel_share": 0.466796875,
+        "height": 32
+      }
+    },
+    {
+      "folder": "cifar10_trojannn_0_01",
+      "dataset": "cifar10",
+      "attack": "trojannn",
+      "poison_rate": 0.01,
+      "contents": [
+        "attack_result.pt",
+        "bd_test_dataset",
+        "bd_train_dataset"
+      ],
+      "leaderboard": {
+        "asr": 0.9923000000000001,
+        "clean_accuracy": 0.9659,
+        "robust_accuracy": 0.0077
+      },
+      "status": "readable",
+      "model_name": "vit_b_16",
+      "img_size": [
+        32,
+        32,
+        3
+      ],
+      "num_classes": 10,
+      "label_mode": "all_to_one",
+      "target_label": 0,
+      "n_test": 10000,
+      "n_bd_test": 9000,
+      "bd_test_format": ".png",
+      "images_match_record": true,
+      "label_alignment": 1.0,
+      "footprint": {
+        "n": 300,
+        "mean_abs_levels": 6.88194660504659,
+        "changed_pixel_share": 0.1142578125,
+        "changed_token_share": 0.14285714285714282,
+        "consistent_pixel_share": 0.1142578125,
+        "height": 32
+      }
+    },
+    {
+      "folder": "cifar10_trojannn_0_05",
+      "dataset": "cifar10",
+      "attack": "trojannn",
+      "poison_rate": 0.05,
+      "contents": [
+        "attack_result.pt",
+        "bd_test_dataset",
+        "bd_train_dataset"
+      ],
+      "leaderboard": {
+        "asr": 0.9987,
+        "clean_accuracy": 0.9645999999999999,
+        "robust_accuracy": 0.0013
+      },
+      "status": "readable",
+      "model_name": "vit_b_16",
+      "img_size": [
+        32,
+        32,
+        3
+      ],
+      "num_classes": 10,
+      "label_mode": "all_to_one",
+      "target_label": 0,
+      "n_test": 10000,
+      "n_bd_test": 9000,
+      "bd_test_format": ".png",
+      "images_match_record": true,
+      "label_alignment": 1.0,
+      "footprint": {
+        "n": 300,
+        "mean_abs_levels": 6.88194660504659,
+        "changed_pixel_share": 0.1142578125,
+        "changed_token_share": 0.14285714285714282,
+        "consistent_pixel_share": 0.1142578125,
+        "height": 32
+      }
+    },
+    {
+      "folder": "cifar10_trojannn_0_1",
+      "dataset": "cifar10",
+      "attack": "trojannn",
+      "poison_rate": 0.1,
+      "contents": [
+        "attack_result.pt",
+        "bd_test_dataset",
+        "bd_train_dataset"
+      ],
+      "leaderboard": {
+        "asr": 0.9998,
+        "clean_accuracy": 0.9645999999999999,
+        "robust_accuracy": 0.0002
+      },
+      "status": "readable",
+      "model_name": "vit_b_16",
+      "img_size": [
+        32,
+        32,
+        3
+      ],
+      "num_classes": 10,
+      "label_mode": "all_to_one",
+      "target_label": 0,
+      "n_test": 10000,
+      "n_bd_test": 9000,
+      "bd_test_format": ".png",
+      "images_match_record": true,
+      "label_alignment": 1.0,
+      "footprint": {
+        "n": 300,
+        "mean_abs_levels": 6.88194660504659,
+        "changed_pixel_share": 0.1142578125,
+        "changed_token_share": 0.14285714285714282,
+        "consistent_pixel_share": 0.1142578125,
+        "height": 32
+      }
+    },
+    {
+      "folder": "cifar10_wanet_0_01",
+      "dataset": "cifar10",
+      "attack": "wanet",
+      "poison_rate": 0.01,
+      "contents": [
+        "attack_result.pt",
+        "bd_test_dataset",
+        "bd_train_dataset",
+        "cross_test_dataset"
+      ],
+      "leaderboard": {
+        "asr": 0.0075,
+        "clean_accuracy": 0.9213,
+        "robust_accuracy": 0.9151
+      },
+      "status": "readable",
+      "model_name": "vit_b_16",
+      "img_size": [
+        32,
+        32,
+        3
+      ],
+      "num_classes": 10,
+      "label_mode": "all_to_one",
+      "target_label": 0,
+      "n_test": 10000,
+      "n_bd_test": 8986,
+      "bd_test_format": ".png",
+      "images_match_record": true,
+      "label_alignment": 0.998553305141331,
+      "footprint": {
+        "n": 300,
+        "mean_abs_levels": 4.135129124919573,
+        "changed_pixel_share": 0.32931966145833336,
+        "changed_token_share": 0.5909863945578231,
+        "consistent_pixel_share": 0.1806640625,
+        "height": 32
+      }
+    },
+    {
+      "folder": "cifar10_wanet_0_05",
+      "dataset": "cifar10",
+      "attack": "wanet",
+      "poison_rate": 0.05,
+      "contents": [
+        "attack_result.pt",
+        "bd_test_dataset",
+        "bd_train_dataset",
+        "cross_test_dataset"
+      ],
+      "leaderboard": {
+        "asr": 0.47740000000000005,
+        "clean_accuracy": 0.9153,
+        "robust_accuracy": 0.49439999999999995
+      },
+      "status": "readable",
+      "model_name": "vit_b_16",
+      "img_size": [
+        32,
+        32,
+        3
+      ],
+      "num_classes": 10,
+      "label_mode": "all_to_one",
+      "target_label": 0,
+      "n_test": 10000,
+      "n_bd_test": 8986,
+      "bd_test_format": ".png",
+      "images_match_record": true,
+      "label_alignment": 0.998553305141331,
+      "footprint": {
+        "n": 300,
+        "mean_abs_levels": 4.135129124919573,
+        "changed_pixel_share": 0.32931966145833336,
+        "changed_token_share": 0.5909863945578231,
+        "consistent_pixel_share": 0.1806640625,
+        "height": 32
+      }
+    },
+    {
+      "folder": "cifar10_wanet_0_1",
+      "dataset": "cifar10",
+      "attack": "wanet",
+      "poison_rate": 0.1,
+      "contents": [
+        "attack_result.pt",
+        "bd_test_dataset",
+        "bd_train_dataset",
+        "cross_test_dataset"
+      ],
+      "leaderboard": {
+        "asr": 0.8095,
+        "clean_accuracy": 0.8912,
+        "robust_accuracy": 0.1759
+      },
+      "status": "readable",
+      "model_name": "vit_b_16",
+      "img_size": [
+        32,
+        32,
+        3
+      ],
+      "num_classes": 10,
+      "label_mode": "all_to_one",
+      "target_label": 0,
+      "n_test": 10000,
+      "n_bd_test": 8986,
+      "bd_test_format": ".png",
+      "images_match_record": true,
+      "label_alignment": 0.998553305141331,
+      "footprint": {
+        "n": 300,
+        "mean_abs_levels": 4.135129124919573,
+        "changed_pixel_share": 0.32931966145833336,
+        "changed_token_share": 0.5909863945578231,
+        "consistent_pixel_share": 0.1806640625,
+        "height": 32
+      }
+    },
+    {
+      "folder": "gtsrb_badnet_0_01",
+      "dataset": "gtsrb",
+      "attack": "badnet",
+      "poison_rate": 0.01,
+      "contents": [
+        "attack_result.pt",
+        "bd_test_dataset",
+        "bd_train_dataset"
+      ],
+      "leaderboard": {
+        "asr": 0.898,
+        "clean_accuracy": 0.9911,
+        "robust_accuracy": 0.1013
+      },
+      "status": "readable",
+      "model_name": "vit_b_16",
+      "img_size": [
+        32,
+        32,
+        3
+      ],
+      "num_classes": 43,
+      "label_mode": "all_to_one",
+      "target_label": 0,
+      "n_test": 12630,
+      "n_bd_test": 12570,
+      "bd_test_format": ".png",
+      "images_match_record": true,
+      "label_alignment": 1.0,
+      "footprint": {
+        "n": 300,
+        "mean_abs_levels": 1.608323564082384,
+        "changed_pixel_share": 0.008453776041666666,
+        "changed_token_share": 0.019795918367346937,
+        "consistent_pixel_share": 0.0087890625,
+        "height": 32
+      }
+    },
+    {
+      "folder": "gtsrb_badnet_0_05",
+      "dataset": "gtsrb",
+      "attack": "badnet",
+      "poison_rate": 0.05,
+      "contents": [
+        "attack_result.pt",
+        "bd_test_dataset",
+        "bd_train_dataset"
+      ],
+      "leaderboard": {
+        "asr": 0.9466,
+        "clean_accuracy": 0.9890000000000001,
+        "robust_accuracy": 0.0533
+      },
+      "status": "readable",
+      "model_name": "vit_b_16",
+      "img_size": [
+        32,
+        32,
+        3
+      ],
+      "num_classes": 43,
+      "label_mode": "all_to_one",
+      "target_label": 0,
+      "n_test": 12630,
+      "n_bd_test": 12570,
+      "bd_test_format": ".png",
+      "images_match_record": true,
+      "label_alignment": 1.0,
+      "footprint": {
+        "n": 300,
+        "mean_abs_levels": 1.608323564082384,
+        "changed_pixel_share": 0.008453776041666666,
+        "changed_token_share": 0.019795918367346937,
+        "consistent_pixel_share": 0.0087890625,
+        "height": 32
+      }
+    },
+    {
+      "folder": "gtsrb_badnet_0_1",
+      "dataset": "gtsrb",
+      "attack": "badnet",
+      "poison_rate": 0.1,
+      "contents": [
+        "attack_result.pt",
+        "bd_test_dataset",
+        "bd_train_dataset"
+      ],
+      "leaderboard": {
+        "asr": 0.9589,
+        "clean_accuracy": 0.9737,
+        "robust_accuracy": 0.0408
+      },
+      "status": "readable",
+      "model_name": "vit_b_16",
+      "img_size": [
+        32,
+        32,
+        3
+      ],
+      "num_classes": 43,
+      "label_mode": "all_to_one",
+      "target_label": 0,
+      "n_test": 12630,
+      "n_bd_test": 12570,
+      "bd_test_format": ".png",
+      "images_match_record": true,
+      "label_alignment": 1.0,
+      "footprint": {
+        "n": 300,
+        "mean_abs_levels": 1.608323564082384,
+        "changed_pixel_share": 0.008453776041666666,
+        "changed_token_share": 0.019795918367346937,
+        "consistent_pixel_share": 0.0087890625,
+        "height": 32
+      }
+    },
+    {
+      "folder": "gtsrb_blended_0_01",
+      "dataset": "gtsrb",
+      "attack": "blended",
+      "poison_rate": 0.01,
+      "contents": [
+        "attack_result.pt",
+        "bd_test_dataset",
+        "bd_train_dataset"
+      ],
+      "leaderboard": {
+        "asr": 0.9342,
+        "clean_accuracy": 0.9571,
+        "robust_accuracy": 0.0632
+      },
+      "status": "readable",
+      "model_name": "vit_b_16",
+      "img_size": [
+        32,
+        32,
+        3
+      ],
+      "num_classes": 43,
+      "label_mode": "all_to_one",
+      "target_label": 0,
+      "n_test": 12630,
+      "n_bd_test": 12570,
+      "bd_test_format": ".png",
+      "images_match_record": true,
+      "label_alignment": 1.0,
+      "footprint": {
+        "n": 300,
+        "mean_abs_levels": 25.81758348464966,
+        "changed_pixel_share": 0.9545247395833333,
+        "changed_token_share": 0.9905782312925171,
+        "consistent_pixel_share": 1.0,
+        "height": 32
+      }
+    },
+    {
+      "folder": "gtsrb_blended_0_05",
+      "dataset": "gtsrb",
+      "attack": "blended",
+      "poison_rate": 0.05,
+      "contents": [
+        "attack_result.pt",
+        "bd_test_dataset",
+        "bd_train_dataset"
+      ],
+      "leaderboard": {
+        "asr": 0.8553000000000001,
+        "clean_accuracy": 0.48210000000000003,
+        "robust_accuracy": 0.0852
+      },
+      "status": "readable",
+      "model_name": "vit_b_16",
+      "img_size": [
+        32,
+        32,
+        3
+      ],
+      "num_classes": 43,
+      "label_mode": "all_to_one",
+      "target_label": 0,
+      "n_test": 12630,
+      "n_bd_test": 12570,
+      "bd_test_format": ".png",
+      "images_match_record": true,
+      "label_alignment": 1.0,
+      "footprint": {
+        "n": 300,
+        "mean_abs_levels": 25.81758348464966,
+        "changed_pixel_share": 0.9545247395833333,
+        "changed_token_share": 0.9905782312925171,
+        "consistent_pixel_share": 1.0,
+        "height": 32
+      }
+    },
+    {
+      "folder": "gtsrb_blended_0_1",
+      "dataset": "gtsrb",
+      "attack": "blended",
+      "poison_rate": 0.1,
+      "contents": [
+        "attack_result.pt",
+        "bd_test_dataset",
+        "bd_train_dataset"
+      ],
+      "leaderboard": {
+        "asr": 0.9992,
+        "clean_accuracy": 0.9908,
+        "robust_accuracy": 0.0008
+      },
+      "status": "readable",
+      "model_name": "vit_b_16",
+      "img_size": [
+        32,
+        32,
+        3
+      ],
+      "num_classes": 43,
+      "label_mode": "all_to_one",
+      "target_label": 0,
+      "n_test": 12630,
+      "n_bd_test": 12570,
+      "bd_test_format": ".png",
+      "images_match_record": true,
+      "label_alignment": 1.0,
+      "footprint": {
+        "n": 300,
+        "mean_abs_levels": 25.81758348464966,
+        "changed_pixel_share": 0.9545247395833333,
+        "changed_token_share": 0.9905782312925171,
+        "consistent_pixel_share": 1.0,
+        "height": 32
+      }
+    },
+    {
+      "folder": "gtsrb_blind_0_1",
+      "dataset": "gtsrb",
+      "attack": "blind",
+      "poison_rate": 0.1,
+      "contents": [
+        "attack_result.pt",
+        "bd_test_dataset"
+      ],
+      "leaderboard": null,
+      "status": "readable",
+      "model_name": "vit_b_16",
+      "img_size": [
+        32,
+        32,
+        3
+      ],
+      "num_classes": 43,
+      "label_mode": "all_to_one",
+      "target_label": 0,
+      "n_test": 12630,
+      "n_bd_test": 12570,
+      "bd_test_format": ".jpg",
+      "images_match_record": true,
+      "label_alignment": 1.0,
+      "footprint": {
+        "n": 300,
+        "mean_abs_levels": 6.990479599634806,
+        "changed_pixel_share": 0.719853515625,
+        "changed_token_share": 0.8956972789115647,
+        "consistent_pixel_share": 0.970703125,
+        "height": 32
+      }
+    },
+    {
+      "folder": "gtsrb_bpp_0_01",
+      "dataset": "gtsrb",
+      "attack": "bpp",
+      "poison_rate": 0.01,
+      "contents": [
+        "attack_result.pt",
+        "bd_test_dataset",
+        "bd_train_dataset",
+        "cross_test_dataset"
+      ],
+      "leaderboard": {
+        "asr": 0.0404,
+        "clean_accuracy": 0.9168999999999999,
+        "robust_accuracy": 0.7767000000000001
+      },
+      "status": "readable",
+      "model_name": "vit_b_16",
+      "img_size": [
+        32,
+        32,
+        3
+      ],
+      "num_classes": 43,
+      "label_mode": "all_to_one",
+      "target_label": 0,
+      "n_test": 12630,
+      "n_bd_test": 12570,
+      "bd_test_format": ".png",
+      "images_match_record": true,
+      "label_alignment": 1.0,
+      "footprint": {
+        "n": 300,
+        "mean_abs_levels": 9.148592677116394,
+        "changed_pixel_share": 0.9400065104166667,
+        "changed_token_share": 0.9814795918367349,
+        "consistent_pixel_share": 1.0,
+        "height": 32
+      }
+    },
+    {
+      "folder": "gtsrb_bpp_0_05",
+      "dataset": "gtsrb",
+      "attack": "bpp",
+      "poison_rate": 0.05,
+      "contents": [
+        "attack_result.pt",
+        "bd_test_dataset",
+        "bd_train_dataset",
+        "cross_test_dataset"
+      ],
+      "leaderboard": {
+        "asr": 0.9951000000000001,
+        "clean_accuracy": 0.9887999999999999,
+        "robust_accuracy": 0.0049
+      },
+      "status": "readable",
+      "model_name": "vit_b_16",
+      "img_size": [
+        32,
+        32,
+        3
+      ],
+      "num_classes": 43,
+      "label_mode": "all_to_one",
+      "target_label": 0,
+      "n_test": 12630,
+      "n_bd_test": 12570,
+      "bd_test_format": ".png",
+      "images_match_record": true,
+      "label_alignment": 1.0,
+      "footprint": {
+        "n": 300,
+        "mean_abs_levels": 9.148592677116394,
+        "changed_pixel_share": 0.9400065104166667,
+        "changed_token_share": 0.9814795918367349,
+        "consistent_pixel_share": 1.0,
+        "height": 32
+      }
+    },
+    {
+      "folder": "gtsrb_bpp_0_1",
+      "dataset": "gtsrb",
+      "attack": "bpp",
+      "poison_rate": 0.1,
+      "contents": [
+        "attack_result.pt",
+        "bd_test_dataset",
+        "bd_train_dataset",
+        "cross_test_dataset"
+      ],
+      "leaderboard": {
+        "asr": 0.9982,
+        "clean_accuracy": 0.9854,
+        "robust_accuracy": 0.0018
+      },
+      "status": "readable",
+      "model_name": "vit_b_16",
+      "img_size": [
+        32,
+        32,
+        3
+      ],
+      "num_classes": 43,
+      "label_mode": "all_to_one",
+      "target_label": 0,
+      "n_test": 12630,
+      "n_bd_test": 12570,
+      "bd_test_format": ".png",
+      "images_match_record": true,
+      "label_alignment": 1.0,
+      "footprint": {
+        "n": 300,
+        "mean_abs_levels": 9.148592677116394,
+        "changed_pixel_share": 0.9400065104166667,
+        "changed_token_share": 0.9814795918367349,
+        "consistent_pixel_share": 1.0,
+        "height": 32
+      }
+    },
+    {
+      "folder": "gtsrb_inputaware_0_01",
+      "dataset": "gtsrb",
+      "attack": "inputaware",
+      "poison_rate": 0.01,
+      "contents": [
+        "attack_result.pt",
+        "bd_test_dataset",
+        "bd_train_dataset",
+        "cross_test_dataset"
+      ],
+      "leaderboard": {
+        "asr": 0.5665,
+        "clean_accuracy": 0.976,
+        "robust_accuracy": 0.42560000000000003
+      },
+      "status": "readable",
+      "model_name": "vit_b_16",
+      "img_size": [
+        32,
+        32,
+        3
+      ],
+      "num_classes": 43,
+      "label_mode": "all_to_one",
+      "target_label": 0,
+      "n_test": 12630,
+      "n_bd_test": 12570,
+      "bd_test_format": ".png",
+      "images_match_record": true,
+      "label_alignment": 1.0,
+      "footprint": {
+        "n": 300,
+        "mean_abs_levels": 1.8163671926657359,
+        "changed_pixel_share": 0.013756510416666666,
+        "changed_token_share": 0.04865646258503401,
+        "consistent_pixel_share": 0.0009765625,
+        "height": 32
+      }
+    },
+    {
+      "folder": "gtsrb_inputaware_0_05",
+      "dataset": "gtsrb",
+      "attack": "inputaware",
+      "poison_rate": 0.05,
+      "contents": [
+        "attack_result.pt",
+        "bd_test_dataset",
+        "bd_train_dataset",
+        "cross_test_dataset"
+      ],
+      "leaderboard": {
+        "asr": 0.9688,
+        "clean_accuracy": 0.9808,
+        "robust_accuracy": 0.030899999999999997
+      },
+      "status": "readable",
+      "model_name": "vit_b_16",
+      "img_size": [
+        32,
+        32,
+        3
+      ],
+      "num_classes": 43,
+      "label_mode": "all_to_one",
+      "target_label": 0,
+      "n_test": 12630,
+      "n_bd_test": 12570,
+      "bd_test_format": ".png",
+      "images_match_record": true,
+      "label_alignment": 1.0,
+      "footprint": {
+        "n": 300,
+        "mean_abs_levels": 1.6348806379238765,
+        "changed_pixel_share": 0.012288411458333334,
+        "changed_token_share": 0.029523809523809518,
+        "consistent_pixel_share": 0.0,
+        "height": 32
+      }
+    },
+    {
+      "folder": "gtsrb_inputaware_0_1",
+      "dataset": "gtsrb",
+      "attack": "inputaware",
+      "poison_rate": 0.1,
+      "contents": [
+        "attack_result.pt",
+        "bd_test_dataset",
+        "bd_train_dataset",
+        "cross_test_dataset"
+      ],
+      "leaderboard": {
+        "asr": 0.9537,
+        "clean_accuracy": 0.9773000000000001,
+        "robust_accuracy": 0.045899999999999996
+      },
+      "status": "readable",
+      "model_name": "vit_b_16",
+      "img_size": [
+        32,
+        32,
+        3
+      ],
+      "num_classes": 43,
+      "label_mode": "all_to_one",
+      "target_label": 0,
+      "n_test": 12630,
+      "n_bd_test": 12570,
+      "bd_test_format": ".png",
+      "images_match_record": true,
+      "label_alignment": 1.0,
+      "footprint": {
+        "n": 300,
+        "mean_abs_levels": 1.5612207036217054,
+        "changed_pixel_share": 0.012337239583333333,
+        "changed_token_share": 0.031530612244897956,
+        "consistent_pixel_share": 0.0,
+        "height": 32
+      }
+    },
+    {
+      "folder": "gtsrb_lf_0_01",
+      "dataset": "gtsrb",
+      "attack": "lf",
+      "poison_rate": 0.01,
+      "contents": [
+        "attack_result.pt",
+        "bd_test_dataset",
+        "bd_train_dataset"
+      ],
+      "leaderboard": {
+        "asr": 0.0017000000000000001,
+        "clean_accuracy": 0.9876,
+        "robust_accuracy": 0.9875
+      },
+      "status": "readable",
+      "model_name": "vit_b_16",
+      "img_size": [
+        32,
+        32,
+        3
+      ],
+      "num_classes": 43,
+      "label_mode": "all_to_one",
+      "target_label": 0,
+      "n_test": 12630,
+      "n_bd_test": 12570,
+      "bd_test_format": ".png",
+      "images_match_record": true,
+      "label_alignment": 1.0,
+      "footprint": {
+        "n": 300,
+        "mean_abs_levels": 0.0,
+        "changed_pixel_share": 0.0,
+        "changed_token_share": 0.0,
+        "consistent_pixel_share": 0.0,
+        "height": 32
+      }
+    },
+    {
+      "folder": "gtsrb_lf_0_05",
+      "dataset": "gtsrb",
+      "attack": "lf",
+      "poison_rate": 0.05,
+      "contents": [
+        "attack_result.pt",
+        "bd_test_dataset",
+        "bd_train_dataset"
+      ],
+      "leaderboard": {
+        "asr": 0.013000000000000001,
+        "clean_accuracy": 0.9753000000000001,
+        "robust_accuracy": 0.9753000000000001
+      },
+      "status": "readable",
+      "model_name": "vit_b_16",
+      "img_size": [
+        32,
+        32,
+        3
+      ],
+      "num_classes": 43,
+      "label_mode": "all_to_one",
+      "target_label": 0,
+      "n_test": 12630,
+      "n_bd_test": 12570,
+      "bd_test_format": ".png",
+      "images_match_record": true,
+      "label_alignment": 1.0,
+      "footprint": {
+        "n": 300,
+        "mean_abs_levels": 0.0,
+        "changed_pixel_share": 0.0,
+        "changed_token_share": 0.0,
+        "consistent_pixel_share": 0.0,
+        "height": 32
+      }
+    },
+    {
+      "folder": "gtsrb_lf_0_1",
+      "dataset": "gtsrb",
+      "attack": "lf",
+      "poison_rate": 0.1,
+      "contents": [
+        "attack_result.pt",
+        "bd_test_dataset",
+        "bd_train_dataset"
+      ],
+      "leaderboard": {
+        "asr": 0.0167,
+        "clean_accuracy": 0.9728,
+        "robust_accuracy": 0.9727
+      },
+      "status": "readable",
+      "model_name": "vit_b_16",
+      "img_size": [
+        32,
+        32,
+        3
+      ],
+      "num_classes": 43,
+      "label_mode": "all_to_one",
+      "target_label": 0,
+      "n_test": 12630,
+      "n_bd_test": 12570,
+      "bd_test_format": ".png",
+      "images_match_record": true,
+      "label_alignment": 1.0,
+      "footprint": {
+        "n": 300,
+        "mean_abs_levels": 0.0,
+        "changed_pixel_share": 0.0,
+        "changed_token_share": 0.0,
+        "consistent_pixel_share": 0.0,
+        "height": 32
+      }
+    },
+    {
+      "folder": "gtsrb_lira_0_1",
+      "dataset": "gtsrb",
+      "attack": "lira",
+      "poison_rate": 0.1,
+      "contents": [],
+      "leaderboard": null,
+      "status": "no attack_result.pt"
+    },
+    {
+      "folder": "gtsrb_ssba_0_01",
+      "dataset": "gtsrb",
+      "attack": "ssba",
+      "poison_rate": 0.01,
+      "contents": [
+        "attack_result.pt",
+        "bd_test_dataset",
+        "bd_train_dataset"
+      ],
+      "leaderboard": {
+        "asr": 0.9776,
+        "clean_accuracy": 0.9808,
+        "robust_accuracy": 0.021
+      },
+      "status": "readable",
+      "model_name": "vit_b_16",
+      "img_size": [
+        32,
+        32,
+        3
+      ],
+      "num_classes": 43,
+      "label_mode": "all_to_one",
+      "target_label": 0,
+      "n_test": 12630,
+      "n_bd_test": 12570,
+      "bd_test_format": ".png",
+      "images_match_record": true,
+      "label_alignment": 1.0,
+      "footprint": {
+        "n": 300,
+        "mean_abs_levels": 11.708223764101664,
+        "changed_pixel_share": 0.66935546875,
+        "changed_token_share": 0.8832312925170068,
+        "consistent_pixel_share": 0.703125,
+        "height": 32
+      }
+    },
+    {
+      "folder": "gtsrb_ssba_0_05",
+      "dataset": "gtsrb",
+      "attack": "ssba",
+      "poison_rate": 0.05,
+      "contents": [
+        "attack_result.pt",
+        "bd_test_dataset",
+        "bd_train_dataset"
+      ],
+      "leaderboard": {
+        "asr": 0.996,
+        "clean_accuracy": 0.9889,
+        "robust_accuracy": 0.0039000000000000003
+      },
+      "status": "readable",
+      "model_name": "vit_b_16",
+      "img_size": [
+        32,
+        32,
+        3
+      ],
+      "num_classes": 43,
+      "label_mode": "all_to_one",
+      "target_label": 0,
+      "n_test": 12630,
+      "n_bd_test": 12570,
+      "bd_test_format": ".png",
+      "images_match_record": true,
+      "label_alignment": 1.0,
+      "footprint": {
+        "n": 300,
+        "mean_abs_levels": 11.708223764101664,
+        "changed_pixel_share": 0.66935546875,
+        "changed_token_share": 0.8832312925170068,
+        "consistent_pixel_share": 0.703125,
+        "height": 32
+      }
+    },
+    {
+      "folder": "gtsrb_ssba_0_1",
+      "dataset": "gtsrb",
+      "attack": "ssba",
+      "poison_rate": 0.1,
+      "contents": [
+        "attack_result.pt",
+        "bd_test_dataset",
+        "bd_train_dataset"
+      ],
+      "leaderboard": {
+        "asr": 0.9176000000000001,
+        "clean_accuracy": 0.7996,
+        "robust_accuracy": 0.0554
+      },
+      "status": "readable",
+      "model_name": "vit_b_16",
+      "img_size": [
+        32,
+        32,
+        3
+      ],
+      "num_classes": 43,
+      "label_mode": "all_to_one",
+      "target_label": 0,
+      "n_test": 12630,
+      "n_bd_test": 12570,
+      "bd_test_format": ".png",
+      "images_match_record": true,
+      "label_alignment": 1.0,
+      "footprint": {
+        "n": 300,
+        "mean_abs_levels": 11.708223764101664,
+        "changed_pixel_share": 0.66935546875,
+        "changed_token_share": 0.8832312925170068,
+        "consistent_pixel_share": 0.703125,
+        "height": 32
+      }
+    },
+    {
+      "folder": "gtsrb_trojannn_0_01",
+      "dataset": "gtsrb",
+      "attack": "trojannn",
+      "poison_rate": 0.01,
+      "contents": [
+        "attack_result.pt",
+        "bd_test_dataset",
+        "bd_train_dataset"
+      ],
+      "leaderboard": {
+        "asr": 0.9992,
+        "clean_accuracy": 0.9937,
+        "robust_accuracy": 0.0008
+      },
+      "status": "readable",
+      "model_name": "vit_b_16",
+      "img_size": [
+        32,
+        32,
+        3
+      ],
+      "num_classes": 43,
+      "label_mode": "all_to_one",
+      "target_label": 0,
+      "n_test": 12630,
+      "n_bd_test": 12570,
+      "bd_test_format": ".png",
+      "images_match_record": true,
+      "label_alignment": 1.0,
+      "footprint": {
+        "n": 300,
+        "mean_abs_levels": 9.496095933914184,
+        "changed_pixel_share": 0.1142578125,
+        "changed_token_share": 0.14285714285714282,
+        "consistent_pixel_share": 0.1142578125,
+        "height": 32
+      }
+    },
+    {
+      "folder": "gtsrb_trojannn_0_05",
+      "dataset": "gtsrb",
+      "attack": "trojannn",
+      "poison_rate": 0.05,
+      "contents": [
+        "attack_result.pt",
+        "bd_test_dataset",
+        "bd_train_dataset"
+      ],
+      "leaderboard": {
+        "asr": 0.0040999999999999995,
+        "clean_accuracy": 0.1249,
+        "robust_accuracy": 0.1201
+      },
+      "status": "readable",
+      "model_name": "vit_b_16",
+      "img_size": [
+        32,
+        32,
+        3
+      ],
+      "num_classes": 43,
+      "label_mode": "all_to_one",
+      "target_label": 0,
+      "n_test": 12630,
+      "n_bd_test": 12570,
+      "bd_test_format": ".png",
+      "images_match_record": true,
+      "label_alignment": 1.0,
+      "footprint": {
+        "n": 300,
+        "mean_abs_levels": 9.496095933914184,
+        "changed_pixel_share": 0.1142578125,
+        "changed_token_share": 0.14285714285714282,
+        "consistent_pixel_share": 0.1142578125,
+        "height": 32
+      }
+    },
+    {
+      "folder": "gtsrb_trojannn_0_1",
+      "dataset": "gtsrb",
+      "attack": "trojannn",
+      "poison_rate": 0.1,
+      "contents": [
+        "attack_result.pt",
+        "bd_test_dataset",
+        "bd_train_dataset"
+      ],
+      "leaderboard": {
+        "asr": 0.9994,
+        "clean_accuracy": 0.9895,
+        "robust_accuracy": 0.0005
+      },
+      "status": "readable",
+      "model_name": "vit_b_16",
+      "img_size": [
+        32,
+        32,
+        3
+      ],
+      "num_classes": 43,
+      "label_mode": "all_to_one",
+      "target_label": 0,
+      "n_test": 12630,
+      "n_bd_test": 12570,
+      "bd_test_format": ".png",
+      "images_match_record": true,
+      "label_alignment": 1.0,
+      "footprint": {
+        "n": 300,
+        "mean_abs_levels": 9.43214409351349,
+        "changed_pixel_share": 0.1142578125,
+        "changed_token_share": 0.14285714285714282,
+        "consistent_pixel_share": 0.1142578125,
+        "height": 32
+      }
+    },
+    {
+      "folder": "gtsrb_wanet_0_01",
+      "dataset": "gtsrb",
+      "attack": "wanet",
+      "poison_rate": 0.01,
+      "contents": [
+        "attack_result.pt",
+        "bd_test_dataset",
+        "bd_train_dataset",
+        "cross_test_dataset"
+      ],
+      "leaderboard": {
+        "asr": 0.0123,
+        "clean_accuracy": 0.9706999999999999,
+        "robust_accuracy": 0.9647
+      },
+      "status": "readable",
+      "model_name": "vit_b_16",
+      "img_size": [
+        32,
+        32,
+        3
+      ],
+      "num_classes": 43,
+      "label_mode": "all_to_one",
+      "target_label": 0,
+      "n_test": 12630,
+      "n_bd_test": 12485,
+      "bd_test_format": ".png",
+      "images_match_record": true,
+      "label_alignment": 0.9934321185422507,
+      "footprint": {
+        "n": 300,
+        "mean_abs_levels": 3.5522102920214333,
+        "changed_pixel_share": 0.29457682291666665,
+        "changed_token_share": 0.4799149659863946,
+        "consistent_pixel_share": 0.1630859375,
+        "height": 32
+      }
+    },
+    {
+      "folder": "gtsrb_wanet_0_05",
+      "dataset": "gtsrb",
+      "attack": "wanet",
+      "poison_rate": 0.05,
+      "contents": [
+        "attack_result.pt",
+        "bd_test_dataset",
+        "bd_train_dataset",
+        "cross_test_dataset"
+      ],
+      "leaderboard": {
+        "asr": 0.8867,
+        "clean_accuracy": 0.9775,
+        "robust_accuracy": 0.1127
+      },
+      "status": "readable",
+      "model_name": "vit_b_16",
+      "img_size": [
+        32,
+        32,
+        3
+      ],
+      "num_classes": 43,
+      "label_mode": "all_to_one",
+      "target_label": 0,
+      "n_test": 12630,
+      "n_bd_test": 12485,
+      "bd_test_format": ".png",
+      "images_match_record": true,
+      "label_alignment": 0.9934321185422507,
+      "footprint": {
+        "n": 300,
+        "mean_abs_levels": 3.5522102920214333,
+        "changed_pixel_share": 0.29457682291666665,
+        "changed_token_share": 0.4799149659863946,
+        "consistent_pixel_share": 0.1630859375,
+        "height": 32
+      }
+    },
+    {
+      "folder": "gtsrb_wanet_0_1",
+      "dataset": "gtsrb",
+      "attack": "wanet",
+      "poison_rate": 0.1,
+      "contents": [
+        "attack_result.pt",
+        "bd_test_dataset",
+        "bd_train_dataset",
+        "cross_test_dataset"
+      ],
+      "leaderboard": {
+        "asr": 0.9661,
+        "clean_accuracy": 0.98,
+        "robust_accuracy": 0.0329
+      },
+      "status": "readable",
+      "model_name": "vit_b_16",
+      "img_size": [
+        32,
+        32,
+        3
+      ],
+      "num_classes": 43,
+      "label_mode": "all_to_one",
+      "target_label": 0,
+      "n_test": 12630,
+      "n_bd_test": 12485,
+      "bd_test_format": ".png",
+      "images_match_record": true,
+      "label_alignment": 0.9934321185422507,
+      "footprint": {
+        "n": 300,
+        "mean_abs_levels": 3.5522102920214333,
+        "changed_pixel_share": 0.29457682291666665,
+        "changed_token_share": 0.4799149659863946,
+        "consistent_pixel_share": 0.1630859375,
+        "height": 32
+      }
+    },
+    {
+      "folder": "tiny_lc_0_005",
+      "dataset": "tiny",
+      "attack": "lc",
+      "poison_rate": 0.005,
+      "contents": [
+        "bd_test_dataset",
+        "bd_train_dataset"
+      ],
+      "leaderboard": {
+        "asr": null,
+        "clean_accuracy": null,
+        "robust_accuracy": null
+      },
+      "status": "no attack_result.pt"
+    },
+    {
+      "folder": "tiny_lf_0_01",
+      "dataset": "tiny",
+      "attack": "lf",
+      "poison_rate": 0.01,
+      "contents": [
+        "attack_result.pt",
+        "bd_test_dataset",
+        "bd_train_dataset"
+      ],
+      "leaderboard": {
+        "asr": 0.0019,
+        "clean_accuracy": 0.7417,
+        "robust_accuracy": 0.7406
+      },
+      "status": "readable",
+      "model_name": "vit_b_16",
+      "img_size": [
+        64,
+        64,
+        3
+      ],
+      "num_classes": 200,
+      "label_mode": "all_to_one",
+      "target_label": 0,
+      "n_test": 10000,
+      "n_bd_test": 9950,
+      "bd_test_format": ".png",
+      "images_match_record": true,
+      "label_alignment": 1.0,
+      "footprint": {
+        "n": 300,
+        "mean_abs_levels": 0.0,
+        "changed_pixel_share": 0.0,
+        "changed_token_share": 0.0,
+        "consistent_pixel_share": 0.0,
+        "height": 64
+      }
+    },
+    {
+      "folder": "tiny_lf_0_05",
+      "dataset": "tiny",
+      "attack": "lf",
+      "poison_rate": 0.05,
+      "contents": [
+        "attack_result.pt",
+        "bd_test_dataset",
+        "bd_train_dataset"
+      ],
+      "leaderboard": {
+        "asr": 0.0141,
+        "clean_accuracy": 0.5984,
+        "robust_accuracy": 0.5971
+      },
+      "status": "readable",
+      "model_name": "vit_b_16",
+      "img_size": [
+        64,
+        64,
+        3
+      ],
+      "num_classes": 200,
+      "label_mode": "all_to_one",
+      "target_label": 0,
+      "n_test": 10000,
+      "n_bd_test": 9950,
+      "bd_test_format": ".png",
+      "images_match_record": true,
+      "label_alignment": 1.0,
+      "footprint": {
+        "n": 300,
+        "mean_abs_levels": 0.0,
+        "changed_pixel_share": 0.0,
+        "changed_token_share": 0.0,
+        "consistent_pixel_share": 0.0,
+        "height": 64
+      }
+    },
+    {
+      "folder": "tiny_lf_0_1",
+      "dataset": "tiny",
+      "attack": "lf",
+      "poison_rate": 0.1,
+      "contents": [
+        "attack_result.pt",
+        "bd_test_dataset",
+        "bd_train_dataset"
+      ],
+      "leaderboard": {
+        "asr": 0.0382,
+        "clean_accuracy": 0.5972,
+        "robust_accuracy": 0.5959
+      },
+      "status": "readable",
+      "model_name": "vit_b_16",
+      "img_size": [
+        64,
+        64,
+        3
+      ],
+      "num_classes": 200,
+      "label_mode": "all_to_one",
+      "target_label": 0,
+      "n_test": 10000,
+      "n_bd_test": 9950,
+      "bd_test_format": ".png",
+      "images_match_record": true,
+      "label_alignment": 1.0,
+      "footprint": {
+        "n": 300,
+        "mean_abs_levels": 0.0,
+        "changed_pixel_share": 0.0,
+        "changed_token_share": 0.0,
+        "consistent_pixel_share": 0.0,
+        "height": 64
+      }
+    },
+    {
+      "folder": "tiny_lira_0_1",
+      "dataset": "tiny",
+      "attack": "lira",
+      "poison_rate": 0.1,
+      "contents": [],
+      "leaderboard": null,
+      "status": "no attack_result.pt"
+    },
+    {
+      "folder": "tiny_sig_0_005",
+      "dataset": "tiny",
+      "attack": "sig",
+      "poison_rate": 0.005,
+      "contents": [
+        "attack_result.pt",
+        "bd_test_dataset",
+        "bd_train_dataset"
+      ],
+      "leaderboard": {
+        "asr": null,
+        "clean_accuracy": null,
+        "robust_accuracy": null
+      },
+      "status": "readable",
+      "model_name": "vit_b_16",
+      "img_size": [
+        64,
+        64,
+        3
+      ],
+      "num_classes": 200,
+      "label_mode": "clean_label",
+      "target_label": 0,
+      "n_test": 10000,
+      "n_bd_test": 9950,
+      "bd_test_format": ".png",
+      "images_match_record": true,
+      "label_alignment": 1.0,
+      "footprint": {
+        "n": 300,
+        "mean_abs_levels": 23.63159234046936,
+        "changed_pixel_share": 0.9218855794270834,
+        "changed_token_share": 0.9976870748299321,
+        "consistent_pixel_share": 0.9375,
+        "height": 64
+      }
+    },
+    {
+      "folder": "tiny_ssba_0_01",
+      "dataset": "tiny",
+      "attack": "ssba",
+      "poison_rate": 0.01,
+      "contents": [
+        "attack_result.pt",
+        "bd_test_dataset",
+        "bd_train_dataset"
+      ],
+      "leaderboard": {
+        "asr": 0.8896,
+        "clean_accuracy": 0.7605,
+        "robust_accuracy": 0.0867
+      },
+      "status": "readable",
+      "model_name": "vit_b_16",
+      "img_size": [
+        64,
+        64,
+        3
+      ],
+      "num_classes": 200,
+      "label_mode": "all_to_one",
+      "target_label": 0,
+      "n_test": 10000,
+      "n_bd_test": 9950,
+      "bd_test_format": ".png",
+      "images_match_record": true,
+      "label_alignment": 1.0,
+      "footprint": {
+        "n": 300,
+        "mean_abs_levels": 11.953409309387206,
+        "changed_pixel_share": 0.7058235677083333,
+        "changed_token_share": 0.9780102040816325,
+        "consistent_pixel_share": 0.904541015625,
+        "height": 64
+      }
+    },
+    {
+      "folder": "tiny_ssba_0_05",
+      "dataset": "tiny",
+      "attack": "ssba",
+      "poison_rate": 0.05,
+      "contents": [
+        "attack_result.pt",
+        "bd_test_dataset",
+        "bd_train_dataset"
+      ],
+      "leaderboard": {
+        "asr": 0.9886,
+        "clean_accuracy": 0.753,
+        "robust_accuracy": 0.0092
+      },
+      "status": "readable",
+      "model_name": "vit_b_16",
+      "img_size": [
+        64,
+        64,
+        3
+      ],
+      "num_classes": 200,
+      "label_mode": "all_to_one",
+      "target_label": 0,
+      "n_test": 10000,
+      "n_bd_test": 9950,
+      "bd_test_format": ".png",
+      "images_match_record": true,
+      "label_alignment": 1.0,
+      "footprint": {
+        "n": 300,
+        "mean_abs_levels": 11.953409309387206,
+        "changed_pixel_share": 0.7058235677083333,
+        "changed_token_share": 0.9780102040816325,
+        "consistent_pixel_share": 0.904541015625,
+        "height": 64
+      }
+    },
+    {
+      "folder": "tiny_ssba_0_1",
+      "dataset": "tiny",
+      "attack": "ssba",
+      "poison_rate": 0.1,
+      "contents": [
+        "attack_result.pt",
+        "bd_test_dataset",
+        "bd_train_dataset"
+      ],
+      "leaderboard": {
+        "asr": 0.9928,
+        "clean_accuracy": 0.7637,
+        "robust_accuracy": 0.0063
+      },
+      "status": "readable",
+      "model_name": "vit_b_16",
+      "img_size": [
+        64,
+        64,
+        3
+      ],
+      "num_classes": 200,
+      "label_mode": "all_to_one",
+      "target_label": 0,
+      "n_test": 10000,
+      "n_bd_test": 9950,
+      "bd_test_format": ".png",
+      "images_match_record": true,
+      "label_alignment": 1.0,
+      "footprint": {
+        "n": 300,
+        "mean_abs_levels": 11.953409309387206,
+        "changed_pixel_share": 0.7058235677083333,
+        "changed_token_share": 0.9780102040816325,
+        "consistent_pixel_share": 0.904541015625,
+        "height": 64
+      }
+    },
+    {
+      "folder": "tiny_trojannn_0_01",
+      "dataset": "tiny",
+      "attack": "trojannn",
+      "poison_rate": 0.01,
+      "contents": [
+        "attack_result.pt",
+        "bd_test_dataset",
+        "bd_train_dataset"
+      ],
+      "leaderboard": {
+        "asr": 0.9908,
+        "clean_accuracy": 0.7715000000000001,
+        "robust_accuracy": 0.0089
+      },
+      "status": "readable",
+      "model_name": "vit_b_16",
+      "img_size": [
+        64,
+        64,
+        3
+      ],
+      "num_classes": 200,
+      "label_mode": "all_to_one",
+      "target_label": 0,
+      "n_test": 10000,
+      "n_bd_test": 9950,
+      "bd_test_format": ".png",
+      "images_match_record": true,
+      "label_alignment": 1.0,
+      "footprint": {
+        "n": 300,
+        "mean_abs_levels": 6.775419119199117,
+        "changed_pixel_share": 0.16138020833333333,
+        "changed_token_share": 0.3858673469387755,
+        "consistent_pixel_share": 0.08642578125,
+        "height": 64
+      }
+    },
+    {
+      "folder": "tiny_trojannn_0_05",
+      "dataset": "tiny",
+      "attack": "trojannn",
+      "poison_rate": 0.05,
+      "contents": [
+        "attack_result.pt",
+        "bd_test_dataset",
+        "bd_train_dataset"
+      ],
+      "leaderboard": {
+        "asr": 0.9976999999999999,
+        "clean_accuracy": 0.7498,
+        "robust_accuracy": 0.0022
+      },
+      "status": "readable",
+      "model_name": "vit_b_16",
+      "img_size": [
+        64,
+        64,
+        3
+      ],
+      "num_classes": 200,
+      "label_mode": "all_to_one",
+      "target_label": 0,
+      "n_test": 10000,
+      "n_bd_test": 9950,
+      "bd_test_format": ".png",
+      "images_match_record": true,
+      "label_alignment": 1.0,
+      "footprint": {
+        "n": 300,
+        "mean_abs_levels": 6.200002719561259,
+        "changed_pixel_share": 0.08683268229166667,
+        "changed_token_share": 0.1479591836734694,
+        "consistent_pixel_share": 0.086669921875,
+        "height": 64
+      }
+    },
+    {
+      "folder": "tiny_trojannn_0_1",
+      "dataset": "tiny",
+      "attack": "trojannn",
+      "poison_rate": 0.1,
+      "contents": [
+        "attack_result.pt",
+        "bd_test_dataset",
+        "bd_train_dataset"
+      ],
+      "leaderboard": {
+        "asr": 0.9986,
+        "clean_accuracy": 0.7515999999999999,
+        "robust_accuracy": 0.0013
+      },
+      "status": "readable",
+      "model_name": "vit_b_16",
+      "img_size": [
+        64,
+        64,
+        3
+      ],
+      "num_classes": 200,
+      "label_mode": "all_to_one",
+      "target_label": 0,
+      "n_test": 10000,
+      "n_bd_test": 9950,
+      "bd_test_format": ".png",
+      "images_match_record": true,
+      "label_alignment": 1.0,
+      "footprint": {
+        "n": 300,
+        "mean_abs_levels": 6.775419119199117,
+        "changed_pixel_share": 0.16138020833333333,
+        "changed_token_share": 0.3858673469387755,
+        "consistent_pixel_share": 0.08642578125,
+        "height": 64
+      }
+    },
+    {
+      "folder": "tiny_wanet_0_01",
+      "dataset": "tiny",
+      "attack": "wanet",
+      "poison_rate": 0.01,
+      "contents": [
+        "attack_result.pt",
+        "bd_test_dataset",
+        "bd_train_dataset",
+        "cross_test_dataset"
+      ],
+      "leaderboard": {
+        "asr": 0.9586,
+        "clean_accuracy": 0.634,
+        "robust_accuracy": 0.032
+      },
+      "status": "readable",
+      "model_name": "vit_b_16",
+      "img_size": [
+        64,
+        64,
+        3
+      ],
+      "num_classes": 200,
+      "label_mode": "all_to_one",
+      "target_label": 0,
+      "n_test": 10000,
+      "n_bd_test": 9934,
+      "bd_test_format": ".png",
+      "images_match_record": true,
+      "label_alignment": 0.9983893698409503,
+      "footprint": {
+        "n": 300,
+        "mean_abs_levels": 7.314174797137579,
+        "changed_pixel_share": 0.465361328125,
+        "changed_token_share": 0.8264625850340136,
+        "consistent_pixel_share": 0.54833984375,
+        "height": 64
+      }
+    },
+    {
+      "folder": "tiny_wanet_0_05",
+      "dataset": "tiny",
+      "attack": "wanet",
+      "poison_rate": 0.05,
+      "contents": [
+        "attack_result.pt",
+        "bd_test_dataset",
+        "bd_train_dataset",
+        "cross_test_dataset"
+      ],
+      "leaderboard": {
+        "asr": 0.9974,
+        "clean_accuracy": 0.609,
+        "robust_accuracy": 0.002
+      },
+      "status": "readable",
+      "model_name": "vit_b_16",
+      "img_size": [
+        64,
+        64,
+        3
+      ],
+      "num_classes": 200,
+      "label_mode": "all_to_one",
+      "target_label": 0,
+      "n_test": 10000,
+      "n_bd_test": 9934,
+      "bd_test_format": ".png",
+      "images_match_record": true,
+      "label_alignment": 0.9983893698409503,
+      "footprint": {
+        "n": 300,
+        "mean_abs_levels": 7.314174797137579,
+        "changed_pixel_share": 0.465361328125,
+        "changed_token_share": 0.8264625850340136,
+        "consistent_pixel_share": 0.54833984375,
+        "height": 64
+      }
+    },
+    {
+      "folder": "tiny_wanet_0_1",
+      "dataset": "tiny",
+      "attack": "wanet",
+      "poison_rate": 0.1,
+      "contents": [
+        "attack_result.pt",
+        "bd_test_dataset",
+        "bd_train_dataset",
+        "cross_test_dataset"
+      ],
+      "leaderboard": {
+        "asr": 0.9961,
+        "clean_accuracy": 0.6268,
+        "robust_accuracy": 0.003
+      },
+      "status": "readable",
+      "model_name": "vit_b_16",
+      "img_size": [
+        64,
+        64,
+        3
+      ],
+      "num_classes": 200,
+      "label_mode": "all_to_one",
+      "target_label": 0,
+      "n_test": 10000,
+      "n_bd_test": 9934,
+      "bd_test_format": ".png",
+      "images_match_record": true,
+      "label_alignment": 0.9983893698409503,
+      "footprint": {
+        "n": 300,
+        "mean_abs_levels": 7.314174797137579,
+        "changed_pixel_share": 0.465361328125,
+        "changed_token_share": 0.8264625850340136,
+        "consistent_pixel_share": 0.54833984375,
+        "height": 64
+      }
+    }
+  ],
+  "wall_seconds": 86.90860423538834
+}

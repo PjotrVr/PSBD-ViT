@@ -1,8 +1,32 @@
 {
   "experiment": "trigger size series",
   "predictions_sha256": "f5f085e70e93006e7dc6bfc8d07bea3747ff628e62ace1d6248440d3021c27e3",
-  "complete": false,
-  "verdicts": null,
+  "complete": true,
+  "verdicts": {
+    "correlations": {
+      "cifar100": {
+        "n": 6,
+        "psbd_tm/mean_triggered_p_star": 1.0,
+        "psbd_tm/q0.01:tpr": -0.028571428571428574,
+        "psbd_rd/mean_triggered_p_star": 0.942857142857143,
+        "psbd_rd/q0.01:tpr": 0.7589709258986453,
+        "auroc_psbd_tm": 0.7714285714285715
+      },
+      "gtsrb": {
+        "n": 5,
+        "psbd_tm/mean_triggered_p_star": -0.39999999999999997,
+        "psbd_tm/q0.01:tpr": 0.5642880936468347,
+        "psbd_rd/mean_triggered_p_star": 0.6,
+        "psbd_rd/q0.01:tpr": 0.7,
+        "auroc_psbd_tm": 0.3
+      }
+    },
+    "verdicts": {
+      "TM-p": "failed",
+      "TM-tpr": "failed",
+      "RD-differs": "failed"
+    }
+  },
   "models": [
     {
       "folder": "vit_cifar100_badnet_a2o_0_05_trig_p2",
@@ -16,8 +40,33 @@
       "asr_class": "clears",
       "successful_2pt": true,
       "successful_5pt": true,
-      "swept": false,
-      "placements": {}
+      "swept": true,
+      "placements": {
+        "psbd_tm": {
+          "mean_triggered_p_star": 0.40588751435279846,
+          "never_flipped_share": 0.0,
+          "adaptive_rate": 0.5,
+          "auroc": 0.9519501222919292,
+          "q0.01:tpr": 0.05584333464503288,
+          "q0.01:fpr": 0.006696146447211504,
+          "q0.05:tpr": 0.7356917262077332,
+          "q0.05:fpr": 0.05129500851035118,
+          "q0.10:tpr": 0.8918508887290955,
+          "q0.10:fpr": 0.10233733057975769
+        },
+        "psbd_rd": {
+          "mean_triggered_p_star": 0.03989071398973465,
+          "never_flipped_share": 0.0,
+          "adaptive_rate": 0.07,
+          "auroc": 0.04673768071929762,
+          "q0.01:tpr": 0.0,
+          "q0.01:fpr": 0.013013266026973724,
+          "q0.05:tpr": 0.0,
+          "q0.05:fpr": 0.051800377666950226,
+          "q0.10:tpr": 0.0,
+          "q0.10:fpr": 0.09854706376791
+        }
+      }
     },
     {
       "folder": "vit_cifar100_badnet_a2o_0_05_trig_p3",
@@ -31,8 +80,33 @@
       "asr_class": "clears",
       "successful_2pt": true,
       "successful_5pt": true,
-      "swept": false,
-      "placements": {}
+      "swept": true,
+      "placements": {
+        "psbd_tm": {
+          "mean_triggered_p_star": 0.510915994644165,
+          "never_flipped_share": 0.0,
+          "adaptive_rate": 0.5,
+          "auroc": 0.9403748609774816,
+          "q0.01:tpr": 0.04636765643954277,
+          "q0.01:fpr": 0.009475679136812687,
+          "q0.05:tpr": 0.6063171029090881,
+          "q0.05:fpr": 0.0447252057492733,
+          "q0.10:tpr": 0.8605179786682129,
+          "q0.10:fpr": 0.09475678950548172
+        },
+        "psbd_rd": {
+          "mean_triggered_p_star": 0.046094126999378204,
+          "never_flipped_share": 0.0,
+          "adaptive_rate": 0.07,
+          "auroc": 0.19521703475293598,
+          "q0.01:tpr": 0.0,
+          "q0.01:fpr": 0.007075173780322075,
+          "q0.05:tpr": 0.0001263423910131678,
+          "q0.05:fpr": 0.06152874231338501,
+          "q0.10:tpr": 0.0002526847820263356,
+          "q0.10:fpr": 0.102716363966465
+        }
+      }
     },
     {
       "folder": "vit_cifar100_badnet_a2o_0_05_trig_p5",
@@ -46,8 +120,33 @@
       "asr_class": "clears",
       "successful_2pt": true,
       "successful_5pt": true,
-      "swept": false,
-      "placements": {}
+      "swept": true,
+      "placements": {
+        "psbd_tm": {
+          "mean_triggered_p_star": 0.5605306029319763,
+          "never_flipped_share": 0.0,
+          "adaptive_rate": 0.5,
+          "auroc": 0.9566816407271032,
+          "q0.01:tpr": 0.05470625311136246,
+          "q0.01:fpr": 0.0082122553139925,
+          "q0.05:tpr": 0.7393556833267212,
+          "q0.05:fpr": 0.04662034288048744,
+          "q0.10:tpr": 0.930764377117157,
+          "q0.10:fpr": 0.09551484882831573
+        },
+        "psbd_rd": {
+          "mean_triggered_p_star": 0.047837018966674805,
+          "never_flipped_share": 0.0,
+          "adaptive_rate": 0.07,
+          "auroc": 0.36523059082026377,
+          "q0.01:tpr": 0.0,
+          "q0.01:fpr": 0.006190776824951172,
+          "q0.05:tpr": 0.0001263423910131678,
+          "q0.05:fpr": 0.04181933030486107,
+          "q0.10:tpr": 0.0006317119114100933,
+          "q0.10:fpr": 0.09046114981174469
+        }
+      }
     },
     {
       "folder": "vit_cifar100_badnet_a2o_0_05_trig_p8",
@@ -61,8 +160,33 @@
       "asr_class": "clears",
       "successful_2pt": true,
       "successful_5pt": true,
-      "swept": false,
-      "placements": {}
+      "swept": true,
+      "placements": {
+        "psbd_tm": {
+          "mean_triggered_p_star": 0.6708149313926697,
+          "never_flipped_share": 0.0,
+          "adaptive_rate": 0.4,
+          "auroc": 0.9861307344419485,
+          "q0.01:tpr": 0.3566645681858063,
+          "q0.01:fpr": 0.012128869071602821,
+          "q0.05:tpr": 0.9997473359107971,
+          "q0.05:fpr": 0.05748578533530235,
+          "q0.10:tpr": 0.9998736381530762,
+          "q0.10:fpr": 0.10663297772407532
+        },
+        "psbd_rd": {
+          "mean_triggered_p_star": 0.06142072007060051,
+          "never_flipped_share": 0.0,
+          "adaptive_rate": 0.07,
+          "auroc": 0.8585865056273443,
+          "q0.01:tpr": 0.018193304538726807,
+          "q0.01:fpr": 0.011623499915003777,
+          "q0.05:tpr": 0.22943778336048126,
+          "q0.05:fpr": 0.048515476286411285,
+          "q0.10:tpr": 0.4518003761768341,
+          "q0.10:fpr": 0.08730258792638779
+        }
+      }
     },
     {
       "folder": "vit_cifar100_badnet_a2o_0_05_trig_p12",
@@ -76,8 +200,33 @@
       "asr_class": "clears",
       "successful_2pt": true,
       "successful_5pt": true,
-      "swept": false,
-      "placements": {}
+      "swept": true,
+      "placements": {
+        "psbd_tm": {
+          "mean_triggered_p_star": 0.6906505227088928,
+          "never_flipped_share": 0.0,
+          "adaptive_rate": 0.5,
+          "auroc": 0.9928977859753564,
+          "q0.01:tpr": 0.39608338475227356,
+          "q0.01:fpr": 0.005180038046091795,
+          "q0.05:tpr": 1.0,
+          "q0.05:fpr": 0.049526214599609375,
+          "q0.10:tpr": 1.0,
+          "q0.10:fpr": 0.09943146258592606
+        },
+        "psbd_rd": {
+          "mean_triggered_p_star": 0.06798863410949707,
+          "never_flipped_share": 0.0,
+          "adaptive_rate": 0.07,
+          "auroc": 0.93404320781966,
+          "q0.01:tpr": 0.10031585395336151,
+          "q0.01:fpr": 0.00972836371511221,
+          "q0.05:tpr": 0.5528742671012878,
+          "q0.05:fpr": 0.04699936881661415,
+          "q0.10:tpr": 0.802400529384613,
+          "q0.10:fpr": 0.09867340326309204
+        }
+      }
     },
     {
       "folder": "vit_cifar100_badnet_a2o_0_05_trig_p16",
@@ -91,8 +240,33 @@
       "asr_class": "clears",
       "successful_2pt": true,
       "successful_5pt": true,
-      "swept": false,
-      "placements": {}
+      "swept": true,
+      "placements": {
+        "psbd_tm": {
+          "mean_triggered_p_star": 0.7137712836265564,
+          "never_flipped_share": 0.0,
+          "adaptive_rate": 0.5,
+          "auroc": 0.9769845511912141,
+          "q0.01:tpr": 0.02034112438559532,
+          "q0.01:fpr": 0.008970309980213642,
+          "q0.05:tpr": 0.9790271520614624,
+          "q0.05:fpr": 0.05053695663809776,
+          "q0.10:tpr": 1.0,
+          "q0.10:fpr": 0.09930511564016342
+        },
+        "psbd_rd": {
+          "mean_triggered_p_star": 0.06468857079744339,
+          "never_flipped_share": 0.0,
+          "adaptive_rate": 0.07,
+          "auroc": 0.8797022613531567,
+          "q0.01:tpr": 0.007201516069471836,
+          "q0.01:fpr": 0.008591282181441784,
+          "q0.05:tpr": 0.3073910176753998,
+          "q0.05:fpr": 0.05596967786550522,
+          "q0.10:tpr": 0.5746051669120789,
+          "q0.10:fpr": 0.09968414157629013
+        }
+      }
     },
     {
       "folder": "vit_gtsrb_badnet_a2o_0_05_trig_p2",
@@ -106,8 +280,33 @@
       "asr_class": "clears",
       "successful_2pt": true,
       "successful_5pt": true,
-      "swept": false,
-      "placements": {}
+      "swept": true,
+      "placements": {
+        "psbd_tm": {
+          "mean_triggered_p_star": 0.6410002112388611,
+          "never_flipped_share": 0.015692947432398796,
+          "adaptive_rate": 0.5,
+          "auroc": 0.9903508571552363,
+          "q0.01:tpr": 0.8068633079528809,
+          "q0.01:fpr": 0.01200604997575283,
+          "q0.05:tpr": 0.9445074796676636,
+          "q0.05:fpr": 0.04859141632914543,
+          "q0.10:tpr": 0.9896010756492615,
+          "q0.10:fpr": 0.09860087186098099
+        },
+        "psbd_rd": {
+          "mean_triggered_p_star": 0.06586689502000809,
+          "never_flipped_share": 0.0,
+          "adaptive_rate": 0.09,
+          "auroc": 0.6020903437575842,
+          "q0.01:tpr": 0.0,
+          "q0.01:fpr": 0.009359046816825867,
+          "q0.05:tpr": 0.002836074912920594,
+          "q0.05:fpr": 0.047740593552589417,
+          "q0.10:tpr": 0.03545093536376953,
+          "q0.10:fpr": 0.10342219471931458
+        }
+      }
     },
     {
       "folder": "vit_gtsrb_badnet_a2o_0_05_trig_p3",
@@ -121,8 +320,33 @@
       "asr_class": "clears",
       "successful_2pt": true,
       "successful_5pt": true,
-      "swept": false,
-      "placements": {}
+      "swept": true,
+      "placements": {
+        "psbd_tm": {
+          "mean_triggered_p_star": 0.9988986849784851,
+          "never_flipped_share": 0.9987710118293762,
+          "adaptive_rate": 0.4,
+          "auroc": 0.9999995263377822,
+          "q0.01:tpr": 1.0,
+          "q0.01:fpr": 0.006428436376154423,
+          "q0.05:tpr": 1.0,
+          "q0.05:fpr": 0.038097940385341644,
+          "q0.10:tpr": 1.0,
+          "q0.10:fpr": 0.08687842637300491
+        },
+        "psbd_rd": {
+          "mean_triggered_p_star": 0.045454252511262894,
+          "never_flipped_share": 0.0,
+          "adaptive_rate": 0.05,
+          "auroc": 0.670545129088326,
+          "q0.01:tpr": 0.027698997408151627,
+          "q0.01:fpr": 0.010020798072218895,
+          "q0.05:tpr": 0.12715068459510803,
+          "q0.05:fpr": 0.04584987834095955,
+          "q0.10:tpr": 0.2541123032569885,
+          "q0.10:fpr": 0.10068065673112869
+        }
+      }
     },
     {
       "folder": "vit_gtsrb_badnet_a2o_0_05_trig_p5",
@@ -136,8 +360,33 @@
       "asr_class": "clears",
       "successful_2pt": true,
       "successful_5pt": true,
-      "swept": false,
-      "placements": {}
+      "swept": true,
+      "placements": {
+        "psbd_tm": {
+          "mean_triggered_p_star": 0.8125449419021606,
+          "never_flipped_share": 0.022688599303364754,
+          "adaptive_rate": 0.4,
+          "auroc": 0.9996296408306985,
+          "q0.01:tpr": 0.9975420832633972,
+          "q0.01:fpr": 0.009359046816825867,
+          "q0.05:tpr": 0.9998109340667725,
+          "q0.05:fpr": 0.05265645682811737,
+          "q0.10:tpr": 1.0,
+          "q0.10:fpr": 0.10030251741409302
+        },
+        "psbd_rd": {
+          "mean_triggered_p_star": 0.06785592436790466,
+          "never_flipped_share": 0.0,
+          "adaptive_rate": 0.09,
+          "auroc": 0.6522868224203882,
+          "q0.01:tpr": 0.003119682427495718,
+          "q0.01:fpr": 0.012195121496915817,
+          "q0.05:tpr": 0.02854982018470764,
+          "q0.05:fpr": 0.04584987834095955,
+          "q0.10:tpr": 0.11126866936683655,
+          "q0.10:fpr": 0.09671015292406082
+        }
+      }
     },
     {
       "folder": "vit_gtsrb_badnet_a2o_0_05_trig_p8",
@@ -151,8 +400,33 @@
       "asr_class": "clears",
       "successful_2pt": true,
       "successful_5pt": true,
-      "swept": false,
-      "placements": {}
+      "swept": true,
+      "placements": {
+        "psbd_tm": {
+          "mean_triggered_p_star": 0.8125260472297668,
+          "never_flipped_share": 0.0,
+          "adaptive_rate": 0.5,
+          "auroc": 0.9999965413721069,
+          "q0.01:tpr": 0.9999054670333862,
+          "q0.01:fpr": 0.00860276073217392,
+          "q0.05:tpr": 1.0,
+          "q0.05:fpr": 0.04367555305361748,
+          "q0.10:tpr": 1.0,
+          "q0.10:fpr": 0.09065985679626465
+        },
+        "psbd_rd": {
+          "mean_triggered_p_star": 0.07946683466434479,
+          "never_flipped_share": 0.0,
+          "adaptive_rate": 0.09,
+          "auroc": 0.7512999882996495,
+          "q0.01:tpr": 0.027320854365825653,
+          "q0.01:fpr": 0.009831726551055908,
+          "q0.05:tpr": 0.12327472120523453,
+          "q0.05:fpr": 0.046133484691381454,
+          "q0.10:tpr": 0.2643221914768219,
+          "q0.10:fpr": 0.09661561995744705
+        }
+      }
     },
     {
       "folder": "vit_gtsrb_badnet_a2o_0_05_trig_p12",
@@ -166,8 +440,26 @@
       "asr_class": "diverged",
       "successful_2pt": false,
       "successful_5pt": false,
-      "swept": false,
-      "placements": {}
+      "swept": true,
+      "placements": {
+        "psbd_tm": {
+          "mean_triggered_p_star": 1.0,
+          "never_flipped_share": 1.0,
+          "adaptive_rate": null
+        },
+        "psbd_rd": {
+          "mean_triggered_p_star": 0.03918131813406944,
+          "never_flipped_share": 0.0,
+          "adaptive_rate": 0.2,
+          "auroc": 0.5000757502067759,
+          "q0.01:tpr": 0.0074683306738734245,
+          "q0.01:fpr": 0.007373794447630644,
+          "q0.05:tpr": 0.048402342945337296,
+          "q0.05:fpr": 0.04811873659491539,
+          "q0.10:tpr": 0.09652107954025269,
+          "q0.10:fpr": 0.09642654657363892
+        }
+      }
     },
     {
       "folder": "vit_gtsrb_badnet_a2o_0_05_trig_p16",
@@ -181,8 +473,33 @@
       "asr_class": "clears",
       "successful_2pt": true,
       "successful_5pt": true,
-      "swept": false,
-      "placements": {}
+      "swept": true,
+      "placements": {
+        "psbd_tm": {
+          "mean_triggered_p_star": 0.6079788208007812,
+          "never_flipped_share": 0.0,
+          "adaptive_rate": 0.4,
+          "auroc": 0.9999693460111795,
+          "q0.01:tpr": 1.0,
+          "q0.01:fpr": 0.01115522813051939,
+          "q0.05:tpr": 1.0,
+          "q0.05:fpr": 0.05709964036941528,
+          "q0.10:tpr": 1.0,
+          "q0.10:fpr": 0.10465116053819656
+        },
+        "psbd_rd": {
+          "mean_triggered_p_star": 0.06715589016675949,
+          "never_flipped_share": 0.0,
+          "adaptive_rate": 0.05,
+          "auroc": 0.998148548228877,
+          "q0.01:tpr": 0.9619966149330139,
+          "q0.01:fpr": 0.009926262311637402,
+          "q0.05:tpr": 0.9940442442893982,
+          "q0.05:fpr": 0.044904518872499466,
+          "q0.10:tpr": 0.9983928799629211,
+          "q0.10:fpr": 0.0958593338727951
+        }
+      }
     }
   ]
 }

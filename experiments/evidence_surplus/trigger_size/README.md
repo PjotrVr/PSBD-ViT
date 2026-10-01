@@ -22,20 +22,29 @@ python experiments/evidence_surplus/trigger_size/measure.py
 <!-- results:begin -->
 | model | trigger tokens | ASR | clean accuracy | benign | successful 2-point | swept | TM mean p* | TM TPR 1 / 5 / 10% (FPR 1%) | TM AUROC | RD mean p* | RD TPR 1 / 5 / 10% (FPR 1%) | RD AUROC |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|
-| `vit_cifar100_badnet_a2o_0_05_trig_p2` | 1 | 1.000 | 0.833 | 0.811 | yes | pending | -- | -- | -- | -- | -- | -- |
-| `vit_cifar100_badnet_a2o_0_05_trig_p3` | 4 | 0.999 | 0.829 | 0.811 | yes | pending | -- | -- | -- | -- | -- | -- |
-| `vit_cifar100_badnet_a2o_0_05_trig_p5` | 9 | 1.000 | 0.814 | 0.811 | yes | pending | -- | -- | -- | -- | -- | -- |
-| `vit_cifar100_badnet_a2o_0_05_trig_p8` | 16 | 1.000 | 0.818 | 0.811 | yes | pending | -- | -- | -- | -- | -- | -- |
-| `vit_cifar100_badnet_a2o_0_05_trig_p12` | 36 | 1.000 | 0.830 | 0.811 | yes | pending | -- | -- | -- | -- | -- | -- |
-| `vit_cifar100_badnet_a2o_0_05_trig_p16` | 49 | 1.000 | 0.827 | 0.811 | yes | pending | -- | -- | -- | -- | -- | -- |
-| `vit_gtsrb_badnet_a2o_0_05_trig_p2` | 1 | 1.000 | 0.979 | 0.991 | yes | pending | -- | -- | -- | -- | -- | -- |
-| `vit_gtsrb_badnet_a2o_0_05_trig_p3` | 4 | 1.000 | 0.990 | 0.991 | yes | pending | -- | -- | -- | -- | -- | -- |
-| `vit_gtsrb_badnet_a2o_0_05_trig_p5` | 9 | 1.000 | 0.988 | 0.991 | yes | pending | -- | -- | -- | -- | -- | -- |
-| `vit_gtsrb_badnet_a2o_0_05_trig_p8` | 16 | 1.000 | 0.989 | 0.991 | yes | pending | -- | -- | -- | -- | -- | -- |
-| `vit_gtsrb_badnet_a2o_0_05_trig_p12` | 36 | 0.000 | 0.055 | 0.991 | no | pending | -- | -- | -- | -- | -- | -- |
-| `vit_gtsrb_badnet_a2o_0_05_trig_p16` | 49 | 1.000 | 0.988 | 0.991 | yes | pending | -- | -- | -- | -- | -- | -- |
+| `vit_cifar100_badnet_a2o_0_05_trig_p2` | 1 | 1.000 | 0.833 | 0.811 | yes | yes | 0.406 | 0.056 / 0.736 / 0.892 (0.007) | 0.952 | 0.040 | 0.000 / 0.000 / 0.000 (0.013) | 0.047 |
+| `vit_cifar100_badnet_a2o_0_05_trig_p3` | 4 | 0.999 | 0.829 | 0.811 | yes | yes | 0.511 | 0.046 / 0.606 / 0.861 (0.009) | 0.940 | 0.046 | 0.000 / 0.000 / 0.000 (0.007) | 0.195 |
+| `vit_cifar100_badnet_a2o_0_05_trig_p5` | 9 | 1.000 | 0.814 | 0.811 | yes | yes | 0.561 | 0.055 / 0.739 / 0.931 (0.008) | 0.957 | 0.048 | 0.000 / 0.000 / 0.001 (0.006) | 0.365 |
+| `vit_cifar100_badnet_a2o_0_05_trig_p8` | 16 | 1.000 | 0.818 | 0.811 | yes | yes | 0.671 | 0.357 / 1.000 / 1.000 (0.012) | 0.986 | 0.061 | 0.018 / 0.229 / 0.452 (0.012) | 0.859 |
+| `vit_cifar100_badnet_a2o_0_05_trig_p12` | 36 | 1.000 | 0.830 | 0.811 | yes | yes | 0.691 | 0.396 / 1.000 / 1.000 (0.005) | 0.993 | 0.068 | 0.100 / 0.553 / 0.802 (0.010) | 0.934 |
+| `vit_cifar100_badnet_a2o_0_05_trig_p16` | 49 | 1.000 | 0.827 | 0.811 | yes | yes | 0.714 | 0.020 / 0.979 / 1.000 (0.009) | 0.977 | 0.065 | 0.007 / 0.307 / 0.575 (0.009) | 0.880 |
+| `vit_gtsrb_badnet_a2o_0_05_trig_p2` | 1 | 1.000 | 0.979 | 0.991 | yes | yes | 0.641 | 0.807 / 0.945 / 0.990 (0.012) | 0.990 | 0.066 | 0.000 / 0.003 / 0.035 (0.009) | 0.602 |
+| `vit_gtsrb_badnet_a2o_0_05_trig_p3` | 4 | 1.000 | 0.990 | 0.991 | yes | yes | 0.999 | 1.000 / 1.000 / 1.000 (0.006) | 1.000 | 0.045 | 0.028 / 0.127 / 0.254 (0.010) | 0.671 |
+| `vit_gtsrb_badnet_a2o_0_05_trig_p5` | 9 | 1.000 | 0.988 | 0.991 | yes | yes | 0.813 | 0.998 / 1.000 / 1.000 (0.009) | 1.000 | 0.068 | 0.003 / 0.029 / 0.111 (0.012) | 0.652 |
+| `vit_gtsrb_badnet_a2o_0_05_trig_p8` | 16 | 1.000 | 0.989 | 0.991 | yes | yes | 0.813 | 1.000 / 1.000 / 1.000 (0.009) | 1.000 | 0.079 | 0.027 / 0.123 / 0.264 (0.010) | 0.751 |
+| `vit_gtsrb_badnet_a2o_0_05_trig_p12` | 36 | 0.000 | 0.055 | 0.991 | no | yes | 1.000 | -- / -- / -- (--) | -- | 0.039 | 0.007 / 0.048 / 0.097 (0.007) | 0.500 |
+| `vit_gtsrb_badnet_a2o_0_05_trig_p16` | 49 | 1.000 | 0.988 | 0.991 | yes | yes | 0.608 | 1.000 / 1.000 / 1.000 (0.011) | 1.000 | 0.067 | 0.962 / 0.994 / 0.998 (0.010) | 0.998 |
 
 PREDICTIONS.md SHA-256 `f5f085e70e93006e7dc6bfc8d07bea3747ff628e62ace1d6248440d3021c27e3`.
 
-The sweeps have not run yet, so no verdict exists.
+| prediction | verdict |
+|---|---|
+| TM-p | failed |
+| TM-tpr | failed |
+| RD-differs | failed |
+
+| dataset | successful models | ρ TM p* | ρ TM TPR 1% | ρ RD p* | ρ RD TPR 1% | ρ TM AUROC |
+|---|---|---|---|---|---|---|
+| cifar100 | 6 | 1.000 | -0.029 | 0.943 | 0.759 | 0.771 |
+| gtsrb | 5 | -0.400 | 0.564 | 0.600 | 0.700 | 0.300 |
 <!-- results:end -->

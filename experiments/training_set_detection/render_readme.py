@@ -156,7 +156,8 @@ The 2 ResNet-18 reproductions.
 def scope_section():
     text = """## Changes of scope
 
-- 2026-10-01: the development tier (the 10 models of `experiments/cache_readouts/dev_set.json`, of which the 2 that are also paper-mirror models stay scored) and the BackdoorBench training-set tier are dropped, so the night's GPU time goes to the paper-mirror set and its detectors. P1 to P4 and P6 are judged on the paper-mirror set only and the development-set readings of `PREDICTIONS.md` stay unjudged. STRIP and CD-L run on the paper-mirror models in a second pass after PSBD, and Spectral Signatures is read on the CPU from the baseline features PSBD's first part stores."""
+- 2026-10-01: the development tier (the 10 models of `experiments/cache_readouts/dev_set.json`, of which the 2 that are also paper-mirror models stay scored) and the BackdoorBench training-set tier are dropped, so the night's GPU time goes to the paper-mirror set and its detectors. P1 to P4 and P6 are judged on the paper-mirror set only and the development-set readings of `PREDICTIONS.md` stay unjudged. STRIP and CD-L run on the paper-mirror models in a second pass after PSBD, and Spectral Signatures is read on the CPU from the baseline features PSBD's first part stores.
+- 2026-10-02: the GPU queue was stopped at 00:08 to give the login GPU to a priority run, before STRIP and CD-L had started on any model. The pending section below names what is missing. To resume, run `bash experiments/training_set_detection/run_queue.sh` from the main checkout inside the GPU window, then `analyze.py` and this renderer. `score.py` skips every part already under `results/_experiments/training_set_detection/raw/` and the queue skips every stage with a `done_<pass>.<folder>` marker under `scratch/training_set_detection/`, so the run picks up where it stopped."""
     return text
 
 

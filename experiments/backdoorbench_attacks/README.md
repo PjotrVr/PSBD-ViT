@@ -39,9 +39,13 @@ bash experiments/backdoorbench_attacks/run_queue.sh sweep       # GPU, resumable
 
 <!-- results:begin -->
 
+## Changes of scope
+
+- 2026-10-01: a model that fails the reproduction gate is recorded in `jobs/<folder>.json` and skipped, where it stopped the whole queue before. CIFAR-10 Input-Aware stopped it on 2026-09-30. The queue order after the models already run is LIRA, Blind, TrojanNN at 5% and GTSRB Input-Aware last. Both LIRA folders hold no `attack_result.pt`, so LIRA is dropped. PSBD-RD and the competitor detectors stay out of scope.
+
 ## Status
 
-5 of the 12 readable in-scope models are swept and read. Not yet swept or below the success bar: `tiny_ssba_0_1`, `cifar10_inputaware_0_1`, `gtsrb_inputaware_0_1`, `cifar10_blind_0_1`, `cifar10_trojannn_0_05`, `gtsrb_trojannn_0_05`, `tiny_trojannn_0_05`. The jobs records under `jobs/` say which.
+6 of the 12 readable in-scope models are swept and read. Not yet swept or below the success bar: `cifar10_inputaware_0_1`, `cifar10_blind_0_1`, `cifar10_trojannn_0_05`, `gtsrb_trojannn_0_05`, `tiny_trojannn_0_05`, `gtsrb_inputaware_0_1`. The jobs records under `jobs/` say which.
 
 ## Inventory
 
@@ -56,13 +60,13 @@ bash experiments/backdoorbench_attacks/run_queue.sh sweep       # GPU, resumable
 | `gtsrb_ssba_0_1` | all_to_one | 0 | 12570 | .png | 1.0000 | 0.669 | 0.883 | 0.703 | 11.71 |
 | `tiny_ssba_0_1` | all_to_one | 0 | 9950 | .png | 1.0000 | 0.706 | 0.978 | 0.905 | 11.95 |
 | `cifar10_inputaware_0_1` | all_to_one | 0 | 9000 | .png | 1.0000 | 0.031 | 0.084 | 0.000 | 3.47 |
-| `gtsrb_inputaware_0_1` | all_to_one | 0 | 12570 | .png | 1.0000 | 0.012 | 0.032 | 0.000 | 1.56 |
 | `cifar10_lira_0_1` | no checkpoint | | | | | | | | |
 | `gtsrb_lira_0_1` | no checkpoint | | | | | | | | |
 | `cifar10_blind_0_1` | all_to_one | 0 | 9000 | .jpg | 1.0000 | 0.777 | 0.960 | 1.000 | 7.14 |
 | `cifar10_trojannn_0_05` | all_to_one | 0 | 9000 | .png | 1.0000 | 0.114 | 0.143 | 0.114 | 6.88 |
 | `gtsrb_trojannn_0_05` | all_to_one | 0 | 12570 | .png | 1.0000 | 0.114 | 0.143 | 0.114 | 9.50 |
 | `tiny_trojannn_0_05` | all_to_one | 0 | 9950 | .png | 1.0000 | 0.087 | 0.148 | 0.087 | 6.20 |
+| `gtsrb_inputaware_0_1` | all_to_one | 0 | 12570 | .png | 1.0000 | 0.012 | 0.032 | 0.000 | 1.56 |
 
 ## Reproduction and success bar
 
@@ -82,15 +86,42 @@ Clean accuracy is over the whole test set and ASR over every eligible bd_test im
 | `tiny_trojannn_0_1` | 0.7534 | 0.7516 | 0.9986 | 0.9986 | yes | no | yes |
 | `cifar10_ssba_0_1` | 0.9617 | 0.9617 | 0.9783 | 0.9781 | yes | yes | yes |
 | `gtsrb_ssba_0_1` | 0.7993 | 0.7996 | 0.9180 | 0.9176 | yes | no | no |
-| `tiny_ssba_0_1` | not evaluated | | | | | | |
-| `cifar10_inputaware_0_1` | not evaluated | | | | | | |
-| `gtsrb_inputaware_0_1` | not evaluated | | | | | | |
+| `tiny_ssba_0_1` | 0.7635 | 0.7637 | 0.9928 | 0.9928 | yes | yes | yes |
+| `cifar10_inputaware_0_1` | 0.9156 | 0.9165 | 0.7976 | 0.9230 | no | no | no |
 | `cifar10_blind_0_1` | not evaluated | | | | | | |
 | `cifar10_trojannn_0_05` | not evaluated | | | | | | |
 | `gtsrb_trojannn_0_05` | not evaluated | | | | | | |
 | `tiny_trojannn_0_05` | not evaluated | | | | | | |
+| `gtsrb_inputaware_0_1` | not evaluated | | | | | | |
+
+The reproduction gate compares clean accuracy and ASR with the leaderboard before any sweep (`model_job.py`). A model it fails is recorded and not swept.
+
+| model | gate | clean gap | ASR gap | outcome |
+|---|---|---|---|---|
+| `cifar10_trojannn_0_1` | reproduced | 0.0001 | -0.0000 | swept |
+| `gtsrb_trojannn_0_1` | reproduced | -0.0001 | 0.0001 | swept |
+| `tiny_trojannn_0_1` | reproduced | 0.0018 | -0.0000 | swept |
+| `cifar10_ssba_0_1` | reproduced | 0.0000 | 0.0002 | swept |
+| `gtsrb_ssba_0_1` | reproduced | -0.0003 | 0.0004 | swept |
+| `tiny_ssba_0_1` | reproduced | -0.0002 | -0.0000 | swept |
+| `cifar10_inputaware_0_1` | not reproduced | -0.0009 | -0.1254 | stopped, not reproduced |
+| `cifar10_blind_0_1` | not run | | | |
+| `cifar10_trojannn_0_05` | not run | | | |
+| `gtsrb_trojannn_0_05` | not run | | | |
+| `tiny_trojannn_0_05` | not run | | | |
+| `gtsrb_inputaware_0_1` | not run | | | |
 
 Normalization control on `cifar10_trojannn_0_1`: with BackdoorBench's statistics clean accuracy reads 0.9647 and ASR 0.9998, with `DATASET_REGISTRY`'s CIFAR-10 statistics 0.9538 and 0.9996. The registry's statistics are the ones `experiments/wanet_cifar10_audit/measure.py` read BackdoorBench's WaNet checkpoint with, so its `results/bb_cifar10_wanet_0_1` cache was built on shifted inputs.
+
+## Diagnosis of a failed gate
+
+`diagnose_inputaware.py` reads a seeded subset of the saved bd_test images through BackdoorBench's own test transform on the CPU, in float32, in bfloat16 autocast and in float32 with every pixel raised half a level, which undoes on average the floor ToPILImage applies when BackdoorBench writes a float image to 8 bits.
+
+| model | images | float32 ASR | bfloat16 ASR | half level up ASR | float32 robust accuracy | leaderboard ASR | leaderboard robust accuracy |
+|---|---|---|---|---|---|---|---|
+| `cifar10_inputaware_0_1` | 600 | 0.7967 | 0.7967 | 0.7983 | 0.1950 | 0.9230 | 0.0706 |
+
+On `cifar10_inputaware_0_1` the saved images give the same ASR in every reading, so neither this project's loader, its bfloat16 inference nor the 8-bit rounding of the saved files moves it. The checkpoint holds the classifier and the 2 datasets only (`checkpoint_keys` in the record), no generator and no mask network, so the per-image triggers BackdoorBench measured its ASR on cannot be drawn again. The leaderboard number does not come from this classifier on these files, and nothing released lets it be recomputed. The cause lies outside this project's pipeline and the model is recorded as not reproduced.
 
 ## Detection per model
 
@@ -118,8 +149,12 @@ TPR at 1%, 5% and 10% FPR (thresholds at the clean-validation quantile) and AURO
 | `gtsrb_ssba_0_1` | yes | final method, minimum | both | 0.070 | 0.419 | 0.858 | 0.920 |
 | `gtsrb_ssba_0_1` | yes | final method, average | both | 0.120 | 0.777 | 0.885 | 0.936 |
 | `gtsrb_ssba_0_1` | yes | pre_residual_blocks_5_8 alone | 0.8 (adaptive) | 0.121 | 0.417 | 0.595 | 0.876 |
+| `tiny_ssba_0_1` | yes | PSBD-TM | 0.4 | 0.990 | 0.992 | 0.993 | 0.994 |
+| `tiny_ssba_0_1` | yes | final method, minimum | both | 0.992 | 0.993 | 0.993 | 0.995 |
+| `tiny_ssba_0_1` | yes | final method, average | both | 0.992 | 0.993 | 0.993 | 0.995 |
+| `tiny_ssba_0_1` | yes | pre_residual_blocks_5_8 alone | 0.4 (adaptive) | 0.991 | 0.993 | 0.993 | 0.996 |
 
-The control holds on 5 of 5 swept models.
+The control holds on 6 of 6 swept models.
 
 ## Detection per attack
 
@@ -127,10 +162,10 @@ Means over the judged models of each attack (`summary.json`, `by_attack`).
 
 | attack | judged models | method | TPR at 1% FPR | TPR at 5% FPR | TPR at 10% FPR | AUROC |
 |---|---|---|---|---|---|---|
-| SSBA | 2 | PSBD-TM | 0.474 | 0.891 | 0.928 | 0.952 |
-| SSBA | 2 | final method, minimum | 0.325 | 0.699 | 0.918 | 0.952 |
-| SSBA | 2 | final method, average | 0.419 | 0.877 | 0.931 | 0.960 |
-| SSBA | 2 | pre_residual_blocks_5_8 alone | 0.387 | 0.643 | 0.763 | 0.927 |
+| SSBA | 3 | PSBD-TM | 0.646 | 0.925 | 0.950 | 0.966 |
+| SSBA | 3 | final method, minimum | 0.547 | 0.797 | 0.943 | 0.966 |
+| SSBA | 3 | final method, average | 0.610 | 0.915 | 0.952 | 0.972 |
+| SSBA | 3 | pre_residual_blocks_5_8 alone | 0.588 | 0.759 | 0.840 | 0.950 |
 | TrojanNN | 3 | PSBD-TM | 0.726 | 0.917 | 0.972 | 0.979 |
 | TrojanNN | 3 | final method, minimum | 0.659 | 0.842 | 0.939 | 0.977 |
 | TrojanNN | 3 | final method, average | 0.735 | 0.920 | 0.967 | 0.983 |
@@ -145,8 +180,8 @@ Bars from `PREDICTIONS.md`: a family passes when every judged model has PSBD-TM 
 | T1, TrojanNN 10% passes | 3 | holds | family reads pass |
 | T1, TrojanNN 5% passes | 0 | untested | |
 | T2, minimum costs TrojanNN at most 0.05 TPR at 5% FPR | 3 | fails | largest cost 0.256 |
-| S1, SSBA partial or fails | 2 | fails | family reads pass, TPR at 1% FPR below TrojanNN's on 1 of 2 |
-| S2, minimum raises SSBA TPR at 5% FPR on most | 2 | fails | raised on 1 of 2 |
+| S1, SSBA partial or fails | 3 | fails | family reads pass, TPR at 1% FPR below TrojanNN's on 1 of 3 |
+| S2, minimum raises SSBA TPR at 5% FPR on most | 3 | holds | raised on 2 of 3 |
 | I1, Input-Aware fails | 0 | untested | |
 | I2, final method leaves Input-Aware below 0.5 TPR at 5% FPR | 0 | untested | |
 | B1, Blind passes | 0 | untested | |
@@ -164,6 +199,7 @@ Change in TPR from PSBD-TM alone to each fusion rule, per judged model, at the s
 | `tiny_trojannn_0_1` | +0.126 | +0.033 | +0.012 | +0.054 | +0.024 | +0.011 |
 | `cifar10_ssba_0_1` | -0.323 | +0.000 | +0.001 | -0.186 | -0.000 | +0.000 |
 | `gtsrb_ssba_0_1` | +0.026 | -0.386 | -0.021 | +0.076 | -0.028 | +0.006 |
+| `tiny_ssba_0_1` | +0.001 | +0.001 | +0.000 | +0.002 | +0.001 | +0.000 |
 
 ## Wall times
 
@@ -176,12 +212,12 @@ Per model on the shared login A100, including time spent waiting for data loadin
 | `tiny_trojannn_0_1` | 23 | 1062 |
 | `cifar10_ssba_0_1` | 25 | 1019 |
 | `gtsrb_ssba_0_1` | 23 | 1237 |
-| `tiny_ssba_0_1` |  |  |
-| `cifar10_inputaware_0_1` |  |  |
-| `gtsrb_inputaware_0_1` |  |  |
+| `tiny_ssba_0_1` | 20 | 997 |
+| `cifar10_inputaware_0_1` | 21 |  |
 | `cifar10_blind_0_1` |  |  |
 | `cifar10_trojannn_0_05` |  |  |
 | `gtsrb_trojannn_0_05` |  |  |
 | `tiny_trojannn_0_05` |  |  |
+| `gtsrb_inputaware_0_1` |  |  |
 
 <!-- results:end -->

@@ -13,6 +13,9 @@ import os
 from experiments.backdoorbench_attacks.common import (
     EVALUATION_DIR,
     INVENTORY_PATH,
+    JOBS_DIR,
+    LEADERBOARD,
+    RECORDS_DIR,
     MODEL_RECORDS_DIR,
     SUMMARY_PATH,
     read_json,
@@ -20,6 +23,9 @@ from experiments.backdoorbench_attacks.common import (
 from experiments.backdoorbench_attacks.queue import MODELS
 
 README = os.path.join(os.path.dirname(__file__), "README.md")
+DIAGNOSIS_DIR = os.path.join(RECORDS_DIR, "diagnosis")
+# The ASR readings of 1 diagnosis count as the same when they span at most this.
+DIAGNOSIS_ASR_SPREAD = 0.01
 BEGIN = "<!-- results:begin -->"
 END = "<!-- results:end -->"
 # The bars PREDICTIONS.md fixed before any sweep.
@@ -52,6 +58,7 @@ def main():
     ]
 
     sections = [
+        scope_section(),
         status_section(rows),
         inventory_section(inventory),
         evaluation_section(rows, summary),
@@ -197,10 +204,111 @@ def evaluation_section(rows, summary):
             f"| {yes(row['within_2pt_of_backdoorbench_best'])} | {yes(row['within_2pt_of_own_benign'])} |"
         )
 
+    lines += ["", *gate_lines(rows)]
     control_lines = normalization_controls()
     lines += ["", *control_lines]
+    lines += ["", *diagnosis_lines()]
     section = "\n".join(lines)
     return section
+
+
+def scope_section():
+    lines = [
+        "## Changes of scope",
+        "",
+        "- 2026-10-01: a model that fails the reproduction gate is recorded in "
+        "`jobs/<folder>.json` and skipped, where it stopped the whole queue before. "
+        "CIFAR-10 Input-Aware stopped it on 2026-09-30. The queue order after the "
+        "models already run is LIRA, Blind, TrojanNN at 5% and GTSRB Input-Aware "
+        "last. Both LIRA folders hold no `attack_result.pt`, so LIRA is dropped. "
+        "PSBD-RD and the competitor detectors stay out of scope.",
+    ]
+    section = "\n".join(lines)
+    return section
+
+
+def gate_lines(rows):
+    lines = [
+        "The reproduction gate compares clean accuracy and ASR with the leaderboard "
+        "before any sweep (`model_job.py`). A model it fails is recorded and not swept.",
+        "",
+        "| model | gate | clean gap | ASR gap | outcome |",
+        "|---|---|---|---|---|",
+    ]
+    for row in rows:
+        path = os.path.join(JOBS_DIR, f"{row['folder']}.json")
+        if not os.path.exists(path):
+            lines.append(f"| `{row['folder']}` | not run | | | |")
+            continue
+        job = read_json(path)
+        gate = job.get("reproduction", {"verdict": "running"})
+        lines.append(
+            f"| `{row['folder']}` | {gate['verdict']} | {fmt(gate.get('clean_gap'))} "
+            f"| {fmt(gate.get('asr_gap'))} | {job.get('outcome')} |"
+        )
+    return lines
+
+
+def diagnosis_lines():
+    paths = (
+        sorted(
+            os.path.join(DIAGNOSIS_DIR, name)
+            for name in os.listdir(DIAGNOSIS_DIR)
+            if name.endswith(".json")
+        )
+        if os.path.isdir(DIAGNOSIS_DIR)
+        else []
+    )
+    if not paths:
+        return []
+    lines = [
+        "## Diagnosis of a failed gate",
+        "",
+        "`diagnose_inputaware.py` reads a seeded subset of the saved bd_test images "
+        "through BackdoorBench's own test transform on the CPU, in float32, in "
+        "bfloat16 autocast and in float32 with every pixel raised half a level, which "
+        "undoes on average the floor ToPILImage applies when BackdoorBench writes a "
+        "float image to 8 bits.",
+        "",
+        "| model | images | float32 ASR | bfloat16 ASR | half level up ASR | float32 robust accuracy | leaderboard ASR | leaderboard robust accuracy |",
+        "|---|---|---|---|---|---|---|---|",
+    ]
+    for path in paths:
+        record = read_json(path)
+        readings = record["readings"]
+        board = LEADERBOARD.get(record["folder"]) or {}
+        lines.append(
+            f"| `{record['folder']}` | {record['subset_size']} "
+            f"| {fmt(readings['float32']['asr'])} | {fmt(readings['bfloat16']['asr'])} "
+            f"| {fmt(readings['float32_half_level_up']['asr'])} "
+            f"| {fmt(readings['float32']['robust_accuracy'])} "
+            f"| {fmt(board.get('asr'))} | {fmt(board.get('robust_accuracy'))} |"
+        )
+    for path in paths:
+        record = read_json(path)
+        asrs = [reading["asr"] for reading in record["readings"].values()]
+        holds_classifier_only = "netG" not in record["checkpoint_keys"]
+        if max(asrs) - min(asrs) <= DIAGNOSIS_ASR_SPREAD and holds_classifier_only:
+            lines += [
+                "",
+                f"On `{record['folder']}` the saved images give the same ASR in every "
+                "reading, so neither this project's loader, its bfloat16 inference nor "
+                "the 8-bit rounding of the saved files moves it. The checkpoint holds "
+                "the classifier and the 2 datasets only (`checkpoint_keys` in the "
+                "record), no generator and no mask network, so the per-image triggers "
+                "BackdoorBench measured its ASR on cannot be drawn again. The "
+                "leaderboard number does not come from this classifier on these "
+                "files, and nothing released lets it be recomputed. The cause lies "
+                "outside this project's pipeline and the model is recorded as not "
+                "reproduced.",
+            ]
+        else:
+            lines += [
+                "",
+                f"On `{record['folder']}` the readings disagree, so the cause may be "
+                "on this project's side and the record needs a closer look.",
+            ]
+    return lines
 
 
 def normalization_controls():

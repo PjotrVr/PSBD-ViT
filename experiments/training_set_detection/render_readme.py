@@ -108,7 +108,7 @@ def commands_section(rows):
     text = (
         """## Commands
 
-Run from the main checkout, which holds `checkpoints/`, `raw_data/` and `results/`, with the code of this worktree on `PYTHONPATH`.
+Run from the main checkout with the code of this worktree on `PYTHONPATH`. The main checkout holds `checkpoints/`, `raw_data/` and `results/`.
 
 ```bash
 bash experiments/training_set_detection/run_queue.sh          # GPU, resumable, 2 flock slots

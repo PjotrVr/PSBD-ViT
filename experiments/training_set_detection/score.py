@@ -99,7 +99,7 @@ MEMORY_FRACTION = 0.15
 SCORED_GROUPS = ("poisoned", "cover", "clean_train")
 # No part starts after this local time before the day window closes at 17:00, so
 # a part started late still ends before the 07:00 GPU curfew.
-LAST_PART_START = (6, 40)
+LAST_PART_START = (6, 30)
 DAY_WINDOW_END = (17, 0)
 
 

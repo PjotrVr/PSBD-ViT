@@ -90,8 +90,10 @@ def dev_set():
 
 
 def model_queue():
-    # The paper-mirror set first, then the development models it does not hold.
-    queue = list(PAPER_MIRROR) + [f for f in dev_set() if f not in PAPER_MIRROR]
+    # The development tier was dropped on 2026-10-01 to fit the paper-mirror set
+    # and its detectors into 1 night of the shared card, so only the
+    # paper-mirror set is queued.
+    queue = list(PAPER_MIRROR)
     return queue
 
 

@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
 # Scores the training-set detection queue on the shared login GPU, resumably.
 #
-# The paper-mirror set runs first, then the development models it does not hold.
-# Pass 1 scores every model with PSBD only and pass 2 adds STRIP and CD-L, so the
-# lock time the shared card grants goes to the main question first.
+# Only the paper-mirror set is queued. Pass 1 scores every model with PSBD only
+# and pass 2 adds STRIP and CD-L, so the lock time the shared card grants goes to
+# the main question first.
 # Each model holds 1 of the 2 shared GPU lock slots for its whole scoring and
 # releases it before the next, no model starts between 06:30 and 17:00, and a
 # model whose every part is on disk is skipped by score.py itself, so rerunning
@@ -37,20 +37,19 @@ inside_gpu_window() {
 }
 
 # -E 75 makes a held lock exit with 75, which tells a busy slot apart from a
-# stage that ran and failed. The 2 slots are waited on in alternating 30-second
-# turns, since a process blocked on 1 slot never notices the other coming free
-# and a bare poll loses every release to the processes already blocked.
+# stage that ran and failed. Each slot is tried once without waiting, then the
+# process blocks on the first and stays queued, since a waiter that cycles
+# through timeouts goes to the back of the flock queue on every timeout.
 on_free_slot() {
-    local status lock
-    while true; do
-        for lock in "${LOCKS[@]}"; do
-            flock -w 30 -E 75 "$lock" "$@"
-            status=$?
-            if ((status != 75)); then
-                return "$status"
-            fi
-        done
+    local lock status
+    for lock in "${LOCKS[@]}"; do
+        flock -n -E 75 "$lock" "$@"
+        status=$?
+        if ((status != 75)); then
+            return "$status"
+        fi
     done
+    flock "${LOCKS[0]}" "$@"
 }
 
 if [[ "${1:-}" == "smoke" ]]; then

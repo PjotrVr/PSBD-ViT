@@ -1,0 +1,34 @@
+{
+  "folder": "cifar10_inputaware_0_1",
+  "dataset": "cifar10",
+  "attack": "inputaware",
+  "label_mode": "all_to_one",
+  "target_label": 0,
+  "poison_rate": 0.1,
+  "architecture": "vit",
+  "source": "backdoorbench",
+  "bd_test_format": ".png",
+  "leaderboard": {
+    "asr": 0.9229999999999999,
+    "clean_accuracy": 0.9165000000000001,
+    "robust_accuracy": 0.0706
+  },
+  "backdoorbench_normalization": {
+    "mean": [
+      0.4914,
+      0.4822,
+      0.4465
+    ],
+    "std": [
+      0.247,
+      0.243,
+      0.261
+    ],
+    "n_clean": 10000,
+    "n_backdoor": 9000,
+    "clean_accuracy": 0.9156,
+    "asr": 0.7975555555555556
+  },
+  "device": "NVIDIA A100-PCIE-40GB",
+  "wall_seconds": 21.220538033172488
+}

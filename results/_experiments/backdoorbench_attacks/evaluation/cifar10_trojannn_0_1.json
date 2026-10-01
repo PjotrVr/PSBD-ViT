@@ -1,0 +1,50 @@
+{
+  "folder": "cifar10_trojannn_0_1",
+  "dataset": "cifar10",
+  "attack": "trojannn",
+  "label_mode": "all_to_one",
+  "target_label": 0,
+  "poison_rate": 0.1,
+  "architecture": "vit",
+  "source": "backdoorbench",
+  "bd_test_format": ".png",
+  "leaderboard": {
+    "asr": 0.9998,
+    "clean_accuracy": 0.9645999999999999,
+    "robust_accuracy": 0.0002
+  },
+  "backdoorbench_normalization": {
+    "mean": [
+      0.4914,
+      0.4822,
+      0.4465
+    ],
+    "std": [
+      0.247,
+      0.243,
+      0.261
+    ],
+    "n_clean": 10000,
+    "n_backdoor": 9000,
+    "clean_accuracy": 0.9647,
+    "asr": 0.9997777777777778
+  },
+  "registry_normalization": {
+    "mean": [
+      0.4914,
+      0.4822,
+      0.4465
+    ],
+    "std": [
+      0.2023,
+      0.1994,
+      0.201
+    ],
+    "n_clean": 10000,
+    "n_backdoor": 9000,
+    "clean_accuracy": 0.9538,
+    "asr": 0.9995555555555555
+  },
+  "device": "NVIDIA A100-PCIE-40GB",
+  "wall_seconds": 46.471069879829884
+}

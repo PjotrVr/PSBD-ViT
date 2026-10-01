@@ -1,0 +1,34 @@
+{
+  "folder": "tiny_trojannn_0_1",
+  "dataset": "tiny",
+  "attack": "trojannn",
+  "label_mode": "all_to_one",
+  "target_label": 0,
+  "poison_rate": 0.1,
+  "architecture": "vit",
+  "source": "backdoorbench",
+  "bd_test_format": ".png",
+  "leaderboard": {
+    "asr": 0.9986,
+    "clean_accuracy": 0.7515999999999999,
+    "robust_accuracy": 0.0013
+  },
+  "backdoorbench_normalization": {
+    "mean": [
+      0.4802,
+      0.4481,
+      0.3975
+    ],
+    "std": [
+      0.2302,
+      0.2265,
+      0.2262
+    ],
+    "n_clean": 10000,
+    "n_backdoor": 9950,
+    "clean_accuracy": 0.7534,
+    "asr": 0.9985929648241206
+  },
+  "device": "NVIDIA A100-PCIE-40GB",
+  "wall_seconds": 22.628937404137105
+}

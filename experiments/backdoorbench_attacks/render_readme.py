@@ -222,6 +222,12 @@ def scope_section():
         "models already run is LIRA, Blind, TrojanNN at 5% and GTSRB Input-Aware "
         "last. Both LIRA folders hold no `attack_result.pt`, so LIRA is dropped. "
         "PSBD-RD and the competitor detectors stay out of scope.",
+        "- 2026-10-02: the queue was stopped at 00:08 while it waited for a GPU slot "
+        "before `cifar10_blind_0_1`, to give the login GPU to a priority run. The "
+        "status section names every model still missing. To resume, run `bash "
+        "experiments/backdoorbench_attacks/run_queue.sh model` inside the GPU window, "
+        "then `readout.py` and this renderer. A model with a `jobs/<folder>.json` "
+        "record is skipped, so the queue starts at the first model without one.",
     ]
     section = "\n".join(lines)
     return section

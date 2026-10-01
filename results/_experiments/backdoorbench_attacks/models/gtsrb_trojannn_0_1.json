@@ -1,0 +1,154 @@
+{
+  "folder": "gtsrb_trojannn_0_1",
+  "leaderboard": {
+    "asr": 0.9994,
+    "clean_accuracy": 0.9895,
+    "robust_accuracy": 0.0005
+  },
+  "dataset": "gtsrb",
+  "attack": "trojannn",
+  "poison_rate": 0.1,
+  "clean_accuracy": 0.989390340459224,
+  "asr": 0.9995226730310263,
+  "clean_drop_vs_backdoorbench_best": -0.005509659540775869,
+  "clean_drop_vs_own_benign": -0.0014251798273360317,
+  "clears_asr_bar": true,
+  "collapsed": false,
+  "judged": true,
+  "within_2pt_of_backdoorbench_best": true,
+  "within_2pt_of_own_benign": true,
+  "status": "swept",
+  "sweep_wall_seconds": 1357.4178485702723,
+  "detection": {
+    "n_backdoor": 10578,
+    "rates": {
+      "psbd_tm": 0.8,
+      "partner": 0.9,
+      "partner_rule": "adaptive",
+      "psbd_tm_validation_shift": 0.8830000162124634,
+      "partner_validation_shift": 0.856166660785675
+    },
+    "methods": {
+      "psbd_tm": {
+        "auroc": 0.9463708957124133,
+        "at_fpr": {
+          "q0.01": {
+            "threshold": 0.13087299466133118,
+            "tpr": 0.4474380910396576,
+            "realized_fpr": 0.010777084156870842,
+            "tie_share_at_threshold": 0.0
+          },
+          "q0.05": {
+            "threshold": 0.429523229598999,
+            "tpr": 0.7920211553573608,
+            "realized_fpr": 0.0543581023812294,
+            "tie_share_at_threshold": 0.0
+          },
+          "q0.10": {
+            "threshold": 0.6668986678123474,
+            "tpr": 0.9281527996063232,
+            "realized_fpr": 0.10588012635707855,
+            "tie_share_at_threshold": 0.0
+          },
+          "q0.20": {
+            "threshold": 0.8601219654083252,
+            "tpr": 0.9620911478996277,
+            "realized_fpr": 0.21109850704669952,
+            "tie_share_at_threshold": 0.0
+          }
+        }
+      },
+      "final_min": {
+        "auroc": 0.934217674993434,
+        "at_fpr": {
+          "q0.01": {
+            "threshold": 0.004995000082999468,
+            "tpr": 0.44819435477256775,
+            "realized_fpr": 0.006522972136735916,
+            "tie_share_at_threshold": 0.0
+          },
+          "q0.05": {
+            "threshold": 0.025474999099969864,
+            "tpr": 0.5363017320632935,
+            "realized_fpr": 0.052467383444309235,
+            "tie_share_at_threshold": 0.0
+          },
+          "q0.10": {
+            "threshold": 0.050999999046325684,
+            "tpr": 0.8181130886077881,
+            "realized_fpr": 0.09964076429605484,
+            "tie_share_at_threshold": 0.0010000000474974513
+          },
+          "q0.20": {
+            "threshold": 0.10889999568462372,
+            "tpr": 0.9582151770591736,
+            "realized_fpr": 0.20438645780086517,
+            "tie_share_at_threshold": 0.0
+          }
+        }
+      },
+      "final_mean": {
+        "auroc": 0.9540367925081724,
+        "at_fpr": {
+          "q0.01": {
+            "threshold": 0.5232968330383301,
+            "tpr": 0.49451690912246704,
+            "realized_fpr": 0.01370769552886486,
+            "tie_share_at_threshold": 0.0
+          },
+          "q0.05": {
+            "threshold": 0.647215723991394,
+            "tpr": 0.7757610082626343,
+            "realized_fpr": 0.05114388465881348,
+            "tie_share_at_threshold": 0.0
+          },
+          "q0.10": {
+            "threshold": 0.7809057235717773,
+            "tpr": 0.9037625193595886,
+            "realized_fpr": 0.10739269852638245,
+            "tie_share_at_threshold": 0.0
+          },
+          "q0.20": {
+            "threshold": 0.8634439706802368,
+            "tpr": 0.9611457586288452,
+            "realized_fpr": 0.20674985647201538,
+            "tie_share_at_threshold": 0.0
+          }
+        }
+      },
+      "partner": {
+        "auroc": 0.828298992107572,
+        "at_fpr": {
+          "q0.01": {
+            "threshold": 0.6734628677368164,
+            "tpr": 0.05955757200717926,
+            "realized_fpr": 0.007090187165886164,
+            "tie_share_at_threshold": 0.0
+          },
+          "q0.05": {
+            "threshold": 0.779726505279541,
+            "tpr": 0.2159198373556137,
+            "realized_fpr": 0.04641709104180336,
+            "tie_share_at_threshold": 0.0
+          },
+          "q0.10": {
+            "threshold": 0.8387650847434998,
+            "tpr": 0.38400453329086304,
+            "realized_fpr": 0.09273964911699295,
+            "tie_share_at_threshold": 0.0
+          },
+          "q0.20": {
+            "threshold": 0.9069430828094482,
+            "tpr": 0.6714879870414734,
+            "realized_fpr": 0.19616185128688812,
+            "tie_share_at_threshold": 0.0
+          }
+        }
+      }
+    }
+  },
+  "psbd_metrics_control": {
+    "adaptive_rate": 0.8,
+    "auroc": 0.9463708957124133
+  }
+}

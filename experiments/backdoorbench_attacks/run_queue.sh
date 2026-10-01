@@ -40,21 +40,42 @@ fits_in_window() {
     return 0
 }
 
-# -E 75 makes a held lock exit with 75, which tells a busy slot apart from a
-# stage that ran and failed.
+# Takes whichever slot is free, and otherwise waits on both slots at once as a
+# blocking waiter, the pattern of experiments/resnet_tact/run_queue.sh. A waiter
+# blocked on 1 slot never sees the other come free, which left a slot idle for
+# half an hour on 2026-10-01. The first waiter to get its slot claims the stage
+# with an atomic mkdir, and the other waiter, still blocked with no child, is
+# stopped. -E 75 tells a busy slot apart from a stage that ran and failed.
 on_free_slot() {
-    local lock
+    local lock status
     for lock in "${LOCKS[@]}"; do
-        if flock -n -E 75 "$lock" "$@"; then
-            return 0
-        else
-            local status=$?
-            if ((status != 75)); then
-                return "$status"
-            fi
-        fi
+        flock -n -E 75 "$lock" "$@"
+        status=$?
+        ((status != 75)) && return "$status"
     done
-    flock "${LOCKS[0]}" "$@"
+
+    local claim="$LOG_DIR/claim.$$.$RANDOM"
+    local claimed='mkdir "$0" 2>/dev/null || exit 0; exec "${@}"'
+    flock "${LOCKS[0]}" bash -c "$claimed" "$claim" "$@" &
+    local first=$!
+    flock "${LOCKS[1]}" bash -c "$claimed" "$claim" "$@" &
+    local second=$!
+    until [[ -d "$claim" ]]; do
+        sleep 5
+    done
+    sleep 2
+
+    local winner=$first loser=$second
+    if [[ -z "$(ps -o pid= --ppid "$first")" ]]; then
+        winner=$second
+        loser=$first
+    fi
+    kill "$loser" 2>/dev/null
+    wait "$winner"
+    status=$?
+    wait "$loser" 2>/dev/null
+    rmdir "$claim"
+    return "$status"
 }
 
 is_done() {

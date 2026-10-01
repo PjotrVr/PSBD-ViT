@@ -1,0 +1,648 @@
+{
+  "models": [
+    {
+      "folder": "resnet18_gtsrb_tact_0_05_src6",
+      "role": "tact",
+      "dataset": "gtsrb",
+      "attack": "tact",
+      "poison_rate": 0.05,
+      "source_classes": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6
+      ],
+      "epochs": 100,
+      "git_commit": "6441d75b085b1a47a2dcf6a2acb86b26a813f9b4",
+      "asr": 0.9988095238095238,
+      "clean_accuracy": 0.9762470308788599,
+      "benign_clean_accuracy": 0.9794141054153442,
+      "clean_accuracy_drop": 0.003167074536484349,
+      "source_class_accuracy": 0.9845559597015381,
+      "wall_minutes": {
+        "train": 16.4,
+        "sweep": 1
+      },
+      "psbd": {
+        "placement": "post_residual",
+        "adaptive_rate": 0.5,
+        "clean_validation_shift_ratio": 0.9006666541099548,
+        "clean_shift_ratio": 0.8963624835014343,
+        "backdoor_shift_ratio": 0.6045396327972412,
+        "absolute_auroc_unpaired": 0.8269093775208544,
+        "n_clean": 10630,
+        "n_backdoor": 2849,
+        "absolute": {
+          "auroc": 0.9710834354568998,
+          "q0.01": {
+            "tpr": 0.0035100034438073635,
+            "fpr": 0.003159003099426627
+          },
+          "q0.05": {
+            "tpr": 0.06914707273244858,
+            "fpr": 0.009477009065449238
+          },
+          "q0.10": {
+            "tpr": 0.2906282842159271,
+            "fpr": 0.016497015953063965
+          }
+        },
+        "fractional": {
+          "auroc": 0.9929751265307601,
+          "q0.01": {
+            "tpr": 0.013689014129340649,
+            "fpr": 0.0007020006887614727
+          },
+          "q0.05": {
+            "tpr": 0.24815724790096283,
+            "fpr": 0.001053001033142209
+          },
+          "q0.10": {
+            "tpr": 0.47209545969963074,
+            "fpr": 0.001053001033142209
+          }
+        }
+      },
+      "sufficiency": null,
+      "detectors": {},
+      "successful": true
+    },
+    {
+      "folder": "resnet18_gtsrb_tact_0_1_src12",
+      "role": "tact",
+      "dataset": "gtsrb",
+      "attack": "tact",
+      "poison_rate": 0.1,
+      "source_classes": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12
+      ],
+      "epochs": 100,
+      "git_commit": "4de764f6646de7f87afb7eedef6417263f82461c",
+      "asr": 0.996620583717358,
+      "clean_accuracy": 0.9697545526524148,
+      "benign_clean_accuracy": 0.9794141054153442,
+      "clean_accuracy_drop": 0.009659552762929402,
+      "source_class_accuracy": 0.9825581312179565,
+      "wall_minutes": {
+        "train": 14.9,
+        "model": 39
+      },
+      "psbd": {
+        "placement": "post_residual",
+        "adaptive_rate": 0.5,
+        "clean_validation_shift_ratio": 0.9316666722297668,
+        "clean_shift_ratio": 0.9375979900360107,
+        "backdoor_shift_ratio": 0.2383720874786377,
+        "absolute_auroc_unpaired": 0.939224855198101,
+        "n_clean": 10630,
+        "n_backdoor": 5504,
+        "absolute": {
+          "auroc": 0.9791359455279882,
+          "q0.01": {
+            "tpr": 0.027797965332865715,
+            "fpr": 0.0021802326664328575
+          },
+          "q0.05": {
+            "tpr": 0.5023618936538696,
+            "fpr": 0.01744186133146286
+          },
+          "q0.10": {
+            "tpr": 0.8315770626068115,
+            "fpr": 0.029251454398036003
+          }
+        },
+        "fractional": {
+          "auroc": 0.9980667469113372,
+          "q0.01": {
+            "tpr": 0.5188953280448914,
+            "fpr": 0.0
+          },
+          "q0.05": {
+            "tpr": 0.8399345874786377,
+            "fpr": 0.0010901163332164288
+          },
+          "q0.10": {
+            "tpr": 0.9625726938247681,
+            "fpr": 0.006904069799929857
+          }
+        }
+      },
+      "sufficiency": null,
+      "detectors": {},
+      "successful": true
+    },
+    {
+      "folder": "resnet18_gtsrb_badnet_a2o_0_1",
+      "role": "control",
+      "dataset": "gtsrb",
+      "attack": "badnet_a2o",
+      "poison_rate": 0.1,
+      "source_classes": null,
+      "epochs": 100,
+      "git_commit": "f74526df2a5c061aa6bc2158aa65f82de1571075-dirty",
+      "asr": 1.0,
+      "clean_accuracy": 0.9760886777513856,
+      "benign_clean_accuracy": 0.9794141054153442,
+      "clean_accuracy_drop": 0.0033254276639586022,
+      "source_class_accuracy": null,
+      "wall_minutes": {
+        "train": 7.5
+      },
+      "psbd": {
+        "placement": "post_residual",
+        "adaptive_rate": 0.5,
+        "clean_validation_shift_ratio": 0.9451666474342346,
+        "clean_shift_ratio": 0.9433678388595581,
+        "backdoor_shift_ratio": 0.002773050917312503,
+        "absolute_auroc_unpaired": 0.999381239431419,
+        "n_clean": 10630,
+        "n_backdoor": 10578,
+        "absolute": {
+          "auroc": 0.9994703115850164,
+          "q0.01": {
+            "tpr": 0.9887502193450928,
+            "fpr": 0.007373794447630644
+          },
+          "q0.05": {
+            "tpr": 0.9999054670333862,
+            "fpr": 0.04235205054283142
+          },
+          "q0.10": {
+            "tpr": 1.0,
+            "fpr": 0.09160521626472473
+          }
+        },
+        "fractional": {
+          "auroc": 0.9996801618216026,
+          "q0.01": {
+            "tpr": 0.9998109340667725,
+            "fpr": 0.005199470557272434
+          },
+          "q0.05": {
+            "tpr": 1.0,
+            "fpr": 0.04282473027706146
+          },
+          "q0.10": {
+            "tpr": 1.0,
+            "fpr": 0.10881073772907257
+          }
+        }
+      },
+      "sufficiency": null,
+      "detectors": {},
+      "successful": true
+    },
+    {
+      "folder": "resnet18_gtsrb_blend_0_1",
+      "role": "control",
+      "dataset": "gtsrb",
+      "attack": "blend",
+      "poison_rate": 0.1,
+      "source_classes": null,
+      "epochs": 100,
+      "git_commit": "f74526df2a5c061aa6bc2158aa65f82de1571075-dirty",
+      "asr": 1.0,
+      "clean_accuracy": 0.9742676167854315,
+      "benign_clean_accuracy": 0.9794141054153442,
+      "clean_accuracy_drop": 0.005146488629912738,
+      "source_class_accuracy": null,
+      "wall_minutes": {
+        "train": 7.5
+      },
+      "psbd": {
+        "placement": "post_residual",
+        "adaptive_rate": 0.5,
+        "clean_validation_shift_ratio": 0.8949999809265137,
+        "clean_shift_ratio": 0.8957666754722595,
+        "backdoor_shift_ratio": 0.25994202494621277,
+        "absolute_auroc_unpaired": 0.9430665795478537,
+        "n_clean": 10630,
+        "n_backdoor": 10578,
+        "absolute": {
+          "auroc": 0.9434880087136689,
+          "q0.01": {
+            "tpr": 0.16297976672649384,
+            "fpr": 0.007184722926467657
+          },
+          "q0.05": {
+            "tpr": 0.6453961133956909,
+            "fpr": 0.04575534164905548
+          },
+          "q0.10": {
+            "tpr": 0.8554547429084778,
+            "fpr": 0.09567026048898697
+          }
+        },
+        "fractional": {
+          "auroc": 0.9681109861000337,
+          "q0.01": {
+            "tpr": 0.5552089214324951,
+            "fpr": 0.009075439535081387
+          },
+          "q0.05": {
+            "tpr": 0.8491207957267761,
+            "fpr": 0.048969559371471405
+          },
+          "q0.10": {
+            "tpr": 0.9131215810775757,
+            "fpr": 0.09037625044584274
+          }
+        }
+      },
+      "sufficiency": null,
+      "detectors": {},
+      "successful": true
+    }
+  ],
+  "vit_tact_panel": [
+    {
+      "folder": "vit_cifar10_tact_0_01",
+      "psbd_tm": {
+        "placement": "before_attention_norm_token_mask",
+        "adaptive_rate": 0.8,
+        "clean_validation_shift_ratio": 0.8198333382606506,
+        "clean_shift_ratio": 0.8261666893959045,
+        "backdoor_shift_ratio": 0.9932998418807983,
+        "absolute_auroc_unpaired": 0.4582352386934674,
+        "n_clean": 8000,
+        "n_backdoor": 796,
+        "absolute": {
+          "auroc": 0.9576020807555364,
+          "q0.01": {
+            "tpr": 0.005025125574320555,
+            "fpr": 0.003768844297155738
+          },
+          "q0.05": {
+            "tpr": 0.008793969638645649,
+            "fpr": 0.01130653265863657
+          },
+          "q0.10": {
+            "tpr": 0.016331657767295837,
+            "fpr": 0.02010050229728222
+          }
+        },
+        "fractional": {
+          "auroc": 0.9790567157395015,
+          "q0.01": {
+            "tpr": 0.005025125574320555,
+            "fpr": 0.003768844297155738
+          },
+          "q0.05": {
+            "tpr": 0.005025125574320555,
+            "fpr": 0.006281407084316015
+          },
+          "q0.10": {
+            "tpr": 0.005025125574320555,
+            "fpr": 0.013819095678627491
+          }
+        }
+      },
+      "psbd_rd": {
+        "placement": "post_residual",
+        "adaptive_rate": 0.09,
+        "clean_validation_shift_ratio": 0.828166663646698,
+        "clean_shift_ratio": 0.8333749771118164,
+        "backdoor_shift_ratio": 0.909547746181488,
+        "absolute_auroc_unpaired": 0.3437518844221106,
+        "n_clean": 8000,
+        "n_backdoor": 796,
+        "absolute": {
+          "auroc": 0.4763886959925255,
+          "q0.01": {
+            "tpr": 0.0025125627871602774,
+            "fpr": 0.005025125574320555
+          },
+          "q0.05": {
+            "tpr": 0.01256281416863203,
+            "fpr": 0.016331657767295837
+          },
+          "q0.10": {
+            "tpr": 0.02512562833726406,
+            "fpr": 0.027638191357254982
+          }
+        },
+        "fractional": {
+          "auroc": 0.4635923019620717,
+          "q0.01": {
+            "tpr": 0.003768844297155738,
+            "fpr": 0.005025125574320555
+          },
+          "q0.05": {
+            "tpr": 0.007537688594311476,
+            "fpr": 0.01256281416863203
+          },
+          "q0.10": {
+            "tpr": 0.01256281416863203,
+            "fpr": 0.01256281416863203
+          }
+        }
+      },
+      "non_source_stamped_on_target": 0.008869179524481297
+    },
+    {
+      "folder": "vit_cifar10_tact_0_05",
+      "psbd_tm": {
+        "placement": "before_attention_norm_token_mask",
+        "adaptive_rate": 0.6,
+        "clean_validation_shift_ratio": 0.862500011920929,
+        "clean_shift_ratio": 0.8534166812896729,
+        "backdoor_shift_ratio": 0.9736180901527405,
+        "absolute_auroc_unpaired": 0.3551885992462312,
+        "n_clean": 8000,
+        "n_backdoor": 796,
+        "absolute": {
+          "auroc": 0.8930708820484331,
+          "q0.01": {
+            "tpr": 0.0,
+            "fpr": 0.005025125574320555
+          },
+          "q0.05": {
+            "tpr": 0.0,
+            "fpr": 0.005025125574320555
+          },
+          "q0.10": {
+            "tpr": 0.0,
+            "fpr": 0.005025125574320555
+          }
+        },
+        "fractional": {
+          "auroc": 0.9664986363980708,
+          "q0.01": {
+            "tpr": 0.0,
+            "fpr": 0.005025125574320555
+          },
+          "q0.05": {
+            "tpr": 0.0,
+            "fpr": 0.005025125574320555
+          },
+          "q0.10": {
+            "tpr": 0.0,
+            "fpr": 0.005025125574320555
+          }
+        }
+      },
+      "psbd_rd": {
+        "placement": "post_residual",
+        "adaptive_rate": 0.09,
+        "clean_validation_shift_ratio": 0.8393333554267883,
+        "clean_shift_ratio": 0.8355833292007446,
+        "backdoor_shift_ratio": 0.9346733689308167,
+        "absolute_auroc_unpaired": 0.3247975816582915,
+        "n_clean": 8000,
+        "n_backdoor": 796,
+        "absolute": {
+          "auroc": 0.7831888714931442,
+          "q0.01": {
+            "tpr": 0.0012562813935801387,
+            "fpr": 0.003768844297155738
+          },
+          "q0.05": {
+            "tpr": 0.0025125627871602774,
+            "fpr": 0.028894472867250443
+          },
+          "q0.10": {
+            "tpr": 0.005025125574320555,
+            "fpr": 0.04020100459456444
+          }
+        },
+        "fractional": {
+          "auroc": 0.8339585805913992,
+          "q0.01": {
+            "tpr": 0.0,
+            "fpr": 0.005025125574320555
+          },
+          "q0.05": {
+            "tpr": 0.0012562813935801387,
+            "fpr": 0.005025125574320555
+          },
+          "q0.10": {
+            "tpr": 0.006281407084316015,
+            "fpr": 0.006281407084316015
+          }
+        }
+      },
+      "non_source_stamped_on_target": null
+    },
+    {
+      "folder": "vit_gtsrb_tact_0_01_cos",
+      "psbd_tm": {
+        "placement": "before_attention_norm_token_mask",
+        "adaptive_rate": 0.3,
+        "clean_validation_shift_ratio": 0.9301666617393494,
+        "clean_shift_ratio": 0.9382565021514893,
+        "backdoor_shift_ratio": 1.0,
+        "absolute_auroc_unpaired": 0.28218016995405176,
+        "n_clean": 10630,
+        "n_backdoor": 605,
+        "absolute": {
+          "auroc": 0.285244177310293,
+          "q0.01": {
+            "tpr": 0.0,
+            "fpr": 0.0
+          },
+          "q0.05": {
+            "tpr": 0.0,
+            "fpr": 0.0016528925625607371
+          },
+          "q0.10": {
+            "tpr": 0.0,
+            "fpr": 0.0033057851251214743
+          }
+        },
+        "fractional": {
+          "auroc": 0.26560207636090427,
+          "q0.01": {
+            "tpr": 0.0,
+            "fpr": 0.0
+          },
+          "q0.05": {
+            "tpr": 0.0,
+            "fpr": 0.0
+          },
+          "q0.10": {
+            "tpr": 0.0,
+            "fpr": 0.0
+          }
+        }
+      },
+      "psbd_rd": {
+        "placement": "post_residual",
+        "adaptive_rate": 0.05,
+        "clean_validation_shift_ratio": 0.9441666603088379,
+        "clean_shift_ratio": 0.9454374313354492,
+        "backdoor_shift_ratio": 0.7096418738365173,
+        "absolute_auroc_unpaired": 0.8621768268505633,
+        "n_clean": 10630,
+        "n_backdoor": 605,
+        "absolute": {
+          "auroc": 0.8340045078888054,
+          "q0.01": {
+            "tpr": 0.0,
+            "fpr": 0.0
+          },
+          "q0.05": {
+            "tpr": 0.30082646012306213,
+            "fpr": 0.028099173679947853
+          },
+          "q0.10": {
+            "tpr": 0.5305784940719604,
+            "fpr": 0.09752066433429718
+          }
+        },
+        "fractional": {
+          "auroc": 0.8298149033535961,
+          "q0.01": {
+            "tpr": 0.13388429582118988,
+            "fpr": 0.00495867757126689
+          },
+          "q0.05": {
+            "tpr": 0.4677686095237732,
+            "fpr": 0.07603305578231812
+          },
+          "q0.10": {
+            "tpr": 0.6429752111434937,
+            "fpr": 0.16694214940071106
+          }
+        }
+      },
+      "non_source_stamped_on_target": null
+    },
+    {
+      "folder": "vit_gtsrb_tact_0_05",
+      "psbd_tm": {
+        "placement": "before_attention_norm_token_mask",
+        "adaptive_rate": 0.5,
+        "clean_validation_shift_ratio": 0.8276666402816772,
+        "clean_shift_ratio": 0.8276575803756714,
+        "backdoor_shift_ratio": 0.42148759961128235,
+        "absolute_auroc_unpaired": 0.8334573132332476,
+        "n_clean": 10630,
+        "n_backdoor": 605,
+        "absolute": {
+          "auroc": 0.9375971586640257,
+          "q0.01": {
+            "tpr": 0.026446281000971794,
+            "fpr": 0.0
+          },
+          "q0.05": {
+            "tpr": 0.2214875966310501,
+            "fpr": 0.0
+          },
+          "q0.10": {
+            "tpr": 0.4644628167152405,
+            "fpr": 0.0016528925625607371
+          }
+        },
+        "fractional": {
+          "auroc": 0.9419247319172187,
+          "q0.01": {
+            "tpr": 0.029752066358923912,
+            "fpr": 0.0
+          },
+          "q0.05": {
+            "tpr": 0.2297520637512207,
+            "fpr": 0.0
+          },
+          "q0.10": {
+            "tpr": 0.5024793148040771,
+            "fpr": 0.0
+          }
+        }
+      },
+      "psbd_rd": {
+        "placement": "post_residual",
+        "adaptive_rate": 0.09,
+        "clean_validation_shift_ratio": 0.9551666378974915,
+        "clean_shift_ratio": 0.9531514644622803,
+        "backdoor_shift_ratio": 0.9845730066299438,
+        "absolute_auroc_unpaired": 0.34258561843527213,
+        "n_clean": 10630,
+        "n_backdoor": 605,
+        "absolute": {
+          "auroc": 0.317160030052592,
+          "q0.01": {
+            "tpr": 0.0,
+            "fpr": 0.0016528925625607371
+          },
+          "q0.05": {
+            "tpr": 0.0,
+            "fpr": 0.00826446246355772
+          },
+          "q0.10": {
+            "tpr": 0.00495867757126689,
+            "fpr": 0.01983471028506756
+          }
+        },
+        "fractional": {
+          "auroc": 0.39247592377569845,
+          "q0.01": {
+            "tpr": 0.0,
+            "fpr": 0.0016528925625607371
+          },
+          "q0.05": {
+            "tpr": 0.0033057851251214743,
+            "fpr": 0.00495867757126689
+          },
+          "q0.10": {
+            "tpr": 0.00991735514253378,
+            "fpr": 0.00826446246355772
+          }
+        }
+      },
+      "non_source_stamped_on_target": 0.002087682718411088
+    }
+  ],
+  "verdicts": {
+    "absolute": {
+      "statistic": "absolute",
+      "tact_tpr_at_10_fpr": {
+        "resnet18_gtsrb_tact_0_05_src6": 0.2906282842159271,
+        "resnet18_gtsrb_tact_0_1_src12": 0.8315770626068115
+      },
+      "control_tpr_at_10_fpr": {
+        "resnet18_gtsrb_badnet_a2o_0_1": 1.0,
+        "resnet18_gtsrb_blend_0_1": 0.8554547429084778
+      },
+      "tact_failing": 0,
+      "tact_detected": 1,
+      "tact_judged": 2,
+      "controls_hold": true,
+      "verdict": "no verdict, fewer than 3 successful TaCT models"
+    },
+    "fractional": {
+      "statistic": "fractional",
+      "tact_tpr_at_10_fpr": {
+        "resnet18_gtsrb_tact_0_05_src6": 0.47209545969963074,
+        "resnet18_gtsrb_tact_0_1_src12": 0.9625726938247681
+      },
+      "control_tpr_at_10_fpr": {
+        "resnet18_gtsrb_badnet_a2o_0_1": 1.0,
+        "resnet18_gtsrb_blend_0_1": 0.9131215810775757
+      },
+      "tact_failing": 0,
+      "tact_detected": 1,
+      "tact_judged": 2,
+      "controls_hold": true,
+      "verdict": "no verdict, fewer than 3 successful TaCT models"
+    },
+    "P2": {
+      "verdict": "no verdict, readings missing"
+    },
+    "P3": {
+      "verdict": "not tested, no TaCT model is detected"
+    }
+  }
+}

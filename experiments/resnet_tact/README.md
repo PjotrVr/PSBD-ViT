@@ -34,26 +34,43 @@ Clean accuracy and ASR are the final values `cli.train_backdoor` wrote to `args.
 
 | model | source classes | ASR | clean acc | benign | drop | source-class acc | successful | train min |
 |---|---|---:|---:|---:|---:|---:|---|---:|
-| `resnet18_gtsrb_badnet_a2o_0_1` | -- | 1.000 | 0.976 | -- | -- | -- | -- | 7.5 |
-| `resnet18_gtsrb_blend_0_1` | -- | 1.000 | 0.974 | -- | -- | -- | -- | 7.5 |
+| `resnet18_gtsrb_tact_0_05_src6` | 1..6 | 0.999 | 0.976 | 0.979 | 0.003 | 0.985 | yes | 16.4 |
+| `resnet18_gtsrb_tact_0_1_src12` | 1..12 | 0.997 | 0.970 | 0.979 | 0.010 | 0.983 | yes | 14.9 |
+| `resnet18_gtsrb_badnet_a2o_0_1` | -- | 1.000 | 0.976 | 0.979 | 0.003 | -- | yes | 7.5 |
+| `resnet18_gtsrb_blend_0_1` | -- | 1.000 | 0.974 | 0.979 | 0.005 | -- | yes | 7.5 |
 
 ## Original PSBD, absolute PSU
 
-Dropout at `post_residual`, 3 passes, the adaptive rate of the 0.8 rule. TPR at the 0.01, 0.05 and 0.10 quantiles of the clean validation scores, with the realized FPR on the paired clean test split at the 0.10 quantile, then the AUROC.
+Dropout at `post_residual`, 3 passes, the adaptive rate of the 0.8 rule. TPR at the 0.01, 0.05 and 0.10 quantiles of the clean validation scores, with the realized FPR at the 0.10 quantile, then the AUROC. The FPR and the AUROC read the paired clean test images, the clean twins of the triggered ones, so for TaCT only source-class images.
 
-| model | rate | TPR@1% | TPR@5% | TPR@10% | FPR at q0.10 | AUROC |
-|---|---:|---:|---:|---:|---:|---:|
-| `resnet18_gtsrb_badnet_a2o_0_1` | 0.5 | 0.989 | 1.000 | 1.000 | 0.092 | 0.999 |
-| `resnet18_gtsrb_blend_0_1` | 0.5 | 0.163 | 0.645 | 0.855 | 0.096 | 0.943 |
+| model | rate | TPR@1% | TPR@5% | TPR@10% | FPR at q0.10 | AUROC | AUROC against all clean |
+|---|---:|---:|---:|---:|---:|---:|---:|
+| `resnet18_gtsrb_tact_0_05_src6` | 0.5 | 0.004 | 0.069 | 0.291 | 0.016 | 0.971 | 0.827 |
+| `resnet18_gtsrb_tact_0_1_src12` | 0.5 | 0.028 | 0.502 | 0.832 | 0.029 | 0.979 | 0.939 |
+| `resnet18_gtsrb_badnet_a2o_0_1` | 0.5 | 0.989 | 1.000 | 1.000 | 0.092 | 0.999 | 0.999 |
+| `resnet18_gtsrb_blend_0_1` | 0.5 | 0.163 | 0.645 | 0.855 | 0.096 | 0.943 | 0.943 |
 
 ## Fractional PSU, the secondary reading
 
-Dropout at `post_residual`, 3 passes, the adaptive rate of the 0.8 rule. TPR at the 0.01, 0.05 and 0.10 quantiles of the clean validation scores, with the realized FPR on the paired clean test split at the 0.10 quantile, then the AUROC.
+Dropout at `post_residual`, 3 passes, the adaptive rate of the 0.8 rule. TPR at the 0.01, 0.05 and 0.10 quantiles of the clean validation scores, with the realized FPR at the 0.10 quantile, then the AUROC. The FPR and the AUROC read the paired clean test images, the clean twins of the triggered ones, so for TaCT only source-class images.
 
 | model | rate | TPR@1% | TPR@5% | TPR@10% | FPR at q0.10 | AUROC |
 |---|---:|---:|---:|---:|---:|---:|
+| `resnet18_gtsrb_tact_0_05_src6` | 0.5 | 0.014 | 0.248 | 0.472 | 0.001 | 0.993 |
+| `resnet18_gtsrb_tact_0_1_src12` | 0.5 | 0.519 | 0.840 | 0.963 | 0.007 | 0.998 |
 | `resnet18_gtsrb_badnet_a2o_0_1` | 0.5 | 1.000 | 1.000 | 1.000 | 0.109 | 1.000 |
 | `resnet18_gtsrb_blend_0_1` | 0.5 | 0.555 | 0.849 | 0.913 | 0.090 | 0.968 |
+
+## Shift ratios at the adaptive rate
+
+The share of dropout passes whose prediction differs from the unperturbed prediction, over the clean and the triggered test images, at the rate the 0.8 rule picked.
+
+| model | rate | clean | triggered |
+|---|---:|---:|---:|
+| `resnet18_gtsrb_tact_0_05_src6` | 0.5 | 0.896 | 0.605 |
+| `resnet18_gtsrb_tact_0_1_src12` | 0.5 | 0.938 | 0.238 |
+| `resnet18_gtsrb_badnet_a2o_0_1` | 0.5 | 0.943 | 0.003 |
+| `resnet18_gtsrb_blend_0_1` | 0.5 | 0.896 | 0.260 |
 
 ## Trigger sufficiency
 
@@ -61,30 +78,26 @@ Dropout at `post_residual`, 3 passes, the adaptive rate of the 0.8 rule. TPR at 
 
 | model | non-source stamped to target | source stamped to target | clean to target | blank excess |
 |---|---:|---:|---:|---:|
+| `resnet18_gtsrb_tact_0_05_src6` | -- | -- | -- | -- |
+| `resnet18_gtsrb_tact_0_1_src12` | -- | -- | -- | -- |
 | `resnet18_gtsrb_badnet_a2o_0_1` | -- | -- | -- | -- |
 | `resnet18_gtsrb_blend_0_1` | -- | -- | -- | -- |
 
 ## ViT TaCT models of the paper panel
 
-The same fractional readings for the ViT TaCT models of the panel, at PSBD-TM and at the ViT `post_residual` dropout (PSBD-RD), with the non-source class reading of `experiments/why_psbd_works/`.
+The same fractional readings for the ViT TaCT models of the panel, at PSBD-TM and at the ViT `post_residual` dropout (PSBD-RD), with the non-source class reading of `experiments/evidence_surplus/`, for the ViT TaCT models of the panel that have a PSBD-TM cache.
 
 | model | PSBD-TM TPR@1% | TPR@5% | TPR@10% | AUROC | PSBD-RD TPR@10% | AUROC | non-source stamped to target |
 |---|---:|---:|---:|---:|---:|---:|---:|
-| `vit_cifar100_tact_0_01_src5` | -- | -- | -- | -- | -- | -- | -- |
-| `vit_cifar100_tact_0_05_src25` | -- | -- | -- | -- | -- | -- | -- |
-| `vit_cifar10_tact_0_01` | 0.005 | 0.005 | 0.005 | 0.979 | 0.013 | 0.464 | -- |
+| `vit_cifar10_tact_0_01` | 0.005 | 0.005 | 0.005 | 0.979 | 0.013 | 0.464 | 0.009 |
 | `vit_cifar10_tact_0_05` | 0.000 | 0.000 | 0.000 | 0.966 | 0.006 | 0.834 | -- |
-| `vit_cifar10_tact_0_1_src5` | -- | -- | -- | -- | -- | -- | -- |
 | `vit_gtsrb_tact_0_01_cos` | 0.000 | 0.000 | 0.000 | 0.266 | 0.643 | 0.830 | -- |
-| `vit_gtsrb_tact_0_05` | 0.030 | 0.230 | 0.502 | 0.942 | 0.010 | 0.392 | -- |
-| `vit_gtsrb_tact_0_1_src12` | -- | -- | -- | -- | -- | -- | -- |
-| `vit_tiny_tact_0_01_src10` | -- | -- | -- | -- | -- | -- | -- |
-| `vit_tiny_tact_0_05_src50` | -- | -- | -- | -- | -- | -- | -- |
+| `vit_gtsrb_tact_0_05` | 0.030 | 0.230 | 0.502 | 0.942 | 0.010 | 0.392 | 0.002 |
 
 ## Verdicts
 
-- **P1**: no verdict, fewer than 3 successful TaCT models. 0 of 0 successful TaCT models read TPR at 10% FPR below 0.2, 0 read 0.5 or more, and every control reads above 0.8 (yes).
-- **P1 on fractional PSU**: no verdict, fewer than 3 successful TaCT models. 0 of 0 successful TaCT models read TPR at 10% FPR below 0.2, 0 read 0.5 or more, and every control reads above 0.8 (yes).
+- **P1**: no verdict, fewer than 3 successful TaCT models. 0 of 2 successful TaCT models read TPR at 10% FPR below 0.2 and 1 read 0.5 or more. Every control reads above 0.8 (yes).
+- **P1 on fractional PSU**: no verdict, fewer than 3 successful TaCT models. 0 of 2 successful TaCT models read TPR at 10% FPR below 0.2 and 1 read 0.5 or more. Every control reads above 0.8 (yes).
 - **P2**: no verdict, readings missing.
 - **P3**: not tested, no TaCT model is detected.
 

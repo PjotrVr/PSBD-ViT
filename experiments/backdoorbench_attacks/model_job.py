@@ -3,9 +3,10 @@
 The shared login GPU has 1 lock queue with many waiters, so each model takes its
 lock once. Inside it, evaluate.py measures clean accuracy and ASR, and the gate
 compares them with BackdoorBench's leaderboard before any sweep. A model the
-leaderboard lists that misses it by more than the tolerances below stops the
-whole queue (exit 3), since then this project's loader does not reproduce
-BackdoorBench and no PSBD number from it would mean anything. A model below the
+leaderboard lists that misses it by more than the tolerances below is recorded
+and not swept (exit 3, which run_queue.sh logs and skips), since then this
+project's loader does not reproduce BackdoorBench for it and no PSBD number from
+it would mean anything. A model below the
 ASR bar or collapsed is recorded and not swept. The rest go to sweep_model.py.
 The outcome goes to jobs/<folder>.json, which run_queue.sh reads to skip.
 
@@ -42,7 +43,7 @@ def main():
     gate = reproduction_gate(scores, record["leaderboard"])
     outcome = {"folder": folder, "reproduction": gate, "asr_bar": asr_bar}
     if gate["verdict"] == "not reproduced":
-        outcome["outcome"] = "stopped, not reproduced"
+        outcome["outcome"] = "not reproduced, not swept"
         write_json(outcome, os.path.join(JOBS_DIR, f"{folder}.json"))
         print(f"{folder}: not reproduced {gate}", flush=True)
         raise SystemExit(REPRODUCTION_FAILED)

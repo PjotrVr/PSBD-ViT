@@ -7,7 +7,9 @@
 # the 2 shared lock slots and leaves jobs/<folder>.json under
 # results/_experiments/backdoorbench_attacks/. A model with that record is
 # skipped, so a rerun picks up where the last one stopped. Exit 3 from a model
-# (not reproduced) stops the queue. No model starts after 06:30, or when its
+# (not reproduced) is recorded in its jobs record and the queue moves on, since
+# 1 attack's reproduction says nothing about another's (changed 2026-10-01 after
+# CIFAR-10 Input-Aware stopped the queue). No model starts after 06:30, or when its
 # estimated duration would carry it past 07:00, or before 17:00.
 
 set -uo pipefail
@@ -73,8 +75,7 @@ run_model() {
     local status=$?
     echo "$(date +%T) exit $status $folder: $(tail -n 1 "$LOG_DIR/model.$folder.log")"
     if ((status == 3)); then
-        echo "$(date +%T) $folder not reproduced, stopping the queue"
-        return 1
+        echo "$(date +%T) $folder not reproduced, recorded and skipped"
     fi
     return 0
 }

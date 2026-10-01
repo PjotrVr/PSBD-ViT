@@ -25,11 +25,12 @@ from experiments.training_set_detection.common import (  # noqa: E402
     RATE_SUBSET,
     RECORDS_DIR,
     STRIP_SUBSET,
-    dev_set,
     model_queue,
 )
 
 OUT = os.path.join(EXPERIMENT_DIR, "README.md")
+# The development set was dropped on 2026-10-01 and is never judged.
+REPORTED_SETS = ("paper_mirror",)
 
 
 def main():
@@ -38,6 +39,7 @@ def main():
         header_section(),
         method_section(),
         commands_section(rows),
+        scope_section(),
         results_begin(),
         paper_mirror_section(summary, rows),
         development_section(summary, rows),
@@ -151,15 +153,17 @@ The 2 ResNet-18 reproductions.
     return text
 
 
+def scope_section():
+    text = """## Changes of scope
+
+- 2026-10-01: the development tier (the 10 models of `experiments/cache_readouts/dev_set.json`, of which the 2 that are also paper-mirror models stay scored) and the BackdoorBench training-set tier are dropped, so the night's GPU time goes to the paper-mirror set and its detectors. P1 to P4 and P6 are judged on the paper-mirror set only and the development-set readings of `PREDICTIONS.md` stay unjudged. STRIP and CD-L run on the paper-mirror models in a second pass after PSBD, and Spectral Signatures is read on the CPU from the baseline features PSBD's first part stores."""
+    return text
+
+
 def development_section(summary, rows):
-    block = summary["sets"]["development"]
-    if not block["scored"]:
-        return "## Development set\n\nNo development model beyond the paper-mirror set has been scored yet."
-    text = f"""## Development set
-
-The 10 development models of `experiments/cache_readouts/dev_set.json`, 2 of which also sit in the paper-mirror set.
-
-{tables.low_fpr_table(rows, list(dev_set()), block)}"""
+    # The tier was dropped on 2026-10-01, so the 2 development models that are
+    # also paper-mirror models are read in the paper-mirror tables only.
+    text = "## Development set\n\nDropped on 2026-10-01, see the changes of scope above. Its 2 models that are also paper-mirror models are read in the paper-mirror tables."
     return text
 
 
@@ -180,14 +184,14 @@ TPR with the threshold at each quantile of clean validation, and the FPR it real
 def test_time_section(summary, rows):
     folders = [f for f in model_queue() if f in rows]
     lines = []
-    for name, block in summary["sets"].items():
-        paired = block.get("paired")
+    for name in REPORTED_SETS:
+        paired = summary["sets"][name].get("paired")
         if not paired:
             continue
         train = paired["train_tm_minus_rd_ours"]
         test = paired["test_tm_minus_rd"]
         lines.append(
-            f"On the {name.replace('_', '-')} set ({train['n']} pooled models) PSBD-TM leads PSBD-RD by "
+            f"On the {name.replace('_', '-')} set ({train['n']} pooled models) PSBD-TM minus PSBD-RD is "
             f"{train['mean_difference']:+.3f} AUROC on training images, interval "
             f"[{train['ci95'][0]:+.3f}, {train['ci95'][1]:+.3f}], against "
             f"{test['mean_difference']:+.3f} on the paired test splits of the same models."
@@ -222,8 +226,18 @@ R1 compares the rebuilt counts with `args.json`, R2 asks whether the model sends
 
 def verdict_section(summary):
     verdicts = summary["verdicts"]
+    pending = summary["pending"]
     lines = ["## Verdicts", ""]
-    for set_name in ("paper_mirror", "development"):
+    # P6 orders PSBD-TM, STRIP and CD-L, so it is incomplete until both
+    # detectors are scored on every pooled model.
+    detectors_missing = len(verdicts["paper_mirror"]["P6"]["train_order"]) < 3
+    if pending or detectors_missing:
+        lines += [
+            f"Provisional, {len(pending)} paper-mirror models are not scored yet or "
+            "STRIP and CD-L are missing on some, so a verdict below can still change.",
+            "",
+        ]
+    for set_name in REPORTED_SETS:
         block = verdicts.get(set_name)
         if not isinstance(block, dict):
             lines.append(f"- {set_name}: {block}")

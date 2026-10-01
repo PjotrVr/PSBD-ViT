@@ -12,7 +12,7 @@ BackdoorBench builds `vit_b_16` as `torch.nn.Sequential(Resize((224, 224)), vit_
 
 2 things did not match and are fixed here. BackdoorBench's CIFAR-10 standard deviations are (0.247, 0.243, 0.261) where `DATASET_REGISTRY` carries (0.2023, 0.1994, 0.2010). CIFAR-100's mean differs in the 4th decimal. `data.backdoorbench.BACKDOORBENCH_NORMALIZATION` copies BackdoorBench's table and every BackdoorBench read goes through it. The normalization control in the results measures what the registry's statistics cost. Blind stores its triggered test images as JPEG (the record's `save_file_format`) where the other attacks store PNG. They are read as stored.
 
-`data.backdoorbench.build_psbd_loaders_from_backdoorbench` builds the standard PSBD split for such a folder: the same permutation `data.splits` draws from (test set size, seed 0), its first 2000 indices as the clean validation set and the rest as the analysis pool, clean images from this project's raw test set and triggered images from the checkpoint's bd_test folder, paired by the original test index BackdoorBench uses as the file name. A bd_test entry whose recorded original label disagrees with the clean test label at its index is dropped and listed in the split manifest (`misaligned_bd_test_indices`). BackdoorBench's WaNet folders have such entries. None of the in-scope folders has one. `cli.sweep` and `cli.analyze` read a results folder named `bb_<folder>` through this builder, with no new flag, and `tests/test_backdoorbench_split.py` covers the split, the pairing, the normalization and the misalignment rule.
+`data.backdoorbench.build_psbd_loaders_from_backdoorbench` builds the standard PSBD split for such a folder: the same permutation `data.splits` draws from (test set size, seed 0), its first 2000 indices as the clean validation set and the rest as the analysis pool, clean images from this project's raw test set and triggered images from the checkpoint's bd_test folder, paired by the original test index BackdoorBench uses as the file name. A bd_test entry whose recorded original label disagrees with the clean test label at its index is dropped and listed in the split manifest (`misaligned_bd_test_indices`). BackdoorBench's WaNet folders have such entries. None of the in-scope folders has one. `cli.sweep` and `cli.analyze` read a results folder named `bb_<folder>` through this builder with no new flag. `tests/test_backdoorbench_split.py` covers the split, the pairing, the normalization and the misalignment rule.
 
 ## Method
 
@@ -38,4 +38,150 @@ bash experiments/backdoorbench_attacks/run_queue.sh sweep       # GPU, resumable
 ## Results
 
 <!-- results:begin -->
+
+## Status
+
+5 of the 12 readable in-scope models are swept and read. Not yet swept or below the success bar: `tiny_ssba_0_1`, `cifar10_inputaware_0_1`, `gtsrb_inputaware_0_1`, `cifar10_blind_0_1`, `cifar10_trojannn_0_05`, `gtsrb_trojannn_0_05`, `tiny_trojannn_0_05`. The jobs records under `jobs/` say which.
+
+## Inventory
+
+`backdoor_bench_checkpoints/` holds 101 folders. 7 of them carry no `attack_result.pt` and cannot be read: `cifar100_lira_0_1`, `cifar10_lc_0_05`, `cifar10_lc_0_1`, `cifar10_lira_0_1`, `gtsrb_lira_0_1`, `tiny_lc_0_005`, `tiny_lira_0_1`. Every readable folder is a `vit_b_16` whose bd_test labels name a single target. The table lists the in-scope models, read from `inventory.json`. Aligned is the share of bd_test entries whose recorded original label equals this project's test label at that index. The footprint columns are shares of 300 sampled triggered images against their clean twins, a pixel counting as changed above 4 of 255 levels. Consistent is the share of pixels changed on at least half the images, high for a fixed trigger and near 0 for a sample-specific one.
+
+| model | label mode | target | bd_test images | format | aligned | pixels changed | tokens touched | consistent | mean change (levels) |
+|---|---|---|---|---|---|---|---|---|---|
+| `cifar10_trojannn_0_1` | all_to_one | 0 | 9000 | .png | 1.0000 | 0.114 | 0.143 | 0.114 | 6.88 |
+| `gtsrb_trojannn_0_1` | all_to_one | 0 | 12570 | .png | 1.0000 | 0.114 | 0.143 | 0.114 | 9.43 |
+| `tiny_trojannn_0_1` | all_to_one | 0 | 9950 | .png | 1.0000 | 0.161 | 0.386 | 0.086 | 6.78 |
+| `cifar10_ssba_0_1` | all_to_one | 0 | 9000 | .png | 1.0000 | 0.547 | 0.843 | 0.467 | 8.90 |
+| `gtsrb_ssba_0_1` | all_to_one | 0 | 12570 | .png | 1.0000 | 0.669 | 0.883 | 0.703 | 11.71 |
+| `tiny_ssba_0_1` | all_to_one | 0 | 9950 | .png | 1.0000 | 0.706 | 0.978 | 0.905 | 11.95 |
+| `cifar10_inputaware_0_1` | all_to_one | 0 | 9000 | .png | 1.0000 | 0.031 | 0.084 | 0.000 | 3.47 |
+| `gtsrb_inputaware_0_1` | all_to_one | 0 | 12570 | .png | 1.0000 | 0.012 | 0.032 | 0.000 | 1.56 |
+| `cifar10_lira_0_1` | no checkpoint | | | | | | | | |
+| `gtsrb_lira_0_1` | no checkpoint | | | | | | | | |
+| `cifar10_blind_0_1` | all_to_one | 0 | 9000 | .jpg | 1.0000 | 0.777 | 0.960 | 1.000 | 7.14 |
+| `cifar10_trojannn_0_05` | all_to_one | 0 | 9000 | .png | 1.0000 | 0.114 | 0.143 | 0.114 | 6.88 |
+| `gtsrb_trojannn_0_05` | all_to_one | 0 | 12570 | .png | 1.0000 | 0.114 | 0.143 | 0.114 | 9.50 |
+| `tiny_trojannn_0_05` | all_to_one | 0 | 9950 | .png | 1.0000 | 0.087 | 0.148 | 0.087 | 6.20 |
+
+## Reproduction and success bar
+
+Clean accuracy is over the whole test set and ASR over every eligible bd_test image, both through `models.backbones.load_checkpoint` and `evaluation.metrics` with BackdoorBench's normalization (`evaluation/<folder>.json`). The leaderboard columns are BackdoorBench's own no-defense numbers (`leaderboard_vit_b_16.json`). A model is judged when its ASR is at least 0.85 and its clean accuracy is at least 0.5 of the best BackdoorBench ViT-B/16 of its dataset. The 2-point verdicts are reported against both references and drop no model.
+
+| dataset | best BackdoorBench ViT-B/16 clean accuracy | its folder | own benign ViT clean accuracy |
+|---|---|---|---|
+| cifar10 | 0.9679 | `cifar10_lc_0_005` | 0.9515 |
+| cifar100 | 0.8492 | `cifar100_trojannn_0_005` | 0.8103 |
+| gtsrb | 0.9949 | `gtsrb_lc_0_001` | 0.9908 |
+| tiny | 0.7739 | `tiny_blended_0_01` | 0.7568 |
+
+| model | clean accuracy | leaderboard clean | ASR | leaderboard ASR | judged | within 2 points of BackdoorBench best | within 2 points of own benign |
+|---|---|---|---|---|---|---|---|
+| `cifar10_trojannn_0_1` | 0.9647 | 0.9646 | 0.9998 | 0.9998 | yes | yes | yes |
+| `gtsrb_trojannn_0_1` | 0.9894 | 0.9895 | 0.9995 | 0.9994 | yes | yes | yes |
+| `tiny_trojannn_0_1` | 0.7534 | 0.7516 | 0.9986 | 0.9986 | yes | no | yes |
+| `cifar10_ssba_0_1` | 0.9617 | 0.9617 | 0.9783 | 0.9781 | yes | yes | yes |
+| `gtsrb_ssba_0_1` | 0.7993 | 0.7996 | 0.9180 | 0.9176 | yes | no | no |
+| `tiny_ssba_0_1` | not evaluated | | | | | | |
+| `cifar10_inputaware_0_1` | not evaluated | | | | | | |
+| `gtsrb_inputaware_0_1` | not evaluated | | | | | | |
+| `cifar10_blind_0_1` | not evaluated | | | | | | |
+| `cifar10_trojannn_0_05` | not evaluated | | | | | | |
+| `gtsrb_trojannn_0_05` | not evaluated | | | | | | |
+| `tiny_trojannn_0_05` | not evaluated | | | | | | |
+
+Normalization control on `cifar10_trojannn_0_1`: with BackdoorBench's statistics clean accuracy reads 0.9647 and ASR 0.9998, with `DATASET_REGISTRY`'s CIFAR-10 statistics 0.9538 and 0.9996. The registry's statistics are the ones `experiments/wanet_cifar10_audit/measure.py` read BackdoorBench's WaNet checkpoint with, so its `results/bb_cifar10_wanet_0_1` cache was built on shifted inputs.
+
+## Detection per model
+
+TPR at 1%, 5% and 10% FPR (thresholds at the clean-validation quantile) and AUROC, each probe at its adaptive rate, read from `models/<folder>.json`. As a control, the PSBD-TM AUROC must equal the fractional-PSU AUROC `cli.analyze` stored at the same rate, counted below the table.
+
+| model | judged | method | rate | TPR at 1% FPR | TPR at 5% FPR | TPR at 10% FPR | AUROC |
+|---|---|---|---|---|---|---|---|
+| `cifar10_trojannn_0_1` | yes | PSBD-TM | 0.3 | 0.868 | 0.994 | 1.000 | 0.998 |
+| `cifar10_trojannn_0_1` | yes | final method, minimum | both | 0.539 | 0.990 | 0.999 | 0.997 |
+| `cifar10_trojannn_0_1` | yes | final method, average | both | 0.794 | 0.996 | 1.000 | 0.998 |
+| `cifar10_trojannn_0_1` | yes | pre_residual_blocks_5_8 alone | 0.6 (adaptive) | 0.663 | 0.938 | 0.983 | 0.993 |
+| `gtsrb_trojannn_0_1` | yes | PSBD-TM | 0.8 | 0.447 | 0.792 | 0.928 | 0.946 |
+| `gtsrb_trojannn_0_1` | yes | final method, minimum | both | 0.448 | 0.536 | 0.818 | 0.934 |
+| `gtsrb_trojannn_0_1` | yes | final method, average | both | 0.495 | 0.776 | 0.904 | 0.954 |
+| `gtsrb_trojannn_0_1` | yes | pre_residual_blocks_5_8 alone | 0.9 (adaptive) | 0.060 | 0.216 | 0.384 | 0.828 |
+| `tiny_trojannn_0_1` | yes | PSBD-TM | 0.4 | 0.864 | 0.966 | 0.987 | 0.991 |
+| `tiny_trojannn_0_1` | yes | final method, minimum | both | 0.990 | 0.999 | 0.999 | 0.999 |
+| `tiny_trojannn_0_1` | yes | final method, average | both | 0.917 | 0.989 | 0.999 | 0.996 |
+| `tiny_trojannn_0_1` | yes | pre_residual_blocks_5_8 alone | 0.5 (adaptive) | 0.996 | 0.999 | 0.999 | 0.999 |
+| `cifar10_ssba_0_1` | yes | PSBD-TM | 0.4 | 0.903 | 0.977 | 0.978 | 0.979 |
+| `cifar10_ssba_0_1` | yes | final method, minimum | both | 0.580 | 0.978 | 0.979 | 0.985 |
+| `cifar10_ssba_0_1` | yes | final method, average | both | 0.718 | 0.977 | 0.978 | 0.985 |
+| `cifar10_ssba_0_1` | yes | pre_residual_blocks_5_8 alone | 0.6 (adaptive) | 0.653 | 0.868 | 0.931 | 0.977 |
+| `gtsrb_ssba_0_1` | yes | PSBD-TM | 0.5 | 0.044 | 0.805 | 0.878 | 0.926 |
+| `gtsrb_ssba_0_1` | yes | final method, minimum | both | 0.070 | 0.419 | 0.858 | 0.920 |
+| `gtsrb_ssba_0_1` | yes | final method, average | both | 0.120 | 0.777 | 0.885 | 0.936 |
+| `gtsrb_ssba_0_1` | yes | pre_residual_blocks_5_8 alone | 0.8 (adaptive) | 0.121 | 0.417 | 0.595 | 0.876 |
+
+The control holds on 5 of 5 swept models.
+
+## Detection per attack
+
+Means over the judged models of each attack (`summary.json`, `by_attack`).
+
+| attack | judged models | method | TPR at 1% FPR | TPR at 5% FPR | TPR at 10% FPR | AUROC |
+|---|---|---|---|---|---|---|
+| SSBA | 2 | PSBD-TM | 0.474 | 0.891 | 0.928 | 0.952 |
+| SSBA | 2 | final method, minimum | 0.325 | 0.699 | 0.918 | 0.952 |
+| SSBA | 2 | final method, average | 0.419 | 0.877 | 0.931 | 0.960 |
+| SSBA | 2 | pre_residual_blocks_5_8 alone | 0.387 | 0.643 | 0.763 | 0.927 |
+| TrojanNN | 3 | PSBD-TM | 0.726 | 0.917 | 0.972 | 0.979 |
+| TrojanNN | 3 | final method, minimum | 0.659 | 0.842 | 0.939 | 0.977 |
+| TrojanNN | 3 | final method, average | 0.735 | 0.920 | 0.967 | 0.983 |
+| TrojanNN | 3 | pre_residual_blocks_5_8 alone | 0.573 | 0.718 | 0.789 | 0.940 |
+
+## Verdicts per prediction
+
+Bars from `PREDICTIONS.md`: a family passes when every judged model has PSBD-TM AUROC of at least 0.9 and TPR at 5% FPR of at least 0.5, and fails when every judged model has AUROC below 0.75. A prediction with no judged model is untested.
+
+| prediction | judged models | verdict | reading |
+|---|---|---|---|
+| T1, TrojanNN 10% passes | 3 | holds | family reads pass |
+| T1, TrojanNN 5% passes | 0 | untested | |
+| T2, minimum costs TrojanNN at most 0.05 TPR at 5% FPR | 3 | fails | largest cost 0.256 |
+| S1, SSBA partial or fails | 2 | fails | family reads pass, TPR at 1% FPR below TrojanNN's on 1 of 2 |
+| S2, minimum raises SSBA TPR at 5% FPR on most | 2 | fails | raised on 1 of 2 |
+| I1, Input-Aware fails | 0 | untested | |
+| I2, final method leaves Input-Aware below 0.5 TPR at 5% FPR | 0 | untested | |
+| B1, Blind passes | 0 | untested | |
+| LIRA, partial or fails | 0 | untested, no checkpoint | |
+| R1, no patch family fails | 3 | holds | failing: none |
+
+## Final method against PSBD-TM alone
+
+Change in TPR from PSBD-TM alone to each fusion rule, per judged model, at the same nominal FPR. Positive means the final method detects more.
+
+| model | minimum, 1% FPR | minimum, 5% FPR | minimum, 10% FPR | average, 1% FPR | average, 5% FPR | average, 10% FPR |
+|---|---|---|---|---|---|---|
+| `cifar10_trojannn_0_1` | -0.329 | -0.004 | -0.001 | -0.074 | +0.002 | +0.000 |
+| `gtsrb_trojannn_0_1` | +0.001 | -0.256 | -0.110 | +0.047 | -0.016 | -0.024 |
+| `tiny_trojannn_0_1` | +0.126 | +0.033 | +0.012 | +0.054 | +0.024 | +0.011 |
+| `cifar10_ssba_0_1` | -0.323 | +0.000 | +0.001 | -0.186 | -0.000 | +0.000 |
+| `gtsrb_ssba_0_1` | +0.026 | -0.386 | -0.021 | +0.076 | -0.028 | +0.006 |
+
+## Wall times
+
+Per model on the shared login A100, including time spent waiting for data loading but not for the GPU lock (`evaluation/<folder>.json` and `sweeps/<folder>.json`, `wall_seconds`).
+
+| model | evaluation (s) | sweep of both probes and analysis (s) |
+|---|---|---|
+| `cifar10_trojannn_0_1` | 46 | 1011 |
+| `gtsrb_trojannn_0_1` | 27 | 1357 |
+| `tiny_trojannn_0_1` | 23 | 1062 |
+| `cifar10_ssba_0_1` | 25 | 1019 |
+| `gtsrb_ssba_0_1` | 23 | 1237 |
+| `tiny_ssba_0_1` |  |  |
+| `cifar10_inputaware_0_1` |  |  |
+| `gtsrb_inputaware_0_1` |  |  |
+| `cifar10_blind_0_1` |  |  |
+| `cifar10_trojannn_0_05` |  |  |
+| `gtsrb_trojannn_0_05` |  |  |
+| `tiny_trojannn_0_05` |  |  |
+
 <!-- results:end -->

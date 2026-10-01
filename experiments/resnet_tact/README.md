@@ -14,6 +14,10 @@ A model enters the verdicts only when it is a successful backdoor. Its ASR is at
 
 Detection is the original PSBD. Dropout sits after the residual add of every basic block (`post_residual`, the only distinct ResNet-18 position in `models.positions.POSITION_REGISTRY`, since its other 2 names alias the same site). The sweep runs 3 forward passes over the 16 rate ladder of the reproductions on the standard 2000-image clean validation split, and `cli.analyze` picks the adaptive rate (the smallest rate whose clean-validation shift ratio reaches 0.8) and sets thresholds at quantiles of the clean validation scores. The primary statistic is the paper's own absolute PSU and fractional PSU is the secondary reading. The mechanism reading is the trigger sufficiency control of `experiments/why_psbd_works/sufficiency.py` run on each model. TED and Beatrix, which catch TaCT on ViT, run through `cli.baselines` on the TaCT models.
 
+## Changes of scope
+
+- 2026-10-01: the competitor stage of 2026-09-30 failed on Beatrix, which declared no feature layer for ResNet-18. `detectors/beatrix.py` now reads the input of `layer4` on ResNet-18, the hook of the released code, with the channels as the Gram dimension (`CHANNELS_FIRST_ARCHITECTURES`), and the stage was rerun. TED ran unchanged. The readout below was rendered again so it holds the 3 CIFAR-10 models, which finished after the last render.
+
 ## Commands
 
 The GPU stages run on the login node through a resumable queue that holds 1 of the 2 shared lock slots per stage, caps each process at a fifth of the GPU memory and 4 CPU threads (`capped.py`) and starts nothing between 06:30 and 17:00. Its log is `scratch/resnet_tact/queue.log` in the main checkout. The checkpoints and PSBD caches live in the main checkout, and this experiment's own records under `results/_experiments/resnet_tact/`.
@@ -36,8 +40,11 @@ Clean accuracy and ASR are the final values `cli.train_backdoor` wrote to `args.
 |---|---|---:|---:|---:|---:|---:|---|---:|
 | `resnet18_gtsrb_tact_0_05_src6` | 1..6 | 0.999 | 0.976 | 0.979 | 0.003 | 0.985 | yes | 16.4 |
 | `resnet18_gtsrb_tact_0_1_src12` | 1..12 | 0.997 | 0.970 | 0.979 | 0.010 | 0.983 | yes | 14.9 |
+| `resnet18_cifar10_tact_0_01` | 1 | 0.945 | 0.712 | 0.744 | 0.033 | 0.822 | no | 24.9 |
+| `resnet18_cifar10_tact_0_05_src3` | 1..3 | 0.976 | 0.731 | 0.744 | 0.013 | 0.668 | yes | 25.5 |
 | `resnet18_gtsrb_badnet_a2o_0_1` | -- | 1.000 | 0.976 | 0.979 | 0.003 | -- | yes | 7.5 |
 | `resnet18_gtsrb_blend_0_1` | -- | 1.000 | 0.974 | 0.979 | 0.005 | -- | yes | 7.5 |
+| `resnet18_cifar10_badnet_a2o_0_1` | -- | 1.000 | 0.708 | 0.744 | 0.037 | -- | no | 25.3 |
 
 ## Original PSBD, absolute PSU
 
@@ -47,8 +54,11 @@ Dropout at `post_residual`, 3 passes, the adaptive rate of the 0.8 rule. TPR at 
 |---|---:|---:|---:|---:|---:|---:|---:|
 | `resnet18_gtsrb_tact_0_05_src6` | 0.5 | 0.004 | 0.069 | 0.291 | 0.016 | 0.971 | 0.827 |
 | `resnet18_gtsrb_tact_0_1_src12` | 0.5 | 0.028 | 0.502 | 0.832 | 0.029 | 0.979 | 0.939 |
+| `resnet18_cifar10_tact_0_01` | 0.4 | 0.009 | 0.242 | 0.484 | 0.139 | 0.756 | 0.808 |
+| `resnet18_cifar10_tact_0_05_src3` | 0.4 | 0.025 | 0.571 | 0.755 | 0.125 | 0.907 | 0.929 |
 | `resnet18_gtsrb_badnet_a2o_0_1` | 0.5 | 0.989 | 1.000 | 1.000 | 0.092 | 0.999 | 0.999 |
 | `resnet18_gtsrb_blend_0_1` | 0.5 | 0.163 | 0.645 | 0.855 | 0.096 | 0.943 | 0.943 |
+| `resnet18_cifar10_badnet_a2o_0_1` | 0.4 | 0.002 | 0.777 | 0.914 | 0.083 | 0.968 | 0.960 |
 
 ## Fractional PSU, the secondary reading
 
@@ -58,8 +68,11 @@ Dropout at `post_residual`, 3 passes, the adaptive rate of the 0.8 rule. TPR at 
 |---|---:|---:|---:|---:|---:|---:|
 | `resnet18_gtsrb_tact_0_05_src6` | 0.5 | 0.014 | 0.248 | 0.472 | 0.001 | 0.993 |
 | `resnet18_gtsrb_tact_0_1_src12` | 0.5 | 0.519 | 0.840 | 0.963 | 0.007 | 0.998 |
+| `resnet18_cifar10_tact_0_01` | 0.4 | 0.009 | 0.286 | 0.535 | 0.156 | 0.771 |
+| `resnet18_cifar10_tact_0_05_src3` | 0.4 | 0.019 | 0.590 | 0.833 | 0.118 | 0.914 |
 | `resnet18_gtsrb_badnet_a2o_0_1` | 0.5 | 1.000 | 1.000 | 1.000 | 0.109 | 1.000 |
 | `resnet18_gtsrb_blend_0_1` | 0.5 | 0.555 | 0.849 | 0.913 | 0.090 | 0.968 |
+| `resnet18_cifar10_badnet_a2o_0_1` | 0.4 | 0.002 | 0.837 | 0.960 | 0.072 | 0.976 |
 
 ## Shift ratios at the adaptive rate
 
@@ -69,8 +82,11 @@ The share of dropout passes whose prediction differs from the unperturbed predic
 |---|---:|---:|---:|
 | `resnet18_gtsrb_tact_0_05_src6` | 0.5 | 0.896 | 0.605 |
 | `resnet18_gtsrb_tact_0_1_src12` | 0.5 | 0.938 | 0.238 |
+| `resnet18_cifar10_tact_0_01` | 0.4 | 0.827 | 0.442 |
+| `resnet18_cifar10_tact_0_05_src3` | 0.4 | 0.836 | 0.180 |
 | `resnet18_gtsrb_badnet_a2o_0_1` | 0.5 | 0.943 | 0.003 |
 | `resnet18_gtsrb_blend_0_1` | 0.5 | 0.896 | 0.260 |
+| `resnet18_cifar10_badnet_a2o_0_1` | 0.4 | 0.833 | 0.076 |
 
 ## Trigger sufficiency
 
@@ -78,10 +94,28 @@ The share of dropout passes whose prediction differs from the unperturbed predic
 
 | model | non-source stamped to target | source stamped to target | clean to target | blank excess |
 |---|---:|---:|---:|---:|
-| `resnet18_gtsrb_tact_0_05_src6` | -- | -- | -- | -- |
-| `resnet18_gtsrb_tact_0_1_src12` | -- | -- | -- | -- |
-| `resnet18_gtsrb_badnet_a2o_0_1` | -- | -- | -- | -- |
-| `resnet18_gtsrb_blend_0_1` | -- | -- | -- | -- |
+| `resnet18_gtsrb_tact_0_05_src6` | 0.030 | 1.000 | 0.000 | 0.859 |
+| `resnet18_gtsrb_tact_0_1_src12` | 0.093 | 0.993 | 0.000 | 0.984 |
+| `resnet18_cifar10_tact_0_01` | 0.188 | 0.984 | 0.027 | 0.234 |
+| `resnet18_cifar10_tact_0_05_src3` | 0.641 | 1.000 | 0.035 | 1.000 |
+| `resnet18_gtsrb_badnet_a2o_0_1` | 1.000 | -- | 0.000 | 1.000 |
+| `resnet18_gtsrb_blend_0_1` | 1.000 | -- | 0.000 | 0.703 |
+| `resnet18_cifar10_badnet_a2o_0_1` | 1.000 | -- | 0.023 | 1.000 |
+
+## Competitor detectors on the TaCT models
+
+| model | detector | TPR@1% | TPR@5% | TPR@10% | AUROC |
+|---|---|---:|---:|---:|---:|
+| `resnet18_gtsrb_tact_0_05_src6` | ted | 0.995 | 0.999 | 1.000 | 0.999 |
+| `resnet18_gtsrb_tact_0_05_src6` | beatrix | 1.000 | 1.000 | 1.000 | 1.000 |
+| `resnet18_gtsrb_tact_0_1_src12` | ted | 0.997 | 0.999 | 1.000 | 0.999 |
+| `resnet18_gtsrb_tact_0_1_src12` | beatrix | 1.000 | 1.000 | 1.000 | 1.000 |
+| `resnet18_cifar10_tact_0_01` | ted | 0.006 | 0.018 | 0.036 | 0.232 |
+| `resnet18_cifar10_tact_0_01` | beatrix | 1.000 | 1.000 | 1.000 | 1.000 |
+| `resnet18_cifar10_tact_0_05_src3` | ted | 0.014 | 0.051 | 0.091 | 0.493 |
+| `resnet18_cifar10_tact_0_05_src3` | beatrix | 1.000 | 1.000 | 1.000 | 1.000 |
+
+The decision rule is 1-sided, a low score flags an input. ted on `resnet18_cifar10_tact_0_01`, ted on `resnet18_cifar10_tact_0_05_src3` fail, AUROC below 0.5. Beatrix on ResNet-18 reads the input of `layer4`, the hook of its released code.
 
 ## ViT TaCT models of the paper panel
 
@@ -96,9 +130,9 @@ The same fractional readings for the ViT TaCT models of the panel, at PSBD-TM an
 
 ## Verdicts
 
-- **P1**: no verdict, fewer than 3 successful TaCT models. 0 of 2 successful TaCT models read TPR at 10% FPR below 0.2 and 1 read 0.5 or more. Every control reads above 0.8 (yes).
-- **P1 on fractional PSU**: no verdict, fewer than 3 successful TaCT models. 0 of 2 successful TaCT models read TPR at 10% FPR below 0.2 and 1 read 0.5 or more. Every control reads above 0.8 (yes).
-- **P2**: no verdict, readings missing.
-- **P3**: not tested, no TaCT model is detected.
+- **P1**: refuted. 0 of 3 successful TaCT models read TPR at 10% FPR below 0.2 and 2 read 0.5 or more. Every control reads above 0.8 (yes).
+- **P1 on fractional PSU**: refuted. 0 of 3 successful TaCT models read TPR at 10% FPR below 0.2 and 2 read 0.5 or more. Every control reads above 0.8 (yes).
+- **P2**: refuted.
+- **P3**: refuted.
 
 <!-- results:end -->

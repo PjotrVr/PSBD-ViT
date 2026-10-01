@@ -528,6 +528,22 @@ def results_markdown(records, vit_rows, verdicts):
                     + " ".join(f"| {fmt(detection[q]['tpr'])}" for q in QUANTILES)
                     + f" | {fmt(detection['auroc'])} |"
                 )
+        # The decision rule is 1-sided, low means poisoned, so a detector whose
+        # AUROC falls below 0.5 fails on that model and is never read flipped.
+        failing = [
+            f"{name} on `{r['folder']}`"
+            for r in scored
+            for name, detection in r["detectors"].items()
+            if detection["auroc"] is not None and detection["auroc"] < 0.5
+        ]
+        if failing:
+            lines += [
+                "",
+                "The decision rule is 1-sided, a low score flags an input. "
+                + ", ".join(failing)
+                + " fail, AUROC below 0.5. Beatrix on ResNet-18 reads the input "
+                "of `layer4`, the hook of its released code.",
+            ]
 
     lines += [
         "",

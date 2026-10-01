@@ -63,7 +63,61 @@
       }
     }
   },
-  "sufficiency": null,
-  "detectors": {},
+  "sufficiency": {
+    "folder": "resnet18_gtsrb_tact_0_05_src6",
+    "probe_attack": null,
+    "architecture": "resnet18",
+    "attack": "tact",
+    "dataset": "gtsrb",
+    "poison_rate": 0.05,
+    "target": 0,
+    "blank": {
+      "carriers": 64,
+      "triggered_on_target": 0.859375,
+      "blank_on_target": 0.0,
+      "excess": 0.859375
+    },
+    "content": null,
+    "classes": {
+      "images": 512,
+      "stamped_on_target": 0.296875,
+      "clean_on_target": 0.0,
+      "non_source_stamped_on_target": 0.02964959479868412,
+      "source_stamped_on_target": 1.0
+    },
+    "seconds": 1.6
+  },
+  "detectors": {
+    "ted": {
+      "auroc": 0.9991410409100826,
+      "q0.01": {
+        "tpr": 0.9950860142707825,
+        "fpr": 0.004914004821330309
+      },
+      "q0.05": {
+        "tpr": 0.998947024345398,
+        "fpr": 0.024921024218201637
+      },
+      "q0.10": {
+        "tpr": 1.0,
+        "fpr": 0.09055808931589127
+      }
+    },
+    "beatrix": {
+      "auroc": 1.0,
+      "q0.01": {
+        "tpr": 1.0,
+        "fpr": 0.0007020006887614727
+      },
+      "q0.05": {
+        "tpr": 1.0,
+        "fpr": 0.007020006887614727
+      },
+      "q0.10": {
+        "tpr": 1.0,
+        "fpr": 0.03720603883266449
+      }
+    }
+  },
   "successful": true
 }

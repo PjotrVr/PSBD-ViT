@@ -1,0 +1,85 @@
+{
+  "folder": "resnet18_cifar10_badnet_a2o_0_1",
+  "role": "control",
+  "dataset": "cifar10",
+  "attack": "badnet_a2o",
+  "poison_rate": 0.1,
+  "source_classes": null,
+  "epochs": 100,
+  "git_commit": "4b34a709708920b76cc3f3e9bbc1070aca36dcac-dirty",
+  "asr": 1.0,
+  "clean_accuracy": 0.7078,
+  "benign_clean_accuracy": 0.7443000078201294,
+  "clean_accuracy_drop": 0.03650000782012941,
+  "source_class_accuracy": null,
+  "wall_minutes": {
+    "train": 25.3,
+    "model": 33
+  },
+  "psbd": {
+    "placement": "post_residual",
+    "adaptive_rate": 0.4,
+    "clean_validation_shift_ratio": 0.8333333134651184,
+    "clean_shift_ratio": 0.8333333134651184,
+    "backdoor_shift_ratio": 0.07564815133810043,
+    "absolute_auroc_unpaired": 0.9601089670138888,
+    "n_clean": 8000,
+    "n_backdoor": 7200,
+    "absolute": {
+      "auroc": 0.9677172743055555,
+      "q0.01": {
+        "tpr": 0.0020833334419876337,
+        "fpr": 0.010972222313284874
+      },
+      "q0.05": {
+        "tpr": 0.7774999737739563,
+        "fpr": 0.03583333268761635
+      },
+      "q0.10": {
+        "tpr": 0.9144444465637207,
+        "fpr": 0.08263888955116272
+      }
+    },
+    "fractional": {
+      "auroc": 0.9759419270833334,
+      "q0.01": {
+        "tpr": 0.0016666667070239782,
+        "fpr": 0.011250000447034836
+      },
+      "q0.05": {
+        "tpr": 0.8368055820465088,
+        "fpr": 0.03708333149552345
+      },
+      "q0.10": {
+        "tpr": 0.9604166746139526,
+        "fpr": 0.07236111164093018
+      }
+    }
+  },
+  "sufficiency": {
+    "folder": "resnet18_cifar10_badnet_a2o_0_1",
+    "probe_attack": null,
+    "architecture": "resnet18",
+    "attack": "badnet_a2o",
+    "dataset": "cifar10",
+    "poison_rate": 0.1,
+    "target": 0,
+    "blank": {
+      "carriers": 64,
+      "triggered_on_target": 1.0,
+      "blank_on_target": 0.0,
+      "excess": 1.0
+    },
+    "content": null,
+    "classes": {
+      "images": 512,
+      "stamped_on_target": 1.0,
+      "clean_on_target": 0.0234375,
+      "non_source_stamped_on_target": 1.0,
+      "source_stamped_on_target": null
+    },
+    "seconds": 9.2
+  },
+  "detectors": {},
+  "successful": false
+}

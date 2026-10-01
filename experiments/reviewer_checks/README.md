@@ -65,7 +65,7 @@ draws, PSBD-TM AUROC at 10%): 0.005 at 100 images, 0.004 at 200, 0.0007 at 500, 
 
 The worst single model never drops out entirely. PSBD-TM's worst model is
 `vit_gtsrb_tact_0_01_cos` at every subset size (AUROC 0.27, TPR 0 at 10%), the lower of the 2
-panel cells PSBD-TM fails on with AUROC below 0.5, beside `vit_cifar10_wanet_0_1`, and PSBD-RD's worst is `vit_cifar10_badnet_a2o_0_01` (AUROC 0.31) at 100 and 200
+panel cells PSBD-TM fails on with AUROC below 0.5 (the other is `vit_cifar10_wanet_0_1`). PSBD-RD's worst is `vit_cifar10_badnet_a2o_0_01` (AUROC 0.31) at 100 and 200
 images and `vit_gtsrb_badnet_a2o_0_01` (AUROC 0.27 and 0.22) at 500 and 1000.
 
 **Answer.** The paper's numbers hold under a much smaller clean set. Mean AUROC moves by at

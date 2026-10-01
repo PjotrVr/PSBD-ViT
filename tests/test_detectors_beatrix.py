@@ -27,6 +27,7 @@ from torchvision.models.swin_transformer import SwinTransformer
 
 from detectors import beatrix
 from experiments.preflight.synthetic import build_backdoored_model, build_splits
+from models.backbones import build_resnet18
 from tests.reference.third_party import reference_file
 
 DEVICE = torch.device("cpu")
@@ -287,6 +288,41 @@ def test_collect_reference_tokens_reads_a_swin_stage_through_its_grid():
     # Block 3 is the single block of stage 2, a 4 by 4 grid of 16 channels, so
     # the capture arrives as (batch, 4, 4, 16) and leaves as (batch, 16, 16).
     assert tokens.shape == (6, 16, 16) and predicted.shape == (6,)
+
+
+def test_a_resnet_capture_reads_the_released_hook_with_channels_as_dim():
+    torch.manual_seed(0)
+    resnet = build_resnet18(num_classes=4).eval()
+    images = torch.rand(6, 3, 32, 32)
+    loader = DataLoader(
+        TensorDataset(images, torch.zeros(6, dtype=torch.long)), batch_size=4
+    )
+
+    # The released driver hooks the input of layer4, the output of block 6 of 8.
+    hooked = {}
+
+    def keep_input(_module, inputs, _output):
+        hooked["input"] = inputs[0]
+
+    handle = resnet.layer4.register_forward_hook(keep_input)
+    with torch.inference_mode():
+        resnet(images)
+    handle.remove()
+    layer4_input = hooked["input"]  # (6, 256, 8, 8)
+
+    layer = beatrix.default_feature_layer(resnet)
+    tokens, predicted = beatrix.collect_reference_tokens(
+        resnet, loader, DEVICE, layer=layer, use_bfloat16=False
+    )
+
+    # The ConvNet map is channels first, so the 64 positions become the token
+    # axis and the 256 channels the Gram's dimension.
+    expected = (
+        layer4_input.permute(0, 2, 3, 1).reshape(6, 64, 256).to(torch.float16)
+    )  # (6, 64, 256)
+    assert layer == 6
+    assert tokens.shape == (6, 64, 256) and predicted.shape == (6,)
+    assert torch.allclose(tokens.float(), expected.float(), atol=1e-3)
 
 
 def load_official_feature_correlations():

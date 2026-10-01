@@ -53,7 +53,8 @@ Deviations from the paper, each recorded in full in docs/detectors/beatrix.md:
      of 24 on Swin-S, the depth of the released hook on the input of layer4, and
      contracts over the tokens so it is (dim, dim), the analogue of the paper's
      channel Gram. The class token is included as every spatial position is on
-     a ConvNet.
+     a ConvNet. On ResNet-18 it is the released hook itself, the input of
+     layer4, with the spatial positions as tokens and the channels as dim.
   3. The reference set is the shared 2000-sample split grouped by predicted
      label, about 10 per class on Tiny, 20 on CIFAR-100, 46 on GTSRB and 200
      on CIFAR-10 against the paper's 30, and a class under MIN_CLASS_SAMPLES
@@ -119,8 +120,15 @@ JACKKNIFE_FOLDS = 5
 # and k the output of block k. The released hook reads the input of layer4 at
 # Beatrix.py:57, 3 quarters of the way through a ResNet. Block 9 of 12 on
 # ViT-B/16 sits at the same depth. Block 22 of 24 on Swin-S is the last block
-# of its third stage, the last point before the final patch merge.
-FEATURE_LAYER_BY_ARCHITECTURE: dict[str, int] = {"vit": 9, "swin": 22}
+# of its third stage, the last point before the final patch merge. On ResNet-18
+# the output of BasicBlock 6 of 8 is the input of layer4, the released hook
+# itself.
+FEATURE_LAYER_BY_ARCHITECTURE: dict[str, int] = {"vit": 9, "swin": 22, "resnet18": 6}
+
+# A ConvNet block emits (batch, channels, height, width), channels first, where
+# a Swin block emits its grid channels last. The paper's Gram is over channels,
+# so these captures are moved to channels last before the grid becomes tokens.
+CHANNELS_FIRST_ARCHITECTURES: tuple[str, ...] = ("resnet18",)
 
 # Token matrices go through the Gram algebra this many at a time, so no more
 # than 1 batch of Gram vectors exists at once. 64 of them at dim 768 and P = 4
@@ -134,13 +142,19 @@ GRAM_BATCH_SIZE = 64
 FIT_CHUNK_BYTES = 1 << 30
 
 
-def default_feature_layer(model: nn.Module, architecture: str | None = None) -> int:
-    """The captured_layers index Beatrix reads on this model, from FEATURE_LAYER_BY_ARCHITECTURE."""
+def resolve_architecture_of(model: nn.Module, architecture: str | None) -> str:
+    """architecture when given, otherwise the one the live model's blocks name."""
     resolved = (
         architecture
         if architecture is not None
         else detect_model_architecture(network_core(model))
     )
+    return resolved
+
+
+def default_feature_layer(model: nn.Module, architecture: str | None = None) -> int:
+    """The captured_layers index Beatrix reads on this model, from FEATURE_LAYER_BY_ARCHITECTURE."""
+    resolved = resolve_architecture_of(model, architecture)
     if resolved not in FEATURE_LAYER_BY_ARCHITECTURE:
         raise ValueError(
             f"no Beatrix feature layer is declared for architecture {resolved!r}, "
@@ -265,19 +279,25 @@ def gram_deviation(
 
 
 def captured_token_matrix(
-    captured: dict[int, torch.Tensor], layer: int
+    captured: dict[int, torch.Tensor], layer: int, channels_first: bool = False
 ) -> torch.Tensor:
     """The latest capture at layer as (batch, tokens, dim) float16, still on its device.
 
     A Swin capture arrives as (batch, height, width, channels) and its grid is
-    the token axis. float16 halves the reference bank and loses nothing from a
+    the token axis. A ConvNet capture arrives as (batch, channels, height,
+    width) and needs channels_first, which moves it to the Swin layout first. float16 halves the reference bank and loses nothing from a
     bfloat16 forward, whose 8 bits of mantissa it holds with 3 to spare. The
     query side goes through the same cast so a fitted band and a scored query
     are read off identically rounded values. A value past float16's range raises
     here, naming the layer, rather than surfacing as a non-finite Gram entry 2
     functions later.
     """
-    tokens = as_token_sequence(captured[layer])  # (batch, tokens, dim)
+    activation = captured[layer]
+    if channels_first:
+        activation = activation.permute(
+            0, 2, 3, 1
+        )  # (batch, channels, height, width) to (batch, height, width, channels)
+    tokens = as_token_sequence(activation)  # (batch, tokens, dim)
     half = tokens.detach().to(torch.float16)  # (batch, tokens, dim)
     if not torch.isfinite(half).all():
         raise FloatingPointError(
@@ -307,6 +327,9 @@ def collect_reference_tokens(
 
     token_batches = []
     predicted_batches = []
+    channels_first = resolve_architecture_of(model, architecture) in (
+        CHANNELS_FIRST_ARCHITECTURES
+    )
     with captured_layers(model, (layer,), architecture) as captured:
         for images, _ in loader:
             logits = forward_logits(
@@ -314,7 +337,7 @@ def collect_reference_tokens(
             )  # (batch, num_classes)
             predicted_batches.append(logits.argmax(dim=1).cpu())  # (batch,)
             token_batches.append(
-                captured_token_matrix(captured, layer).cpu()
+                captured_token_matrix(captured, layer, channels_first).cpu()
             )  # (batch, tokens, dim)
 
     if not token_batches:
@@ -605,6 +628,9 @@ def beatrix_deviations(
     model.eval()
 
     batch_deviations = []
+    channels_first = resolve_architecture_of(model, architecture) in (
+        CHANNELS_FIRST_ARCHITECTURES
+    )
     with captured_layers(model, (layer,), architecture) as captured:
         for images, _ in loader:
             logits = forward_logits(
@@ -612,7 +638,7 @@ def beatrix_deviations(
             )  # (batch, num_classes)
             predicted = logits.argmax(dim=1)  # (batch,)
             tokens = captured_token_matrix(
-                captured, layer
+                captured, layer, channels_first
             ).float()  # (batch, tokens, dim)
 
             deviation = _deviation_of_batch(tokens, predicted, bands)  # (batch,)

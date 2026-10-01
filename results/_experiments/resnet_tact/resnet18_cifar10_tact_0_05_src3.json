@@ -1,0 +1,120 @@
+{
+  "folder": "resnet18_cifar10_tact_0_05_src3",
+  "role": "tact",
+  "dataset": "cifar10",
+  "attack": "tact",
+  "poison_rate": 0.05,
+  "source_classes": [
+    1,
+    2,
+    3
+  ],
+  "epochs": 100,
+  "git_commit": "4b34a709708920b76cc3f3e9bbc1070aca36dcac-dirty",
+  "asr": 0.9756666666666667,
+  "clean_accuracy": 0.7312,
+  "benign_clean_accuracy": 0.7443000078201294,
+  "clean_accuracy_drop": 0.013100007820129433,
+  "source_class_accuracy": 0.6677796244621277,
+  "wall_minutes": {
+    "train": 25.5,
+    "model": 27
+  },
+  "psbd": {
+    "placement": "post_residual",
+    "adaptive_rate": 0.4,
+    "clean_validation_shift_ratio": 0.8270000219345093,
+    "clean_shift_ratio": 0.8355833292007446,
+    "backdoor_shift_ratio": 0.18016138672828674,
+    "absolute_auroc_unpaired": 0.9285182856844741,
+    "n_clean": 8000,
+    "n_backdoor": 2396,
+    "absolute": {
+      "auroc": 0.9068018379268731,
+      "q0.01": {
+        "tpr": 0.025041736662387848,
+        "fpr": 0.00834724586457014
+      },
+      "q0.05": {
+        "tpr": 0.5709515810012817,
+        "fpr": 0.054257094860076904
+      },
+      "q0.10": {
+        "tpr": 0.7554256916046143,
+        "fpr": 0.12479131668806076
+      }
+    },
+    "fractional": {
+      "auroc": 0.9137875173146118,
+      "q0.01": {
+        "tpr": 0.019198663532733917,
+        "fpr": 0.007512520998716354
+      },
+      "q0.05": {
+        "tpr": 0.5897328853607178,
+        "fpr": 0.053839731961488724
+      },
+      "q0.10": {
+        "tpr": 0.8334724307060242,
+        "fpr": 0.11811352521181107
+      }
+    }
+  },
+  "sufficiency": {
+    "folder": "resnet18_cifar10_tact_0_05_src3",
+    "probe_attack": null,
+    "architecture": "resnet18",
+    "attack": "tact",
+    "dataset": "cifar10",
+    "poison_rate": 0.05,
+    "target": 0,
+    "blank": {
+      "carriers": 64,
+      "triggered_on_target": 1.0,
+      "blank_on_target": 0.0,
+      "excess": 1.0
+    },
+    "content": null,
+    "classes": {
+      "images": 512,
+      "stamped_on_target": 0.771484375,
+      "clean_on_target": 0.03515625,
+      "non_source_stamped_on_target": 0.6411042809486389,
+      "source_stamped_on_target": 1.0
+    },
+    "seconds": 3.7
+  },
+  "detectors": {
+    "ted": {
+      "auroc": 0.49309984852327615,
+      "q0.01": {
+        "tpr": 0.013772955164313316,
+        "fpr": 0.010434056632220745
+      },
+      "q0.05": {
+        "tpr": 0.050500836223363876,
+        "fpr": 0.07262103259563446
+      },
+      "q0.10": {
+        "tpr": 0.09098497778177261,
+        "fpr": 0.14899833500385284
+      }
+    },
+    "beatrix": {
+      "auroc": 1.0,
+      "q0.01": {
+        "tpr": 1.0,
+        "fpr": 0.00834724586457014
+      },
+      "q0.05": {
+        "tpr": 1.0,
+        "fpr": 0.04757929965853691
+      },
+      "q0.10": {
+        "tpr": 1.0,
+        "fpr": 0.102253757417202
+      }
+    }
+  },
+  "successful": true
+}

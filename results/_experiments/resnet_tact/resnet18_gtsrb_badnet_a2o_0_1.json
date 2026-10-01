@@ -1,0 +1,84 @@
+{
+  "folder": "resnet18_gtsrb_badnet_a2o_0_1",
+  "role": "control",
+  "dataset": "gtsrb",
+  "attack": "badnet_a2o",
+  "poison_rate": 0.1,
+  "source_classes": null,
+  "epochs": 100,
+  "git_commit": "f74526df2a5c061aa6bc2158aa65f82de1571075-dirty",
+  "asr": 1.0,
+  "clean_accuracy": 0.9760886777513856,
+  "benign_clean_accuracy": 0.9794141054153442,
+  "clean_accuracy_drop": 0.0033254276639586022,
+  "source_class_accuracy": null,
+  "wall_minutes": {
+    "train": 7.5
+  },
+  "psbd": {
+    "placement": "post_residual",
+    "adaptive_rate": 0.5,
+    "clean_validation_shift_ratio": 0.9451666474342346,
+    "clean_shift_ratio": 0.9433678388595581,
+    "backdoor_shift_ratio": 0.002773050917312503,
+    "absolute_auroc_unpaired": 0.999381239431419,
+    "n_clean": 10630,
+    "n_backdoor": 10578,
+    "absolute": {
+      "auroc": 0.9994703115850164,
+      "q0.01": {
+        "tpr": 0.9887502193450928,
+        "fpr": 0.007373794447630644
+      },
+      "q0.05": {
+        "tpr": 0.9999054670333862,
+        "fpr": 0.04235205054283142
+      },
+      "q0.10": {
+        "tpr": 1.0,
+        "fpr": 0.09160521626472473
+      }
+    },
+    "fractional": {
+      "auroc": 0.9996801618216026,
+      "q0.01": {
+        "tpr": 0.9998109340667725,
+        "fpr": 0.005199470557272434
+      },
+      "q0.05": {
+        "tpr": 1.0,
+        "fpr": 0.04282473027706146
+      },
+      "q0.10": {
+        "tpr": 1.0,
+        "fpr": 0.10881073772907257
+      }
+    }
+  },
+  "sufficiency": {
+    "folder": "resnet18_gtsrb_badnet_a2o_0_1",
+    "probe_attack": null,
+    "architecture": "resnet18",
+    "attack": "badnet_a2o",
+    "dataset": "gtsrb",
+    "poison_rate": 0.1,
+    "target": 0,
+    "blank": {
+      "carriers": 64,
+      "triggered_on_target": 1.0,
+      "blank_on_target": 0.0,
+      "excess": 1.0
+    },
+    "content": null,
+    "classes": {
+      "images": 512,
+      "stamped_on_target": 1.0,
+      "clean_on_target": 0.0,
+      "non_source_stamped_on_target": 1.0,
+      "source_stamped_on_target": null
+    },
+    "seconds": 1.4
+  },
+  "detectors": {},
+  "successful": true
+}

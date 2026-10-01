@@ -1,0 +1,84 @@
+{
+  "folder": "resnet18_gtsrb_blend_0_1",
+  "role": "control",
+  "dataset": "gtsrb",
+  "attack": "blend",
+  "poison_rate": 0.1,
+  "source_classes": null,
+  "epochs": 100,
+  "git_commit": "f74526df2a5c061aa6bc2158aa65f82de1571075-dirty",
+  "asr": 1.0,
+  "clean_accuracy": 0.9742676167854315,
+  "benign_clean_accuracy": 0.9794141054153442,
+  "clean_accuracy_drop": 0.005146488629912738,
+  "source_class_accuracy": null,
+  "wall_minutes": {
+    "train": 7.5
+  },
+  "psbd": {
+    "placement": "post_residual",
+    "adaptive_rate": 0.5,
+    "clean_validation_shift_ratio": 0.8949999809265137,
+    "clean_shift_ratio": 0.8957666754722595,
+    "backdoor_shift_ratio": 0.25994202494621277,
+    "absolute_auroc_unpaired": 0.9430665795478537,
+    "n_clean": 10630,
+    "n_backdoor": 10578,
+    "absolute": {
+      "auroc": 0.9434880087136689,
+      "q0.01": {
+        "tpr": 0.16297976672649384,
+        "fpr": 0.007184722926467657
+      },
+      "q0.05": {
+        "tpr": 0.6453961133956909,
+        "fpr": 0.04575534164905548
+      },
+      "q0.10": {
+        "tpr": 0.8554547429084778,
+        "fpr": 0.09567026048898697
+      }
+    },
+    "fractional": {
+      "auroc": 0.9681109861000337,
+      "q0.01": {
+        "tpr": 0.5552089214324951,
+        "fpr": 0.009075439535081387
+      },
+      "q0.05": {
+        "tpr": 0.8491207957267761,
+        "fpr": 0.048969559371471405
+      },
+      "q0.10": {
+        "tpr": 0.9131215810775757,
+        "fpr": 0.09037625044584274
+      }
+    }
+  },
+  "sufficiency": {
+    "folder": "resnet18_gtsrb_blend_0_1",
+    "probe_attack": null,
+    "architecture": "resnet18",
+    "attack": "blend",
+    "dataset": "gtsrb",
+    "poison_rate": 0.1,
+    "target": 0,
+    "blank": {
+      "carriers": 64,
+      "triggered_on_target": 0.921875,
+      "blank_on_target": 0.21875,
+      "excess": 0.703125
+    },
+    "content": null,
+    "classes": {
+      "images": 512,
+      "stamped_on_target": 1.0,
+      "clean_on_target": 0.0,
+      "non_source_stamped_on_target": 1.0,
+      "source_stamped_on_target": null
+    },
+    "seconds": 1.2
+  },
+  "detectors": {},
+  "successful": true
+}

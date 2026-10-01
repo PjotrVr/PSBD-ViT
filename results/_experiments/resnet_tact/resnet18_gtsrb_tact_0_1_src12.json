@@ -1,0 +1,129 @@
+{
+  "folder": "resnet18_gtsrb_tact_0_1_src12",
+  "role": "tact",
+  "dataset": "gtsrb",
+  "attack": "tact",
+  "poison_rate": 0.1,
+  "source_classes": [
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11,
+    12
+  ],
+  "epochs": 100,
+  "git_commit": "4de764f6646de7f87afb7eedef6417263f82461c",
+  "asr": 0.996620583717358,
+  "clean_accuracy": 0.9697545526524148,
+  "benign_clean_accuracy": 0.9794141054153442,
+  "clean_accuracy_drop": 0.009659552762929402,
+  "source_class_accuracy": 0.9825581312179565,
+  "wall_minutes": {
+    "train": 14.9,
+    "model": 39
+  },
+  "psbd": {
+    "placement": "post_residual",
+    "adaptive_rate": 0.5,
+    "clean_validation_shift_ratio": 0.9316666722297668,
+    "clean_shift_ratio": 0.9375979900360107,
+    "backdoor_shift_ratio": 0.2383720874786377,
+    "absolute_auroc_unpaired": 0.939224855198101,
+    "n_clean": 10630,
+    "n_backdoor": 5504,
+    "absolute": {
+      "auroc": 0.9791359455279882,
+      "q0.01": {
+        "tpr": 0.027797965332865715,
+        "fpr": 0.0021802326664328575
+      },
+      "q0.05": {
+        "tpr": 0.5023618936538696,
+        "fpr": 0.01744186133146286
+      },
+      "q0.10": {
+        "tpr": 0.8315770626068115,
+        "fpr": 0.029251454398036003
+      }
+    },
+    "fractional": {
+      "auroc": 0.9980667469113372,
+      "q0.01": {
+        "tpr": 0.5188953280448914,
+        "fpr": 0.0
+      },
+      "q0.05": {
+        "tpr": 0.8399345874786377,
+        "fpr": 0.0010901163332164288
+      },
+      "q0.10": {
+        "tpr": 0.9625726938247681,
+        "fpr": 0.006904069799929857
+      }
+    }
+  },
+  "sufficiency": {
+    "folder": "resnet18_gtsrb_tact_0_1_src12",
+    "probe_attack": null,
+    "architecture": "resnet18",
+    "attack": "tact",
+    "dataset": "gtsrb",
+    "poison_rate": 0.1,
+    "target": 0,
+    "blank": {
+      "carriers": 64,
+      "triggered_on_target": 0.984375,
+      "blank_on_target": 0.0,
+      "excess": 0.984375
+    },
+    "content": null,
+    "classes": {
+      "images": 512,
+      "stamped_on_target": 0.578125,
+      "clean_on_target": 0.0,
+      "non_source_stamped_on_target": 0.09322033822536469,
+      "source_stamped_on_target": 0.9927536249160767
+    },
+    "seconds": 1.2
+  },
+  "detectors": {
+    "ted": {
+      "auroc": 0.9990910416103298,
+      "q0.01": {
+        "tpr": 0.996911346912384,
+        "fpr": 0.008539244532585144
+      },
+      "q0.05": {
+        "tpr": 0.9989098906517029,
+        "fpr": 0.02888808213174343
+      },
+      "q0.10": {
+        "tpr": 0.9998183250427246,
+        "fpr": 0.06940407305955887
+      }
+    },
+    "beatrix": {
+      "auroc": 1.0,
+      "q0.01": {
+        "tpr": 1.0,
+        "fpr": 0.0005450581666082144
+      },
+      "q0.05": {
+        "tpr": 1.0,
+        "fpr": 0.007267442066222429
+      },
+      "q0.10": {
+        "tpr": 1.0,
+        "fpr": 0.03215843066573143
+      }
+    }
+  },
+  "successful": true
+}

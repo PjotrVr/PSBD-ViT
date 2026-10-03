@@ -111,7 +111,7 @@ def header(frozen, plan, groups):
     n_plan = len(plan["models"])
     text = f"""# TaCT calibration of PSBD-TM
 
-PSBD-TM detects TaCT with a high AUROC and almost no TPR at a deployable FPR. The AUROC pairs each triggered input with its own clean copy, a source-class image, and those images are more fragile under masking than the clean images of every class the threshold is set on. This experiment asks whether a label-free calibration can move the threshold toward the source classes without losing what PSBD-TM already catches, and how many forward passes the score needs. The rules, the shrinkage choice and every prediction were frozen in `PREDICTIONS.md` (commit of `preregistration.json`) after reading the 4 tuning models only.
+PSBD-TM detects TaCT with a high AUROC and almost no TPR at a deployable FPR. The AUROC pairs each triggered input with its own clean copy (a source-class image), and those images are more fragile under masking than the clean images of every class the threshold is set on. This experiment asks whether a label-free calibration can move the threshold toward the source classes without losing what PSBD-TM already catches, and how many forward passes the score needs. The rules, the shrinkage choice and every prediction were frozen in `PREDICTIONS.md` (commit of `preregistration.json`) after reading the 4 tuning models only.
 
 ## Method
 

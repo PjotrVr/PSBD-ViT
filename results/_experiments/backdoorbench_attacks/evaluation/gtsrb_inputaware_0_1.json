@@ -1,0 +1,34 @@
+{
+  "folder": "gtsrb_inputaware_0_1",
+  "dataset": "gtsrb",
+  "attack": "inputaware",
+  "label_mode": "all_to_one",
+  "target_label": 0,
+  "poison_rate": 0.1,
+  "architecture": "vit",
+  "source": "backdoorbench",
+  "bd_test_format": ".png",
+  "leaderboard": {
+    "asr": 0.9537,
+    "clean_accuracy": 0.9773000000000001,
+    "robust_accuracy": 0.045899999999999996
+  },
+  "backdoorbench_normalization": {
+    "mean": [
+      0.0,
+      0.0,
+      0.0
+    ],
+    "std": [
+      1.0,
+      1.0,
+      1.0
+    ],
+    "n_clean": 12630,
+    "n_backdoor": 12570,
+    "clean_accuracy": 0.986381631037213,
+    "asr": 0.97175815433572
+  },
+  "device": "NVIDIA A100-PCIE-40GB",
+  "wall_seconds": 29.216557264793664
+}

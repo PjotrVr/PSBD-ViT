@@ -1,0 +1,30 @@
+{
+  "folder": "cifar10_blind_0_1",
+  "dataset": "cifar10",
+  "attack": "blind",
+  "label_mode": "all_to_one",
+  "target_label": 0,
+  "poison_rate": 0.1,
+  "architecture": "vit",
+  "source": "backdoorbench",
+  "bd_test_format": ".jpg",
+  "leaderboard": null,
+  "backdoorbench_normalization": {
+    "mean": [
+      0.4914,
+      0.4822,
+      0.4465
+    ],
+    "std": [
+      0.247,
+      0.243,
+      0.261
+    ],
+    "n_clean": 10000,
+    "n_backdoor": 9000,
+    "clean_accuracy": 0.9665,
+    "asr": 1.0
+  },
+  "device": "NVIDIA A100-PCIE-40GB",
+  "wall_seconds": 26.685878133866936
+}

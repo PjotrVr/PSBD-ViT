@@ -30,6 +30,9 @@ from experiments.internal_maps.figures import (  # noqa: E402
 SLUG = "internal_maps"
 CPU_THREADS = 4
 FONT_SIZE = 17
+# The token-removal and attention grids print at a smaller scale than the line
+# plots, so their type is larger to land at the same printed size.
+GRID_FONT_SIZE = 24
 GALLERY_MODEL = "vit_gtsrb_tact_0_01_cos"
 GALLERY_SHOWN = 10
 ATTENTION_MODELS = ("vit_gtsrb_badnet_a2o_0_1", "vit_gtsrb_tact_0_01_cos")
@@ -120,7 +123,7 @@ def title_of(record):
     architecture = "ViT-B/16" if record["architecture"] == "vit" else "Swin-S"
     dataset = DATASET_NAMES.get(record["dataset"], record["dataset"])
     if record["probe_attack"]:
-        return f"{architecture} benign, {dataset}, probed with BadNets"
+        return f"{architecture} benign, {dataset}, BadNets probe"
     attack = ATTACK_NAMES.get(record["attack"], record["attack"])
     rate = record["poison_rate"]
     title = f"{architecture} {attack}, {dataset}, {rate * 100:g}%"
@@ -166,14 +169,21 @@ def draw_lens(path, records):
 
 
 def draw_removal(path, records):
+    with plt.rc_context(
+        {"font.size": GRID_FONT_SIZE, "axes.titlesize": GRID_FONT_SIZE - 2}
+    ):
+        draw_removal_grid(path, records)
+
+
+def draw_removal_grid(path, records):
     figure, axes = plt.subplots(
-        len(records), 4, figsize=(18, 4.6 * len(records)), squeeze=False
+        len(records), 4, figsize=(16, 4.6 * len(records)), squeeze=False
     )
     for row, record in zip(axes, records):
         removal = record["token_removal"]
         windows = list(removal["triggered"]["kept_maps"])
         show_image(row[0], record["examples"]["triggered"], "")
-        row[0].set_ylabel(title_of(record).replace(", ", "\n", 1), fontsize=FONT_SIZE)
+        row[0].set_ylabel(title_of(record).replace(", ", "\n", 1))
         drop = np.array(removal["triggered"]["drop_map"])
         show_map(
             row[1],
@@ -185,7 +195,7 @@ def draw_removal(path, records):
             trigger_cells=record["trigger_cells"],
             grid=record["map_grid"],
         )
-        row[1].set_title(f"(a) drop in P(target)\n1 unit hidden, max {drop.max():.3f}")
+        row[1].set_title(f"(a) 1 unit hidden,\ndrop max {drop.max():.3f}")
         for axis, window in zip(row[2:4], windows):
             show_map(
                 axis,
@@ -197,14 +207,19 @@ def draw_removal(path, records):
                 trigger_cells=record["trigger_cells"],
                 grid=record["map_grid"],
             )
-            axis.set_title(
-                f"(b) only {window} x {window} visible,\ntriggered minus clean"
-            )
+            axis.set_title(f"(b) {window} x {window} visible,\ntriggered minus clean")
     figure.tight_layout()
     save(figure, path)
 
 
 def draw_attention(path, records):
+    with plt.rc_context(
+        {"font.size": GRID_FONT_SIZE - 3, "axes.titlesize": GRID_FONT_SIZE - 3}
+    ):
+        draw_attention_grid(path, records)
+
+
+def draw_attention_grid(path, records):
     figure, axes = plt.subplots(2, 2, figsize=(15, 13))
     limit = max(
         np.max(record["trigger_reading"][split]["trigger_mass"])

@@ -23,6 +23,8 @@ from scripts.paper._common import OKABE_ITO, figure_sidecar  # noqa: E402
 SLUG = "fusion_weighting"
 RESULTS_DIR = "results"
 REPORT_FIGURE = os.path.join("tmp", "report", "figures", "fusion_share_sweep.pdf")
+# Type size of the share sweep, sized for a landscape page of the report.
+SWEEP_FONT_SIZE = 15
 
 # Each summarized group: the readings file, the partner and which partner rate
 # rules it pools. The Swin reading with the nearest-rate models is the report's
@@ -623,7 +625,10 @@ def plot_sweep(summary, json_path):
         "swin_band": "Swin-S panel, blocks 17 to 24",
         "backdoorbench": "BackdoorBench, blocks 5 to 8",
     }
-    figure, axes = plt.subplots(2, len(SWEEP_GROUPS), figsize=(13, 7), sharex=True)
+    plt.rcParams.update(
+        {"font.size": SWEEP_FONT_SIZE, "axes.titlesize": SWEEP_FONT_SIZE + 1}
+    )
+    figure, axes = plt.subplots(2, len(SWEEP_GROUPS), figsize=(16, 10), sharex=True)
     plotted = {}
     for column, name in enumerate(SWEEP_GROUPS):
         block = summary["groups"][name]
@@ -636,7 +641,7 @@ def plot_sweep(summary, json_path):
                 "AUROC" if field == "auroc" else f"TPR at {float(field[1:]):.0%} FPR"
             )
             color = OKABE_ITO[index]
-            top.plot(shares, fine["means"][field], color=color, label=label)
+            top.plot(shares, fine["means"][field], color=color, lw=2.4, label=label)
             top.axhline(fine["tm"][field], color=color, linestyle=":", linewidth=1)
             plotted[name][field] = fine["means"][field]
             plotted[name][f"tm_alone:{field}"] = fine["tm"][field]
@@ -653,12 +658,12 @@ def plot_sweep(summary, json_path):
                 float(WEIGHTED_SHARE), color="grey", linestyle="--", linewidth=1
             )
         bottom.yaxis.set_major_locator(MaxNLocator(integer=True))
-        top.set_title(f"{titles[name]} (n={block['n']})", fontsize=10)
+        top.set_title(f"{titles[name]} (n={block['n']})")
         bottom.set_xlabel("PSBD-TM share of the false-positive budget, w")
     axes[0][0].set_ylabel("mean over models (dotted, PSBD-TM alone)")
     axes[1][0].set_ylabel(f"models losing more than {LOSS_MARGIN:.2f} TPR")
-    axes[0][0].legend(fontsize=8)
-    axes[1][0].legend(fontsize=8)
+    axes[0][0].legend()
+    axes[1][0].legend()
 
     directory = experiment_results_dir(SLUG, RESULTS_DIR)
     png_path = os.path.join(directory, "share_sweep.png")

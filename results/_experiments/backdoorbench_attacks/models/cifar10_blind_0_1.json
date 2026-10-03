@@ -1,5 +1,150 @@
 {
   "folder": "cifar10_blind_0_1",
   "leaderboard": null,
-  "status": "not evaluated"
+  "dataset": "cifar10",
+  "attack": "blind",
+  "poison_rate": 0.1,
+  "clean_accuracy": 0.9665,
+  "asr": 1.0,
+  "clean_drop_vs_backdoorbench_best": -0.0014000000000000679,
+  "clean_drop_vs_own_benign": 0.0150000014305115,
+  "clears_asr_bar": true,
+  "collapsed": false,
+  "judged": true,
+  "within_2pt_of_backdoorbench_best": true,
+  "within_2pt_of_own_benign": true,
+  "status": "swept",
+  "sweep_wall_seconds": 982.9916666010395,
+  "detection": {
+    "n_backdoor": 7200,
+    "rates": {
+      "psbd_tm": 0.3,
+      "partner": 0.6,
+      "partner_rule": "adaptive",
+      "psbd_tm_validation_shift": 0.8793333172798157,
+      "partner_validation_shift": 0.8259999752044678
+    },
+    "methods": {
+      "psbd_tm": {
+        "auroc": 0.9980580439814815,
+        "at_fpr": {
+          "q0.01": {
+            "threshold": 0.001126754330471158,
+            "tpr": 0.5147222280502319,
+            "realized_fpr": 0.0018055555410683155,
+            "tie_share_at_threshold": 0.0005000000237487257
+          },
+          "q0.05": {
+            "threshold": 0.008544244803488255,
+            "tpr": 0.9166666865348816,
+            "realized_fpr": 0.0023611111100763083,
+            "tie_share_at_threshold": 0.0
+          },
+          "q0.10": {
+            "threshold": 0.10585667192935944,
+            "tpr": 0.9979166388511658,
+            "realized_fpr": 0.0040277778171002865,
+            "tie_share_at_threshold": 0.0
+          },
+          "q0.20": {
+            "threshold": 0.8962283134460449,
+            "tpr": 1.0,
+            "realized_fpr": 0.12097222357988358,
+            "tie_share_at_threshold": 0.0
+          }
+        }
+      },
+      "final_min": {
+        "auroc": 0.9778912326388889,
+        "at_fpr": {
+          "q0.01": {
+            "threshold": 0.004995000082999468,
+            "tpr": 0.0005555555690079927,
+            "realized_fpr": 0.006388888694345951,
+            "tie_share_at_threshold": 0.0
+          },
+          "q0.05": {
+            "threshold": 0.024974999949336052,
+            "tpr": 0.8094444274902344,
+            "realized_fpr": 0.026805555447936058,
+            "tie_share_at_threshold": 0.0
+          },
+          "q0.10": {
+            "threshold": 0.049949999898672104,
+            "tpr": 0.914027750492096,
+            "realized_fpr": 0.06875000149011612,
+            "tie_share_at_threshold": 0.0
+          },
+          "q0.20": {
+            "threshold": 0.10050000250339508,
+            "tpr": 0.9980555772781372,
+            "realized_fpr": 0.12527777254581451,
+            "tie_share_at_threshold": 0.0010000000474974513
+          }
+        }
+      },
+      "final_mean": {
+        "auroc": 0.9971758873456791,
+        "at_fpr": {
+          "q0.01": {
+            "threshold": 0.4372502565383911,
+            "tpr": 0.40930554270744324,
+            "realized_fpr": 0.0023611111100763083,
+            "tie_share_at_threshold": 0.0
+          },
+          "q0.05": {
+            "threshold": 0.4712626338005066,
+            "tpr": 0.9302777647972107,
+            "realized_fpr": 0.004583333153277636,
+            "tie_share_at_threshold": 0.0
+          },
+          "q0.10": {
+            "threshold": 0.5098443627357483,
+            "tpr": 0.9984722137451172,
+            "realized_fpr": 0.007222222164273262,
+            "tie_share_at_threshold": 0.0
+          },
+          "q0.20": {
+            "threshold": 0.8435735702514648,
+            "tpr": 1.0,
+            "realized_fpr": 0.11472222208976746,
+            "tie_share_at_threshold": 0.0
+          }
+        }
+      },
+      "partner": {
+        "auroc": 0.47411835455246915,
+        "at_fpr": {
+          "q0.01": {
+            "threshold": 0.6578787565231323,
+            "tpr": 0.0015277777565643191,
+            "realized_fpr": 0.010555555112659931,
+            "tie_share_at_threshold": 0.0
+          },
+          "q0.05": {
+            "threshold": 0.7528740167617798,
+            "tpr": 0.026805555447936058,
+            "realized_fpr": 0.06708333641290665,
+            "tie_share_at_threshold": 0.0
+          },
+          "q0.10": {
+            "threshold": 0.7865227460861206,
+            "tpr": 0.06305555254220963,
+            "realized_fpr": 0.12180555611848831,
+            "tie_share_at_threshold": 0.0
+          },
+          "q0.20": {
+            "threshold": 0.8271260261535645,
+            "tpr": 0.16513888537883759,
+            "realized_fpr": 0.23694443702697754,
+            "tie_share_at_threshold": 0.0
+          }
+        }
+      }
+    }
+  },
+  "psbd_metrics_control": {
+    "adaptive_rate": 0.3,
+    "auroc": 0.9980580439814815
+  }
 }

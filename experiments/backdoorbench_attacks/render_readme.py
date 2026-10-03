@@ -228,6 +228,11 @@ def scope_section():
         "experiments/backdoorbench_attacks/run_queue.sh model` inside the GPU window, "
         "then `readout.py` and this renderer. A model with a `jobs/<folder>.json` "
         "record is skipped, so the queue starts at the first model without one.",
+        "- 2026-10-03: the resumed queue finished at 02:52 with every readable "
+        "in-scope model evaluated. `gtsrb_trojannn_0_05` reproduces its leaderboard "
+        "entry, and that entry is itself below the success bar, so BackdoorBench's "
+        "own checkpoint carries no working backdoor and is recorded and not swept. "
+        "LIRA has no checkpoint and stays untested.",
     ]
     section = "\n".join(lines)
     return section

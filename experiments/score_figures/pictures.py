@@ -42,6 +42,12 @@ from experiments.cache_readouts.shared import (  # noqa: E402
     ordered_attacks,
 )
 from experiments.score_figures import config  # noqa: E402
+from experiments.score_figures.figures import (  # noqa: E402
+    ATTACK_NAMES,
+    combination_label,
+    model_title,
+    probe_label,
+)
 from scripts.paper._common import OKABE_ITO  # noqa: E402
 
 RESULTS_DIR = "results"
@@ -57,6 +63,11 @@ SET_COLORS = {
 # seed, so a 10000-image triggered split does not hide the clean one.
 MAX_POINTS = 2500
 POINT_SEED = 0
+SET_TITLES = {
+    "vit_panel": "ViT-B/16 panel",
+    "swin_panel": "Swin-S panel",
+    "backdoorbench": "BackdoorBench ViT-B/16",
+}
 PICTURE_NAMES = (
     "scatter",
     "confidence",
@@ -169,7 +180,7 @@ def draw_scatter(model_dir, numbers, options):
         "rules": rules,
     }
 
-    figure, axes = plt.subplots(1, 2, figsize=(11, 5), sharey=True)
+    figure, axes = plt.subplots(1, 2, figsize=(14, 7), sharey=True)
     for axis, (rule, reading) in zip(axes, rules.items()):
         for split, color, label in (
             ("validation", CLEAN_COLOR, "clean validation"),
@@ -179,7 +190,7 @@ def draw_scatter(model_dir, numbers, options):
             axis.scatter(
                 points[0],
                 points[1],
-                s=4,
+                s=10,
                 alpha=0.35,
                 color=color,
                 label=label,
@@ -204,24 +215,30 @@ def draw_scatter(model_dir, numbers, options):
         axis.set_yscale("log")
         axis.set_xlim(low, 1)
         axis.set_ylim(low, 1)
+        pair = f"{short_name(numbers, anchor)} + {short_name(numbers, partner)}"
         rule_name = (
-            "plain min"
+            f"{pair}, plain min"
             if rule == "min"
-            else f"weighted {reading['shares'][0]:g}/{reading['shares'][1]:g}"
+            else f"{pair}, weighted {reading['shares'][0]:g}/{reading['shares'][1]:.2g}"
         )
         axis.set_title(
-            f"{rule_name}: TPR {reading['backdoor']['flagged']:.3f}, "
-            f"validation flagged {reading['validation']['flagged']:.3f}",
-            fontsize=9,
+            f"{rule_name}\nTPR {reading['backdoor']['flagged']:.3f}, "
+            f"clean validation flagged {reading['validation']['flagged']:.3f}",
         )
-        axis.set_xlabel(f"{anchor} percentile in clean validation (log)")
+        axis.set_xlabel(
+            f"{short_name(numbers, anchor)} percentile in clean validation (log)"
+        )
         axis.grid(alpha=0.3)
-        axis.legend(loc="best", fontsize=7, markerscale=3)
-    axes[0].set_ylabel(f"{partner} percentile in clean validation (log)")
+        axis.legend(loc="best", markerscale=2)
+    axes[0].set_ylabel(
+        f"{short_name(numbers, partner)} percentile in clean validation (log)"
+    )
     figure.suptitle(
-        f"{numbers['folder']}: where each fusion rule draws its line "
-        "(dotted, below every clean image)",
-        fontsize=10,
+        f"{model_title(numbers)}: {probe_label(numbers['architecture'], anchor).replace(' alone', '')} at rate "
+        f"{numbers['probes'][anchor]['rate']:g} against\n"
+        f"{probe_label(numbers['architecture'], partner).replace(' alone', '')} at rate "
+        f"{numbers['probes'][partner]['rate']:g}, the dotted lines mark scores below "
+        "every clean image"
     )
     write_figure(
         figure, sidecar, os.path.join(model_dir, f"scatter_{anchor}-{partner}")
@@ -311,7 +328,7 @@ def draw_confidence(model_dir, numbers, options):
             ),
         }
 
-    figure, axes = plt.subplots(1, 2, figsize=(11, 4.8))
+    figure, axes = plt.subplots(1, 2, figsize=(14, 6.5))
     for axis, form in zip(axes, forms):
         for split, color, label in (
             ("validation", CLEAN_COLOR, "clean validation"),
@@ -323,7 +340,7 @@ def draw_confidence(model_dir, numbers, options):
             axis.scatter(
                 points[0],
                 points[1],
-                s=4,
+                s=10,
                 alpha=0.3,
                 color=color,
                 label=label,
@@ -338,18 +355,18 @@ def draw_confidence(model_dir, numbers, options):
             label=f"threshold at {options['budget'] * 100:g}% FPR",
         )
         if form == "absolute":
-            axis.plot([0, 1], [0, 1], color="0.3", lw=1, label="PSU = $P_c$")
+            axis.plot([0, 1], [0, 1], color="0.3", lw=1.5, label="bound PSU = $P_c$")
         axis.set_xlabel("starting confidence $P_c$")
         axis.set_ylabel(f"{form} PSU")
         axis.set_title(
             f"{form}: AUROC {reading['auroc']:.3f}, TPR at "
             f"{options['budget'] * 100:g}% FPR {reading['tpr']:.3f}",
-            fontsize=9,
         )
         axis.grid(alpha=0.3)
-        axis.legend(loc="best", fontsize=7, markerscale=3)
+        axis.legend(loc="best", markerscale=2)
     figure.suptitle(
-        f"{numbers['folder']}: {probe} PSU against starting confidence", fontsize=10
+        f"{model_title(numbers)}: {probe_label(numbers['architecture'], probe)} at rate "
+        f"{numbers['probes'][probe]['rate']:g}, PSU against starting confidence"
     )
     write_figure(figure, sidecar, os.path.join(model_dir, f"confidence_{probe}"))
 
@@ -414,87 +431,83 @@ def draw_shift_ladder(root, set_name, options):
                 },
             }
 
+    architecture = all_numbers[0]["architecture"]
+    for probe in options["probes"]:
+        draw_ladder_grid(set_dir, set_name, architecture, probe, attacks, sidecar)
+    write_json(sidecar, os.path.join(set_dir, "shift_vs_rate.json"))
+
+
+def draw_ladder_grid(set_dir, set_name, architecture, probe, attacks, sidecar):
+    # 4 panels per row keeps every panel at least a quarter of the page width.
+    columns = 4
+    rows = -(-(len(attacks) + 1) // columns)
     figure, axes = plt.subplots(
-        len(options["probes"]),
-        len(attacks),
-        figsize=(2.6 * len(attacks), 2.6 * len(options["probes"]) + 0.6),
+        rows,
+        columns,
+        figsize=(14, 4.2 * rows),
         sharex=True,
         sharey=True,
         squeeze=False,
     )
-    for row, probe in enumerate(options["probes"]):
-        for column, attack in enumerate(attacks):
-            axis = axes[row, column]
-            reading = sidecar["probes"][probe][attack]
-            rates = [float(rate) for rate in reading["by_rate"]]
-            series = {
-                field: [point[field] for point in reading["by_rate"].values()]
-                for field in sidecar["fields"]
-            }
-            axis.plot(
-                rates,
-                series["clean_shift"],
-                color=CLEAN_COLOR,
-                lw=1.6,
-                marker=".",
-                label="clean, share changed",
-            )
-            axis.plot(
-                rates,
-                series["triggered_shift"],
-                color=TRIGGERED_COLOR,
-                lw=1.6,
-                marker=".",
-                label="triggered, share changed",
-            )
-            axis.plot(
-                rates,
-                series["clean_surviving"],
-                color=CLEAN_COLOR,
-                lw=1.2,
-                ls="--",
-                label="clean, surviving probability",
-            )
-            axis.plot(
-                rates,
-                series["triggered_surviving"],
-                color=TRIGGERED_COLOR,
-                lw=1.2,
-                ls="--",
-                label="triggered, surviving probability",
-            )
-            if reading["median_adaptive_rate"] is not None:
-                axis.axvline(
-                    reading["median_adaptive_rate"],
-                    color="k",
-                    lw=0.8,
-                    ls=":",
-                    label="median adaptive rate",
-                )
-            n_models = max(
-                (p["n_models"] for p in reading["by_rate"].values()), default=0
-            )
-            axis.set_title(f"{probe}, {attack} ({n_models})", fontsize=8)
-            axis.set_ylim(0, 1.02)
-            axis.grid(alpha=0.3)
-            if row == len(options["probes"]) - 1:
-                axis.set_xlabel("perturbation rate", fontsize=8)
-    handles, labels = axes[0, 0].get_legend_handles_labels()
-    figure.legend(
-        handles,
-        labels,
-        loc="lower center",
-        ncol=5,
-        fontsize=8,
-        bbox_to_anchor=(0.5, 0.0),
+    styles = (
+        ("clean_shift", CLEAN_COLOR, "-", "clean, share of predictions changed"),
+        (
+            "triggered_shift",
+            TRIGGERED_COLOR,
+            "-",
+            "triggered, share of predictions changed",
+        ),
+        (
+            "clean_surviving",
+            CLEAN_COLOR,
+            "--",
+            "clean, mean probability left on the original class",
+        ),
+        (
+            "triggered_surviving",
+            TRIGGERED_COLOR,
+            "--",
+            "triggered, mean probability left on the original class",
+        ),
     )
+    for index, attack in enumerate(attacks):
+        axis = axes.flat[index]
+        reading = sidecar["probes"][probe][attack]
+        rates = [float(rate) for rate in reading["by_rate"]]
+        for field, color, style, label in styles:
+            values = [point[field] for point in reading["by_rate"].values()]
+            axis.plot(
+                rates, values, color=color, ls=style, marker="o", ms=3, label=label
+            )
+        if reading["median_adaptive_rate"] is not None:
+            axis.axvline(
+                reading["median_adaptive_rate"],
+                color="k",
+                lw=1.5,
+                ls=":",
+                label="median adaptive rate",
+            )
+        n_models = max((p["n_models"] for p in reading["by_rate"].values()), default=0)
+        axis.set_title(f"{ATTACK_NAMES.get(attack, attack)} ({n_models} models)")
+        axis.set_ylim(0, 1.02)
+        axis.grid(alpha=0.3)
+        axis.set_xlabel("perturbation rate")
+        axis.tick_params(labelbottom=True)
+    for axis in axes[:, 0]:
+        axis.set_ylabel("share or probability")
+    spare = axes.flat[len(attacks)]
+    handles, labels = axes.flat[0].get_legend_handles_labels()
+    spare.legend(handles, labels, loc="center", frameon=False)
+    spare.axis("off")
+    for axis in list(axes.flat)[len(attacks) + 1 :]:
+        axis.axis("off")
     figure.suptitle(
-        f"{set_name}: prediction shift and surviving probability along "
-        "the rate ladder, mean per attack (model count)",
-        fontsize=10,
+        f"{SET_TITLES.get(set_name, set_name)}, {probe_label(architecture, probe)}: "
+        "mean per attack along the cached rate ladder"
     )
-    figure.tight_layout(rect=(0, 0.07, 1, 1))
-    write_figure(figure, sidecar, os.path.join(set_dir, "shift_vs_rate"), tight=False)
+    figure.tight_layout()
+    figure.savefig(os.path.join(set_dir, f"shift_vs_rate_{probe}.png"), dpi=config.DPI)
+    plt.close(figure)
 
 
 def ladder_point(psbd_dir, placement, rate, baselines):
@@ -549,7 +562,7 @@ def draw_flip_targets(model_dir, numbers, options):
         "validation_predicted_counts": predicted.tolist(),
     }
 
-    figure, axis = plt.subplots(figsize=(8, 4))
+    figure, axis = plt.subplots(figsize=(9, 5.5))
     classes = np.arange(num_classes)
     axis.bar(classes, counts / max(total, 1), color=CLEAN_COLOR, width=0.85)
     axis.axhline(
@@ -576,18 +589,16 @@ def draw_flip_targets(model_dir, numbers, options):
         textcoords="offset points",
         xytext=(0, 4),
         ha="center",
-        fontsize=8,
     )
     axis.set_xlabel("class the changed prediction moves to")
     axis.set_ylabel("share of changed clean predictions")
     axis.set_ylim(0, 1.1)
     axis.set_title(
-        f"{numbers['folder']}, {probe} at rate {reading['rate']:g}: "
-        f"{total} changed predictions",
-        fontsize=9,
+        f"{model_title(numbers)}\n{probe_label(numbers['architecture'], probe)}, "
+        f"rate {reading['rate']:g}, {total} changed predictions",
     )
     axis.grid(alpha=0.3, axis="y")
-    axis.legend(loc="best", fontsize=8)
+    axis.legend(loc="best")
     write_figure(figure, sidecar, os.path.join(model_dir, f"flip_targets_{probe}"))
 
 
@@ -634,7 +645,7 @@ def draw_evaders(out_dir, options):
     }
     bar = options["success_bar_points"]
     summary = {}
-    figure, axis = plt.subplots(figsize=(8, 7))
+    figure, axis = plt.subplots(figsize=(9, 9))
     for (architecture, family), (marker, color, label) in groups.items():
         members = [
             p
@@ -665,7 +676,7 @@ def draw_evaders(out_dir, options):
                 [p["clean_accuracy_loss_points"] for p in subset],
                 [p["tm_auroc"] for p in subset],
                 marker=marker,
-                s=36,
+                s=70,
                 edgecolors=color,
                 facecolors=color if clears else "none",
                 label=f"{label}, ASR {'clears' if clears else 'below'} the bar",
@@ -674,9 +685,9 @@ def draw_evaders(out_dir, options):
     axis.axhline(0.5, color="0.4", lw=1, ls=":", label="AUROC 0.5")
     axis.set_xlabel("clean-accuracy loss against the benign reference (points)")
     axis.set_ylabel("PSBD-TM AUROC")
-    axis.set_title("Adaptive attackers: what evading PSBD-TM costs", fontsize=10)
+    axis.set_title("Adaptive attackers: what evading PSBD-TM costs")
     axis.grid(alpha=0.3)
-    axis.legend(loc="upper center", bbox_to_anchor=(0.5, -0.12), ncol=2, fontsize=7)
+    axis.legend(loc="upper center", bbox_to_anchor=(0.5, -0.1), ncol=1)
     sidecar = {
         "record": options["record"],
         "success_bar_points": bar,
@@ -716,7 +727,7 @@ def draw_negative_psu(root, options):
             )
 
     summary = {}
-    figure, axis = plt.subplots(figsize=(8, 5.5))
+    figure, axis = plt.subplots(figsize=(9, 7))
     for set_name in options["sets"]:
         members = [p for p in points if p["set"] == set_name]
         shares = [p["negative_share"] for p in members]
@@ -732,10 +743,10 @@ def draw_negative_psu(root, options):
         axis.scatter(
             shares,
             tprs,
-            s=28,
+            s=60,
             color=SET_COLORS.get(set_name, "0.3"),
             alpha=0.8,
-            label=f"{set_name} ({len(members)})",
+            label=f"{SET_TITLES.get(set_name, set_name)} ({len(members)} models)",
         )
     axis.axvline(
         budget, color="k", lw=1, ls="--", label=f"{budget * 100:g}% of clean validation"
@@ -751,18 +762,17 @@ def draw_negative_psu(root, options):
                 (point["negative_share"], point["tpr"]),
                 textcoords="offset points",
                 xytext=(4, -3),
-                fontsize=6,
+                fontsize=config.LEGEND_SIZE - 2,
             )
     axis.set_xlabel(
-        f"share of clean validation with {probe} fractional PSU below 0 (symlog)"
+        "share of clean validation images with PSBD-TM fractional PSU below 0 (symlog)"
     )
-    axis.set_ylabel(f"TPR at {budget * 100:g}% FPR")
+    axis.set_ylabel(f"PSBD-TM TPR at {budget * 100:g}% FPR")
     axis.set_title(
-        f"Share of clean images whose confidence rises under {probe}, against TPR",
-        fontsize=10,
+        "Clean images whose confidence rises under PSBD-TM, against TPR",
     )
     axis.grid(alpha=0.3)
-    axis.legend(loc="best", fontsize=8)
+    axis.legend(loc="upper center", bbox_to_anchor=(0.5, -0.12), ncol=2)
     sidecar = {"probe": probe, "budget": budget, "summary": summary, "points": points}
     write_figure(figure, sidecar, os.path.join(root, ACROSS_SETS, "negative_psu"))
 
@@ -770,7 +780,7 @@ def draw_negative_psu(root, options):
 def draw_threshold_transfer(root, options):
     sidecar = {"curves": options["curves"], "sets": {}}
     figure, axes = plt.subplots(
-        1, len(options["sets"]), figsize=(11, 5), sharey=True, squeeze=False
+        1, len(options["sets"]), figsize=(14, 7), sharey=True, squeeze=False
     )
     for axis, set_name in zip(axes[0], options["sets"]):
         all_numbers = read_all_numbers(os.path.join(root, set_name))
@@ -801,11 +811,11 @@ def draw_threshold_transfer(root, options):
             }
             # A small sideways offset keeps the 2 curves' points apart.
             offset = 1.0 + 0.08 * (index - 0.5)
-            label = key if rule == "psu" else f"{key}, {rule}"
+            label = combination_label(all_numbers[0]["architecture"], key, rule)
             axis.scatter(
                 nominal * offset,
                 realized,
-                s=14,
+                s=30,
                 alpha=0.6,
                 color=OKABE_ITO[index],
                 label=label,
@@ -818,9 +828,11 @@ def draw_threshold_transfer(root, options):
         axis.set_xlim(6e-3, 0.3)
         axis.set_ylim(0, 0.5)
         axis.set_xlabel("nominal FPR (clean-validation quantile)")
-        axis.set_title(f"{set_name}: 1 point per model and budget", fontsize=10)
+        axis.set_title(
+            f"{SET_TITLES.get(set_name, set_name)}: 1 point per model and budget"
+        )
         axis.grid(alpha=0.3)
-        axis.legend(loc="best", fontsize=8)
+        axis.legend(loc="best")
     axes[0, 0].set_ylabel("FPR realized on the paired clean test split (symlog)")
     write_figure(figure, sidecar, os.path.join(root, ACROSS_SETS, "threshold_transfer"))
 
@@ -877,3 +889,13 @@ def write_figure(figure, sidecar, stem, tight=True):
     plt.close(figure)
     with open(f"{stem}.json", "w") as handle:
         json.dump(sidecar, handle, indent=1)
+
+
+def short_name(numbers, probe):
+    name = config.PROBE_SHORT_NAMES[numbers["architecture"]].get(probe, probe)
+    return name
+
+
+def write_json(payload, path):
+    with open(path, "w") as handle:
+        json.dump(payload, handle, indent=1)

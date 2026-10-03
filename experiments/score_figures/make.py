@@ -37,9 +37,12 @@ from experiments.cache_readouts.shared import (
 )
 from experiments.score_figures import config
 from experiments.score_figures.figures import (
+    ATTACK_NAMES,
+    combination_label,
     draw_histogram,
     draw_mean_roc,
     draw_model_roc,
+    model_title,
 )
 from experiments.score_figures.pictures import PICTURE_NAMES, run_pictures
 from scripts.paper.tab_swin import swin_cells
@@ -56,6 +59,11 @@ SPLITS = ("validation", "clean", "backdoor")
 SINGLE_RULE = "psu"
 CUSTOM_SET = "custom"
 SCORES = "scores"
+SET_TITLES = {
+    "vit_panel": "ViT-B/16 panel",
+    "swin_panel": "Swin-S panel",
+    "backdoorbench": "BackdoorBench ViT-B/16 checkpoints",
+}
 
 
 def main():
@@ -374,7 +382,7 @@ def write_model_outputs(set_dir, model, numbers, scores):
         draw_histogram(
             os.path.join(model_dir, f"hist_{key.replace('+', '-')}_{rule}.png"),
             f"{title}\n{curve_label(key, rule, numbers)}",
-            score_axis_label(key, rule),
+            score_axis_label(key, rule, numbers["architecture"]),
             scores_by_split["validation"].float().numpy(),
             scores_by_split["backdoor"].float().numpy(),
             evaluation["histogram"]["bin_edges"],
@@ -385,42 +393,37 @@ def write_model_outputs(set_dir, model, numbers, scores):
         title,
         numbers["roc_fpr_grid"],
         [
-            (key, rule, curve_label(key, rule, numbers), tpr)
+            (key, rule, curve_label(key, rule, numbers, fused_rates=False), tpr)
             for key, rule, tpr in curves
         ],
         combination_order(),
     )
 
 
-def model_title(numbers):
-    rate = numbers["poison_rate"]
-    rate_text = f"{rate * 100:g}%" if rate is not None else "rate unknown"
-    title = (
-        f"{numbers['folder']} ({numbers['attack']}, {numbers['dataset']}, {rate_text})"
-    )
-    return title
-
-
-def curve_label(key, rule, numbers):
-    rates = " ".join(
-        f"{name}@{numbers['probes'][name]['rate']:g}" for name in key.split("+")
+def curve_label(key, rule, numbers, fused_rates=True):
+    architecture = numbers["architecture"]
+    rates = ", ".join(
+        f"{config.PROBE_SHORT_NAMES[architecture].get(name, name)} rate "
+        f"{numbers['probes'][name]['rate']:g}"
+        for name in key.split("+")
     )
     if rule == SINGLE_RULE:
-        return f"{key} ({rates})"
-    if rule == "weighted":
-        return f"{key}, weighted {config.WEIGHTED_FIRST_SHARE:g} ({rates})"
-    return f"{key}, {rule} ({rates})"
+        return f"{combination_label(architecture, key, rule)}, rate {numbers['probes'][key]['rate']:g}"
+    # The ROC legend lists every probe alone with its rate, so its fused entries
+    # leave the rates out to keep the legend no wider than the plot.
+    if not fused_rates:
+        return combination_label(architecture, key, rule)
+    label = f"{combination_label(architecture, key, rule)} ({rates})"
+    return label
 
 
-def score_axis_label(key, rule):
+def score_axis_label(key, rule, architecture):
     if rule == SINGLE_RULE:
-        return f"{key} fractional PSU (lower means more stable, more suspicious)"
+        name = config.PROBE_SHORT_NAMES[architecture].get(key, key)
+        return f"{name} fractional PSU (lower is more suspicious)"
     if rule == "weighted":
-        return (
-            f"min of percentile / share, first share {config.WEIGHTED_FIRST_SHARE:g} "
-            "(lower means more suspicious)"
-        )
-    return "min of clean-validation percentiles (lower means more suspicious)"
+        return "fused score, min of percentile / share (lower is more suspicious)"
+    return "fused score, min of clean-validation percentiles (lower is more suspicious)"
 
 
 def combination_order():
@@ -444,21 +447,32 @@ def write_set_outputs(set_dir, set_name, all_numbers):
     write_csv(mean_rows(set_name, rows), os.path.join(set_dir, "means.csv"))
 
     mean_curves = mean_roc_curves(all_numbers)
+    architecture = all_numbers[0]["architecture"]
+    labels = {
+        ("+".join(combination), rule): combination_label(
+            architecture, "+".join(combination), rule
+        )
+        for combination in config.COMBINATIONS
+        for rule in ([SINGLE_RULE] if len(combination) == 1 else config.FUSION_RULES)
+    }
+    set_title = SET_TITLES.get(set_name, set_name)
     draw_mean_roc(
         os.path.join(set_dir, "mean_roc.png"),
-        f"{set_name}: mean TPR over models as the false-positive budget grows",
+        f"{set_title}: mean TPR over models",
         roc_grid().tolist(),
         mean_curves,
         combination_order(),
+        labels,
     )
     for attack in sorted({numbers["attack"] for numbers in all_numbers}):
         attack_numbers = [n for n in all_numbers if n["attack"] == attack]
         draw_mean_roc(
             os.path.join(set_dir, "mean_roc_by_attack", f"{attack}.png"),
-            f"{set_name}, {attack}: mean TPR over models",
+            f"{set_title}, {ATTACK_NAMES.get(attack, attack)}: mean TPR over models",
             roc_grid().tolist(),
             mean_roc_curves(attack_numbers),
             combination_order(),
+            labels,
         )
 
     index = {

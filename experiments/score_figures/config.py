@@ -62,7 +62,46 @@ ROC_LOWEST_FPR = 1e-3
 HISTOGRAM_UPPER_QUANTILE = 0.6
 HISTOGRAM_BINS = 80
 
-DPI = 90
+DPI = 110
+
+# Font sizes in points and line width, sized so a figure printed at text width
+# still reads at 100% zoom.
+FONT_SIZE = 12.5
+TITLE_SIZE = 14
+LEGEND_SIZE = 11
+LINE_WIDTH = 2.4
+
+# What each probe is called in titles and legends, per architecture. A single
+# probe says "alone" so it is never mistaken for a fusion.
+PROBE_LABELS = {
+    "vit": {
+        "tm": "PSBD-TM alone (token masking, attention input)",
+        "rd": "PSBD-RD alone (dropout after residual adds)",
+        "band": "middle band alone (residual dropout, blocks 5 to 8)",
+        "late": "late band alone (residual dropout, blocks 9 to 12)",
+    },
+    "swin": {
+        "tm": "PSBD-TM alone (token masking, attention input)",
+        "rd": "PSBD-RD alone (dropout after residual adds)",
+        "band": "late band alone (residual dropout, blocks 17 to 24)",
+        "middle": "middle band alone (residual dropout, blocks 9 to 16)",
+    },
+}
+# Short names for the probes inside a fusion label.
+PROBE_SHORT_NAMES = {
+    "vit": {
+        "tm": "PSBD-TM",
+        "rd": "PSBD-RD",
+        "band": "middle band",
+        "late": "late band",
+    },
+    "swin": {
+        "tm": "PSBD-TM",
+        "rd": "PSBD-RD",
+        "band": "late band",
+        "middle": "middle band",
+    },
+}
 
 # The figure types below each have an on/off flag and their own options. A model
 # listed under a set must already have its numbers.json, since every figure reads

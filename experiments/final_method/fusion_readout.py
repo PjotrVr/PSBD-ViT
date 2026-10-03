@@ -6,6 +6,9 @@ its 4 stages). Both are fused with PSBD-TM under the plain minimum of
 clean-validation percentiles and the plain average of fractional PSU, each
 placement at its own adaptive rate, with `fusion_rules.fuse_and_evaluate`.
 
+On Swin-S this middle band is the 1st pre-registered partner, which failed. The
+Swin final method fuses blocks 17 to 24 instead, read by swin_late_readout.py.
+
 2 sets, each read once when its caches are complete.
     swin_panel   the successful Swin-S panel, judged against
                  experiments/cache_readouts/preregistration_swin.json

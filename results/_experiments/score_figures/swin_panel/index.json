@@ -1,0 +1,1183 @@
+{
+ "set": "swin_panel",
+ "generator": "experiments/score_figures/make.py",
+ "git_commit": "2fd473036ea191d80a018a40c755ebb4f350a01e",
+ "adaptive_shift_target": 0.8,
+ "config": {
+  "probes": {
+   "vit": {
+    "tm": "before_attention_norm_token_mask",
+    "rd": "post_residual",
+    "band": "pre_residual_blocks_5_8",
+    "late": "pre_residual_blocks_9_12"
+   },
+   "swin": {
+    "tm": "before_attention_norm_token_mask",
+    "rd": "post_residual",
+    "band": "pre_residual_blocks_17_24",
+    "middle": "pre_residual_blocks_9_16"
+   }
+  },
+  "combinations": [
+   [
+    "tm"
+   ],
+   [
+    "rd"
+   ],
+   [
+    "band"
+   ],
+   [
+    "late"
+   ],
+   [
+    "tm",
+    "band"
+   ],
+   [
+    "tm",
+    "rd"
+   ],
+   [
+    "tm",
+    "band",
+    "rd"
+   ]
+  ],
+  "fusion_rules": [
+   "min",
+   "weighted"
+  ],
+  "weighted_first_share": 0.9,
+  "budgets": [0.01, 0.05, 0.1, 0.2],
+  "histogram_upper_quantile": 0.6
+ },
+ "roc_fpr_grid": [0.001, 0.00106, 0.00112, 0.00119, 0.00126, 0.00134, 0.00142, 0.0015, 0.00159, 0.00169, 0.00179, 0.00189, 0.00201, 0.00213, 0.00225, 0.00239, 0.00253, 0.00268, 0.00284, 0.00301, 0.00319, 0.00338, 0.00359, 0.0038, 0.00403, 0.00427, 0.00452, 0.00479, 0.00508, 0.00538, 0.00571, 0.00605, 0.00641, 0.00679, 0.0072, 0.00763, 0.00808, 0.00857, 0.00908, 0.00962, 0.0102, 0.0108, 0.01145, 0.01213, 0.01286, 0.01363, 0.01444, 0.01531, 0.01622, 0.01719, 0.01822, 0.01931, 0.02046, 0.02168, 0.02298, 0.02435, 0.02581, 0.02735, 0.02899, 0.03072, 0.03255, 0.0345, 0.03656, 0.03875, 0.04106, 0.04352, 0.04612, 0.04887, 0.05179, 0.05489, 0.05817, 0.06165, 0.06533, 0.06924, 0.07337, 0.07776, 0.08241, 0.08733, 0.09255, 0.09808, 0.10395, 0.11016, 0.11674, 0.12372, 0.13111, 0.13895, 0.14725, 0.15605, 0.16538, 0.17527, 0.18574, 0.19684, 0.20861, 0.22107, 0.23429, 0.24829, 0.26313, 0.27885, 0.29552, 0.31318, 0.3319, 0.35174, 0.37276, 0.39504, 0.41865, 0.44367, 0.47019, 0.49829, 0.52807, 0.55963, 0.59307, 0.62852, 0.66608, 0.70589, 0.74808, 0.79279, 0.84017, 0.89039, 0.9436, 1.0],
+ "mean_roc": [
+  {
+   "combination": "tm",
+   "rule": "psu",
+   "n_models": 63,
+   "mean_tpr": [0.69509, 0.69985, 0.70345, 0.70699, 0.71073, 0.71447, 0.71847, 0.72326, 0.72621, 0.729, 0.73225, 0.74063, 0.75149, 0.75691, 0.76171, 0.76593, 0.76978, 0.77233, 0.77482, 0.77734, 0.78058, 0.78354, 0.78601, 0.78848, 0.79091, 0.79296, 0.79504, 0.79739, 0.7997, 0.80222, 0.80483, 0.80729, 0.80943, 0.8113, 0.8132, 0.81507, 0.81683, 0.81902, 0.82095, 0.82284, 0.8252, 0.82735, 0.82917, 0.83134, 0.83352, 0.83635, 0.83855, 0.8413, 0.84406, 0.84687, 0.84908, 0.85179, 0.85465, 0.8579, 0.86101, 0.86506, 0.86858, 0.87148, 0.87488, 0.8798, 0.88369, 0.88636, 0.89035, 0.89292, 0.89588, 0.8987, 0.90082, 0.90391, 0.90693, 0.91012, 0.91354, 0.91647, 0.91914, 0.92205, 0.92497, 0.92739, 0.92941, 0.93234, 0.93471, 0.93777, 0.94042, 0.94324, 0.94577, 0.94773, 0.94951, 0.95121, 0.95276, 0.95401, 0.95555, 0.95701, 0.95858, 0.96024, 0.96223, 0.96429, 0.96601, 0.96756, 0.96888, 0.97013, 0.97122, 0.97253, 0.97366, 0.97483, 0.97602, 0.97748, 0.97856, 0.97979, 0.98093, 0.98202, 0.98314, 0.98452, 0.98608, 0.98753, 0.98889, 0.99003, 0.99116, 0.99233, 0.99358, 0.99475, 0.99637, 0.99902]
+  },
+  {
+   "combination": "rd",
+   "rule": "psu",
+   "n_models": 65,
+   "mean_tpr": [0.22589, 0.23059, 0.23481, 0.23932, 0.24411, 0.24957, 0.26145, 0.30104, 0.30699, 0.3117, 0.31566, 0.3192, 0.33754, 0.33964, 0.34163, 0.34362, 0.34794, 0.35479, 0.36197, 0.38198, 0.38932, 0.39353, 0.41244, 0.41713, 0.42222, 0.42558, 0.42873, 0.43372, 0.45339, 0.45764, 0.46165, 0.46737, 0.47585, 0.4797, 0.48413, 0.49086, 0.49486, 0.49809, 0.5027, 0.50576, 0.50916, 0.5151, 0.52075, 0.52399, 0.52839, 0.53203, 0.53512, 0.53868, 0.54185, 0.54527, 0.54852, 0.55195, 0.55478, 0.55708, 0.55956, 0.5621, 0.56516, 0.56814, 0.5711, 0.57364, 0.5771, 0.58051, 0.58365, 0.58683, 0.58996, 0.5933, 0.59704, 0.60113, 0.60589, 0.61013, 0.61441, 0.6185, 0.62395, 0.63034, 0.63606, 0.64173, 0.64838, 0.65478, 0.66315, 0.67184, 0.68027, 0.68741, 0.69541, 0.70386, 0.71182, 0.71955, 0.72793, 0.73599, 0.7437, 0.75233, 0.76073, 0.7697, 0.77818, 0.78735, 0.79509, 0.80292, 0.81169, 0.82022, 0.82874, 0.83781, 0.84551, 0.85463, 0.86394, 0.87212, 0.88098, 0.88922, 0.89809, 0.90748, 0.91669, 0.92615, 0.9342, 0.94229, 0.95047, 0.95823, 0.9661, 0.97419, 0.98076, 0.98679, 0.99236, 0.99973]
+  },
+  {
+   "combination": "band",
+   "rule": "psu",
+   "n_models": 39,
+   "mean_tpr": [0.32285, 0.3283, 0.33413, 0.34097, 0.3484, 0.35651, 0.36514, 0.3745, 0.3794, 0.38467, 0.39048, 0.39688, 0.40375, 0.40965, 0.41682, 0.42502, 0.43471, 0.44715, 0.46063, 0.47446, 0.4807, 0.48707, 0.4935, 0.49954, 0.50609, 0.51362, 0.52134, 0.52692, 0.53304, 0.53736, 0.54185, 0.54616, 0.55181, 0.55612, 0.5622, 0.57121, 0.58099, 0.58704, 0.59313, 0.5998, 0.60529, 0.6118, 0.61878, 0.62217, 0.62835, 0.63503, 0.64024, 0.64786, 0.65596, 0.66289, 0.6698, 0.67949, 0.68703, 0.69709, 0.70644, 0.71803, 0.72702, 0.73529, 0.74343, 0.75397, 0.76387, 0.77257, 0.78405, 0.79263, 0.8022, 0.81116, 0.82277, 0.83164, 0.83963, 0.84827, 0.8548, 0.86217, 0.86853, 0.87654, 0.88346, 0.88888, 0.89471, 0.90093, 0.90603, 0.91092, 0.91529, 0.92022, 0.92488, 0.92937, 0.9334, 0.93789, 0.9416, 0.94521, 0.94876, 0.95191, 0.95431, 0.95733, 0.95921, 0.96137, 0.96301, 0.96446, 0.96561, 0.9668, 0.96795, 0.96936, 0.97081, 0.97209, 0.97375, 0.97551, 0.97701, 0.97835, 0.98018, 0.98159, 0.98354, 0.98522, 0.98694, 0.98895, 0.99054, 0.99243, 0.99427, 0.99587, 0.99718, 0.99821, 0.99911, 0.99999]
+  },
+  {
+   "combination": "tm+band",
+   "rule": "min",
+   "n_models": 39,
+   "mean_tpr": [0.55874, 0.57473, 0.57473, 0.57473, 0.57473, 0.57473, 0.57473, 0.71398, 0.71398, 0.71398, 0.71398, 0.71398, 0.72362, 0.72362, 0.72476, 0.72476, 0.78814, 0.78814, 0.78916, 0.79829, 0.79829, 0.79829, 0.82202, 0.82287, 0.834, 0.83417, 0.85913, 0.85913, 0.86383, 0.86383, 0.88047, 0.88597, 0.88599, 0.89365, 0.89809, 0.90539, 0.90849, 0.91643, 0.91768, 0.92163, 0.92442, 0.92648, 0.92775, 0.92995, 0.93131, 0.93307, 0.93481, 0.93712, 0.93845, 0.9399, 0.94138, 0.94257, 0.94369, 0.94562, 0.94695, 0.94768, 0.94866, 0.94959, 0.95034, 0.95141, 0.95278, 0.95347, 0.95502, 0.95663, 0.95741, 0.95881, 0.96005, 0.96075, 0.96211, 0.96311, 0.96421, 0.96567, 0.96652, 0.96758, 0.96851, 0.96934, 0.97022, 0.97134, 0.97222, 0.97319, 0.97398, 0.97461, 0.97512, 0.97551, 0.97617, 0.97677, 0.97727, 0.97792, 0.97847, 0.97912, 0.9797, 0.98049, 0.98128, 0.98237, 0.98352, 0.98439, 0.98538, 0.98601, 0.98656, 0.98712, 0.98754, 0.98793, 0.98834, 0.98882, 0.98923, 0.9897, 0.99016, 0.99069, 0.99114, 0.99184, 0.99263, 0.99327, 0.99384, 0.99444, 0.99516, 0.99591, 0.99685, 0.99778, 0.99873, 0.99998]
+  },
+  {
+   "combination": "tm+band",
+   "rule": "weighted",
+   "n_models": 39,
+   "mean_tpr": [0.55385, 0.65684, 0.65684, 0.65684, 0.65876, 0.65876, 0.65876, 0.70795, 0.70795, 0.70795, 0.70797, 0.70797, 0.74451, 0.74451, 0.7446, 0.7446, 0.76863, 0.76863, 0.76863, 0.78153, 0.78153, 0.78153, 0.7887, 0.78887, 0.79582, 0.79582, 0.80954, 0.80954, 0.81876, 0.81876, 0.8234, 0.82592, 0.82592, 0.82822, 0.83096, 0.83273, 0.83447, 0.83674, 0.85063, 0.8523, 0.85419, 0.86578, 0.86692, 0.86943, 0.87127, 0.8734, 0.87544, 0.87759, 0.87937, 0.88237, 0.88439, 0.88887, 0.89353, 0.8955, 0.90219, 0.91006, 0.91182, 0.92407, 0.92644, 0.92858, 0.93279, 0.93709, 0.93982, 0.94435, 0.94635, 0.95007, 0.9517, 0.95443, 0.95643, 0.95792, 0.95953, 0.96122, 0.96234, 0.96371, 0.96502, 0.96593, 0.96691, 0.96809, 0.96927, 0.97022, 0.97111, 0.97198, 0.97265, 0.97334, 0.97392, 0.9744, 0.97505, 0.97554, 0.97616, 0.97684, 0.9775, 0.97802, 0.97847, 0.97896, 0.9795, 0.98005, 0.98064, 0.98122, 0.98168, 0.98215, 0.98261, 0.9831, 0.98353, 0.98399, 0.98462, 0.98512, 0.98564, 0.98618, 0.98687, 0.98749, 0.98818, 0.9889, 0.98963, 0.99054, 0.99146, 0.99252, 0.99352, 0.9946, 0.99608, 0.99859]
+  },
+  {
+   "combination": "tm+rd",
+   "rule": "min",
+   "n_models": 63,
+   "mean_tpr": [0.54938, 0.57614, 0.57614, 0.57614, 0.57722, 0.57722, 0.57722, 0.66366, 0.66366, 0.66366, 0.66372, 0.66372, 0.67662, 0.67662, 0.67662, 0.67662, 0.73805, 0.73805, 0.73805, 0.7448, 0.7448, 0.7448, 0.76652, 0.76657, 0.77013, 0.77013, 0.78571, 0.78571, 0.78856, 0.78856, 0.80046, 0.80331, 0.80331, 0.80795, 0.80998, 0.81516, 0.81671, 0.82264, 0.82438, 0.82722, 0.82814, 0.83158, 0.83318, 0.83651, 0.83797, 0.84053, 0.84186, 0.84355, 0.84569, 0.84771, 0.84957, 0.85205, 0.85446, 0.8567, 0.85771, 0.86025, 0.86254, 0.86498, 0.86669, 0.86963, 0.87298, 0.87463, 0.87744, 0.87985, 0.88406, 0.88679, 0.89099, 0.89388, 0.89702, 0.90087, 0.90515, 0.90919, 0.91248, 0.91576, 0.91859, 0.92188, 0.92434, 0.92772, 0.93132, 0.93512, 0.93937, 0.94271, 0.94538, 0.94763, 0.95035, 0.95241, 0.95437, 0.95678, 0.95906, 0.9618, 0.96416, 0.96607, 0.96875, 0.97047, 0.97249, 0.97417, 0.97565, 0.97717, 0.9788, 0.98001, 0.98132, 0.98236, 0.98339, 0.98469, 0.98556, 0.9864, 0.98733, 0.98813, 0.98893, 0.98974, 0.99052, 0.99128, 0.99207, 0.99285, 0.99367, 0.99446, 0.99529, 0.99625, 0.99744, 0.99964]
+  },
+  {
+   "combination": "tm+rd",
+   "rule": "weighted",
+   "n_models": 63,
+   "mean_tpr": [0.56779, 0.65772, 0.65772, 0.65772, 0.65894, 0.65894, 0.65894, 0.70849, 0.70849, 0.70849, 0.70857, 0.70857, 0.73964, 0.73964, 0.73964, 0.73964, 0.76113, 0.76113, 0.76113, 0.77681, 0.77681, 0.77682, 0.78335, 0.78345, 0.79074, 0.79074, 0.79637, 0.79637, 0.80135, 0.80135, 0.8066, 0.81075, 0.81082, 0.81415, 0.81713, 0.81984, 0.82193, 0.82439, 0.82583, 0.82788, 0.83055, 0.83844, 0.84033, 0.8435, 0.84491, 0.84748, 0.84862, 0.85318, 0.8563, 0.85916, 0.8611, 0.86413, 0.86586, 0.86981, 0.87217, 0.87513, 0.87838, 0.88255, 0.8855, 0.88972, 0.89473, 0.89759, 0.90257, 0.90493, 0.90938, 0.91135, 0.91456, 0.91659, 0.91937, 0.92273, 0.92592, 0.92941, 0.93211, 0.9354, 0.9381, 0.9404, 0.94247, 0.94477, 0.94726, 0.94922, 0.95157, 0.954, 0.95637, 0.95791, 0.95939, 0.96059, 0.9617, 0.96268, 0.96377, 0.96491, 0.96618, 0.96735, 0.96838, 0.96931, 0.97061, 0.97234, 0.97346, 0.97446, 0.97526, 0.97601, 0.97671, 0.97757, 0.97821, 0.97894, 0.97987, 0.98063, 0.98146, 0.98232, 0.9832, 0.98435, 0.98594, 0.98752, 0.98895, 0.99004, 0.9912, 0.99237, 0.99363, 0.99478, 0.99639, 0.99884]
+  },
+  {
+   "combination": "tm+band+rd",
+   "rule": "min",
+   "n_models": 39,
+   "mean_tpr": [0.06141, 0.56185, 0.56185, 0.56185, 0.56185, 0.56185, 0.56185, 0.5871, 0.5871, 0.5871, 0.5871, 0.5871, 0.61742, 0.61742, 0.61743, 0.61743, 0.7133, 0.7133, 0.71549, 0.72811, 0.72811, 0.72811, 0.73242, 0.73242, 0.78002, 0.78002, 0.81855, 0.81855, 0.82292, 0.82292, 0.83414, 0.84794, 0.84794, 0.8537, 0.85886, 0.8718, 0.87414, 0.8861, 0.88876, 0.89076, 0.89676, 0.8997, 0.90051, 0.91434, 0.91674, 0.9236, 0.92471, 0.92845, 0.93003, 0.93217, 0.933, 0.93515, 0.9364, 0.93901, 0.94067, 0.9425, 0.94388, 0.94501, 0.94621, 0.9479, 0.94952, 0.95013, 0.95098, 0.95176, 0.95279, 0.95368, 0.95485, 0.95637, 0.95758, 0.95877, 0.9602, 0.96111, 0.96186, 0.96309, 0.96387, 0.96508, 0.96623, 0.96718, 0.96796, 0.96913, 0.97001, 0.97082, 0.97165, 0.97265, 0.97342, 0.97411, 0.97477, 0.97568, 0.9764, 0.97721, 0.97826, 0.97908, 0.98027, 0.98138, 0.98283, 0.98366, 0.9847, 0.98534, 0.98593, 0.98641, 0.98686, 0.98737, 0.98782, 0.98825, 0.98879, 0.98928, 0.98974, 0.99028, 0.99081, 0.99138, 0.99195, 0.99256, 0.99326, 0.99421, 0.99507, 0.99576, 0.9966, 0.9976, 0.99865, 0.99999]
+  },
+  {
+   "combination": "tm+band+rd",
+   "rule": "weighted",
+   "n_models": 39,
+   "mean_tpr": [0.06162, 0.57935, 0.57935, 0.57935, 0.58126, 0.58126, 0.58126, 0.67037, 0.67037, 0.67037, 0.67039, 0.67039, 0.71593, 0.71593, 0.71593, 0.71593, 0.75702, 0.75702, 0.75711, 0.77547, 0.77547, 0.77547, 0.78345, 0.78357, 0.79009, 0.79015, 0.79744, 0.79744, 0.80409, 0.80409, 0.80823, 0.8119, 0.8119, 0.8146, 0.81743, 0.81966, 0.82146, 0.8237, 0.83182, 0.83302, 0.83778, 0.84067, 0.84195, 0.84429, 0.84586, 0.84928, 0.85067, 0.85376, 0.85655, 0.85867, 0.87388, 0.87568, 0.88448, 0.88686, 0.88822, 0.89089, 0.89538, 0.89845, 0.90166, 0.90481, 0.90952, 0.91263, 0.91644, 0.92226, 0.92507, 0.92711, 0.93478, 0.9368, 0.93906, 0.94209, 0.94967, 0.95181, 0.95433, 0.95614, 0.95785, 0.96067, 0.96181, 0.96447, 0.96628, 0.96753, 0.96908, 0.97043, 0.97147, 0.97238, 0.97307, 0.97369, 0.97444, 0.97499, 0.97571, 0.97636, 0.97707, 0.97765, 0.97811, 0.9786, 0.97906, 0.97961, 0.98013, 0.98057, 0.98102, 0.98146, 0.98193, 0.98243, 0.98285, 0.98332, 0.98385, 0.98437, 0.98488, 0.9855, 0.98613, 0.98671, 0.98746, 0.98819, 0.98899, 0.98986, 0.99078, 0.99187, 0.99292, 0.99402, 0.99561, 0.9984]
+  }
+ ],
+ "models": [
+  {
+   "folder": "swin_cifar100_adaptive_blend_0_05",
+   "dataset": "cifar100",
+   "attack": "adaptive_blend",
+   "poison_rate": 0.05,
+   "rates": {
+    "band": 0.99,
+    "late": null,
+    "rd": 0.07,
+    "tm": 0.5
+   },
+   "skipped_probes": {
+    "late": "probe not defined for this architecture in config.PROBES"
+   },
+   "numbers": "swin_cifar100_adaptive_blend_0_05/numbers.json"
+  },
+  {
+   "folder": "swin_cifar100_adaptive_blend_0_1",
+   "dataset": "cifar100",
+   "attack": "adaptive_blend",
+   "poison_rate": 0.1,
+   "rates": {
+    "band": 0.99,
+    "late": null,
+    "rd": 0.07,
+    "tm": 0.4
+   },
+   "skipped_probes": {
+    "late": "probe not defined for this architecture in config.PROBES"
+   },
+   "numbers": "swin_cifar100_adaptive_blend_0_1/numbers.json"
+  },
+  {
+   "folder": "swin_cifar100_badnet_a2o_0_01",
+   "dataset": "cifar100",
+   "attack": "badnet_a2o",
+   "poison_rate": 0.01,
+   "rates": {
+    "band": 0.99,
+    "late": null,
+    "rd": 0.07,
+    "tm": 0.5
+   },
+   "skipped_probes": {
+    "late": "probe not defined for this architecture in config.PROBES"
+   },
+   "numbers": "swin_cifar100_badnet_a2o_0_01/numbers.json"
+  },
+  {
+   "folder": "swin_cifar100_badnet_a2o_0_05",
+   "dataset": "cifar100",
+   "attack": "badnet_a2o",
+   "poison_rate": 0.05,
+   "rates": {
+    "band": 0.99,
+    "late": null,
+    "rd": 0.07,
+    "tm": 0.4
+   },
+   "skipped_probes": {
+    "late": "probe not defined for this architecture in config.PROBES"
+   },
+   "numbers": "swin_cifar100_badnet_a2o_0_05/numbers.json"
+  },
+  {
+   "folder": "swin_cifar100_badnet_a2o_0_1",
+   "dataset": "cifar100",
+   "attack": "badnet_a2o",
+   "poison_rate": 0.1,
+   "rates": {
+    "band": 0.99,
+    "late": null,
+    "rd": 0.09,
+    "tm": 0.4
+   },
+   "skipped_probes": {
+    "late": "probe not defined for this architecture in config.PROBES"
+   },
+   "numbers": "swin_cifar100_badnet_a2o_0_1/numbers.json"
+  },
+  {
+   "folder": "swin_cifar100_blend_0_01",
+   "dataset": "cifar100",
+   "attack": "blend",
+   "poison_rate": 0.01,
+   "rates": {
+    "band": 0.99,
+    "late": null,
+    "rd": 0.07,
+    "tm": 0.5
+   },
+   "skipped_probes": {
+    "late": "probe not defined for this architecture in config.PROBES"
+   },
+   "numbers": "swin_cifar100_blend_0_01/numbers.json"
+  },
+  {
+   "folder": "swin_cifar100_blend_0_05",
+   "dataset": "cifar100",
+   "attack": "blend",
+   "poison_rate": 0.05,
+   "rates": {
+    "band": 0.99,
+    "late": null,
+    "rd": 0.07,
+    "tm": 0.5
+   },
+   "skipped_probes": {
+    "late": "probe not defined for this architecture in config.PROBES"
+   },
+   "numbers": "swin_cifar100_blend_0_05/numbers.json"
+  },
+  {
+   "folder": "swin_cifar100_blend_0_1",
+   "dataset": "cifar100",
+   "attack": "blend",
+   "poison_rate": 0.1,
+   "rates": {
+    "band": 0.99,
+    "late": null,
+    "rd": 0.07,
+    "tm": 0.5
+   },
+   "skipped_probes": {
+    "late": "probe not defined for this architecture in config.PROBES"
+   },
+   "numbers": "swin_cifar100_blend_0_1/numbers.json"
+  },
+  {
+   "folder": "swin_cifar100_bpp_0_01",
+   "dataset": "cifar100",
+   "attack": "bpp",
+   "poison_rate": 0.01,
+   "rates": {
+    "band": 0.99,
+    "late": null,
+    "rd": 0.07,
+    "tm": 0.5
+   },
+   "skipped_probes": {
+    "late": "probe not defined for this architecture in config.PROBES"
+   },
+   "numbers": "swin_cifar100_bpp_0_01/numbers.json"
+  },
+  {
+   "folder": "swin_cifar100_bpp_0_05",
+   "dataset": "cifar100",
+   "attack": "bpp",
+   "poison_rate": 0.05,
+   "rates": {
+    "band": 0.99,
+    "late": null,
+    "rd": 0.07,
+    "tm": 0.5
+   },
+   "skipped_probes": {
+    "late": "probe not defined for this architecture in config.PROBES"
+   },
+   "numbers": "swin_cifar100_bpp_0_05/numbers.json"
+  },
+  {
+   "folder": "swin_cifar100_bpp_0_1",
+   "dataset": "cifar100",
+   "attack": "bpp",
+   "poison_rate": 0.1,
+   "rates": {
+    "band": 0.99,
+    "late": null,
+    "rd": 0.07,
+    "tm": 0.5
+   },
+   "skipped_probes": {
+    "late": "probe not defined for this architecture in config.PROBES"
+   },
+   "numbers": "swin_cifar100_bpp_0_1/numbers.json"
+  },
+  {
+   "folder": "swin_cifar100_lf_0_01",
+   "dataset": "cifar100",
+   "attack": "lf",
+   "poison_rate": 0.01,
+   "rates": {
+    "band": 0.99,
+    "late": null,
+    "rd": 0.07,
+    "tm": 0.5
+   },
+   "skipped_probes": {
+    "late": "probe not defined for this architecture in config.PROBES"
+   },
+   "numbers": "swin_cifar100_lf_0_01/numbers.json"
+  },
+  {
+   "folder": "swin_cifar100_lf_0_05",
+   "dataset": "cifar100",
+   "attack": "lf",
+   "poison_rate": 0.05,
+   "rates": {
+    "band": 0.99,
+    "late": null,
+    "rd": 0.09,
+    "tm": 0.5
+   },
+   "skipped_probes": {
+    "late": "probe not defined for this architecture in config.PROBES"
+   },
+   "numbers": "swin_cifar100_lf_0_05/numbers.json"
+  },
+  {
+   "folder": "swin_cifar100_lf_0_1",
+   "dataset": "cifar100",
+   "attack": "lf",
+   "poison_rate": 0.1,
+   "rates": {
+    "band": 0.99,
+    "late": null,
+    "rd": 0.07,
+    "tm": 0.5
+   },
+   "skipped_probes": {
+    "late": "probe not defined for this architecture in config.PROBES"
+   },
+   "numbers": "swin_cifar100_lf_0_1/numbers.json"
+  },
+  {
+   "folder": "swin_cifar100_wanet_0_05",
+   "dataset": "cifar100",
+   "attack": "wanet",
+   "poison_rate": 0.05,
+   "rates": {
+    "band": 0.99,
+    "late": null,
+    "rd": 0.07,
+    "tm": 0.4
+   },
+   "skipped_probes": {
+    "late": "probe not defined for this architecture in config.PROBES"
+   },
+   "numbers": "swin_cifar100_wanet_0_05/numbers.json"
+  },
+  {
+   "folder": "swin_cifar100_wanet_0_1",
+   "dataset": "cifar100",
+   "attack": "wanet",
+   "poison_rate": 0.1,
+   "rates": {
+    "band": 0.99,
+    "late": null,
+    "rd": 0.09,
+    "tm": 0.4
+   },
+   "skipped_probes": {
+    "late": "probe not defined for this architecture in config.PROBES"
+   },
+   "numbers": "swin_cifar100_wanet_0_1/numbers.json"
+  },
+  {
+   "folder": "swin_cifar10_adaptive_blend_0_05",
+   "dataset": "cifar10",
+   "attack": "adaptive_blend",
+   "poison_rate": 0.05,
+   "rates": {
+    "band": null,
+    "late": null,
+    "rd": 0.1,
+    "tm": 0.7
+   },
+   "skipped_probes": {
+    "band": "ladder never reaches the 0.8 shift target",
+    "late": "probe not defined for this architecture in config.PROBES"
+   },
+   "numbers": "swin_cifar10_adaptive_blend_0_05/numbers.json"
+  },
+  {
+   "folder": "swin_cifar10_adaptive_blend_0_1",
+   "dataset": "cifar10",
+   "attack": "adaptive_blend",
+   "poison_rate": 0.1,
+   "rates": {
+    "band": null,
+    "late": null,
+    "rd": 0.07,
+    "tm": 0.5
+   },
+   "skipped_probes": {
+    "band": "ladder never reaches the 0.8 shift target",
+    "late": "probe not defined for this architecture in config.PROBES"
+   },
+   "numbers": "swin_cifar10_adaptive_blend_0_1/numbers.json"
+  },
+  {
+   "folder": "swin_cifar10_badnet_a2o_0_01",
+   "dataset": "cifar10",
+   "attack": "badnet_a2o",
+   "poison_rate": 0.01,
+   "rates": {
+    "band": 0.99,
+    "late": null,
+    "rd": 0.1,
+    "tm": 0.6
+   },
+   "skipped_probes": {
+    "late": "probe not defined for this architecture in config.PROBES"
+   },
+   "numbers": "swin_cifar10_badnet_a2o_0_01/numbers.json"
+  },
+  {
+   "folder": "swin_cifar10_badnet_a2o_0_05",
+   "dataset": "cifar10",
+   "attack": "badnet_a2o",
+   "poison_rate": 0.05,
+   "rates": {
+    "band": null,
+    "late": null,
+    "rd": 0.09,
+    "tm": 0.6
+   },
+   "skipped_probes": {
+    "band": "ladder never reaches the 0.8 shift target",
+    "late": "probe not defined for this architecture in config.PROBES"
+   },
+   "numbers": "swin_cifar10_badnet_a2o_0_05/numbers.json"
+  },
+  {
+   "folder": "swin_cifar10_badnet_a2o_0_1",
+   "dataset": "cifar10",
+   "attack": "badnet_a2o",
+   "poison_rate": 0.1,
+   "rates": {
+    "band": null,
+    "late": null,
+    "rd": 0.09,
+    "tm": 0.6
+   },
+   "skipped_probes": {
+    "band": "ladder never reaches the 0.8 shift target",
+    "late": "probe not defined for this architecture in config.PROBES"
+   },
+   "numbers": "swin_cifar10_badnet_a2o_0_1/numbers.json"
+  },
+  {
+   "folder": "swin_cifar10_blend_0_01",
+   "dataset": "cifar10",
+   "attack": "blend",
+   "poison_rate": 0.01,
+   "rates": {
+    "band": null,
+    "late": null,
+    "rd": 0.09,
+    "tm": 0.6
+   },
+   "skipped_probes": {
+    "band": "ladder never reaches the 0.8 shift target",
+    "late": "probe not defined for this architecture in config.PROBES"
+   },
+   "numbers": "swin_cifar10_blend_0_01/numbers.json"
+  },
+  {
+   "folder": "swin_cifar10_blend_0_05",
+   "dataset": "cifar10",
+   "attack": "blend",
+   "poison_rate": 0.05,
+   "rates": {
+    "band": null,
+    "late": null,
+    "rd": 0.09,
+    "tm": 0.6
+   },
+   "skipped_probes": {
+    "band": "ladder never reaches the 0.8 shift target",
+    "late": "probe not defined for this architecture in config.PROBES"
+   },
+   "numbers": "swin_cifar10_blend_0_05/numbers.json"
+  },
+  {
+   "folder": "swin_cifar10_blend_0_1",
+   "dataset": "cifar10",
+   "attack": "blend",
+   "poison_rate": 0.1,
+   "rates": {
+    "band": null,
+    "late": null,
+    "rd": 0.09,
+    "tm": 0.6
+   },
+   "skipped_probes": {
+    "band": "ladder never reaches the 0.8 shift target",
+    "late": "probe not defined for this architecture in config.PROBES"
+   },
+   "numbers": "swin_cifar10_blend_0_1/numbers.json"
+  },
+  {
+   "folder": "swin_cifar10_bpp_0_01",
+   "dataset": "cifar10",
+   "attack": "bpp",
+   "poison_rate": 0.01,
+   "rates": {
+    "band": null,
+    "late": null,
+    "rd": 0.09,
+    "tm": 0.6
+   },
+   "skipped_probes": {
+    "band": "ladder never reaches the 0.8 shift target",
+    "late": "probe not defined for this architecture in config.PROBES"
+   },
+   "numbers": "swin_cifar10_bpp_0_01/numbers.json"
+  },
+  {
+   "folder": "swin_cifar10_bpp_0_05",
+   "dataset": "cifar10",
+   "attack": "bpp",
+   "poison_rate": 0.05,
+   "rates": {
+    "band": null,
+    "late": null,
+    "rd": 0.09,
+    "tm": 0.6
+   },
+   "skipped_probes": {
+    "band": "ladder never reaches the 0.8 shift target",
+    "late": "probe not defined for this architecture in config.PROBES"
+   },
+   "numbers": "swin_cifar10_bpp_0_05/numbers.json"
+  },
+  {
+   "folder": "swin_cifar10_bpp_0_1",
+   "dataset": "cifar10",
+   "attack": "bpp",
+   "poison_rate": 0.1,
+   "rates": {
+    "band": null,
+    "late": null,
+    "rd": 0.09,
+    "tm": 0.5
+   },
+   "skipped_probes": {
+    "band": "ladder never reaches the 0.8 shift target",
+    "late": "probe not defined for this architecture in config.PROBES"
+   },
+   "numbers": "swin_cifar10_bpp_0_1/numbers.json"
+  },
+  {
+   "folder": "swin_cifar10_lf_0_01",
+   "dataset": "cifar10",
+   "attack": "lf",
+   "poison_rate": 0.01,
+   "rates": {
+    "band": null,
+    "late": null,
+    "rd": 0.1,
+    "tm": 0.6
+   },
+   "skipped_probes": {
+    "band": "ladder never reaches the 0.8 shift target",
+    "late": "probe not defined for this architecture in config.PROBES"
+   },
+   "numbers": "swin_cifar10_lf_0_01/numbers.json"
+  },
+  {
+   "folder": "swin_cifar10_lf_0_05",
+   "dataset": "cifar10",
+   "attack": "lf",
+   "poison_rate": 0.05,
+   "rates": {
+    "band": 0.99,
+    "late": null,
+    "rd": 0.1,
+    "tm": 0.6
+   },
+   "skipped_probes": {
+    "late": "probe not defined for this architecture in config.PROBES"
+   },
+   "numbers": "swin_cifar10_lf_0_05/numbers.json"
+  },
+  {
+   "folder": "swin_cifar10_lf_0_1",
+   "dataset": "cifar10",
+   "attack": "lf",
+   "poison_rate": 0.1,
+   "rates": {
+    "band": null,
+    "late": null,
+    "rd": 0.09,
+    "tm": 0.6
+   },
+   "skipped_probes": {
+    "band": "ladder never reaches the 0.8 shift target",
+    "late": "probe not defined for this architecture in config.PROBES"
+   },
+   "numbers": "swin_cifar10_lf_0_1/numbers.json"
+  },
+  {
+   "folder": "swin_cifar10_tact_0_01",
+   "dataset": "cifar10",
+   "attack": "tact",
+   "poison_rate": 0.01,
+   "rates": {
+    "band": null,
+    "late": null,
+    "rd": 0.09,
+    "tm": null
+   },
+   "skipped_probes": {
+    "band": "placement not cached",
+    "late": "probe not defined for this architecture in config.PROBES",
+    "tm": "ladder never reaches the 0.8 shift target"
+   },
+   "numbers": "swin_cifar10_tact_0_01/numbers.json"
+  },
+  {
+   "folder": "swin_cifar10_tact_0_05",
+   "dataset": "cifar10",
+   "attack": "tact",
+   "poison_rate": 0.05,
+   "rates": {
+    "band": null,
+    "late": null,
+    "rd": 0.09,
+    "tm": null
+   },
+   "skipped_probes": {
+    "band": "placement not cached",
+    "late": "probe not defined for this architecture in config.PROBES",
+    "tm": "ladder never reaches the 0.8 shift target"
+   },
+   "numbers": "swin_cifar10_tact_0_05/numbers.json"
+  },
+  {
+   "folder": "swin_cifar10_wanet_0_05",
+   "dataset": "cifar10",
+   "attack": "wanet",
+   "poison_rate": 0.05,
+   "rates": {
+    "band": 0.99,
+    "late": null,
+    "rd": 0.09,
+    "tm": 0.5
+   },
+   "skipped_probes": {
+    "late": "probe not defined for this architecture in config.PROBES"
+   },
+   "numbers": "swin_cifar10_wanet_0_05/numbers.json"
+  },
+  {
+   "folder": "swin_cifar10_wanet_0_1",
+   "dataset": "cifar10",
+   "attack": "wanet",
+   "poison_rate": 0.1,
+   "rates": {
+    "band": 0.99,
+    "late": null,
+    "rd": 0.1,
+    "tm": 0.6
+   },
+   "skipped_probes": {
+    "late": "probe not defined for this architecture in config.PROBES"
+   },
+   "numbers": "swin_cifar10_wanet_0_1/numbers.json"
+  },
+  {
+   "folder": "swin_gtsrb_adaptive_blend_0_05",
+   "dataset": "gtsrb",
+   "attack": "adaptive_blend",
+   "poison_rate": 0.05,
+   "rates": {
+    "band": 0.99,
+    "late": null,
+    "rd": 0.05,
+    "tm": 0.4
+   },
+   "skipped_probes": {
+    "late": "probe not defined for this architecture in config.PROBES"
+   },
+   "numbers": "swin_gtsrb_adaptive_blend_0_05/numbers.json"
+  },
+  {
+   "folder": "swin_gtsrb_adaptive_blend_0_1",
+   "dataset": "gtsrb",
+   "attack": "adaptive_blend",
+   "poison_rate": 0.1,
+   "rates": {
+    "band": 0.99,
+    "late": null,
+    "rd": 0.03,
+    "tm": 0.5
+   },
+   "skipped_probes": {
+    "late": "probe not defined for this architecture in config.PROBES"
+   },
+   "numbers": "swin_gtsrb_adaptive_blend_0_1/numbers.json"
+  },
+  {
+   "folder": "swin_gtsrb_badnet_a2o_0_01",
+   "dataset": "gtsrb",
+   "attack": "badnet_a2o",
+   "poison_rate": 0.01,
+   "rates": {
+    "band": null,
+    "late": null,
+    "rd": 0.09,
+    "tm": 0.5
+   },
+   "skipped_probes": {
+    "band": "ladder never reaches the 0.8 shift target",
+    "late": "probe not defined for this architecture in config.PROBES"
+   },
+   "numbers": "swin_gtsrb_badnet_a2o_0_01/numbers.json"
+  },
+  {
+   "folder": "swin_gtsrb_badnet_a2o_0_05",
+   "dataset": "gtsrb",
+   "attack": "badnet_a2o",
+   "poison_rate": 0.05,
+   "rates": {
+    "band": null,
+    "late": null,
+    "rd": 0.09,
+    "tm": 0.4
+   },
+   "skipped_probes": {
+    "band": "ladder never reaches the 0.8 shift target",
+    "late": "probe not defined for this architecture in config.PROBES"
+   },
+   "numbers": "swin_gtsrb_badnet_a2o_0_05/numbers.json"
+  },
+  {
+   "folder": "swin_gtsrb_badnet_a2o_0_1",
+   "dataset": "gtsrb",
+   "attack": "badnet_a2o",
+   "poison_rate": 0.1,
+   "rates": {
+    "band": null,
+    "late": null,
+    "rd": 0.09,
+    "tm": 0.4
+   },
+   "skipped_probes": {
+    "band": "ladder never reaches the 0.8 shift target",
+    "late": "probe not defined for this architecture in config.PROBES"
+   },
+   "numbers": "swin_gtsrb_badnet_a2o_0_1/numbers.json"
+  },
+  {
+   "folder": "swin_gtsrb_blend_0_01",
+   "dataset": "gtsrb",
+   "attack": "blend",
+   "poison_rate": 0.01,
+   "rates": {
+    "band": null,
+    "late": null,
+    "rd": 0.03,
+    "tm": 0.5
+   },
+   "skipped_probes": {
+    "band": "ladder never reaches the 0.8 shift target",
+    "late": "probe not defined for this architecture in config.PROBES"
+   },
+   "numbers": "swin_gtsrb_blend_0_01/numbers.json"
+  },
+  {
+   "folder": "swin_gtsrb_blend_0_05",
+   "dataset": "gtsrb",
+   "attack": "blend",
+   "poison_rate": 0.05,
+   "rates": {
+    "band": null,
+    "late": null,
+    "rd": 0.02,
+    "tm": 0.5
+   },
+   "skipped_probes": {
+    "band": "ladder never reaches the 0.8 shift target",
+    "late": "probe not defined for this architecture in config.PROBES"
+   },
+   "numbers": "swin_gtsrb_blend_0_05/numbers.json"
+  },
+  {
+   "folder": "swin_gtsrb_blend_0_1",
+   "dataset": "gtsrb",
+   "attack": "blend",
+   "poison_rate": 0.1,
+   "rates": {
+    "band": null,
+    "late": null,
+    "rd": 0.05,
+    "tm": 0.5
+   },
+   "skipped_probes": {
+    "band": "ladder never reaches the 0.8 shift target",
+    "late": "probe not defined for this architecture in config.PROBES"
+   },
+   "numbers": "swin_gtsrb_blend_0_1/numbers.json"
+  },
+  {
+   "folder": "swin_gtsrb_bpp_0_01",
+   "dataset": "gtsrb",
+   "attack": "bpp",
+   "poison_rate": 0.01,
+   "rates": {
+    "band": null,
+    "late": null,
+    "rd": 0.05,
+    "tm": 0.5
+   },
+   "skipped_probes": {
+    "band": "ladder never reaches the 0.8 shift target",
+    "late": "probe not defined for this architecture in config.PROBES"
+   },
+   "numbers": "swin_gtsrb_bpp_0_01/numbers.json"
+  },
+  {
+   "folder": "swin_gtsrb_bpp_0_05",
+   "dataset": "gtsrb",
+   "attack": "bpp",
+   "poison_rate": 0.05,
+   "rates": {
+    "band": null,
+    "late": null,
+    "rd": 0.02,
+    "tm": 0.5
+   },
+   "skipped_probes": {
+    "band": "ladder never reaches the 0.8 shift target",
+    "late": "probe not defined for this architecture in config.PROBES"
+   },
+   "numbers": "swin_gtsrb_bpp_0_05/numbers.json"
+  },
+  {
+   "folder": "swin_gtsrb_bpp_0_1",
+   "dataset": "gtsrb",
+   "attack": "bpp",
+   "poison_rate": 0.1,
+   "rates": {
+    "band": null,
+    "late": null,
+    "rd": 0.02,
+    "tm": 0.4
+   },
+   "skipped_probes": {
+    "band": "ladder never reaches the 0.8 shift target",
+    "late": "probe not defined for this architecture in config.PROBES"
+   },
+   "numbers": "swin_gtsrb_bpp_0_1/numbers.json"
+  },
+  {
+   "folder": "swin_gtsrb_lf_0_01",
+   "dataset": "gtsrb",
+   "attack": "lf",
+   "poison_rate": 0.01,
+   "rates": {
+    "band": null,
+    "late": null,
+    "rd": 0.09,
+    "tm": 0.5
+   },
+   "skipped_probes": {
+    "band": "ladder never reaches the 0.8 shift target",
+    "late": "probe not defined for this architecture in config.PROBES"
+   },
+   "numbers": "swin_gtsrb_lf_0_01/numbers.json"
+  },
+  {
+   "folder": "swin_gtsrb_lf_0_05",
+   "dataset": "gtsrb",
+   "attack": "lf",
+   "poison_rate": 0.05,
+   "rates": {
+    "band": null,
+    "late": null,
+    "rd": 0.07,
+    "tm": 0.4
+   },
+   "skipped_probes": {
+    "band": "ladder never reaches the 0.8 shift target",
+    "late": "probe not defined for this architecture in config.PROBES"
+   },
+   "numbers": "swin_gtsrb_lf_0_05/numbers.json"
+  },
+  {
+   "folder": "swin_gtsrb_lf_0_1",
+   "dataset": "gtsrb",
+   "attack": "lf",
+   "poison_rate": 0.1,
+   "rates": {
+    "band": null,
+    "late": null,
+    "rd": 0.07,
+    "tm": 0.5
+   },
+   "skipped_probes": {
+    "band": "ladder never reaches the 0.8 shift target",
+    "late": "probe not defined for this architecture in config.PROBES"
+   },
+   "numbers": "swin_gtsrb_lf_0_1/numbers.json"
+  },
+  {
+   "folder": "swin_gtsrb_wanet_0_05",
+   "dataset": "gtsrb",
+   "attack": "wanet",
+   "poison_rate": 0.05,
+   "rates": {
+    "band": 0.99,
+    "late": null,
+    "rd": 0.07,
+    "tm": 0.4
+   },
+   "skipped_probes": {
+    "late": "probe not defined for this architecture in config.PROBES"
+   },
+   "numbers": "swin_gtsrb_wanet_0_05/numbers.json"
+  },
+  {
+   "folder": "swin_gtsrb_wanet_0_1",
+   "dataset": "gtsrb",
+   "attack": "wanet",
+   "poison_rate": 0.1,
+   "rates": {
+    "band": 0.99,
+    "late": null,
+    "rd": 0.07,
+    "tm": 0.4
+   },
+   "skipped_probes": {
+    "late": "probe not defined for this architecture in config.PROBES"
+   },
+   "numbers": "swin_gtsrb_wanet_0_1/numbers.json"
+  },
+  {
+   "folder": "swin_tiny_adaptive_blend_0_1",
+   "dataset": "tiny",
+   "attack": "adaptive_blend",
+   "poison_rate": 0.1,
+   "rates": {
+    "band": 0.95,
+    "late": null,
+    "rd": 0.07,
+    "tm": 0.4
+   },
+   "skipped_probes": {
+    "late": "probe not defined for this architecture in config.PROBES"
+   },
+   "numbers": "swin_tiny_adaptive_blend_0_1/numbers.json"
+  },
+  {
+   "folder": "swin_tiny_badnet_a2o_0_01",
+   "dataset": "tiny",
+   "attack": "badnet_a2o",
+   "poison_rate": 0.01,
+   "rates": {
+    "band": 0.99,
+    "late": null,
+    "rd": 0.07,
+    "tm": 0.4
+   },
+   "skipped_probes": {
+    "late": "probe not defined for this architecture in config.PROBES"
+   },
+   "numbers": "swin_tiny_badnet_a2o_0_01/numbers.json"
+  },
+  {
+   "folder": "swin_tiny_badnet_a2o_0_05",
+   "dataset": "tiny",
+   "attack": "badnet_a2o",
+   "poison_rate": 0.05,
+   "rates": {
+    "band": 0.99,
+    "late": null,
+    "rd": 0.07,
+    "tm": 0.4
+   },
+   "skipped_probes": {
+    "late": "probe not defined for this architecture in config.PROBES"
+   },
+   "numbers": "swin_tiny_badnet_a2o_0_05/numbers.json"
+  },
+  {
+   "folder": "swin_tiny_badnet_a2o_0_1",
+   "dataset": "tiny",
+   "attack": "badnet_a2o",
+   "poison_rate": 0.1,
+   "rates": {
+    "band": 0.99,
+    "late": null,
+    "rd": 0.07,
+    "tm": 0.5
+   },
+   "skipped_probes": {
+    "late": "probe not defined for this architecture in config.PROBES"
+   },
+   "numbers": "swin_tiny_badnet_a2o_0_1/numbers.json"
+  },
+  {
+   "folder": "swin_tiny_blend_0_01",
+   "dataset": "tiny",
+   "attack": "blend",
+   "poison_rate": 0.01,
+   "rates": {
+    "band": 0.99,
+    "late": null,
+    "rd": 0.07,
+    "tm": 0.5
+   },
+   "skipped_probes": {
+    "late": "probe not defined for this architecture in config.PROBES"
+   },
+   "numbers": "swin_tiny_blend_0_01/numbers.json"
+  },
+  {
+   "folder": "swin_tiny_blend_0_05",
+   "dataset": "tiny",
+   "attack": "blend",
+   "poison_rate": 0.05,
+   "rates": {
+    "band": 0.99,
+    "late": null,
+    "rd": 0.07,
+    "tm": 0.5
+   },
+   "skipped_probes": {
+    "late": "probe not defined for this architecture in config.PROBES"
+   },
+   "numbers": "swin_tiny_blend_0_05/numbers.json"
+  },
+  {
+   "folder": "swin_tiny_blend_0_1",
+   "dataset": "tiny",
+   "attack": "blend",
+   "poison_rate": 0.1,
+   "rates": {
+    "band": 0.99,
+    "late": null,
+    "rd": 0.07,
+    "tm": 0.5
+   },
+   "skipped_probes": {
+    "late": "probe not defined for this architecture in config.PROBES"
+   },
+   "numbers": "swin_tiny_blend_0_1/numbers.json"
+  },
+  {
+   "folder": "swin_tiny_bpp_0_01",
+   "dataset": "tiny",
+   "attack": "bpp",
+   "poison_rate": 0.01,
+   "rates": {
+    "band": 0.99,
+    "late": null,
+    "rd": 0.07,
+    "tm": 0.5
+   },
+   "skipped_probes": {
+    "late": "probe not defined for this architecture in config.PROBES"
+   },
+   "numbers": "swin_tiny_bpp_0_01/numbers.json"
+  },
+  {
+   "folder": "swin_tiny_bpp_0_05",
+   "dataset": "tiny",
+   "attack": "bpp",
+   "poison_rate": 0.05,
+   "rates": {
+    "band": 0.99,
+    "late": null,
+    "rd": 0.07,
+    "tm": 0.5
+   },
+   "skipped_probes": {
+    "late": "probe not defined for this architecture in config.PROBES"
+   },
+   "numbers": "swin_tiny_bpp_0_05/numbers.json"
+  },
+  {
+   "folder": "swin_tiny_bpp_0_1",
+   "dataset": "tiny",
+   "attack": "bpp",
+   "poison_rate": 0.1,
+   "rates": {
+    "band": 0.99,
+    "late": null,
+    "rd": 0.07,
+    "tm": 0.5
+   },
+   "skipped_probes": {
+    "late": "probe not defined for this architecture in config.PROBES"
+   },
+   "numbers": "swin_tiny_bpp_0_1/numbers.json"
+  },
+  {
+   "folder": "swin_tiny_lf_0_01",
+   "dataset": "tiny",
+   "attack": "lf",
+   "poison_rate": 0.01,
+   "rates": {
+    "band": 0.99,
+    "late": null,
+    "rd": 0.07,
+    "tm": 0.4
+   },
+   "skipped_probes": {
+    "late": "probe not defined for this architecture in config.PROBES"
+   },
+   "numbers": "swin_tiny_lf_0_01/numbers.json"
+  },
+  {
+   "folder": "swin_tiny_lf_0_05",
+   "dataset": "tiny",
+   "attack": "lf",
+   "poison_rate": 0.05,
+   "rates": {
+    "band": 0.99,
+    "late": null,
+    "rd": 0.07,
+    "tm": 0.4
+   },
+   "skipped_probes": {
+    "late": "probe not defined for this architecture in config.PROBES"
+   },
+   "numbers": "swin_tiny_lf_0_05/numbers.json"
+  },
+  {
+   "folder": "swin_tiny_lf_0_1",
+   "dataset": "tiny",
+   "attack": "lf",
+   "poison_rate": 0.1,
+   "rates": {
+    "band": 0.99,
+    "late": null,
+    "rd": 0.07,
+    "tm": 0.4
+   },
+   "skipped_probes": {
+    "late": "probe not defined for this architecture in config.PROBES"
+   },
+   "numbers": "swin_tiny_lf_0_1/numbers.json"
+  },
+  {
+   "folder": "swin_tiny_wanet_0_05",
+   "dataset": "tiny",
+   "attack": "wanet",
+   "poison_rate": 0.05,
+   "rates": {
+    "band": 0.99,
+    "late": null,
+    "rd": 0.07,
+    "tm": 0.4
+   },
+   "skipped_probes": {
+    "late": "probe not defined for this architecture in config.PROBES"
+   },
+   "numbers": "swin_tiny_wanet_0_05/numbers.json"
+  },
+  {
+   "folder": "swin_tiny_wanet_0_1",
+   "dataset": "tiny",
+   "attack": "wanet",
+   "poison_rate": 0.1,
+   "rates": {
+    "band": 0.99,
+    "late": null,
+    "rd": 0.07,
+    "tm": 0.4
+   },
+   "skipped_probes": {
+    "late": "probe not defined for this architecture in config.PROBES"
+   },
+   "numbers": "swin_tiny_wanet_0_1/numbers.json"
+  }
+ ]
+}

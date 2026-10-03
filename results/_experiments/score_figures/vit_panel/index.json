@@ -1,0 +1,935 @@
+{
+ "set": "vit_panel",
+ "generator": "experiments/score_figures/make.py",
+ "git_commit": "2fd473036ea191d80a018a40c755ebb4f350a01e",
+ "adaptive_shift_target": 0.8,
+ "config": {
+  "probes": {
+   "vit": {
+    "tm": "before_attention_norm_token_mask",
+    "rd": "post_residual",
+    "band": "pre_residual_blocks_5_8",
+    "late": "pre_residual_blocks_9_12"
+   },
+   "swin": {
+    "tm": "before_attention_norm_token_mask",
+    "rd": "post_residual",
+    "band": "pre_residual_blocks_17_24",
+    "middle": "pre_residual_blocks_9_16"
+   }
+  },
+  "combinations": [
+   [
+    "tm"
+   ],
+   [
+    "rd"
+   ],
+   [
+    "band"
+   ],
+   [
+    "late"
+   ],
+   [
+    "tm",
+    "band"
+   ],
+   [
+    "tm",
+    "rd"
+   ],
+   [
+    "tm",
+    "band",
+    "rd"
+   ]
+  ],
+  "fusion_rules": [
+   "min",
+   "weighted"
+  ],
+  "weighted_first_share": 0.9,
+  "budgets": [0.01, 0.05, 0.1, 0.2],
+  "histogram_upper_quantile": 0.6
+ },
+ "roc_fpr_grid": [0.001, 0.00106, 0.00112, 0.00119, 0.00126, 0.00134, 0.00142, 0.0015, 0.00159, 0.00169, 0.00179, 0.00189, 0.00201, 0.00213, 0.00225, 0.00239, 0.00253, 0.00268, 0.00284, 0.00301, 0.00319, 0.00338, 0.00359, 0.0038, 0.00403, 0.00427, 0.00452, 0.00479, 0.00508, 0.00538, 0.00571, 0.00605, 0.00641, 0.00679, 0.0072, 0.00763, 0.00808, 0.00857, 0.00908, 0.00962, 0.0102, 0.0108, 0.01145, 0.01213, 0.01286, 0.01363, 0.01444, 0.01531, 0.01622, 0.01719, 0.01822, 0.01931, 0.02046, 0.02168, 0.02298, 0.02435, 0.02581, 0.02735, 0.02899, 0.03072, 0.03255, 0.0345, 0.03656, 0.03875, 0.04106, 0.04352, 0.04612, 0.04887, 0.05179, 0.05489, 0.05817, 0.06165, 0.06533, 0.06924, 0.07337, 0.07776, 0.08241, 0.08733, 0.09255, 0.09808, 0.10395, 0.11016, 0.11674, 0.12372, 0.13111, 0.13895, 0.14725, 0.15605, 0.16538, 0.17527, 0.18574, 0.19684, 0.20861, 0.22107, 0.23429, 0.24829, 0.26313, 0.27885, 0.29552, 0.31318, 0.3319, 0.35174, 0.37276, 0.39504, 0.41865, 0.44367, 0.47019, 0.49829, 0.52807, 0.55963, 0.59307, 0.62852, 0.66608, 0.70589, 0.74808, 0.79279, 0.84017, 0.89039, 0.9436, 1.0],
+ "mean_roc": [
+  {
+   "combination": "tm",
+   "rule": "psu",
+   "n_models": 56,
+   "mean_tpr": [0.42631, 0.43887, 0.44344, 0.44739, 0.45111, 0.4706, 0.47531, 0.48957, 0.49462, 0.4992, 0.50367, 0.5079, 0.5124, 0.52117, 0.53308, 0.54477, 0.55175, 0.55767, 0.56302, 0.56882, 0.57421, 0.58142, 0.60694, 0.61462, 0.61951, 0.62525, 0.64602, 0.64993, 0.65495, 0.66177, 0.66842, 0.67372, 0.67848, 0.68533, 0.69243, 0.69967, 0.70813, 0.71798, 0.72548, 0.73224, 0.73724, 0.74221, 0.74725, 0.75282, 0.75958, 0.76406, 0.7686, 0.77228, 0.77601, 0.78072, 0.78545, 0.78969, 0.79361, 0.79742, 0.80105, 0.80431, 0.8074, 0.81076, 0.81448, 0.81727, 0.82006, 0.82339, 0.82579, 0.82862, 0.83137, 0.83405, 0.83626, 0.83895, 0.84256, 0.84486, 0.84751, 0.85037, 0.8533, 0.85637, 0.859, 0.86126, 0.8637, 0.86612, 0.8687, 0.8713, 0.87408, 0.87702, 0.87974, 0.88211, 0.8843, 0.88692, 0.88906, 0.89177, 0.89383, 0.89592, 0.89802, 0.8998, 0.90147, 0.90329, 0.90479, 0.90638, 0.90757, 0.90912, 0.91071, 0.91208, 0.91383, 0.91536, 0.91735, 0.91977, 0.92222, 0.92522, 0.92894, 0.93323, 0.9385, 0.94661, 0.95415, 0.96041, 0.96617, 0.97233, 0.97809, 0.98376, 0.98896, 0.99288, 0.99554, 0.9999]
+  },
+  {
+   "combination": "rd",
+   "rule": "psu",
+   "n_models": 56,
+   "mean_tpr": [0.38074, 0.38322, 0.38592, 0.3888, 0.39213, 0.39562, 0.39976, 0.40441, 0.40728, 0.41042, 0.41362, 0.4172, 0.42106, 0.42518, 0.42978, 0.43465, 0.4391, 0.44155, 0.44428, 0.44721, 0.45116, 0.45548, 0.46, 0.46477, 0.46999, 0.47485, 0.47982, 0.48386, 0.48822, 0.49358, 0.49829, 0.50301, 0.50721, 0.51221, 0.51711, 0.52122, 0.52535, 0.53022, 0.53393, 0.53799, 0.54293, 0.54669, 0.5512, 0.55647, 0.56054, 0.56509, 0.56946, 0.57317, 0.57743, 0.58216, 0.58695, 0.5917, 0.59577, 0.6, 0.60358, 0.60874, 0.61288, 0.61737, 0.62149, 0.62596, 0.6316, 0.63635, 0.64028, 0.64534, 0.64963, 0.65395, 0.65831, 0.66247, 0.66703, 0.67209, 0.67671, 0.68097, 0.68647, 0.69116, 0.69542, 0.70041, 0.70521, 0.71004, 0.71512, 0.72001, 0.72502, 0.72938, 0.73385, 0.73923, 0.74443, 0.74979, 0.75573, 0.76141, 0.76718, 0.77216, 0.77802, 0.78392, 0.78967, 0.79509, 0.80085, 0.807, 0.81291, 0.81876, 0.82519, 0.83152, 0.838, 0.84399, 0.85052, 0.85754, 0.86411, 0.87111, 0.87798, 0.88525, 0.89304, 0.90017, 0.90779, 0.91648, 0.92549, 0.9345, 0.94407, 0.95403, 0.96515, 0.97694, 0.98864, 0.99984]
+  },
+  {
+   "combination": "band",
+   "rule": "psu",
+   "n_models": 56,
+   "mean_tpr": [0.34708, 0.351, 0.35523, 0.35979, 0.36471, 0.36998, 0.37572, 0.3819, 0.38509, 0.38845, 0.39204, 0.39608, 0.40076, 0.4077, 0.41448, 0.42151, 0.42829, 0.43456, 0.44102, 0.44772, 0.45453, 0.46179, 0.46973, 0.47831, 0.48589, 0.49312, 0.49928, 0.5034, 0.5075, 0.51162, 0.51639, 0.52214, 0.52729, 0.53231, 0.53776, 0.54301, 0.5473, 0.55208, 0.5561, 0.56066, 0.56489, 0.56966, 0.57525, 0.58022, 0.58477, 0.58935, 0.5943, 0.59917, 0.60447, 0.60909, 0.61363, 0.61787, 0.62176, 0.62545, 0.62869, 0.63322, 0.63861, 0.64339, 0.64735, 0.6521, 0.65666, 0.66105, 0.66581, 0.67086, 0.67575, 0.68049, 0.68477, 0.68964, 0.69439, 0.69874, 0.70455, 0.7106, 0.71515, 0.72007, 0.72421, 0.72897, 0.73341, 0.73803, 0.74377, 0.74909, 0.75442, 0.75972, 0.76427, 0.76919, 0.77433, 0.77988, 0.78469, 0.79038, 0.79543, 0.80087, 0.806, 0.81253, 0.8186, 0.82502, 0.83142, 0.83772, 0.84425, 0.85033, 0.85695, 0.86388, 0.87069, 0.8773, 0.88379, 0.88993, 0.89705, 0.90359, 0.9103, 0.91719, 0.92508, 0.93311, 0.94007, 0.94771, 0.95494, 0.96198, 0.96987, 0.97775, 0.9851, 0.99158, 0.99706, 0.99997]
+  },
+  {
+   "combination": "late",
+   "rule": "psu",
+   "n_models": 41,
+   "mean_tpr": [0.51201, 0.51466, 0.51749, 0.52069, 0.52405, 0.52789, 0.53185, 0.53598, 0.53769, 0.53944, 0.54124, 0.5431, 0.5451, 0.54738, 0.54973, 0.5524, 0.55534, 0.55838, 0.56167, 0.56504, 0.56769, 0.5704, 0.57296, 0.5755, 0.57816, 0.58061, 0.58305, 0.58476, 0.58704, 0.59086, 0.5936, 0.59549, 0.59839, 0.60149, 0.60426, 0.60685, 0.60967, 0.61227, 0.61456, 0.61689, 0.61991, 0.62388, 0.62844, 0.63185, 0.63523, 0.63849, 0.64287, 0.64781, 0.65109, 0.65514, 0.65899, 0.66335, 0.66715, 0.6698, 0.67231, 0.67609, 0.68022, 0.68383, 0.68806, 0.69197, 0.69688, 0.70079, 0.70414, 0.70817, 0.71143, 0.71549, 0.71982, 0.72325, 0.72726, 0.73202, 0.73653, 0.74154, 0.74576, 0.75038, 0.75463, 0.75838, 0.76217, 0.76646, 0.77047, 0.77496, 0.77936, 0.78391, 0.78843, 0.79306, 0.7981, 0.80335, 0.80855, 0.81387, 0.8186, 0.82345, 0.82811, 0.83436, 0.8397, 0.84543, 0.85083, 0.85647, 0.86274, 0.86806, 0.87418, 0.87979, 0.88582, 0.89181, 0.89792, 0.90348, 0.91012, 0.91616, 0.92238, 0.92858, 0.93537, 0.94137, 0.94793, 0.95509, 0.96208, 0.96801, 0.97407, 0.97992, 0.98609, 0.99119, 0.99628, 0.99999]
+  },
+  {
+   "combination": "tm+band",
+   "rule": "min",
+   "n_models": 56,
+   "mean_tpr": [0.35775, 0.38356, 0.38356, 0.38356, 0.38356, 0.38356, 0.38356, 0.46923, 0.46923, 0.46923, 0.46923, 0.46923, 0.4951, 0.4951, 0.4951, 0.4951, 0.54896, 0.54896, 0.54896, 0.56068, 0.56068, 0.56124, 0.60263, 0.60263, 0.60627, 0.60627, 0.622, 0.622, 0.63644, 0.63644, 0.66537, 0.67081, 0.67084, 0.68809, 0.70493, 0.7255, 0.72875, 0.73395, 0.73739, 0.74212, 0.74505, 0.75329, 0.75794, 0.76454, 0.77368, 0.77964, 0.78494, 0.79209, 0.79896, 0.80303, 0.8058, 0.80902, 0.81173, 0.81578, 0.8181, 0.82216, 0.82511, 0.82831, 0.8312, 0.8344, 0.83701, 0.83911, 0.84362, 0.84585, 0.84843, 0.8508, 0.85374, 0.85621, 0.85914, 0.86186, 0.8644, 0.86705, 0.86928, 0.87247, 0.87529, 0.87812, 0.88066, 0.88288, 0.88557, 0.88866, 0.89165, 0.89477, 0.89781, 0.90075, 0.904, 0.90611, 0.90849, 0.91067, 0.91304, 0.91559, 0.91787, 0.92019, 0.92254, 0.92471, 0.92702, 0.92959, 0.93203, 0.93461, 0.93686, 0.93921, 0.94102, 0.9434, 0.9457, 0.94797, 0.95035, 0.95291, 0.95602, 0.95915, 0.96252, 0.9663, 0.97028, 0.9756, 0.98271, 0.98798, 0.99106, 0.99362, 0.9955, 0.99726, 0.99878, 0.9999]
+  },
+  {
+   "combination": "tm+band",
+   "rule": "weighted",
+   "n_models": 56,
+   "mean_tpr": [0.37824, 0.4327, 0.4327, 0.4327, 0.4337, 0.4337, 0.4337, 0.50723, 0.50723, 0.50723, 0.50723, 0.50723, 0.5537, 0.5537, 0.55453, 0.55453, 0.57759, 0.57759, 0.57759, 0.59691, 0.59691, 0.59691, 0.61096, 0.61186, 0.6435, 0.6435, 0.66684, 0.66684, 0.67584, 0.67584, 0.68448, 0.68993, 0.69029, 0.69884, 0.7049, 0.71744, 0.72412, 0.73498, 0.74096, 0.74778, 0.75346, 0.76008, 0.76364, 0.77082, 0.77377, 0.78006, 0.78232, 0.78819, 0.79223, 0.79613, 0.79905, 0.80195, 0.80513, 0.8106, 0.81302, 0.81617, 0.8224, 0.8246, 0.82696, 0.83207, 0.83494, 0.8375, 0.84062, 0.84301, 0.84515, 0.84762, 0.85064, 0.85329, 0.85565, 0.85834, 0.86132, 0.86384, 0.86654, 0.86952, 0.87341, 0.87576, 0.87795, 0.88024, 0.88277, 0.88531, 0.88772, 0.89052, 0.89349, 0.89593, 0.89834, 0.90038, 0.90236, 0.90477, 0.90696, 0.90951, 0.91119, 0.91345, 0.9153, 0.91685, 0.91892, 0.92039, 0.92217, 0.92355, 0.9254, 0.9267, 0.9285, 0.93004, 0.93185, 0.93424, 0.93667, 0.93946, 0.94346, 0.94756, 0.95242, 0.96074, 0.9679, 0.97301, 0.9771, 0.98146, 0.98554, 0.98944, 0.99275, 0.99526, 0.99682, 0.9997]
+  },
+  {
+   "combination": "tm+rd",
+   "rule": "min",
+   "n_models": 56,
+   "mean_tpr": [0.39837, 0.41819, 0.41819, 0.41819, 0.41819, 0.41819, 0.41819, 0.48484, 0.48484, 0.48484, 0.48484, 0.48484, 0.50504, 0.50504, 0.50504, 0.50504, 0.56147, 0.56147, 0.56147, 0.57803, 0.57803, 0.57803, 0.60388, 0.60388, 0.61507, 0.61507, 0.62518, 0.62542, 0.63927, 0.63952, 0.65818, 0.6704, 0.6704, 0.67726, 0.68552, 0.70234, 0.70714, 0.71224, 0.71748, 0.7239, 0.7289, 0.73491, 0.73799, 0.74687, 0.75089, 0.75907, 0.76646, 0.77422, 0.78125, 0.78664, 0.79192, 0.79605, 0.80002, 0.80634, 0.81092, 0.81632, 0.82027, 0.8257, 0.82857, 0.83305, 0.83878, 0.84222, 0.8466, 0.85026, 0.8534, 0.85613, 0.85942, 0.86201, 0.86473, 0.86767, 0.87064, 0.87303, 0.87581, 0.8784, 0.88111, 0.88382, 0.88654, 0.88898, 0.89127, 0.89391, 0.89608, 0.89871, 0.90137, 0.9043, 0.90719, 0.90936, 0.91174, 0.91414, 0.91658, 0.91935, 0.92175, 0.92388, 0.92625, 0.92837, 0.93026, 0.93274, 0.93501, 0.9373, 0.93933, 0.94149, 0.94328, 0.94536, 0.94698, 0.94893, 0.95072, 0.95285, 0.95478, 0.95686, 0.9598, 0.96246, 0.96623, 0.97012, 0.97519, 0.98226, 0.98832, 0.99218, 0.99473, 0.99686, 0.99861, 0.99995]
+  },
+  {
+   "combination": "tm+rd",
+   "rule": "weighted",
+   "n_models": 56,
+   "mean_tpr": [0.41141, 0.46543, 0.46543, 0.46543, 0.46565, 0.46565, 0.46565, 0.52109, 0.52109, 0.52109, 0.52109, 0.52109, 0.55169, 0.55169, 0.55178, 0.55178, 0.56772, 0.56772, 0.57322, 0.60116, 0.60116, 0.6027, 0.61658, 0.61729, 0.63579, 0.63579, 0.65913, 0.65913, 0.66803, 0.66803, 0.67482, 0.6817, 0.6817, 0.69142, 0.69601, 0.70889, 0.71558, 0.7272, 0.73237, 0.74103, 0.74412, 0.75077, 0.75576, 0.76316, 0.76578, 0.77272, 0.77768, 0.78341, 0.78726, 0.79102, 0.79532, 0.8009, 0.80395, 0.80849, 0.81124, 0.81694, 0.81995, 0.82296, 0.8261, 0.82982, 0.8327, 0.83646, 0.83988, 0.84192, 0.84464, 0.84663, 0.85023, 0.85239, 0.85517, 0.85828, 0.86115, 0.86339, 0.86596, 0.86841, 0.87179, 0.87431, 0.87649, 0.87938, 0.88208, 0.88494, 0.8874, 0.89044, 0.8933, 0.89556, 0.89792, 0.89995, 0.90214, 0.90444, 0.90705, 0.90925, 0.91154, 0.91368, 0.91534, 0.91712, 0.9189, 0.92045, 0.92202, 0.92344, 0.92489, 0.92658, 0.92828, 0.93023, 0.93228, 0.93487, 0.93734, 0.93997, 0.94351, 0.94718, 0.95198, 0.95997, 0.96705, 0.97244, 0.9768, 0.98099, 0.98506, 0.98883, 0.99209, 0.99487, 0.99661, 0.99971]
+  },
+  {
+   "combination": "tm+band+rd",
+   "rule": "min",
+   "n_models": 56,
+   "mean_tpr": [0.05271, 0.44436, 0.44436, 0.44436, 0.44436, 0.44436, 0.44436, 0.46388, 0.46388, 0.46388, 0.46388, 0.46388, 0.50534, 0.50534, 0.50534, 0.50534, 0.54946, 0.54946, 0.54946, 0.5619, 0.5619, 0.5619, 0.59033, 0.59033, 0.62247, 0.62247, 0.64334, 0.64418, 0.65674, 0.65674, 0.66498, 0.67232, 0.67232, 0.68919, 0.69618, 0.71254, 0.72411, 0.72843, 0.73816, 0.74507, 0.75553, 0.76155, 0.76698, 0.77421, 0.77727, 0.78522, 0.78769, 0.79266, 0.79971, 0.80371, 0.80732, 0.81554, 0.82048, 0.8273, 0.82997, 0.83319, 0.83656, 0.83951, 0.8424, 0.84682, 0.85017, 0.85176, 0.85469, 0.85746, 0.85996, 0.86151, 0.86515, 0.86757, 0.87041, 0.87278, 0.87575, 0.87805, 0.88003, 0.88257, 0.88468, 0.88722, 0.88931, 0.89148, 0.89371, 0.89626, 0.89851, 0.90087, 0.90279, 0.90479, 0.90689, 0.90926, 0.91133, 0.91342, 0.91652, 0.91941, 0.92148, 0.92335, 0.92548, 0.92754, 0.92992, 0.93208, 0.93403, 0.93616, 0.93863, 0.94066, 0.94314, 0.94539, 0.94791, 0.95008, 0.95215, 0.9546, 0.95685, 0.95958, 0.96217, 0.96505, 0.96837, 0.97188, 0.97625, 0.98101, 0.98717, 0.99216, 0.99538, 0.99741, 0.99895, 0.99996]
+  },
+  {
+   "combination": "tm+band+rd",
+   "rule": "weighted",
+   "n_models": 56,
+   "mean_tpr": [0.06483, 0.47362, 0.47362, 0.47362, 0.47683, 0.47683, 0.47683, 0.51638, 0.51638, 0.51638, 0.51715, 0.51715, 0.55772, 0.55772, 0.5578, 0.5578, 0.5856, 0.5856, 0.58643, 0.61046, 0.61046, 0.61573, 0.62917, 0.6312, 0.64384, 0.64384, 0.67417, 0.67417, 0.68151, 0.68151, 0.68812, 0.69401, 0.69401, 0.70261, 0.70765, 0.72223, 0.73001, 0.73943, 0.74581, 0.75027, 0.75473, 0.75752, 0.76337, 0.76952, 0.77277, 0.77897, 0.78203, 0.78696, 0.79084, 0.79413, 0.79731, 0.80105, 0.80614, 0.81447, 0.81634, 0.81946, 0.82228, 0.82483, 0.82751, 0.832, 0.83505, 0.83708, 0.84027, 0.84318, 0.84694, 0.84895, 0.85199, 0.85439, 0.85862, 0.86127, 0.86403, 0.86687, 0.86939, 0.87286, 0.87611, 0.87813, 0.88052, 0.88311, 0.88603, 0.88831, 0.89076, 0.89337, 0.89585, 0.89851, 0.90052, 0.90256, 0.90481, 0.90681, 0.90896, 0.91119, 0.91316, 0.91546, 0.91758, 0.91889, 0.92126, 0.92257, 0.92404, 0.92544, 0.92711, 0.92889, 0.93055, 0.93234, 0.93422, 0.9365, 0.93892, 0.94141, 0.94494, 0.94877, 0.95349, 0.96126, 0.96794, 0.97347, 0.97787, 0.98178, 0.98584, 0.98936, 0.99257, 0.99515, 0.99672, 0.9997]
+  }
+ ],
+ "models": [
+  {
+   "folder": "vit_cifar100_badnet_a2o_0_01",
+   "dataset": "cifar100",
+   "attack": "badnet_a2o",
+   "poison_rate": 0.01,
+   "rates": {
+    "band": 0.7,
+    "late": 0.9,
+    "rd": 0.07,
+    "tm": 0.5
+   },
+   "skipped_probes": {},
+   "numbers": "vit_cifar100_badnet_a2o_0_01/numbers.json"
+  },
+  {
+   "folder": "vit_cifar100_badnet_a2o_0_05",
+   "dataset": "cifar100",
+   "attack": "badnet_a2o",
+   "poison_rate": 0.05,
+   "rates": {
+    "band": 0.8,
+    "late": 0.9,
+    "rd": 0.07,
+    "tm": 0.5
+   },
+   "skipped_probes": {},
+   "numbers": "vit_cifar100_badnet_a2o_0_05/numbers.json"
+  },
+  {
+   "folder": "vit_cifar100_badnet_a2o_0_1",
+   "dataset": "cifar100",
+   "attack": "badnet_a2o",
+   "poison_rate": 0.1,
+   "rates": {
+    "band": 0.7,
+    "late": 0.9,
+    "rd": 0.07,
+    "tm": 0.5
+   },
+   "skipped_probes": {},
+   "numbers": "vit_cifar100_badnet_a2o_0_1/numbers.json"
+  },
+  {
+   "folder": "vit_cifar100_blend_0_01",
+   "dataset": "cifar100",
+   "attack": "blend",
+   "poison_rate": 0.01,
+   "rates": {
+    "band": 0.8,
+    "late": 0.9,
+    "rd": 0.07,
+    "tm": 0.5
+   },
+   "skipped_probes": {},
+   "numbers": "vit_cifar100_blend_0_01/numbers.json"
+  },
+  {
+   "folder": "vit_cifar100_blend_0_05",
+   "dataset": "cifar100",
+   "attack": "blend",
+   "poison_rate": 0.05,
+   "rates": {
+    "band": 0.8,
+    "late": 0.9,
+    "rd": 0.07,
+    "tm": 0.6
+   },
+   "skipped_probes": {},
+   "numbers": "vit_cifar100_blend_0_05/numbers.json"
+  },
+  {
+   "folder": "vit_cifar100_blend_0_1",
+   "dataset": "cifar100",
+   "attack": "blend",
+   "poison_rate": 0.1,
+   "rates": {
+    "band": 0.7,
+    "late": 0.9,
+    "rd": 0.07,
+    "tm": 0.5
+   },
+   "skipped_probes": {},
+   "numbers": "vit_cifar100_blend_0_1/numbers.json"
+  },
+  {
+   "folder": "vit_cifar100_bpp_0_01",
+   "dataset": "cifar100",
+   "attack": "bpp",
+   "poison_rate": 0.01,
+   "rates": {
+    "band": 0.7,
+    "late": 0.9,
+    "rd": 0.07,
+    "tm": 0.5
+   },
+   "skipped_probes": {},
+   "numbers": "vit_cifar100_bpp_0_01/numbers.json"
+  },
+  {
+   "folder": "vit_cifar100_bpp_0_05",
+   "dataset": "cifar100",
+   "attack": "bpp",
+   "poison_rate": 0.05,
+   "rates": {
+    "band": 0.8,
+    "late": 0.9,
+    "rd": 0.07,
+    "tm": 0.5
+   },
+   "skipped_probes": {},
+   "numbers": "vit_cifar100_bpp_0_05/numbers.json"
+  },
+  {
+   "folder": "vit_cifar100_bpp_0_1",
+   "dataset": "cifar100",
+   "attack": "bpp",
+   "poison_rate": 0.1,
+   "rates": {
+    "band": 0.8,
+    "late": 0.9,
+    "rd": 0.07,
+    "tm": 0.5
+   },
+   "skipped_probes": {},
+   "numbers": "vit_cifar100_bpp_0_1/numbers.json"
+  },
+  {
+   "folder": "vit_cifar100_lf_0_01",
+   "dataset": "cifar100",
+   "attack": "lf",
+   "poison_rate": 0.01,
+   "rates": {
+    "band": 0.8,
+    "late": 0.9,
+    "rd": 0.07,
+    "tm": 0.5
+   },
+   "skipped_probes": {},
+   "numbers": "vit_cifar100_lf_0_01/numbers.json"
+  },
+  {
+   "folder": "vit_cifar100_lf_0_05",
+   "dataset": "cifar100",
+   "attack": "lf",
+   "poison_rate": 0.05,
+   "rates": {
+    "band": 0.8,
+    "late": 0.9,
+    "rd": 0.07,
+    "tm": 0.5
+   },
+   "skipped_probes": {},
+   "numbers": "vit_cifar100_lf_0_05/numbers.json"
+  },
+  {
+   "folder": "vit_cifar100_lf_0_1",
+   "dataset": "cifar100",
+   "attack": "lf",
+   "poison_rate": 0.1,
+   "rates": {
+    "band": 0.7,
+    "late": 0.9,
+    "rd": 0.07,
+    "tm": 0.5
+   },
+   "skipped_probes": {},
+   "numbers": "vit_cifar100_lf_0_1/numbers.json"
+  },
+  {
+   "folder": "vit_cifar10_badnet_a2o_0_01",
+   "dataset": "cifar10",
+   "attack": "badnet_a2o",
+   "poison_rate": 0.01,
+   "rates": {
+    "band": 0.9,
+    "late": null,
+    "rd": 0.09,
+    "tm": 0.8
+   },
+   "skipped_probes": {
+    "late": "ladder never reaches the 0.8 shift target"
+   },
+   "numbers": "vit_cifar10_badnet_a2o_0_01/numbers.json"
+  },
+  {
+   "folder": "vit_cifar10_badnet_a2o_0_05",
+   "dataset": "cifar10",
+   "attack": "badnet_a2o",
+   "poison_rate": 0.05,
+   "rates": {
+    "band": 0.9,
+    "late": null,
+    "rd": 0.09,
+    "tm": 0.7
+   },
+   "skipped_probes": {
+    "late": "ladder never reaches the 0.8 shift target"
+   },
+   "numbers": "vit_cifar10_badnet_a2o_0_05/numbers.json"
+  },
+  {
+   "folder": "vit_cifar10_badnet_a2o_0_1",
+   "dataset": "cifar10",
+   "attack": "badnet_a2o",
+   "poison_rate": 0.1,
+   "rates": {
+    "band": 0.9,
+    "late": null,
+    "rd": 0.09,
+    "tm": 0.6
+   },
+   "skipped_probes": {
+    "late": "ladder never reaches the 0.8 shift target"
+   },
+   "numbers": "vit_cifar10_badnet_a2o_0_1/numbers.json"
+  },
+  {
+   "folder": "vit_cifar10_blend_0_01",
+   "dataset": "cifar10",
+   "attack": "blend",
+   "poison_rate": 0.01,
+   "rates": {
+    "band": 0.9,
+    "late": null,
+    "rd": 0.09,
+    "tm": 0.7
+   },
+   "skipped_probes": {
+    "late": "ladder never reaches the 0.8 shift target"
+   },
+   "numbers": "vit_cifar10_blend_0_01/numbers.json"
+  },
+  {
+   "folder": "vit_cifar10_blend_0_05",
+   "dataset": "cifar10",
+   "attack": "blend",
+   "poison_rate": 0.05,
+   "rates": {
+    "band": 0.8,
+    "late": null,
+    "rd": 0.09,
+    "tm": 0.7
+   },
+   "skipped_probes": {
+    "late": "ladder never reaches the 0.8 shift target"
+   },
+   "numbers": "vit_cifar10_blend_0_05/numbers.json"
+  },
+  {
+   "folder": "vit_cifar10_blend_0_1",
+   "dataset": "cifar10",
+   "attack": "blend",
+   "poison_rate": 0.1,
+   "rates": {
+    "band": 0.9,
+    "late": null,
+    "rd": 0.09,
+    "tm": 0.6
+   },
+   "skipped_probes": {
+    "late": "ladder never reaches the 0.8 shift target"
+   },
+   "numbers": "vit_cifar10_blend_0_1/numbers.json"
+  },
+  {
+   "folder": "vit_cifar10_bpp_0_01",
+   "dataset": "cifar10",
+   "attack": "bpp",
+   "poison_rate": 0.01,
+   "rates": {
+    "band": 0.9,
+    "late": null,
+    "rd": 0.09,
+    "tm": 0.8
+   },
+   "skipped_probes": {
+    "late": "ladder never reaches the 0.8 shift target"
+   },
+   "numbers": "vit_cifar10_bpp_0_01/numbers.json"
+  },
+  {
+   "folder": "vit_cifar10_bpp_0_05",
+   "dataset": "cifar10",
+   "attack": "bpp",
+   "poison_rate": 0.05,
+   "rates": {
+    "band": 0.9,
+    "late": null,
+    "rd": 0.09,
+    "tm": 0.7
+   },
+   "skipped_probes": {
+    "late": "ladder never reaches the 0.8 shift target"
+   },
+   "numbers": "vit_cifar10_bpp_0_05/numbers.json"
+  },
+  {
+   "folder": "vit_cifar10_bpp_0_1",
+   "dataset": "cifar10",
+   "attack": "bpp",
+   "poison_rate": 0.1,
+   "rates": {
+    "band": 0.9,
+    "late": null,
+    "rd": 0.1,
+    "tm": 0.7
+   },
+   "skipped_probes": {
+    "late": "ladder never reaches the 0.8 shift target"
+   },
+   "numbers": "vit_cifar10_bpp_0_1/numbers.json"
+  },
+  {
+   "folder": "vit_cifar10_lf_0_01",
+   "dataset": "cifar10",
+   "attack": "lf",
+   "poison_rate": 0.01,
+   "rates": {
+    "band": 0.9,
+    "late": null,
+    "rd": 0.09,
+    "tm": 0.7
+   },
+   "skipped_probes": {
+    "late": "ladder never reaches the 0.8 shift target"
+   },
+   "numbers": "vit_cifar10_lf_0_01/numbers.json"
+  },
+  {
+   "folder": "vit_cifar10_lf_0_05",
+   "dataset": "cifar10",
+   "attack": "lf",
+   "poison_rate": 0.05,
+   "rates": {
+    "band": 0.9,
+    "late": null,
+    "rd": 0.09,
+    "tm": 0.6
+   },
+   "skipped_probes": {
+    "late": "ladder never reaches the 0.8 shift target"
+   },
+   "numbers": "vit_cifar10_lf_0_05/numbers.json"
+  },
+  {
+   "folder": "vit_cifar10_lf_0_1",
+   "dataset": "cifar10",
+   "attack": "lf",
+   "poison_rate": 0.1,
+   "rates": {
+    "band": 0.9,
+    "late": null,
+    "rd": 0.09,
+    "tm": 0.6
+   },
+   "skipped_probes": {
+    "late": "ladder never reaches the 0.8 shift target"
+   },
+   "numbers": "vit_cifar10_lf_0_1/numbers.json"
+  },
+  {
+   "folder": "vit_cifar10_tact_0_01",
+   "dataset": "cifar10",
+   "attack": "tact",
+   "poison_rate": 0.01,
+   "rates": {
+    "band": 0.9,
+    "late": null,
+    "rd": 0.09,
+    "tm": 0.8
+   },
+   "skipped_probes": {
+    "late": "ladder never reaches the 0.8 shift target"
+   },
+   "numbers": "vit_cifar10_tact_0_01/numbers.json"
+  },
+  {
+   "folder": "vit_cifar10_tact_0_05",
+   "dataset": "cifar10",
+   "attack": "tact",
+   "poison_rate": 0.05,
+   "rates": {
+    "band": 0.8,
+    "late": null,
+    "rd": 0.09,
+    "tm": 0.6
+   },
+   "skipped_probes": {
+    "late": "ladder never reaches the 0.8 shift target"
+   },
+   "numbers": "vit_cifar10_tact_0_05/numbers.json"
+  },
+  {
+   "folder": "vit_cifar10_wanet_0_1",
+   "dataset": "cifar10",
+   "attack": "wanet",
+   "poison_rate": 0.1,
+   "rates": {
+    "band": 0.8,
+    "late": 0.99,
+    "rd": 0.09,
+    "tm": 0.5
+   },
+   "skipped_probes": {},
+   "numbers": "vit_cifar10_wanet_0_1/numbers.json"
+  },
+  {
+   "folder": "vit_gtsrb_badnet_a2o_0_01",
+   "dataset": "gtsrb",
+   "attack": "badnet_a2o",
+   "poison_rate": 0.01,
+   "rates": {
+    "band": 0.8,
+    "late": 0.99,
+    "rd": 0.09,
+    "tm": 0.6
+   },
+   "skipped_probes": {},
+   "numbers": "vit_gtsrb_badnet_a2o_0_01/numbers.json"
+  },
+  {
+   "folder": "vit_gtsrb_badnet_a2o_0_05",
+   "dataset": "gtsrb",
+   "attack": "badnet_a2o",
+   "poison_rate": 0.05,
+   "rates": {
+    "band": 0.8,
+    "late": 0.99,
+    "rd": 0.09,
+    "tm": 0.3
+   },
+   "skipped_probes": {},
+   "numbers": "vit_gtsrb_badnet_a2o_0_05/numbers.json"
+  },
+  {
+   "folder": "vit_gtsrb_badnet_a2o_0_1",
+   "dataset": "gtsrb",
+   "attack": "badnet_a2o",
+   "poison_rate": 0.1,
+   "rates": {
+    "band": 0.8,
+    "late": 0.99,
+    "rd": 0.09,
+    "tm": 0.5
+   },
+   "skipped_probes": {},
+   "numbers": "vit_gtsrb_badnet_a2o_0_1/numbers.json"
+  },
+  {
+   "folder": "vit_gtsrb_blend_0_01",
+   "dataset": "gtsrb",
+   "attack": "blend",
+   "poison_rate": 0.01,
+   "rates": {
+    "band": 0.7,
+    "late": 0.99,
+    "rd": 0.07,
+    "tm": 0.4
+   },
+   "skipped_probes": {},
+   "numbers": "vit_gtsrb_blend_0_01/numbers.json"
+  },
+  {
+   "folder": "vit_gtsrb_blend_0_05",
+   "dataset": "gtsrb",
+   "attack": "blend",
+   "poison_rate": 0.05,
+   "rates": {
+    "band": 0.8,
+    "late": null,
+    "rd": 0.1,
+    "tm": 0.4
+   },
+   "skipped_probes": {
+    "late": "ladder never reaches the 0.8 shift target"
+   },
+   "numbers": "vit_gtsrb_blend_0_05/numbers.json"
+  },
+  {
+   "folder": "vit_gtsrb_blend_0_1",
+   "dataset": "gtsrb",
+   "attack": "blend",
+   "poison_rate": 0.1,
+   "rates": {
+    "band": 0.5,
+    "late": 0.95,
+    "rd": 0.05,
+    "tm": 0.3
+   },
+   "skipped_probes": {},
+   "numbers": "vit_gtsrb_blend_0_1/numbers.json"
+  },
+  {
+   "folder": "vit_gtsrb_bpp_0_01",
+   "dataset": "gtsrb",
+   "attack": "bpp",
+   "poison_rate": 0.01,
+   "rates": {
+    "band": 0.7,
+    "late": 0.99,
+    "rd": 0.07,
+    "tm": 0.6
+   },
+   "skipped_probes": {},
+   "numbers": "vit_gtsrb_bpp_0_01/numbers.json"
+  },
+  {
+   "folder": "vit_gtsrb_bpp_0_05",
+   "dataset": "gtsrb",
+   "attack": "bpp",
+   "poison_rate": 0.05,
+   "rates": {
+    "band": 0.8,
+    "late": 0.99,
+    "rd": 0.07,
+    "tm": 0.6
+   },
+   "skipped_probes": {},
+   "numbers": "vit_gtsrb_bpp_0_05/numbers.json"
+  },
+  {
+   "folder": "vit_gtsrb_bpp_0_1",
+   "dataset": "gtsrb",
+   "attack": "bpp",
+   "poison_rate": 0.1,
+   "rates": {
+    "band": 0.7,
+    "late": 0.99,
+    "rd": 0.07,
+    "tm": 0.6
+   },
+   "skipped_probes": {},
+   "numbers": "vit_gtsrb_bpp_0_1/numbers.json"
+  },
+  {
+   "folder": "vit_gtsrb_lc_0_05_tl1_adv",
+   "dataset": "gtsrb",
+   "attack": "lc",
+   "poison_rate": 0.05,
+   "rates": {
+    "band": 0.7,
+    "late": 0.99,
+    "rd": 0.07,
+    "tm": 0.3
+   },
+   "skipped_probes": {},
+   "numbers": "vit_gtsrb_lc_0_05_tl1_adv/numbers.json"
+  },
+  {
+   "folder": "vit_gtsrb_lf_0_01",
+   "dataset": "gtsrb",
+   "attack": "lf",
+   "poison_rate": 0.01,
+   "rates": {
+    "band": 0.8,
+    "late": 0.99,
+    "rd": 0.09,
+    "tm": 0.5
+   },
+   "skipped_probes": {},
+   "numbers": "vit_gtsrb_lf_0_01/numbers.json"
+  },
+  {
+   "folder": "vit_gtsrb_lf_0_05",
+   "dataset": "gtsrb",
+   "attack": "lf",
+   "poison_rate": 0.05,
+   "rates": {
+    "band": 0.8,
+    "late": 0.99,
+    "rd": 0.09,
+    "tm": 0.5
+   },
+   "skipped_probes": {},
+   "numbers": "vit_gtsrb_lf_0_05/numbers.json"
+  },
+  {
+   "folder": "vit_gtsrb_lf_0_1",
+   "dataset": "gtsrb",
+   "attack": "lf",
+   "poison_rate": 0.1,
+   "rates": {
+    "band": 0.8,
+    "late": 0.99,
+    "rd": 0.07,
+    "tm": 0.5
+   },
+   "skipped_probes": {},
+   "numbers": "vit_gtsrb_lf_0_1/numbers.json"
+  },
+  {
+   "folder": "vit_gtsrb_tact_0_01_cos",
+   "dataset": "gtsrb",
+   "attack": "tact",
+   "poison_rate": 0.01,
+   "rates": {
+    "band": 0.5,
+    "late": 0.95,
+    "rd": 0.05,
+    "tm": 0.3
+   },
+   "skipped_probes": {},
+   "numbers": "vit_gtsrb_tact_0_01_cos/numbers.json"
+  },
+  {
+   "folder": "vit_gtsrb_tact_0_05",
+   "dataset": "gtsrb",
+   "attack": "tact",
+   "poison_rate": 0.05,
+   "rates": {
+    "band": 0.8,
+    "late": 0.99,
+    "rd": 0.09,
+    "tm": 0.5
+   },
+   "skipped_probes": {},
+   "numbers": "vit_gtsrb_tact_0_05/numbers.json"
+  },
+  {
+   "folder": "vit_tiny_badnet_a2o_0_01",
+   "dataset": "tiny",
+   "attack": "badnet_a2o",
+   "poison_rate": 0.01,
+   "rates": {
+    "band": 0.8,
+    "late": 0.9,
+    "rd": 0.05,
+    "tm": 0.5
+   },
+   "skipped_probes": {},
+   "numbers": "vit_tiny_badnet_a2o_0_01/numbers.json"
+  },
+  {
+   "folder": "vit_tiny_badnet_a2o_0_05",
+   "dataset": "tiny",
+   "attack": "badnet_a2o",
+   "poison_rate": 0.05,
+   "rates": {
+    "band": 0.8,
+    "late": 0.9,
+    "rd": 0.05,
+    "tm": 0.5
+   },
+   "skipped_probes": {},
+   "numbers": "vit_tiny_badnet_a2o_0_05/numbers.json"
+  },
+  {
+   "folder": "vit_tiny_badnet_a2o_0_1",
+   "dataset": "tiny",
+   "attack": "badnet_a2o",
+   "poison_rate": 0.1,
+   "rates": {
+    "band": 0.7,
+    "late": 0.8,
+    "rd": 0.05,
+    "tm": 0.5
+   },
+   "skipped_probes": {},
+   "numbers": "vit_tiny_badnet_a2o_0_1/numbers.json"
+  },
+  {
+   "folder": "vit_tiny_blend_0_01",
+   "dataset": "tiny",
+   "attack": "blend",
+   "poison_rate": 0.01,
+   "rates": {
+    "band": 0.8,
+    "late": 0.8,
+    "rd": 0.05,
+    "tm": 0.5
+   },
+   "skipped_probes": {},
+   "numbers": "vit_tiny_blend_0_01/numbers.json"
+  },
+  {
+   "folder": "vit_tiny_blend_0_05",
+   "dataset": "tiny",
+   "attack": "blend",
+   "poison_rate": 0.05,
+   "rates": {
+    "band": 0.8,
+    "late": 0.9,
+    "rd": 0.07,
+    "tm": 0.5
+   },
+   "skipped_probes": {},
+   "numbers": "vit_tiny_blend_0_05/numbers.json"
+  },
+  {
+   "folder": "vit_tiny_blend_0_1",
+   "dataset": "tiny",
+   "attack": "blend",
+   "poison_rate": 0.1,
+   "rates": {
+    "band": 0.7,
+    "late": 0.9,
+    "rd": 0.05,
+    "tm": 0.5
+   },
+   "skipped_probes": {},
+   "numbers": "vit_tiny_blend_0_1/numbers.json"
+  },
+  {
+   "folder": "vit_tiny_bpp_0_01",
+   "dataset": "tiny",
+   "attack": "bpp",
+   "poison_rate": 0.01,
+   "rates": {
+    "band": 0.8,
+    "late": 0.8,
+    "rd": 0.05,
+    "tm": 0.5
+   },
+   "skipped_probes": {},
+   "numbers": "vit_tiny_bpp_0_01/numbers.json"
+  },
+  {
+   "folder": "vit_tiny_bpp_0_05",
+   "dataset": "tiny",
+   "attack": "bpp",
+   "poison_rate": 0.05,
+   "rates": {
+    "band": 0.7,
+    "late": 0.8,
+    "rd": 0.05,
+    "tm": 0.5
+   },
+   "skipped_probes": {},
+   "numbers": "vit_tiny_bpp_0_05/numbers.json"
+  },
+  {
+   "folder": "vit_tiny_bpp_0_1",
+   "dataset": "tiny",
+   "attack": "bpp",
+   "poison_rate": 0.1,
+   "rates": {
+    "band": 0.8,
+    "late": 0.8,
+    "rd": 0.07,
+    "tm": 0.5
+   },
+   "skipped_probes": {},
+   "numbers": "vit_tiny_bpp_0_1/numbers.json"
+  },
+  {
+   "folder": "vit_tiny_lf_0_01",
+   "dataset": "tiny",
+   "attack": "lf",
+   "poison_rate": 0.01,
+   "rates": {
+    "band": 0.7,
+    "late": 0.9,
+    "rd": 0.05,
+    "tm": 0.5
+   },
+   "skipped_probes": {},
+   "numbers": "vit_tiny_lf_0_01/numbers.json"
+  },
+  {
+   "folder": "vit_tiny_lf_0_05",
+   "dataset": "tiny",
+   "attack": "lf",
+   "poison_rate": 0.05,
+   "rates": {
+    "band": 0.7,
+    "late": 0.8,
+    "rd": 0.05,
+    "tm": 0.5
+   },
+   "skipped_probes": {},
+   "numbers": "vit_tiny_lf_0_05/numbers.json"
+  },
+  {
+   "folder": "vit_tiny_lf_0_1",
+   "dataset": "tiny",
+   "attack": "lf",
+   "poison_rate": 0.1,
+   "rates": {
+    "band": 0.8,
+    "late": 0.9,
+    "rd": 0.05,
+    "tm": 0.5
+   },
+   "skipped_probes": {},
+   "numbers": "vit_tiny_lf_0_1/numbers.json"
+  },
+  {
+   "folder": "vit_tiny_wanet_0_05",
+   "dataset": "tiny",
+   "attack": "wanet",
+   "poison_rate": 0.05,
+   "rates": {
+    "band": 0.7,
+    "late": 0.8,
+    "rd": 0.05,
+    "tm": 0.5
+   },
+   "skipped_probes": {},
+   "numbers": "vit_tiny_wanet_0_05/numbers.json"
+  },
+  {
+   "folder": "vit_tiny_wanet_0_1",
+   "dataset": "tiny",
+   "attack": "wanet",
+   "poison_rate": 0.1,
+   "rates": {
+    "band": 0.7,
+    "late": 0.8,
+    "rd": 0.05,
+    "tm": 0.5
+   },
+   "skipped_probes": {},
+   "numbers": "vit_tiny_wanet_0_1/numbers.json"
+  }
+ ]
+}

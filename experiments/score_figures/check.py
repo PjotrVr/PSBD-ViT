@@ -112,7 +112,9 @@ def check_swin_panel():
 
     compared = 0
     for model in record["models"]:
-        if model["rates"].get("partner_rule") != "adaptive":
+        # The record also holds nearest-rate partners and models PSBD-TM never
+        # scores, which this tool skips by rule.
+        if model["rules"] is None or model["rates"].get("partner_rule") != "adaptive":
             continue
         for record_rule, (key, rule) in SWIN_PAIRS.items():
             expected = model["rules"][record_rule]

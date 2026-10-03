@@ -1,0 +1,1840 @@
+{
+  "folder": "vit_tiny_wanet_0_1",
+  "dataset": "tiny",
+  "attack": "wanet",
+  "label_mode": "all_to_one",
+  "architecture": "vit",
+  "successful_2pt": true,
+  "population": {
+    "poisoned": 10000,
+    "cover": 20000,
+    "clean_train": 70000
+  },
+  "scored": {
+    "poisoned": 10000,
+    "cover": 2000,
+    "clean_train": 10000,
+    "target_clean": 500,
+    "poisoned_clean": 2000
+  },
+  "reconstruction": {
+    "seed_recorded": true,
+    "seed_used": 0,
+    "R1": {
+      "poisoned": 10000,
+      "recorded_poisoned": 10000,
+      "cover": 20000,
+      "recorded_cover": 20000,
+      "passed": true
+    },
+    "R2": {
+      "training_attack_success": 0.9958999752998352,
+      "recorded_asr": 0.9677386934673367,
+      "passed": true
+    },
+    "R3": {
+      "mean_cross_entropy": {
+        "poisoned_clean": 1.3121798038482666,
+        "clean_train": 0.0780971571803093,
+        "validation": 1.2442152500152588
+      },
+      "ratio": 1.058282736757629,
+      "status": "passed"
+    },
+    "verdict": "verified"
+  },
+  "validation_baseline_check": {
+    "max_abs_prob_difference": 0.0,
+    "argmax_agreement": 1.0
+  },
+  "headline": true,
+  "rates": {
+    "psbd_tm": {
+      "ours": 0.5,
+      "li": 0.6,
+      "li_candidates": [
+        0.5,
+        0.6,
+        0.7,
+        0.8,
+        0.9
+      ],
+      "li_gap": {
+        "0.5": {
+          "validation_shift": 0.8666666746139526,
+          "training_shift": 0.7833166643977165
+        },
+        "0.6": {
+          "validation_shift": 0.9509999752044678,
+          "training_shift": 0.8641000032424927
+        },
+        "0.7": {
+          "validation_shift": 0.9816666841506958,
+          "training_shift": 0.8982333153486252
+        },
+        "0.8": {
+          "validation_shift": 0.9896666407585144,
+          "training_shift": 0.9273833394050598
+        },
+        "0.9": {
+          "validation_shift": 0.9919999837875366,
+          "training_shift": 0.9671499848365783
+        }
+      }
+    },
+    "psbd_rd": {
+      "ours": 0.05,
+      "li": 0.05,
+      "li_candidates": [
+        0.05,
+        0.07,
+        0.09,
+        0.1,
+        0.2,
+        0.3,
+        0.4,
+        0.5,
+        0.6,
+        0.7,
+        0.8,
+        0.9
+      ],
+      "li_gap": {
+        "0.05": {
+          "validation_shift": 0.8341666460037231,
+          "training_shift": 0.7466499894857406
+        },
+        "0.07": {
+          "validation_shift": 0.9713333249092102,
+          "training_shift": 0.9016833275556564
+        },
+        "0.09": {
+          "validation_shift": 0.9848333597183228,
+          "training_shift": 0.931850004196167
+        },
+        "0.1": {
+          "validation_shift": 0.9878333210945129,
+          "training_shift": 0.942749983072281
+        },
+        "0.2": {
+          "validation_shift": 0.9940000176429749,
+          "training_shift": 0.9801833271980286
+        },
+        "0.3": {
+          "validation_shift": 0.9928333163261414,
+          "training_shift": 0.9842833518981934
+        },
+        "0.4": {
+          "validation_shift": 0.9933333396911621,
+          "training_shift": 0.9832499980926513
+        },
+        "0.5": {
+          "validation_shift": 0.9944999814033508,
+          "training_shift": 0.9842500209808349
+        },
+        "0.6": {
+          "validation_shift": 0.9929999709129333,
+          "training_shift": 0.9828166842460633
+        },
+        "0.7": {
+          "validation_shift": 0.9936666488647461,
+          "training_shift": 0.9785666465759277
+        },
+        "0.8": {
+          "validation_shift": 0.9944999814033508,
+          "training_shift": 0.9804833233356476
+        },
+        "0.9": {
+          "validation_shift": 0.9936666488647461,
+          "training_shift": 0.9812833309173583
+        }
+      }
+    },
+    "middle_band": {
+      "ours": 0.7,
+      "li": 0.7,
+      "li_candidates": [
+        0.7,
+        0.8,
+        0.9,
+        0.95,
+        0.99
+      ],
+      "li_gap": {
+        "0.7": {
+          "validation_shift": 0.8333333134651184,
+          "training_shift": 0.747816680278629
+        },
+        "0.8": {
+          "validation_shift": 0.9651666879653931,
+          "training_shift": 0.8798999955877661
+        },
+        "0.9": {
+          "validation_shift": 0.9886666536331177,
+          "training_shift": 0.9103333175182343
+        },
+        "0.95": {
+          "validation_shift": 0.9918333292007446,
+          "training_shift": 0.9494666695594787
+        },
+        "0.99": {
+          "validation_shift": 0.9955000281333923,
+          "training_shift": 0.9809666514396667
+        }
+      }
+    }
+  },
+  "validation_pass_checks": {
+    "psbd_tm@0.5": {
+      "max_abs_prob_difference": 0.0,
+      "argmax_agreement": 1.0
+    },
+    "psbd_tm@0.6": {
+      "max_abs_prob_difference": 0.0,
+      "argmax_agreement": 1.0
+    },
+    "psbd_rd@0.05": {
+      "max_abs_prob_difference": 0.0,
+      "argmax_agreement": 1.0
+    },
+    "middle_band@0.7": {
+      "max_abs_prob_difference": 0.0,
+      "argmax_agreement": 1.0
+    }
+  },
+  "readings": {
+    "ours": {
+      "fractional": {
+        "psbd_tm": {
+          "n": {
+            "poisoned": 10000,
+            "clean_train": 10000,
+            "cover": 2000
+          },
+          "auroc": 0.96297225,
+          "nominal": {
+            "q0.01": {
+              "threshold": 0.0937805026769638,
+              "tpr": 0.30570000410079956,
+              "fpr_clean_train": 0.010700000450015068,
+              "flag_rate_cover": 0.0035000001080334187,
+              "fpr_paper_convention": 0.009100000374019146
+            },
+            "q0.05": {
+              "threshold": 0.6386187076568604,
+              "tpr": 0.78329998254776,
+              "fpr_clean_train": 0.054499998688697815,
+              "flag_rate_cover": 0.023000000044703484,
+              "fpr_paper_convention": 0.047499998990032405
+            },
+            "q0.10": {
+              "threshold": 0.9134668111801147,
+              "tpr": 0.9577000141143799,
+              "fpr_clean_train": 0.11469999700784683,
+              "flag_rate_cover": 0.06350000202655792,
+              "fpr_paper_convention": 0.1033222203453382
+            },
+            "q0.25": {
+              "threshold": 0.9805314540863037,
+              "tpr": 0.994700014591217,
+              "fpr_clean_train": 0.23649999499320984,
+              "flag_rate_cover": 0.1615000069141388,
+              "fpr_paper_convention": 0.21983333097563848
+            }
+          },
+          "realized": {
+            "q0.01": {
+              "threshold": 0.08389844745397568,
+              "tpr": 0.29429998993873596,
+              "fpr_clean_train": 0.009999999776482582
+            },
+            "q0.05": {
+              "threshold": 0.6043492555618286,
+              "tpr": 0.7595000267028809,
+              "fpr_clean_train": 0.05000000074505806
+            },
+            "q0.10": {
+              "threshold": 0.8797104358673096,
+              "tpr": 0.933899998664856,
+              "fpr_clean_train": 0.10000000149011612
+            }
+          }
+        },
+        "psbd_rd": {
+          "n": {
+            "poisoned": 10000,
+            "clean_train": 10000,
+            "cover": 2000
+          },
+          "auroc": 0.98070815,
+          "nominal": {
+            "q0.01": {
+              "threshold": 0.7007565498352051,
+              "tpr": 0.70169997215271,
+              "fpr_clean_train": 0.009100000374019146,
+              "flag_rate_cover": 0.008500000461935997,
+              "fpr_paper_convention": 0.00896666706022289
+            },
+            "q0.05": {
+              "threshold": 0.8870751261711121,
+              "tpr": 0.8914999961853027,
+              "fpr_clean_train": 0.04740000143647194,
+              "flag_rate_cover": 0.04699999839067459,
+              "fpr_paper_convention": 0.04731111187073919
+            },
+            "q0.10": {
+              "threshold": 0.9384717345237732,
+              "tpr": 0.9521999955177307,
+              "fpr_clean_train": 0.10170000046491623,
+              "flag_rate_cover": 0.09700000286102295,
+              "fpr_paper_convention": 0.10065555655293995
+            },
+            "q0.25": {
+              "threshold": 0.9712117910385132,
+              "tpr": 0.9879000186920166,
+              "fpr_clean_train": 0.22949999570846558,
+              "flag_rate_cover": 0.21199999749660492,
+              "fpr_paper_convention": 0.225611107216941
+            }
+          },
+          "realized": {
+            "q0.01": {
+              "threshold": 0.7157173156738281,
+              "tpr": 0.7160000205039978,
+              "fpr_clean_train": 0.009999999776482582
+            },
+            "q0.05": {
+              "threshold": 0.8910912871360779,
+              "tpr": 0.8963000178337097,
+              "fpr_clean_train": 0.05000000074505806
+            },
+            "q0.10": {
+              "threshold": 0.9373838305473328,
+              "tpr": 0.9503999948501587,
+              "fpr_clean_train": 0.10000000149011612
+            }
+          }
+        },
+        "middle_band": {
+          "n": {
+            "poisoned": 10000,
+            "clean_train": 10000,
+            "cover": 2000
+          },
+          "auroc": 0.99153545,
+          "nominal": {
+            "q0.01": {
+              "threshold": 0.294607013463974,
+              "tpr": 0.8323000073432922,
+              "fpr_clean_train": 0.009100000374019146,
+              "flag_rate_cover": 0.006000000052154064,
+              "fpr_paper_convention": 0.008411111413604682
+            },
+            "q0.05": {
+              "threshold": 0.7096964120864868,
+              "tpr": 0.9664000272750854,
+              "fpr_clean_train": 0.04960000142455101,
+              "flag_rate_cover": 0.03550000116229057,
+              "fpr_paper_convention": 0.04646666803293758
+            },
+            "q0.10": {
+              "threshold": 0.8359378576278687,
+              "tpr": 0.9854999780654907,
+              "fpr_clean_train": 0.09070000052452087,
+              "flag_rate_cover": 0.07000000029802322,
+              "fpr_paper_convention": 0.08610000047418807
+            },
+            "q0.25": {
+              "threshold": 0.9499838948249817,
+              "tpr": 0.9965000152587891,
+              "fpr_clean_train": 0.22699999809265137,
+              "flag_rate_cover": 0.18549999594688416,
+              "fpr_paper_convention": 0.21777777539359197
+            }
+          },
+          "realized": {
+            "q0.01": {
+              "threshold": 0.31403517723083496,
+              "tpr": 0.8439000248908997,
+              "fpr_clean_train": 0.009999999776482582
+            },
+            "q0.05": {
+              "threshold": 0.7139524221420288,
+              "tpr": 0.9677000045776367,
+              "fpr_clean_train": 0.05000000074505806
+            },
+            "q0.10": {
+              "threshold": 0.8548481464385986,
+              "tpr": 0.9876000285148621,
+              "fpr_clean_train": 0.10000000149011612
+            }
+          }
+        },
+        "final_min": {
+          "n": {
+            "poisoned": 10000,
+            "clean_train": 10000,
+            "cover": 2000
+          },
+          "auroc": 0.98521809,
+          "nominal": {
+            "q0.01": {
+              "threshold": 0.004995000082999468,
+              "tpr": 0.656000018119812,
+              "fpr_clean_train": 0.008899999782443047,
+              "flag_rate_cover": 0.0035000001080334187,
+              "fpr_paper_convention": 0.007699999854796462
+            },
+            "q0.05": {
+              "threshold": 0.028999999165534973,
+              "tpr": 0.9455000162124634,
+              "fpr_clean_train": 0.0544000007212162,
+              "flag_rate_cover": 0.028999999165534973,
+              "fpr_paper_convention": 0.04875555593106482
+            },
+            "q0.10": {
+              "threshold": 0.05994999781250954,
+              "tpr": 0.9804999828338623,
+              "fpr_clean_train": 0.11050000041723251,
+              "flag_rate_cover": 0.06650000065565109,
+              "fpr_paper_convention": 0.10072222269243665
+            },
+            "q0.25": {
+              "threshold": 0.1612500101327896,
+              "tpr": 0.9970999956130981,
+              "fpr_clean_train": 0.23890000581741333,
+              "flag_rate_cover": 0.164000004529953,
+              "fpr_paper_convention": 0.22225556108686662
+            }
+          },
+          "realized": {
+            "q0.01": {
+              "threshold": 0.004999999888241291,
+              "tpr": 0.656000018119812,
+              "fpr_clean_train": 0.008899999782443047
+            },
+            "q0.05": {
+              "threshold": 0.027499999850988388,
+              "tpr": 0.942300021648407,
+              "fpr_clean_train": 0.04969999939203262
+            },
+            "q0.10": {
+              "threshold": 0.05544999986886978,
+              "tpr": 0.9779999852180481,
+              "fpr_clean_train": 0.10000000149011612
+            }
+          }
+        }
+      },
+      "absolute": {
+        "psbd_tm": {
+          "n": {
+            "poisoned": 10000,
+            "clean_train": 10000,
+            "cover": 2000
+          },
+          "auroc": 0.95072005,
+          "nominal": {
+            "q0.01": {
+              "threshold": 0.09302650392055511,
+              "tpr": 0.30559998750686646,
+              "fpr_clean_train": 0.010499999858438969,
+              "flag_rate_cover": 0.0035000001080334187,
+              "fpr_paper_convention": 0.008944444358348846
+            },
+            "q0.05": {
+              "threshold": 0.32113638520240784,
+              "tpr": 0.5436999797821045,
+              "fpr_clean_train": 0.027300000190734863,
+              "flag_rate_cover": 0.010999999940395355,
+              "fpr_paper_convention": 0.023677777912881642
+            },
+            "q0.10": {
+              "threshold": 0.4722335934638977,
+              "tpr": 0.6668999791145325,
+              "fpr_clean_train": 0.04749999940395355,
+              "flag_rate_cover": 0.020500000566244125,
+              "fpr_paper_convention": 0.04149999966224034
+            },
+            "q0.25": {
+              "threshold": 0.7358866930007935,
+              "tpr": 0.8500999808311462,
+              "fpr_clean_train": 0.10670000314712524,
+              "flag_rate_cover": 0.07050000131130219,
+              "fpr_paper_convention": 0.09865555829472011
+            }
+          },
+          "realized": {
+            "q0.01": {
+              "threshold": 0.08384684473276138,
+              "tpr": 0.2944999933242798,
+              "fpr_clean_train": 0.009999999776482582
+            },
+            "q0.05": {
+              "threshold": 0.4859637916088104,
+              "tpr": 0.6794999837875366,
+              "fpr_clean_train": 0.05000000074505806
+            },
+            "q0.10": {
+              "threshold": 0.7130662202835083,
+              "tpr": 0.8356000185012817,
+              "fpr_clean_train": 0.10000000149011612
+            }
+          }
+        },
+        "psbd_rd": {
+          "n": {
+            "poisoned": 10000,
+            "clean_train": 10000,
+            "cover": 2000
+          },
+          "auroc": 0.9591459150000001,
+          "nominal": {
+            "q0.01": {
+              "threshold": 0.22891588509082794,
+              "tpr": 0.2475000023841858,
+              "fpr_clean_train": 0.0010000000474974513,
+              "flag_rate_cover": 0.0010000000474974513,
+              "fpr_paper_convention": 0.0010000000474974513
+            },
+            "q0.05": {
+              "threshold": 0.4074971377849579,
+              "tpr": 0.42250001430511475,
+              "fpr_clean_train": 0.004900000058114529,
+              "flag_rate_cover": 0.0035000001080334187,
+              "fpr_paper_convention": 0.004588888958096504
+            },
+            "q0.10": {
+              "threshold": 0.5309609174728394,
+              "tpr": 0.5404000282287598,
+              "fpr_clean_train": 0.016899999231100082,
+              "flag_rate_cover": 0.010499999858438969,
+              "fpr_paper_convention": 0.015477777148286503
+            },
+            "q0.25": {
+              "threshold": 0.7979332208633423,
+              "tpr": 0.8033999800682068,
+              "fpr_clean_train": 0.06719999760389328,
+              "flag_rate_cover": 0.06700000166893005,
+              "fpr_paper_convention": 0.06715555406279033
+            }
+          },
+          "realized": {
+            "q0.01": {
+              "threshold": 0.4677492678165436,
+              "tpr": 0.483599990606308,
+              "fpr_clean_train": 0.009999999776482582
+            },
+            "q0.05": {
+              "threshold": 0.7414060831069946,
+              "tpr": 0.7473000288009644,
+              "fpr_clean_train": 0.05000000074505806
+            },
+            "q0.10": {
+              "threshold": 0.8662344813346863,
+              "tpr": 0.8744000196456909,
+              "fpr_clean_train": 0.10000000149011612
+            }
+          }
+        },
+        "middle_band": {
+          "n": {
+            "poisoned": 10000,
+            "clean_train": 10000,
+            "cover": 2000
+          },
+          "auroc": 0.9902114300000001,
+          "nominal": {
+            "q0.01": {
+              "threshold": 0.14790484309196472,
+              "tpr": 0.7078999876976013,
+              "fpr_clean_train": 0.003599999938160181,
+              "flag_rate_cover": 0.0035000001080334187,
+              "fpr_paper_convention": 0.003577777753687567
+            },
+            "q0.05": {
+              "threshold": 0.35007384419441223,
+              "tpr": 0.8611999750137329,
+              "fpr_clean_train": 0.015200000256299973,
+              "flag_rate_cover": 0.006500000134110451,
+              "fpr_paper_convention": 0.013266666895813411
+            },
+            "q0.10": {
+              "threshold": 0.4951956570148468,
+              "tpr": 0.9210000038146973,
+              "fpr_clean_train": 0.030799999833106995,
+              "flag_rate_cover": 0.019999999552965164,
+              "fpr_paper_convention": 0.028399999770853255
+            },
+            "q0.25": {
+              "threshold": 0.7376459240913391,
+              "tpr": 0.9767000079154968,
+              "fpr_clean_train": 0.09109999984502792,
+              "flag_rate_cover": 0.07699999958276749,
+              "fpr_paper_convention": 0.08796666645341449
+            }
+          },
+          "realized": {
+            "q0.01": {
+              "threshold": 0.28021612763404846,
+              "tpr": 0.8242999911308289,
+              "fpr_clean_train": 0.009999999776482582
+            },
+            "q0.05": {
+              "threshold": 0.5923720002174377,
+              "tpr": 0.9455999732017517,
+              "fpr_clean_train": 0.05000000074505806
+            },
+            "q0.10": {
+              "threshold": 0.7577323913574219,
+              "tpr": 0.9800000190734863,
+              "fpr_clean_train": 0.10000000149011612
+            }
+          }
+        },
+        "final_min": {
+          "n": {
+            "poisoned": 10000,
+            "clean_train": 10000,
+            "cover": 2000
+          },
+          "auroc": 0.9825047899999999,
+          "nominal": {
+            "q0.01": {
+              "threshold": 0.004995000082999468,
+              "tpr": 0.6000000238418579,
+              "fpr_clean_train": 0.007899999618530273,
+              "flag_rate_cover": 0.003000000026077032,
+              "fpr_paper_convention": 0.006811110820207331
+            },
+            "q0.05": {
+              "threshold": 0.031975001096725464,
+              "tpr": 0.8525000214576721,
+              "fpr_clean_train": 0.028599999845027924,
+              "flag_rate_cover": 0.014999999664723873,
+              "fpr_paper_convention": 0.025577777582738135
+            },
+            "q0.10": {
+              "threshold": 0.07400000095367432,
+              "tpr": 0.9132999777793884,
+              "fpr_clean_train": 0.050599999725818634,
+              "flag_rate_cover": 0.0215000007301569,
+              "fpr_paper_convention": 0.04413333328233825
+            },
+            "q0.25": {
+              "threshold": 0.2098749876022339,
+              "tpr": 0.9735999703407288,
+              "fpr_clean_train": 0.12060000002384186,
+              "flag_rate_cover": 0.07850000262260437,
+              "fpr_paper_convention": 0.11124444504578909
+            }
+          },
+          "realized": {
+            "q0.01": {
+              "threshold": 0.005499999970197678,
+              "tpr": 0.6098999977111816,
+              "fpr_clean_train": 0.008799999952316284
+            },
+            "q0.05": {
+              "threshold": 0.07147500663995743,
+              "tpr": 0.9117000102996826,
+              "fpr_clean_train": 0.05000000074505806
+            },
+            "q0.10": {
+              "threshold": 0.17790000140666962,
+              "tpr": 0.9652000069618225,
+              "fpr_clean_train": 0.10000000149011612
+            }
+          }
+        }
+      }
+    },
+    "li": {
+      "fractional": {
+        "psbd_tm": {
+          "n": {
+            "poisoned": 10000,
+            "clean_train": 10000,
+            "cover": 2000
+          },
+          "auroc": 0.984156685,
+          "nominal": {
+            "q0.01": {
+              "threshold": 0.7846246361732483,
+              "tpr": 0.5716999769210815,
+              "fpr_clean_train": 0.011800000444054604,
+              "flag_rate_cover": 0.0044999998062849045,
+              "fpr_paper_convention": 0.010177778080105782
+            },
+            "q0.05": {
+              "threshold": 0.9616621732711792,
+              "tpr": 0.9465000033378601,
+              "fpr_clean_train": 0.04149999842047691,
+              "flag_rate_cover": 0.023499999195337296,
+              "fpr_paper_convention": 0.03749999859266811
+            },
+            "q0.10": {
+              "threshold": 0.9795162677764893,
+              "tpr": 0.9882000088691711,
+              "fpr_clean_train": 0.08340000361204147,
+              "flag_rate_cover": 0.05849999934434891,
+              "fpr_paper_convention": 0.07786666933033201
+            },
+            "q0.25": {
+              "threshold": 0.9884414672851562,
+              "tpr": 0.9962999820709229,
+              "fpr_clean_train": 0.19059999287128448,
+              "flag_rate_cover": 0.1525000035762787,
+              "fpr_paper_convention": 0.18213332858350545
+            }
+          },
+          "realized": {
+            "q0.01": {
+              "threshold": 0.7418438792228699,
+              "tpr": 0.5182999968528748,
+              "fpr_clean_train": 0.009999999776482582
+            },
+            "q0.05": {
+              "threshold": 0.9678449630737305,
+              "tpr": 0.9641000032424927,
+              "fpr_clean_train": 0.05000000074505806
+            },
+            "q0.10": {
+              "threshold": 0.982215940952301,
+              "tpr": 0.9915000200271606,
+              "fpr_clean_train": 0.10000000149011612
+            }
+          }
+        },
+        "psbd_rd": {
+          "n": {
+            "poisoned": 10000,
+            "clean_train": 10000,
+            "cover": 2000
+          },
+          "auroc": 0.98070815,
+          "nominal": {
+            "q0.01": {
+              "threshold": 0.7007565498352051,
+              "tpr": 0.70169997215271,
+              "fpr_clean_train": 0.009100000374019146,
+              "flag_rate_cover": 0.008500000461935997,
+              "fpr_paper_convention": 0.00896666706022289
+            },
+            "q0.05": {
+              "threshold": 0.8870751261711121,
+              "tpr": 0.8914999961853027,
+              "fpr_clean_train": 0.04740000143647194,
+              "flag_rate_cover": 0.04699999839067459,
+              "fpr_paper_convention": 0.04731111187073919
+            },
+            "q0.10": {
+              "threshold": 0.9384717345237732,
+              "tpr": 0.9521999955177307,
+              "fpr_clean_train": 0.10170000046491623,
+              "flag_rate_cover": 0.09700000286102295,
+              "fpr_paper_convention": 0.10065555655293995
+            },
+            "q0.25": {
+              "threshold": 0.9712117910385132,
+              "tpr": 0.9879000186920166,
+              "fpr_clean_train": 0.22949999570846558,
+              "flag_rate_cover": 0.21199999749660492,
+              "fpr_paper_convention": 0.225611107216941
+            }
+          },
+          "realized": {
+            "q0.01": {
+              "threshold": 0.7157173156738281,
+              "tpr": 0.7160000205039978,
+              "fpr_clean_train": 0.009999999776482582
+            },
+            "q0.05": {
+              "threshold": 0.8910912871360779,
+              "tpr": 0.8963000178337097,
+              "fpr_clean_train": 0.05000000074505806
+            },
+            "q0.10": {
+              "threshold": 0.9373838305473328,
+              "tpr": 0.9503999948501587,
+              "fpr_clean_train": 0.10000000149011612
+            }
+          }
+        },
+        "middle_band": {
+          "n": {
+            "poisoned": 10000,
+            "clean_train": 10000,
+            "cover": 2000
+          },
+          "auroc": 0.99153545,
+          "nominal": {
+            "q0.01": {
+              "threshold": 0.294607013463974,
+              "tpr": 0.8323000073432922,
+              "fpr_clean_train": 0.009100000374019146,
+              "flag_rate_cover": 0.006000000052154064,
+              "fpr_paper_convention": 0.008411111413604682
+            },
+            "q0.05": {
+              "threshold": 0.7096964120864868,
+              "tpr": 0.9664000272750854,
+              "fpr_clean_train": 0.04960000142455101,
+              "flag_rate_cover": 0.03550000116229057,
+              "fpr_paper_convention": 0.04646666803293758
+            },
+            "q0.10": {
+              "threshold": 0.8359378576278687,
+              "tpr": 0.9854999780654907,
+              "fpr_clean_train": 0.09070000052452087,
+              "flag_rate_cover": 0.07000000029802322,
+              "fpr_paper_convention": 0.08610000047418807
+            },
+            "q0.25": {
+              "threshold": 0.9499838948249817,
+              "tpr": 0.9965000152587891,
+              "fpr_clean_train": 0.22699999809265137,
+              "flag_rate_cover": 0.18549999594688416,
+              "fpr_paper_convention": 0.21777777539359197
+            }
+          },
+          "realized": {
+            "q0.01": {
+              "threshold": 0.31403517723083496,
+              "tpr": 0.8439000248908997,
+              "fpr_clean_train": 0.009999999776482582
+            },
+            "q0.05": {
+              "threshold": 0.7139524221420288,
+              "tpr": 0.9677000045776367,
+              "fpr_clean_train": 0.05000000074505806
+            },
+            "q0.10": {
+              "threshold": 0.8548481464385986,
+              "tpr": 0.9876000285148621,
+              "fpr_clean_train": 0.10000000149011612
+            }
+          }
+        },
+        "final_min": {
+          "n": {
+            "poisoned": 10000,
+            "clean_train": 10000,
+            "cover": 2000
+          },
+          "auroc": 0.98887177,
+          "nominal": {
+            "q0.01": {
+              "threshold": 0.004995000082999468,
+              "tpr": 0.7251999974250793,
+              "fpr_clean_train": 0.00930000003427267,
+              "flag_rate_cover": 0.004999999888241291,
+              "fpr_paper_convention": 0.008344444446265697
+            },
+            "q0.05": {
+              "threshold": 0.02800000086426735,
+              "tpr": 0.9747999906539917,
+              "fpr_clean_train": 0.050599999725818634,
+              "flag_rate_cover": 0.030500000342726707,
+              "fpr_paper_convention": 0.046133333196242646
+            },
+            "q0.10": {
+              "threshold": 0.059450000524520874,
+              "tpr": 0.9933000206947327,
+              "fpr_clean_train": 0.0940999984741211,
+              "flag_rate_cover": 0.0625,
+              "fpr_paper_convention": 0.08707777659098306
+            },
+            "q0.25": {
+              "threshold": 0.1525000035762787,
+              "tpr": 0.9976000189781189,
+              "fpr_clean_train": 0.20589999854564667,
+              "flag_rate_cover": 0.15600000321865082,
+              "fpr_paper_convention": 0.19481111069520313
+            }
+          },
+          "realized": {
+            "q0.01": {
+              "threshold": 0.004999999888241291,
+              "tpr": 0.7251999974250793,
+              "fpr_clean_train": 0.00930000003427267
+            },
+            "q0.05": {
+              "threshold": 0.026975000277161598,
+              "tpr": 0.9746000170707703,
+              "fpr_clean_train": 0.05000000074505806
+            },
+            "q0.10": {
+              "threshold": 0.06449999660253525,
+              "tpr": 0.9944000244140625,
+              "fpr_clean_train": 0.0997999981045723
+            }
+          }
+        }
+      },
+      "absolute": {
+        "psbd_tm": {
+          "n": {
+            "poisoned": 10000,
+            "clean_train": 10000,
+            "cover": 2000
+          },
+          "auroc": 0.94321755,
+          "nominal": {
+            "q0.01": {
+              "threshold": 0.23505541682243347,
+              "tpr": 0.10719999670982361,
+              "fpr_clean_train": 0.0019000000320374966,
+              "flag_rate_cover": 0.0005000000237487257,
+              "fpr_paper_convention": 0.0015888889190844363
+            },
+            "q0.05": {
+              "threshold": 0.4197503924369812,
+              "tpr": 0.22290000319480896,
+              "fpr_clean_train": 0.007600000128149986,
+              "flag_rate_cover": 0.0020000000949949026,
+              "fpr_paper_convention": 0.006355555676337745
+            },
+            "q0.10": {
+              "threshold": 0.5536500215530396,
+              "tpr": 0.3255999982357025,
+              "fpr_clean_train": 0.01940000057220459,
+              "flag_rate_cover": 0.014000000432133675,
+              "fpr_paper_convention": 0.018200000541077718
+            },
+            "q0.25": {
+              "threshold": 0.8179751634597778,
+              "tpr": 0.6218000054359436,
+              "fpr_clean_train": 0.06260000169277191,
+              "flag_rate_cover": 0.05900000035762787,
+              "fpr_paper_convention": 0.06180000139607324
+            }
+          },
+          "realized": {
+            "q0.01": {
+              "threshold": 0.4576929807662964,
+              "tpr": 0.24969999492168427,
+              "fpr_clean_train": 0.009999999776482582
+            },
+            "q0.05": {
+              "threshold": 0.7644020915031433,
+              "tpr": 0.5522000193595886,
+              "fpr_clean_train": 0.05000000074505806
+            },
+            "q0.10": {
+              "threshold": 0.908782958984375,
+              "tpr": 0.8123999834060669,
+              "fpr_clean_train": 0.10000000149011612
+            }
+          }
+        },
+        "psbd_rd": {
+          "n": {
+            "poisoned": 10000,
+            "clean_train": 10000,
+            "cover": 2000
+          },
+          "auroc": 0.9591459150000001,
+          "nominal": {
+            "q0.01": {
+              "threshold": 0.22891588509082794,
+              "tpr": 0.2475000023841858,
+              "fpr_clean_train": 0.0010000000474974513,
+              "flag_rate_cover": 0.0010000000474974513,
+              "fpr_paper_convention": 0.0010000000474974513
+            },
+            "q0.05": {
+              "threshold": 0.4074971377849579,
+              "tpr": 0.42250001430511475,
+              "fpr_clean_train": 0.004900000058114529,
+              "flag_rate_cover": 0.0035000001080334187,
+              "fpr_paper_convention": 0.004588888958096504
+            },
+            "q0.10": {
+              "threshold": 0.5309609174728394,
+              "tpr": 0.5404000282287598,
+              "fpr_clean_train": 0.016899999231100082,
+              "flag_rate_cover": 0.010499999858438969,
+              "fpr_paper_convention": 0.015477777148286503
+            },
+            "q0.25": {
+              "threshold": 0.7979332208633423,
+              "tpr": 0.8033999800682068,
+              "fpr_clean_train": 0.06719999760389328,
+              "flag_rate_cover": 0.06700000166893005,
+              "fpr_paper_convention": 0.06715555406279033
+            }
+          },
+          "realized": {
+            "q0.01": {
+              "threshold": 0.4677492678165436,
+              "tpr": 0.483599990606308,
+              "fpr_clean_train": 0.009999999776482582
+            },
+            "q0.05": {
+              "threshold": 0.7414060831069946,
+              "tpr": 0.7473000288009644,
+              "fpr_clean_train": 0.05000000074505806
+            },
+            "q0.10": {
+              "threshold": 0.8662344813346863,
+              "tpr": 0.8744000196456909,
+              "fpr_clean_train": 0.10000000149011612
+            }
+          }
+        },
+        "middle_band": {
+          "n": {
+            "poisoned": 10000,
+            "clean_train": 10000,
+            "cover": 2000
+          },
+          "auroc": 0.9902114300000001,
+          "nominal": {
+            "q0.01": {
+              "threshold": 0.14790484309196472,
+              "tpr": 0.7078999876976013,
+              "fpr_clean_train": 0.003599999938160181,
+              "flag_rate_cover": 0.0035000001080334187,
+              "fpr_paper_convention": 0.003577777753687567
+            },
+            "q0.05": {
+              "threshold": 0.35007384419441223,
+              "tpr": 0.8611999750137329,
+              "fpr_clean_train": 0.015200000256299973,
+              "flag_rate_cover": 0.006500000134110451,
+              "fpr_paper_convention": 0.013266666895813411
+            },
+            "q0.10": {
+              "threshold": 0.4951956570148468,
+              "tpr": 0.9210000038146973,
+              "fpr_clean_train": 0.030799999833106995,
+              "flag_rate_cover": 0.019999999552965164,
+              "fpr_paper_convention": 0.028399999770853255
+            },
+            "q0.25": {
+              "threshold": 0.7376459240913391,
+              "tpr": 0.9767000079154968,
+              "fpr_clean_train": 0.09109999984502792,
+              "flag_rate_cover": 0.07699999958276749,
+              "fpr_paper_convention": 0.08796666645341449
+            }
+          },
+          "realized": {
+            "q0.01": {
+              "threshold": 0.28021612763404846,
+              "tpr": 0.8242999911308289,
+              "fpr_clean_train": 0.009999999776482582
+            },
+            "q0.05": {
+              "threshold": 0.5923720002174377,
+              "tpr": 0.9455999732017517,
+              "fpr_clean_train": 0.05000000074505806
+            },
+            "q0.10": {
+              "threshold": 0.7577323913574219,
+              "tpr": 0.9800000190734863,
+              "fpr_clean_train": 0.10000000149011612
+            }
+          }
+        },
+        "final_min": {
+          "n": {
+            "poisoned": 10000,
+            "clean_train": 10000,
+            "cover": 2000
+          },
+          "auroc": 0.9888881199999999,
+          "nominal": {
+            "q0.01": {
+              "threshold": 0.005495000164955854,
+              "tpr": 0.5924999713897705,
+              "fpr_clean_train": 0.0024999999441206455,
+              "flag_rate_cover": 0.0024999999441206455,
+              "fpr_paper_convention": 0.0024999999441206455
+            },
+            "q0.05": {
+              "threshold": 0.038474999368190765,
+              "tpr": 0.8489999771118164,
+              "fpr_clean_train": 0.015599999576807022,
+              "flag_rate_cover": 0.007000000216066837,
+              "fpr_paper_convention": 0.01368888860775365
+            },
+            "q0.10": {
+              "threshold": 0.08294999599456787,
+              "tpr": 0.9079999923706055,
+              "fpr_clean_train": 0.030899999663233757,
+              "flag_rate_cover": 0.017000000923871994,
+              "fpr_paper_convention": 0.0278111110544867
+            },
+            "q0.25": {
+              "threshold": 0.2123750001192093,
+              "tpr": 0.9699000120162964,
+              "fpr_clean_train": 0.0908999964594841,
+              "flag_rate_cover": 0.07699999958276749,
+              "fpr_paper_convention": 0.08781110826465818
+            }
+          },
+          "realized": {
+            "q0.01": {
+              "threshold": 0.02049500122666359,
+              "tpr": 0.8036999702453613,
+              "fpr_clean_train": 0.009999999776482582
+            },
+            "q0.05": {
+              "threshold": 0.13050000369548798,
+              "tpr": 0.9413999915122986,
+              "fpr_clean_train": 0.049800001084804535
+            },
+            "q0.10": {
+              "threshold": 0.23194999992847443,
+              "tpr": 0.9764000177383423,
+              "fpr_clean_train": 0.10000000149011612
+            }
+          }
+        }
+      }
+    }
+  },
+  "gap": {
+    "ours": {
+      "fractional": {
+        "psbd_tm": {
+          "median_clean_train": 0.992499053478241,
+          "median_validation": 0.991534948348999,
+          "median_difference": 0.0009641051292419434,
+          "mean_difference": -0.004418790340423584,
+          "ks_statistic": 0.0589,
+          "ks_pvalue": 1.8400697904478396e-05
+        },
+        "psbd_rd": {
+          "median_clean_train": 0.9875856637954712,
+          "median_validation": 0.9857445955276489,
+          "median_difference": 0.0018410682678222656,
+          "mean_difference": 0.0020564794540405273,
+          "ks_statistic": 0.0661,
+          "ks_pvalue": 9.094610422573539e-07
+        },
+        "middle_band": {
+          "median_clean_train": 0.9848864674568176,
+          "median_validation": 0.9830713868141174,
+          "median_difference": 0.0018150806427001953,
+          "mean_difference": 0.005209207534790039,
+          "ks_statistic": 0.0436,
+          "ks_pvalue": 0.003468010263940454
+        },
+        "final_min": {
+          "median_clean_train": 0.4034999907016754,
+          "median_validation": 0.359250009059906,
+          "median_difference": 0.04424998164176941,
+          "mean_difference": 0.02362266182899475,
+          "ks_statistic": 0.0602,
+          "ks_pvalue": 1.0969085832246729e-05
+        }
+      },
+      "absolute": {
+        "psbd_tm": {
+          "median_clean_train": 0.9864698648452759,
+          "median_validation": 0.9559886455535889,
+          "median_difference": 0.03048121929168701,
+          "mean_difference": 0.08249342441558838,
+          "ks_statistic": 0.2396,
+          "ks_pvalue": 1.6657812381389343e-84
+        },
+        "psbd_rd": {
+          "median_clean_train": 0.9801561832427979,
+          "median_validation": 0.956599771976471,
+          "median_difference": 0.023556411266326904,
+          "mean_difference": 0.08778339624404907,
+          "ks_statistic": 0.2352,
+          "ks_pvalue": 2.061806266890635e-81
+        },
+        "middle_band": {
+          "median_clean_train": 0.9746620655059814,
+          "median_validation": 0.9366299510002136,
+          "median_difference": 0.03803211450576782,
+          "mean_difference": 0.087502121925354,
+          "ks_statistic": 0.2257,
+          "ks_pvalue": 6.132187149522207e-75
+        },
+        "final_min": {
+          "median_clean_train": 0.6014999747276306,
+          "median_validation": 0.4322500228881836,
+          "median_difference": 0.16924995183944702,
+          "mean_difference": 0.12260356545448303,
+          "ks_statistic": 0.2109,
+          "ks_pvalue": 2.089575812510507e-65
+        }
+      }
+    },
+    "li": {
+      "fractional": {
+        "psbd_tm": {
+          "median_clean_train": 0.9946074485778809,
+          "median_validation": 0.9937273263931274,
+          "median_difference": 0.000880122184753418,
+          "mean_difference": -0.00037729740142822266,
+          "ks_statistic": 0.0747,
+          "ks_pvalue": 1.588883626672597e-08
+        },
+        "psbd_rd": {
+          "median_clean_train": 0.9875856637954712,
+          "median_validation": 0.9857445955276489,
+          "median_difference": 0.0018410682678222656,
+          "mean_difference": 0.0020564794540405273,
+          "ks_statistic": 0.0661,
+          "ks_pvalue": 9.094610422573539e-07
+        },
+        "middle_band": {
+          "median_clean_train": 0.9848864674568176,
+          "median_validation": 0.9830713868141174,
+          "median_difference": 0.0018150806427001953,
+          "mean_difference": 0.005209207534790039,
+          "ks_statistic": 0.0436,
+          "ks_pvalue": 0.003468010263940454
+        },
+        "final_min": {
+          "median_clean_train": 0.398499995470047,
+          "median_validation": 0.34275001287460327,
+          "median_difference": 0.055749982595443726,
+          "mean_difference": 0.03393363952636719,
+          "ks_statistic": 0.0695,
+          "ks_pvalue": 1.9481339693681901e-07
+        }
+      },
+      "absolute": {
+        "psbd_tm": {
+          "median_clean_train": 0.9908941984176636,
+          "median_validation": 0.9790147542953491,
+          "median_difference": 0.011879444122314453,
+          "mean_difference": 0.08708101511001587,
+          "ks_statistic": 0.2602,
+          "ks_pvalue": 8.746644467329272e-100
+        },
+        "psbd_rd": {
+          "median_clean_train": 0.9801561832427979,
+          "median_validation": 0.956599771976471,
+          "median_difference": 0.023556411266326904,
+          "mean_difference": 0.08778339624404907,
+          "ks_statistic": 0.2352,
+          "ks_pvalue": 2.061806266890635e-81
+        },
+        "middle_band": {
+          "median_clean_train": 0.9746620655059814,
+          "median_validation": 0.9366299510002136,
+          "median_difference": 0.03803211450576782,
+          "mean_difference": 0.087502121925354,
+          "ks_statistic": 0.2257,
+          "ks_pvalue": 6.132187149522207e-75
+        },
+        "final_min": {
+          "median_clean_train": 0.5864999890327454,
+          "median_validation": 0.41874998807907104,
+          "median_difference": 0.16775000095367432,
+          "mean_difference": 0.1312374770641327,
+          "ks_statistic": 0.2381,
+          "ks_pvalue": 1.917151897291326e-83
+        }
+      }
+    }
+  },
+  "common_subset": {
+    "psbd_tm": {
+      "n": {
+        "poisoned": 500,
+        "clean_train": 1000,
+        "cover": 250
+      },
+      "auroc": 0.9652000000000001,
+      "nominal": {
+        "q0.01": {
+          "threshold": 0.0937805026769638,
+          "tpr": 0.33000001311302185,
+          "fpr_clean_train": 0.014999999664723873,
+          "flag_rate_cover": 0.0,
+          "fpr_paper_convention": 0.011666666405896345
+        },
+        "q0.05": {
+          "threshold": 0.6386187076568604,
+          "tpr": 0.8259999752044678,
+          "fpr_clean_train": 0.05400000140070915,
+          "flag_rate_cover": 0.012000000104308128,
+          "fpr_paper_convention": 0.0446666677792867
+        },
+        "q0.10": {
+          "threshold": 0.9134668111801147,
+          "tpr": 0.9620000123977661,
+          "fpr_clean_train": 0.11999999731779099,
+          "flag_rate_cover": 0.06400000303983688,
+          "fpr_paper_convention": 0.10755555414491229
+        },
+        "q0.25": {
+          "threshold": 0.9805314540863037,
+          "tpr": 0.9940000176429749,
+          "fpr_clean_train": 0.23199999332427979,
+          "flag_rate_cover": 0.18400000035762787,
+          "fpr_paper_convention": 0.22133332822057936
+        }
+      },
+      "realized": {
+        "q0.01": {
+          "threshold": 0.045529767870903015,
+          "tpr": 0.25999999046325684,
+          "fpr_clean_train": 0.009999999776482582
+        },
+        "q0.05": {
+          "threshold": 0.6195213794708252,
+          "tpr": 0.8159999847412109,
+          "fpr_clean_train": 0.05000000074505806
+        },
+        "q0.10": {
+          "threshold": 0.8880757093429565,
+          "tpr": 0.9440000057220459,
+          "fpr_clean_train": 0.10000000149011612
+        }
+      }
+    },
+    "psbd_rd": {
+      "n": {
+        "poisoned": 500,
+        "clean_train": 1000,
+        "cover": 250
+      },
+      "auroc": 0.984666,
+      "nominal": {
+        "q0.01": {
+          "threshold": 0.7007565498352051,
+          "tpr": 0.6819999814033508,
+          "fpr_clean_train": 0.008999999612569809,
+          "flag_rate_cover": 0.012000000104308128,
+          "fpr_paper_convention": 0.009666666388511658
+        },
+        "q0.05": {
+          "threshold": 0.8870751261711121,
+          "tpr": 0.9079999923706055,
+          "fpr_clean_train": 0.041999999433755875,
+          "flag_rate_cover": 0.06400000303983688,
+          "fpr_paper_convention": 0.046888889123996094
+        },
+        "q0.10": {
+          "threshold": 0.9384717345237732,
+          "tpr": 0.972000002861023,
+          "fpr_clean_train": 0.0989999994635582,
+          "flag_rate_cover": 0.09600000083446503,
+          "fpr_paper_convention": 0.0983333331015375
+        },
+        "q0.25": {
+          "threshold": 0.9712117910385132,
+          "tpr": 0.9940000176429749,
+          "fpr_clean_train": 0.23899999260902405,
+          "flag_rate_cover": 0.19599999487400055,
+          "fpr_paper_convention": 0.2294444375567966
+        }
+      },
+      "realized": {
+        "q0.01": {
+          "threshold": 0.7319514751434326,
+          "tpr": 0.7160000205039978,
+          "fpr_clean_train": 0.009999999776482582
+        },
+        "q0.05": {
+          "threshold": 0.9015132188796997,
+          "tpr": 0.921999990940094,
+          "fpr_clean_train": 0.05000000074505806
+        },
+        "q0.10": {
+          "threshold": 0.9398435354232788,
+          "tpr": 0.972000002861023,
+          "fpr_clean_train": 0.10000000149011612
+        }
+      }
+    },
+    "middle_band": {
+      "n": {
+        "poisoned": 500,
+        "clean_train": 1000,
+        "cover": 250
+      },
+      "auroc": 0.9933860000000001,
+      "nominal": {
+        "q0.01": {
+          "threshold": 0.294607013463974,
+          "tpr": 0.8500000238418579,
+          "fpr_clean_train": 0.008999999612569809,
+          "flag_rate_cover": 0.00800000037997961,
+          "fpr_paper_convention": 0.0087777775608831
+        },
+        "q0.05": {
+          "threshold": 0.7096964120864868,
+          "tpr": 0.9779999852180481,
+          "fpr_clean_train": 0.04800000041723251,
+          "flag_rate_cover": 0.04800000041723251,
+          "fpr_paper_convention": 0.04800000041723251
+        },
+        "q0.10": {
+          "threshold": 0.8359378576278687,
+          "tpr": 0.9900000095367432,
+          "fpr_clean_train": 0.0989999994635582,
+          "flag_rate_cover": 0.08799999952316284,
+          "fpr_paper_convention": 0.09655555503235923
+        },
+        "q0.25": {
+          "threshold": 0.9499838948249817,
+          "tpr": 0.9980000257492065,
+          "fpr_clean_train": 0.21699999272823334,
+          "flag_rate_cover": 0.2199999988079071,
+          "fpr_paper_convention": 0.21766666074593863
+        }
+      },
+      "realized": {
+        "q0.01": {
+          "threshold": 0.3269454836845398,
+          "tpr": 0.8740000128746033,
+          "fpr_clean_train": 0.009999999776482582
+        },
+        "q0.05": {
+          "threshold": 0.7470260262489319,
+          "tpr": 0.9819999933242798,
+          "fpr_clean_train": 0.05000000074505806
+        },
+        "q0.10": {
+          "threshold": 0.8386932015419006,
+          "tpr": 0.9900000095367432,
+          "fpr_clean_train": 0.10000000149011612
+        }
+      }
+    },
+    "final_min": {
+      "n": {
+        "poisoned": 500,
+        "clean_train": 1000,
+        "cover": 250
+      },
+      "auroc": 0.986387,
+      "nominal": {
+        "q0.01": {
+          "threshold": 0.004995000082999468,
+          "tpr": 0.671999990940094,
+          "fpr_clean_train": 0.010999999940395355,
+          "flag_rate_cover": 0.00800000037997961,
+          "fpr_paper_convention": 0.010333333371414078
+        },
+        "q0.05": {
+          "threshold": 0.028999999165534973,
+          "tpr": 0.9620000123977661,
+          "fpr_clean_train": 0.04899999871850014,
+          "flag_rate_cover": 0.019999999552965164,
+          "fpr_paper_convention": 0.04255555445949236
+        },
+        "q0.10": {
+          "threshold": 0.05994999781250954,
+          "tpr": 0.9879999756813049,
+          "fpr_clean_train": 0.10899999737739563,
+          "flag_rate_cover": 0.06400000303983688,
+          "fpr_paper_convention": 0.0989999986357159
+        },
+        "q0.25": {
+          "threshold": 0.1612500101327896,
+          "tpr": 0.9980000257492065,
+          "fpr_clean_train": 0.2529999911785126,
+          "flag_rate_cover": 0.20000000298023224,
+          "fpr_paper_convention": 0.24122221602333915
+        }
+      },
+      "realized": {
+        "q0.01": {
+          "threshold": 0.0044999998062849045,
+          "tpr": 0.6340000033378601,
+          "fpr_clean_train": 0.008999999612569809
+        },
+        "q0.05": {
+          "threshold": 0.029999999329447746,
+          "tpr": 0.9639999866485596,
+          "fpr_clean_train": 0.04899999871850014
+        },
+        "q0.10": {
+          "threshold": 0.05700000002980232,
+          "tpr": 0.9879999756813049,
+          "fpr_clean_train": 0.09799999743700027
+        }
+      }
+    },
+    "strip": {
+      "n": {
+        "poisoned": 500,
+        "clean_train": 1000,
+        "cover": 250
+      },
+      "auroc": 0.491706,
+      "nominal": {
+        "q0.01": {
+          "threshold": 0.27218320965766907,
+          "tpr": 0.0020000000949949026,
+          "fpr_clean_train": 0.009999999776482582,
+          "flag_rate_cover": 0.00800000037997961,
+          "fpr_paper_convention": 0.009555555466148589
+        },
+        "q0.05": {
+          "threshold": 0.697791576385498,
+          "tpr": 0.03999999910593033,
+          "fpr_clean_train": 0.05999999865889549,
+          "flag_rate_cover": 0.05999999865889549,
+          "fpr_paper_convention": 0.05999999865889549
+        },
+        "q0.10": {
+          "threshold": 0.8719063401222229,
+          "tpr": 0.09399999678134918,
+          "fpr_clean_train": 0.10700000077486038,
+          "flag_rate_cover": 0.09600000083446503,
+          "fpr_paper_convention": 0.10455555634366141
+        },
+        "q0.25": {
+          "threshold": 1.1836953163146973,
+          "tpr": 0.23999999463558197,
+          "fpr_clean_train": 0.26600000262260437,
+          "flag_rate_cover": 0.23199999332427979,
+          "fpr_paper_convention": 0.2584444450007545
+        }
+      },
+      "realized": {
+        "q0.01": {
+          "threshold": 0.2741592824459076,
+          "tpr": 0.0020000000949949026,
+          "fpr_clean_train": 0.009999999776482582
+        },
+        "q0.05": {
+          "threshold": 0.6580504775047302,
+          "tpr": 0.03200000151991844,
+          "fpr_clean_train": 0.05000000074505806
+        },
+        "q0.10": {
+          "threshold": 0.8486241698265076,
+          "tpr": 0.09000000357627869,
+          "fpr_clean_train": 0.10000000149011612
+        }
+      }
+    },
+    "cd_l": {
+      "n": {
+        "poisoned": 500,
+        "clean_train": 1000,
+        "cover": 250
+      },
+      "auroc": 0.920988,
+      "nominal": {
+        "q0.01": {
+          "threshold": 2.422349452972412,
+          "tpr": 0.004000000189989805,
+          "fpr_clean_train": 0.01600000075995922,
+          "flag_rate_cover": 0.02800000086426735,
+          "fpr_paper_convention": 0.018666667449805472
+        },
+        "q0.05": {
+          "threshold": 4.836431980133057,
+          "tpr": 0.2460000067949295,
+          "fpr_clean_train": 0.050999999046325684,
+          "flag_rate_cover": 0.07199999690055847,
+          "fpr_paper_convention": 0.0556666652361552
+        },
+        "q0.10": {
+          "threshold": 6.824021816253662,
+          "tpr": 0.7519999742507935,
+          "fpr_clean_train": 0.09399999678134918,
+          "flag_rate_cover": 0.11999999731779099,
+          "fpr_paper_convention": 0.09977777467833626
+        },
+        "q0.25": {
+          "threshold": 12.42674446105957,
+          "tpr": 0.9860000014305115,
+          "fpr_clean_train": 0.23399999737739563,
+          "flag_rate_cover": 0.31200000643730164,
+          "fpr_paper_convention": 0.2513333327240414
+        }
+      },
+      "realized": {
+        "q0.01": {
+          "threshold": 1.9692312479019165,
+          "tpr": 0.0,
+          "fpr_clean_train": 0.009999999776482582
+        },
+        "q0.05": {
+          "threshold": 4.82208251953125,
+          "tpr": 0.23999999463558197,
+          "fpr_clean_train": 0.05000000074505806
+        },
+        "q0.10": {
+          "threshold": 6.997533798217773,
+          "tpr": 0.7860000133514404,
+          "fpr_clean_train": 0.10000000149011612
+        }
+      }
+    }
+  },
+  "detectors": {
+    "strip": {
+      "n": {
+        "poisoned": 1000,
+        "clean_train": 2000,
+        "cover": 500
+      },
+      "auroc": 0.49847499999999995,
+      "nominal": {
+        "q0.01": {
+          "threshold": 0.27218320965766907,
+          "tpr": 0.004000000189989805,
+          "fpr_clean_train": 0.008999999612569809,
+          "flag_rate_cover": 0.004000000189989805,
+          "fpr_paper_convention": 0.007888888629774254
+        },
+        "q0.05": {
+          "threshold": 0.697791576385498,
+          "tpr": 0.04899999871850014,
+          "fpr_clean_train": 0.060499999672174454,
+          "flag_rate_cover": 0.04800000041723251,
+          "fpr_paper_convention": 0.057722222059965134
+        },
+        "q0.10": {
+          "threshold": 0.8719063401222229,
+          "tpr": 0.10999999940395355,
+          "fpr_clean_train": 0.10849999636411667,
+          "flag_rate_cover": 0.08799999952316284,
+          "fpr_paper_convention": 0.10394444151057138
+        },
+        "q0.25": {
+          "threshold": 1.1836953163146973,
+          "tpr": 0.2549999952316284,
+          "fpr_clean_train": 0.25850000977516174,
+          "flag_rate_cover": 0.2240000069141388,
+          "fpr_paper_convention": 0.25083334247271216
+        }
+      },
+      "realized": {
+        "q0.01": {
+          "threshold": 0.30399733781814575,
+          "tpr": 0.004000000189989805,
+          "fpr_clean_train": 0.009999999776482582
+        },
+        "q0.05": {
+          "threshold": 0.6570716500282288,
+          "tpr": 0.03999999910593033,
+          "fpr_clean_train": 0.05000000074505806
+        },
+        "q0.10": {
+          "threshold": 0.8413988947868347,
+          "tpr": 0.10300000011920929,
+          "fpr_clean_train": 0.10000000149011612
+        }
+      }
+    },
+    "cd_l": {
+      "n": {
+        "poisoned": 500,
+        "clean_train": 1000,
+        "cover": 250
+      },
+      "auroc": 0.920988,
+      "nominal": {
+        "q0.01": {
+          "threshold": 2.422349452972412,
+          "tpr": 0.004000000189989805,
+          "fpr_clean_train": 0.01600000075995922,
+          "flag_rate_cover": 0.02800000086426735,
+          "fpr_paper_convention": 0.018666667449805472
+        },
+        "q0.05": {
+          "threshold": 4.836431980133057,
+          "tpr": 0.2460000067949295,
+          "fpr_clean_train": 0.050999999046325684,
+          "flag_rate_cover": 0.07199999690055847,
+          "fpr_paper_convention": 0.0556666652361552
+        },
+        "q0.10": {
+          "threshold": 6.824021816253662,
+          "tpr": 0.7519999742507935,
+          "fpr_clean_train": 0.09399999678134918,
+          "flag_rate_cover": 0.11999999731779099,
+          "fpr_paper_convention": 0.09977777467833626
+        },
+        "q0.25": {
+          "threshold": 12.42674446105957,
+          "tpr": 0.9860000014305115,
+          "fpr_clean_train": 0.23399999737739563,
+          "flag_rate_cover": 0.31200000643730164,
+          "fpr_paper_convention": 0.2513333327240414
+        }
+      },
+      "realized": {
+        "q0.01": {
+          "threshold": 1.9692312479019165,
+          "tpr": 0.0,
+          "fpr_clean_train": 0.009999999776482582
+        },
+        "q0.05": {
+          "threshold": 4.82208251953125,
+          "tpr": 0.23999999463558197,
+          "fpr_clean_train": 0.05000000074505806
+        },
+        "q0.10": {
+          "threshold": 6.997533798217773,
+          "tpr": 0.7860000133514404,
+          "fpr_clean_train": 0.10000000149011612
+        }
+      }
+    }
+  },
+  "detector_validation_checks": {
+    "strip": {
+      "max_abs_difference": 0.0
+    },
+    "cd_l": "results/<folder>/detectors/cd_l_scores_validation.pt"
+  },
+  "spectral_signatures": {
+    "epsilon": 0.1,
+    "tpr": 0.475,
+    "fpr_paper_convention": 0.5022222222222222,
+    "auroc_within_target_label": 1.5000000000000016e-05
+  },
+  "paper_rule": {
+    "psbd_tm|ours|fractional": {
+      "tpr": 0.994700014591217,
+      "fpr_clean_train": 0.23649999499320984,
+      "fpr_paper_convention": 0.21983333097563848
+    },
+    "psbd_rd|ours|fractional": {
+      "tpr": 0.9879000186920166,
+      "fpr_clean_train": 0.22949999570846558,
+      "fpr_paper_convention": 0.225611107216941
+    },
+    "middle_band|ours|fractional": {
+      "tpr": 0.9965000152587891,
+      "fpr_clean_train": 0.22699999809265137,
+      "fpr_paper_convention": 0.21777777539359197
+    },
+    "final_min|ours|fractional": {
+      "tpr": 0.9970999956130981,
+      "fpr_clean_train": 0.23890000581741333,
+      "fpr_paper_convention": 0.22225556108686662
+    },
+    "psbd_tm|ours|absolute": {
+      "tpr": 0.8500999808311462,
+      "fpr_clean_train": 0.10670000314712524,
+      "fpr_paper_convention": 0.09865555829472011
+    },
+    "psbd_rd|ours|absolute": {
+      "tpr": 0.8033999800682068,
+      "fpr_clean_train": 0.06719999760389328,
+      "fpr_paper_convention": 0.06715555406279033
+    },
+    "middle_band|ours|absolute": {
+      "tpr": 0.9767000079154968,
+      "fpr_clean_train": 0.09109999984502792,
+      "fpr_paper_convention": 0.08796666645341449
+    },
+    "final_min|ours|absolute": {
+      "tpr": 0.9735999703407288,
+      "fpr_clean_train": 0.12060000002384186,
+      "fpr_paper_convention": 0.11124444504578909
+    },
+    "psbd_tm|li|fractional": {
+      "tpr": 0.9962999820709229,
+      "fpr_clean_train": 0.19059999287128448,
+      "fpr_paper_convention": 0.18213332858350545
+    },
+    "psbd_rd|li|fractional": {
+      "tpr": 0.9879000186920166,
+      "fpr_clean_train": 0.22949999570846558,
+      "fpr_paper_convention": 0.225611107216941
+    },
+    "middle_band|li|fractional": {
+      "tpr": 0.9965000152587891,
+      "fpr_clean_train": 0.22699999809265137,
+      "fpr_paper_convention": 0.21777777539359197
+    },
+    "final_min|li|fractional": {
+      "tpr": 0.9976000189781189,
+      "fpr_clean_train": 0.20589999854564667,
+      "fpr_paper_convention": 0.19481111069520313
+    },
+    "psbd_tm|li|absolute": {
+      "tpr": 0.6218000054359436,
+      "fpr_clean_train": 0.06260000169277191,
+      "fpr_paper_convention": 0.06180000139607324
+    },
+    "psbd_rd|li|absolute": {
+      "tpr": 0.8033999800682068,
+      "fpr_clean_train": 0.06719999760389328,
+      "fpr_paper_convention": 0.06715555406279033
+    },
+    "middle_band|li|absolute": {
+      "tpr": 0.9767000079154968,
+      "fpr_clean_train": 0.09109999984502792,
+      "fpr_paper_convention": 0.08796666645341449
+    },
+    "final_min|li|absolute": {
+      "tpr": 0.9699000120162964,
+      "fpr_clean_train": 0.0908999964594841,
+      "fpr_paper_convention": 0.08781110826465818
+    }
+  },
+  "gpu_seconds": 1100.8510412247851,
+  "test_time": {
+    "psbd_tm": {
+      "auroc": 0.9500038605631218,
+      "q0.01:tpr": 0.29111698269844055,
+      "q0.01:fpr": 0.011684885248541832,
+      "q0.05:tpr": 0.7567533850669861,
+      "q0.05:fpr": 0.05151401087641716,
+      "q0.10:tpr": 0.9315240383148193,
+      "q0.10:fpr": 0.1085563525557518,
+      "q0.25:tpr": 0.9734891057014465,
+      "q0.25:fpr": 0.2642291784286499
+    },
+    "psbd_rd": {
+      "auroc": 0.9656638153436221,
+      "q0.01:tpr": 0.6647819876670837,
+      "q0.01:fpr": 0.01067973393946886,
+      "q0.05:tpr": 0.8516145348548889,
+      "q0.05:fpr": 0.049754995852708817,
+      "q0.10:tpr": 0.9242367148399353,
+      "q0.10:fpr": 0.11345646530389786,
+      "q0.25:tpr": 0.9698454737663269,
+      "q0.25:fpr": 0.262721449136734
+    },
+    "middle_band": {
+      "auroc": 0.9733280868825137,
+      "q0.01:tpr": 0.7768563628196716,
+      "q0.01:fpr": 0.011559241451323032,
+      "q0.05:tpr": 0.9271265268325806,
+      "q0.05:fpr": 0.056037191301584244,
+      "q0.10:tpr": 0.953637421131134,
+      "q0.10:fpr": 0.09863048046827316,
+      "q0.25:tpr": 0.9738660454750061,
+      "q0.25:fpr": 0.2509109079837799
+    },
+    "final_min": {
+      "auroc": 0.9684835419166147,
+      "q0.01:tpr": 0.6133936643600464,
+      "q0.01:fpr": 0.010051514022052288,
+      "q0.05:tpr": 0.9048875570297241,
+      "q0.05:fpr": 0.05515768378973007,
+      "q0.10:tpr": 0.9492398500442505,
+      "q0.10:fpr": 0.11307953298091888,
+      "q0.25:tpr": 0.9762532711029053,
+      "q0.25:fpr": 0.24864932894706726
+    },
+    "strip": {
+      "auroc": 0.5317215944051497,
+      "q0.01:tpr": 0.004397537559270859,
+      "q0.05:tpr": 0.059680864214897156,
+      "q0.10:tpr": 0.11157180368900299,
+      "q0.25:tpr": 0.2882271707057953
+    },
+    "cd_l": {
+      "auroc": 0.9058755402755871,
+      "q0.01:tpr": 0.005025757011026144,
+      "q0.05:tpr": 0.2682497799396515,
+      "q0.10:tpr": 0.7419273853302002,
+      "q0.25:tpr": 0.9620555639266968
+    }
+  }
+}

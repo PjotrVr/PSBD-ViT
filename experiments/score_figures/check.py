@@ -39,10 +39,12 @@ def main():
     vit_rows = check_vit_panel()
     bb_rows = check_backdoorbench()
     swin_rows = check_swin_panel()
+    confidence_rows = check_confidence()
     for name, rows in (
         ("vit_panel", vit_rows),
         ("backdoorbench", bb_rows),
         ("swin_panel", swin_rows),
+        ("confidence sidecars", confidence_rows),
     ):
         print(f"{name}: {rows} model readings match within {TOLERANCE}")
 
@@ -122,6 +124,39 @@ def check_swin_panel():
             compare(expected, flat_at_fpr(evaluation), model["folder"], key)
             compared += 1
     return compared
+
+
+def check_confidence():
+    # psu_vs_confidence/division.json measured absolute against fractional PSU
+    # for PSBD-TM on the ViT panel through the same helpers.
+    with open(
+        os.path.join("results", "_experiments", "psu_vs_confidence", "division.json")
+    ) as handle:
+        record = {model["folder"]: model for model in json.load(handle)["panel_models"]}
+    paths = glob.glob(os.path.join(SCORE_ROOT, "vit_panel", "*", "confidence_tm.json"))
+    for path in paths:
+        with open(path) as handle:
+            sidecar = json.load(handle)
+        expected = record[sidecar["folder"]]
+        assert expected["rate"] == sidecar["rate"], sidecar["folder"]
+        for form in ("absolute", "fractional"):
+            reading = sidecar["forms"][form]
+            pairs = [
+                (expected["auroc"][form], reading["auroc"]),
+                (expected["budgets"]["q0.01"][form]["tpr"], reading["tpr"]),
+                (
+                    expected["budgets"]["q0.01"][form]["fpr_clean"],
+                    reading["realized_fpr"],
+                ),
+            ]
+            for want, got in pairs:
+                assert abs(want - got) <= TOLERANCE, (
+                    sidecar["folder"],
+                    form,
+                    want,
+                    got,
+                )
+    return len(paths)
 
 
 def load_numbers(set_name):

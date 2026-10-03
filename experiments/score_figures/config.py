@@ -63,3 +63,77 @@ HISTOGRAM_UPPER_QUANTILE = 0.6
 HISTOGRAM_BINS = 80
 
 DPI = 90
+
+# The figure types below each have an on/off flag and their own options. A model
+# listed under a set must already have its numbers.json, since every figure reads
+# the probe rates from it. Per-model figures land beside numbers.json, set-level
+# ones in the set's directory and cross-set ones in _across_sets/.
+
+# Clean-validation percentile of the anchor against that of the partner, with the
+# regions each fusion rule flags at the budget.
+SCATTER = {
+    "enabled": True,
+    "anchor": "tm",
+    "partner": "band",
+    "budget": 0.01,
+    "models": {
+        "vit_panel": ["vit_cifar10_wanet_0_1", "vit_tiny_blend_0_05"],
+        "swin_panel": ["swin_cifar10_wanet_0_1"],
+        "backdoorbench": ["bb_cifar10_blind_0_1"],
+    },
+}
+
+# Starting confidence against absolute and fractional PSU.
+CONFIDENCE = {
+    "enabled": True,
+    "probe": "tm",
+    "budget": 0.01,
+    "models": {
+        "vit_panel": [
+            "vit_cifar100_badnet_a2o_0_05",
+            "vit_cifar100_blend_0_05",
+            "vit_tiny_badnet_a2o_0_01",
+            "vit_gtsrb_badnet_a2o_0_05",
+        ],
+    },
+}
+
+# Share of changed predictions and mean surviving probability along each
+# probe's cached rate ladder, averaged per attack.
+SHIFT_LADDER = {
+    "enabled": True,
+    "probes": ["tm", "rd"],
+    "sets": ["vit_panel", "swin_panel"],
+}
+
+# The class each changed clean-validation prediction moves to.
+FLIP_TARGETS = {
+    "enabled": True,
+    "probe": "tm",
+    "models": {
+        "vit_panel": ["vit_gtsrb_tact_0_01_cos", "vit_gtsrb_badnet_a2o_0_05"],
+        "swin_panel": ["swin_gtsrb_badnet_a2o_0_05"],
+    },
+}
+
+# Clean-accuracy cost against PSBD-TM AUROC for the adaptive attackers.
+EVADERS = {
+    "enabled": True,
+    "record": "results/_experiments/final_method/adaptive_attackers.json",
+    "success_bar_points": 2,
+}
+
+# Share of clean validation whose fractional PSU is below 0 against TPR.
+NEGATIVE_PSU = {
+    "enabled": True,
+    "probe": "tm",
+    "budget": 0.01,
+    "sets": ["vit_panel", "swin_panel", "backdoorbench"],
+}
+
+# Nominal FPR against the FPR realized on the paired clean test split.
+THRESHOLD_TRANSFER = {
+    "enabled": True,
+    "curves": [["tm", "psu"], ["tm+band", "weighted"]],
+    "sets": ["vit_panel", "swin_panel"],
+}

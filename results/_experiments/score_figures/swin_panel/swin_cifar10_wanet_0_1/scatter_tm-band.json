@@ -1,0 +1,71 @@
+{
+ "folder": "swin_cifar10_wanet_0_1",
+ "anchor": {
+  "name": "tm",
+  "rate": 0.6
+ },
+ "partner": {
+  "name": "band",
+  "rate": 0.99
+ },
+ "budget": 0.01,
+ "rank_floor": 0.00025,
+ "share_at_rank_0": {
+  "validation": [
+   0.0005,
+   0.0005
+  ],
+  "backdoor": [
+   0.0,
+   0.0
+  ]
+ },
+ "rules": {
+  "min": {
+   "shares": [
+    1.0,
+    1.0
+   ],
+   "threshold": 0.006000000052154064,
+   "cutoffs": [
+    0.006000000052154064,
+    0.006000000052154064
+   ],
+   "validation": {
+    "flagged": 0.0095,
+    "anchor_only": 0.0035,
+    "partner_only": 0.0035,
+    "both": 0.0025
+   },
+   "backdoor": {
+    "flagged": 0.9563888888888888,
+    "anchor_only": 0.0009722222222222222,
+    "partner_only": 0.8730555555555556,
+    "both": 0.08236111111111111
+   }
+  },
+  "weighted": {
+   "shares": [
+    0.9,
+    0.09999999999999998
+   ],
+   "threshold": 0.011105555109679699,
+   "cutoffs": [
+    0.009994999598711729,
+    0.0011105555109679696
+   ],
+   "validation": {
+    "flagged": 0.01,
+    "anchor_only": 0.0085,
+    "partner_only": 0.0,
+    "both": 0.0015
+   },
+   "backdoor": {
+    "flagged": 0.9016666666666666,
+    "anchor_only": 0.009027777777777777,
+    "partner_only": 0.7493055555555556,
+    "both": 0.14333333333333334
+   }
+  }
+ }
+}

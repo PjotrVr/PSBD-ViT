@@ -41,6 +41,7 @@ from experiments.score_figures.figures import (
     draw_mean_roc,
     draw_model_roc,
 )
+from experiments.score_figures.pictures import PICTURE_NAMES, run_pictures
 from scripts.paper.tab_swin import swin_cells
 
 SLUG = "score_figures"
@@ -54,6 +55,7 @@ CPU_THREADS = 4
 SPLITS = ("validation", "clean", "backdoor")
 SINGLE_RULE = "psu"
 CUSTOM_SET = "custom"
+SCORES = "scores"
 
 
 def main():
@@ -61,17 +63,23 @@ def main():
     torch.set_num_threads(CPU_THREADS)
     started = time.perf_counter()
 
-    for set_name in chosen_sets(args):
-        models = resolve_set(set_name, args.models)
-        set_dir = os.path.join(experiment_results_dir(SLUG, RESULTS_DIR), set_name)
-        for model in models:
-            numbers, scores = score_model(model)
-            write_model_outputs(set_dir, model, numbers, scores)
-            print(f"{set_name} {model['folder']} done", flush=True)
+    root = experiment_results_dir(SLUG, RESULTS_DIR)
+    set_names = chosen_sets(args)
+    if SCORES in args.figures:
+        for set_name in set_names:
+            models = resolve_set(set_name, args.models)
+            set_dir = os.path.join(root, set_name)
+            for model in models:
+                numbers, scores = score_model(model)
+                write_model_outputs(set_dir, model, numbers, scores)
+                print(f"{set_name} {model['folder']} done", flush=True)
 
-        all_numbers = read_set_numbers(set_dir)
-        write_set_outputs(set_dir, set_name, all_numbers)
-        print(f"{set_name}: {len(all_numbers)} models in {set_dir}", flush=True)
+            all_numbers = read_set_numbers(set_dir)
+            write_set_outputs(set_dir, set_name, all_numbers)
+            print(f"{set_name}: {len(all_numbers)} models in {set_dir}", flush=True)
+
+    pictures = [name for name in args.figures if name != SCORES]
+    run_pictures(pictures, set_names, root)
 
     print(f"finished in {time.perf_counter() - started:.0f} s")
 
@@ -84,8 +92,18 @@ def parse_args():
         help="comma-separated results/ folder names, a filter on --set or, alone, "
         "an explicit set written under 'custom'",
     )
+    parser.add_argument(
+        "--figures",
+        default=",".join((SCORES,) + PICTURE_NAMES),
+        help="comma-separated figure kinds to draw, 'scores' being the histograms, "
+        "ROC curves and numbers every other kind reads, the rest switched on in "
+        f"config.py: {', '.join(PICTURE_NAMES)}",
+    )
     args = parser.parse_args()
     args.models = args.models.split(",") if args.models else None
+    args.figures = args.figures.split(",")
+    unknown = sorted(set(args.figures) - {SCORES, *PICTURE_NAMES})
+    assert not unknown, f"unknown figure kinds {unknown}"
     return args
 
 
